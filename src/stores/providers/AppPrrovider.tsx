@@ -1,0 +1,42 @@
+// src/providers/AppProviders.tsx
+import {PropsWithChildren, useEffect} from 'react';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {NavigationContainer} from '@react-navigation/native';
+import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
+import {KeyboardAvoidingView, Platform} from 'react-native';
+import {QueryProvider} from './QueryProvider';
+import {useThemeStore} from '../useThemeStore';
+import {useColorScheme} from 'nativewind';
+import {AppColors} from '../../config/theme';
+import CustomStatusBar from '../../components/CustomStatusBar';
+import '../../utils/sheets';
+import {SheetProvider} from 'react-native-actions-sheet';
+
+export const AppProviders = ({children}: PropsWithChildren) => {
+  const {setColorScheme} = useColorScheme();
+  const AppTheme = useThemeStore(state => state.AppTheme);
+
+  useEffect(() => {
+    setColorScheme(AppTheme);
+  }, [AppTheme, setColorScheme]);
+
+  return (
+    <QueryProvider>
+      <SafeAreaProvider>
+        <GestureHandlerRootView style={{flex: 1}}>
+          <SheetProvider>
+            <NavigationContainer>
+              <CustomStatusBar
+                backgroundColor={AppColors[AppTheme].primary}
+                barStyle="light-content"
+              />
+              <SafeAreaView style={{flex: 1}}>
+                  {children}
+              </SafeAreaView>
+            </NavigationContainer>
+          </SheetProvider>
+        </GestureHandlerRootView>
+      </SafeAreaProvider>
+    </QueryProvider>
+  );
+};
