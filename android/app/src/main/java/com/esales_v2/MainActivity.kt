@@ -1,4 +1,4 @@
-package com.asus.esales_V2
+package com.asus.esalesv2
 import android.os.Bundle;
 
 import com.facebook.react.ReactActivity

@@ -1,4 +1,4 @@
-package com.asus.esales_V2
+package com.asus.esalesv2
 
 import android.app.Application
 import com.facebook.react.PackageList
