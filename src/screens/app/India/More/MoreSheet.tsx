@@ -11,8 +11,9 @@ import {screenHeight} from '../../../../utils/constant';
 import {Watermark} from '../../../../components/Watermark';
 import {useLoginStore} from '../../../../stores/useLoginStore';
 import useEmpStore from '../../../../stores/useEmpStore';
-import {AppNavigationParamList} from '../../../../types/navigation';
-import ActionSheet from 'react-native-actions-sheet';
+import {AppNavigationParamList, AppNavigationProp} from '../../../../types/navigation';
+import ActionSheet, { SheetManager } from 'react-native-actions-sheet';
+import { useNavigation } from '@react-navigation/native';
 
 type Option = {
   label: string;
@@ -124,7 +125,7 @@ const MoreSheet = () => {
   const empInfo = useEmpStore(state => state.empInfo);
   const userInfo = useLoginStore(state => state.userInfo);
   const AppTheme = useThemeStore(state => state.AppTheme);
-  // const navigation = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const roleId = userInfo?.EMP_RoleId;
   const empType = userInfo?.EMP_Type;
@@ -140,7 +141,8 @@ const MoreSheet = () => {
 
   const chunkedOptions = useMemo(() => chunkArray(options, 6), [options]);
   const handlePress = (whereTo: keyof AppNavigationParamList) => {
-    // navigation.navigate(whereTo);
+    navigation.navigate(whereTo);
+    SheetManager.hide('MoreSheet');
   };
 
   return (

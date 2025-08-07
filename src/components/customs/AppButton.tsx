@@ -25,7 +25,7 @@ const AppButton = ({
     return (
         <TouchableOpacity
             onPress={onPress}
-            className={`bg-[#2d7abc] p-3 rounded-sm items-center ${className}`}
+            className={`bg-primary p-3 rounded-sm items-center ${className}`}
             activeOpacity={0.7}
             disabled={isLoading}
             style={{ opacity: isLoading ? 0.7 : 1 }}

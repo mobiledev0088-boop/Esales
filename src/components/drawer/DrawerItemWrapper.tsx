@@ -11,9 +11,10 @@ import { convertCamelCaseToSentence } from '../../utils/commonFunctios';
 interface DrawerItemWrapperProps {
     route: Route<string>;
     focused: boolean;
-    navigation: DrawerContentComponentProps['navigation'];
+    navigation?: DrawerContentComponentProps['navigation'];
     noIcon?: boolean;
     icon?: string;
+    onPress?: () => void;
 }
 
 const DrawerItemWrapper: React.FC<DrawerItemWrapperProps> = ({
@@ -22,11 +23,19 @@ const DrawerItemWrapper: React.FC<DrawerItemWrapperProps> = ({
     navigation,
     icon,
     noIcon = false,
+    onPress,
 }) => {
     const isDark = useThemeStore((state) => state.AppTheme === 'dark');
+    const handlePress = () => {
+        if (onPress) {
+            onPress();
+        } else {
+            navigation?.navigate(route.name);
+        }
+    }
     return (
         <TouchableOpacity
-            onPress={() => navigation.navigate(route.name)}
+            onPress={handlePress}
             className={`flex-row items-center mx-1 py-4 mb-1 pl-5 gap-8 rounded ${focused ? isDark ? 'bg-lightBg-base' : 'bg-tab-background' : ''}`}
         >
             {!noIcon && (

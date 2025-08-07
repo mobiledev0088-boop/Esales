@@ -41,11 +41,7 @@ const AppLayout = ({
   const name = userInfo?.EMP_Name?.split('_')[0] || '----';
 
   return needScroll ? (
-    <KeyboardAwareScrollView
-      className="flex-1"
-      enableOnAndroid
-      keyboardShouldPersistTaps="handled"
-      contentContainerStyle={{flexGrow: 1}}>
+    <View className="flex-1">
       <Header
         needBack={needBack}
         title={title}
@@ -54,8 +50,15 @@ const AppLayout = ({
         empInfo={empInfo}
         isDashboard={isDashboard}
       />
-      {children}
-    </KeyboardAwareScrollView>
+      <KeyboardAwareScrollView
+        className="flex-1"
+        enableOnAndroid
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{flexGrow: 1}}
+        >
+        {children}
+      </KeyboardAwareScrollView>
+    </View>
   ) : (
     <View className="flex-1">
       <Header

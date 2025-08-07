@@ -9,68 +9,74 @@ import AppButton from '../../../../../components/customs/AppButton';
 import AppText from '../../../../../components/customs/AppText';
 
 import { useLoginStore } from '../../../../../stores/useLoginStore';
-import { handleASINApiCall } from '../../../../../utils/handleApiCall';
+import { handleAPACApiCall, handleASINApiCall } from '../../../../../utils/handleApiCall';
 import { showToast } from '../../../../../utils/commonFunctios';
 
 const PASSWORD_RULE = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_\-+={}[\]:;"'<>,.?/]).{15,}$/;
 
 const ChangePassword = () => {
   const navigation = useNavigation();
-  const userInfo = useLoginStore(state => state.userInfo);
+  const user = useLoginStore(state => state.userInfo);
 
-  const [formData, setFormData] = useState({
-    newPassword: '',
-    confirmPassword: '',
+  const [passwords, setPasswords] = useState({
+    new: '',
+    confirm: '',
   });
 
-  const [error, setError] = useState({
-    newPassword: '',
-    confirmPassword: '',
+  const [errors, setErrors] = useState({
+    new: '',
+    confirm: '',
   });
 
-  const validateForm = () => {
-    const errors:any = {};
-    const { newPassword, confirmPassword } = formData;
+  const validatePasswords = () => {
+    const newErrors: any = {};
+    const { new: newPassword, confirm: confirmPassword } = passwords;
 
-    if (!newPassword) errors.newPassword = 'New Password is required';
-    if (!confirmPassword) errors.confirmPassword = 'Confirm Password is required';
-    else if (newPassword !== confirmPassword) errors.confirmPassword = 'Passwords do not match';
+    if (!newPassword) newErrors.new = 'New Password is required';
+    if (!confirmPassword) {
+      newErrors.confirm = 'Confirm Password is required';
+    } else if (newPassword !== confirmPassword) {
+      newErrors.confirm = 'Passwords do not match';
+    }
+
     if (newPassword && !PASSWORD_RULE.test(newPassword)) {
-      errors.newPassword =
+      newErrors.new =
         'Password must be at least 15 characters long and contain uppercase, lowercase, numeric, and special characters.';
     }
 
-    setError(errors);
-    return Object.keys(errors).length === 0;
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const changePassword = useMutation({
-    mutationFn: async () => {
+  const { mutate: changePassword } = useMutation({
+    mutationFn: async (isASIN: boolean) => {
       const payload = {
-        employeeCode: userInfo?.EMP_Code || '',
-        Password: formData.confirmPassword,
-        BusinessType: userInfo?.EMP_Btype,
-        RoleId: userInfo?.EMP_RoleId || '',
+        employeeCode: user?.EMP_Code || '',
+        Password: passwords.confirm,
+        BusinessType: user?.EMP_Btype,
+        RoleId: user?.EMP_RoleId || '',
       };
 
-      const res = await handleASINApiCall('/Auth/ChangePassword', payload);
-      const result = res.login;
+      const apiCall = isASIN ? handleASINApiCall : handleAPACApiCall;
+      const response = await apiCall('/Auth/ChangePassword', payload);
+      const result = response?.login;
 
-      if (result.Status) {
+      if (result?.Status) {
         showToast('Password changed successfully');
         navigation.goBack();
       } else {
-        showToast(result.Message || 'Failed to change password');
+        showToast(result?.Message || 'Failed to change password');
       }
 
-      return res;
+      return response;
     },
   });
 
-  const handleSubmit = () => {
-    if (validateForm()) {
-      changePassword.mutate();
-    }
+  const handlePasswordChange = () => {
+    if (!validatePasswords()) return;
+
+    const isASIN = user?.EMP_CountryID === 'ASIN';
+    changePassword(isASIN);
   };
 
   return (
@@ -79,27 +85,31 @@ const ChangePassword = () => {
         <AppInput
           label="New Password"
           placeholder="Enter new password"
-          value={formData.newPassword}
-          setValue={text => setFormData(prev => ({ ...prev, newPassword: text }))}
+          value={passwords.new}
+          setValue={text => setPasswords(prev => ({ ...prev, new: text }))}
           secureTextEntry
           isPassword
           inputClassName="px-4"
-          error={error.newPassword}
+          error={errors.new}
         />
 
         <AppInput
           label="Confirm Password"
           placeholder="Confirm new password"
-          value={formData.confirmPassword}
-          setValue={text => setFormData(prev => ({ ...prev, confirmPassword: text }))}
+          value={passwords.confirm}
+          setValue={text => setPasswords(prev => ({ ...prev, confirm: text }))}
           secureTextEntry
           isPassword
           inputClassName="px-4"
           containerClassName="mt-4"
-          error={error.confirmPassword}
+          error={errors.confirm}
         />
 
-        <AppButton title="Change Password" onPress={handleSubmit} className="mt-6" />
+        <AppButton
+          title="Change Password"
+          onPress={handlePasswordChange}
+          className="mt-6"
+        />
 
         <View className="border border-error rounded p-3 mb-4 mt-5">
           <AppText size="xs" color="text" weight="semibold">

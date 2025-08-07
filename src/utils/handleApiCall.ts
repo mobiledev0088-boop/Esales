@@ -29,8 +29,9 @@ export const handleASINApiCall = async <T = any>(
         }
         throw error;
     } finally {
+        setLoading(false);
         if (token && userInfo?.EMP_Code) {
-            void saveApiLog(url, token, userInfo.EMP_Code,setLoading);
+            void saveApiLog(url, token, userInfo.EMP_Code);
         } else {
             console.log('Token or EMP_Code is missing, skipping API log save');
         }
@@ -44,7 +45,6 @@ export const handleAPACApiCall = async <T = any>(
     headers?: Record<string, string>,
     showError: boolean = false
 ): Promise<T> => {
-    // const { token, userInfo } = useLoginStore.getState();
     const setLoading = useLoaderStore.getState().setLoading;
     try {
         console.log('Making API call to:', apiClientAPAC.getUri());
@@ -67,11 +67,6 @@ export const handleAPACApiCall = async <T = any>(
         throw error;
     } finally {
         setLoading(false);
-        // if (token && userInfo?.EMP_Code) {
-        //     void saveApiLog(url, token, userInfo.EMP_Code,toggleLoading);
-        // } else {
-        //     console.log('Token or EMP_Code is missing, skipping API log save');
-        // }
     }
 };
 
@@ -79,10 +74,8 @@ const saveApiLog = async (
     url: string,
     token: string,
     empCode: string,
-    setLoading: (loading: boolean) => void
 ): Promise<void> => {
     try {
-        setLoading(true);
         console.log('Saving API log:', url);
         await apiClientASIN.post('/Information/SaveAPIRequestInfo', {
             Employee_Code: empCode,

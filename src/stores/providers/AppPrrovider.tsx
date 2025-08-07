@@ -24,17 +24,15 @@ export const AppProviders = ({children}: PropsWithChildren) => {
     <QueryProvider>
       <SafeAreaProvider>
         <GestureHandlerRootView style={{flex: 1}}>
-          <SheetProvider>
-            <NavigationContainer>
+          <NavigationContainer>
+            <SheetProvider>
               <CustomStatusBar
                 backgroundColor={AppColors[AppTheme].primary}
                 barStyle="light-content"
               />
-              <SafeAreaView style={{flex: 1}}>
-                  {children}
-              </SafeAreaView>
-            </NavigationContainer>
-          </SheetProvider>
+              <SafeAreaView style={{flex: 1}}>{children}</SafeAreaView>
+            </SheetProvider>
+          </NavigationContainer>
         </GestureHandlerRootView>
       </SafeAreaProvider>
     </QueryProvider>

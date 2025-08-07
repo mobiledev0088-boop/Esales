@@ -20,10 +20,10 @@ const AutoUpdate = () => {
             <AppModal
                 isOpen={isOpen}
                 onClose={handleClose}
-                customClass="p-5"
+                className="p-5"
                 width="85%"
                 height="42%"
-                needClose={true}
+                needClose
                 blurOFF
             >
                 <AppText

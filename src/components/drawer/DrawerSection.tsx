@@ -24,7 +24,6 @@ const iconMap: Record<string, string> = {
     "Account": 'person',
     "AuditReport": 'document-text',
     "Downloads": 'download',
-    "LogOut": 'log-out',
 };
 
 const DrawerSection: React.FC<DrawerSectionProps> = ({
