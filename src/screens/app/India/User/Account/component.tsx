@@ -1,4 +1,4 @@
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import Card from '../../../../../components/Card';
 import AppImage from '../../../../../components/customs/AppImage';
 import AppText from '../../../../../components/customs/AppText';
@@ -8,25 +8,32 @@ import {
 } from '../../../../../utils/commonFunctios';
 import AppIcon, {IconType} from '../../../../../components/customs/AppIcon';
 import {EmpInfo, UserInfo} from '../../../../../types/user';
-import {Accordion} from '../../../../../components/Accordian';
 import AppInput from '../../../../../components/customs/AppInput';
 import AppButton from '../../../../../components/customs/AppButton';
 import AutoComplete from '../../../../../components/AutoComplete';
-import {use, useState} from 'react';
+import {useState} from 'react';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import {getDeviceId} from 'react-native-device-info';
 import {handleASINApiCall} from '../../../../../utils/handleApiCall';
 import {useNavigation} from '@react-navigation/native';
 import {AppNavigationProp} from '../../../../../types/navigation';
 import {useLoginStore} from '../../../../../stores/useLoginStore';
-import {useLoaderStore} from '../../../../../stores/useLoaderStore';
 import {TouchableOpacity} from 'react-native';
 import {AppTable} from '../../../../../components/customs/AppTable';
 import {screenWidth} from '../../../../../utils/constant';
+import Accordion from '../../../../../components/Accordion';
 
 // --- return components ---
-const renderCardRow = (iconType: IconType, iconName: string, label: string,navigationTarget: () => void) => (
-  <TouchableOpacity activeOpacity={0.7} onPress={navigationTarget} className="flex-row items-center justify-between px-3 border-b border-gray-300 pb-2">
+const renderCardRow = (
+  iconType: IconType,
+  iconName: string,
+  label: string,
+  navigationTarget: () => void,
+) => (
+  <TouchableOpacity
+    activeOpacity={0.7}
+    onPress={navigationTarget}
+    className="flex-row items-center justify-between px-3 border-b border-gray-300 pb-2">
     <View className="flex-row items-center gap-2">
       <AppIcon type={iconType} name={iconName} size={24} color="#000" />
       <AppText weight="bold">{label}</AppText>
@@ -139,65 +146,62 @@ export const SyncedDate = ({
   empInfo: EmpInfo | null;
 }) => {
   return (
-      <Card className='mt-8 rounded-md'>
-        <Accordion
-          header={
-            <View className='flex-row items-center gap-2'>
-            <AppIcon type='ionicons' name='sync' size={16} color='#000' />
-            <AppText weight='semibold'>
-              Last Synced Dates
-            </AppText>
-            </View>
-          }
-          initiallyExpanded={true}
-          >
-          <AppTable
-            data={[
-              {
-                last_Updated: 'Activaion',
-                date: empInfo?.Activation_Update.split('T')[0] || 'N/A',
-              },
-              {
-                last_Updated: 'Sellout',
-                date: empInfo?.Sellout_Update.split('T')[0] || 'N/A',
-              },
-              {
-                last_Updated: 'ispsellout',
-                date: empInfo?.ISPSellout_Update.split('T')[0] || 'N/A',
-              },
-              {
-                last_Updated: 'SellThru',
-                date: empInfo?.Sellthru_Update.split('T')[0] || 'N/A',
-              },
-              {
-                last_Updated: 'POD',
-                date: empInfo?.POD_Update.split('T')[0] || 'N/A',
-              },
-              {
-                last_Updated: 'DemoHub',
-                date: empInfo?.DemoHub_Update.split('T')[0] || 'N/A',
-              },
-              ...(userInfo?.EMP_CountryID === 'ACJP'
-                ? [
-                    {
-                      last_Updated: 'Inventory_Sync_Date',
-                      date:
-                        empInfo?.Inventory_Sync_Date?.split('T')[0] || 'N/A',
-                    },
-                  ]
-                : []),
-            ]}
-            columns={[
-              {
-                key: 'last_Updated',
-                title: 'Last Updated',
-                width: screenWidth / 2 - 30,
-              },
-              {key: 'date', title: 'Date', width: screenWidth / 2 - 30},
-            ]}
-          />
-        </Accordion>
-      </Card>
+    <Card className="mt-8 rounded-md">
+      <Accordion
+      duration={250}
+      initialOpening
+        header={
+          <View className="flex-row items-center gap-2">
+            <AppIcon type="ionicons" name="sync" size={16} color="#000" />
+            <AppText weight="semibold">Last Synced Dates</AppText>
+          </View>
+        }>
+        <AppTable
+          data={[
+            {
+              last_Updated: 'Activaion',
+              date: empInfo?.Activation_Update.split('T')[0] || 'N/A',
+            },
+            {
+              last_Updated: 'Sellout',
+              date: empInfo?.Sellout_Update.split('T')[0] || 'N/A',
+            },
+            {
+              last_Updated: 'ispsellout',
+              date: empInfo?.ISPSellout_Update.split('T')[0] || 'N/A',
+            },
+            {
+              last_Updated: 'SellThru',
+              date: empInfo?.Sellthru_Update.split('T')[0] || 'N/A',
+            },
+            {
+              last_Updated: 'POD',
+              date: empInfo?.POD_Update.split('T')[0] || 'N/A',
+            },
+            {
+              last_Updated: 'DemoHub',
+              date: empInfo?.DemoHub_Update.split('T')[0] || 'N/A',
+            },
+            ...(userInfo?.EMP_CountryID === 'ACJP'
+              ? [
+                  {
+                    last_Updated: 'Inventory_Sync_Date',
+                    date: empInfo?.Inventory_Sync_Date?.split('T')[0] || 'N/A',
+                  },
+                ]
+              : []),
+          ]}
+          columns={[
+            {
+              key: 'last_Updated',
+              title: 'Last Updated',
+              width: screenWidth / 2 - 30,
+            },
+            {key: 'date', title: 'Date', width: screenWidth / 2 - 30},
+          ]}
+        />
+      </Accordion>
+    </Card>
   );
 };
 
@@ -215,9 +219,7 @@ export const SpecialAccessUI = ({
   const [loginAsError, setLoginAsError] = useState<string>('');
 
   // --- Fetch Data ---
-  const {
-    data: countries,
-  } = useQuery({
+  const {data: countries} = useQuery({
     queryKey: ['countries'],
     queryFn: () =>
       handleASINApiCall('/Auth/CountryInfo', {
@@ -324,7 +326,7 @@ export const SpecialAccessUI = ({
                 <AppText weight="bold">Switch Country</AppText>
               </View>
             }>
-            <View className="h-16 pt-2">
+            <View className="h-16 pt-2 mb-5">
               <AutoComplete
                 data={countries}
                 onSelect={() => {}}
@@ -357,12 +359,14 @@ export const SpecialAccessUI = ({
 };
 
 export const AccountSettings = () => {
-    const navigation = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation<AppNavigationProp>();
   return (
     <>
       <AppText className="ml-2 mt-8 mb-2 underline">Account Settings</AppText>
       <Card className="rounded-md gap-5 mb-5">
-        {renderCardRow('materialIcons', 'lock', 'Change Password', () => navigation.push('ChangePassword'))}
+        {renderCardRow('materialIcons', 'lock', 'Change Password', () =>
+          navigation.push('ChangePassword'),
+        )}
         <AppText size="sm" weight="bold" className="text-center underline">
           App Version - 3.4.5{' '}
         </AppText>
