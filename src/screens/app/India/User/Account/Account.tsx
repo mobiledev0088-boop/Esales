@@ -32,7 +32,7 @@ const Account = () => {
   }, [userInfo, empInfo]);
   return (
     <AppLayout title="Account" needScroll>
-      <View className="flex-1 px-4 pt-4">
+      <View className="flex-1 px-4 pt-4 dark:bg-darkBg-base">
         {/* Profile Card */}
         <ProfileCard userInfo={userInfo} empInfo={empInfo} />
 

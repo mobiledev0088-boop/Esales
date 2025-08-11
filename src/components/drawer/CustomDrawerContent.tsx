@@ -40,6 +40,8 @@ const CustomDrawerContent: React.FC<
 > = ({state, navigation}) => {
   const userInfo = useLoginStore(state => state.userInfo);
   const AppTheme = useThemeStore(state => state.AppTheme);
+
+      const name = userInfo?.EMP_Name && `${userInfo.EMP_Name.split('_').join(' ')}`;
   
   const [isOpen, setIsOpen] = useState(false);
   
@@ -79,10 +81,10 @@ const CustomDrawerContent: React.FC<
               source={require('../../assets/images/dp.png')}
               style={styles.avatar}
             />
-            <AppText weight="bold" size="md">
-              John Doe
+            <AppText weight="bold" size="md" className='capitalize'>
+              {name}
             </AppText>
-            <AppText size="base">0wHtP@example.com</AppText>
+            <AppText size="base">{userInfo?.EMP_EmailID}</AppText>
           </View>
           <ThemeToggle size={60} />
         </View>

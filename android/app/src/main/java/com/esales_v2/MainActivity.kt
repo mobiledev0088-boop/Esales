@@ -1,4 +1,4 @@
-package com.asus.esales_V2
+package com.esales_v2
 import android.os.Bundle;
 
 import com.facebook.react.ReactActivity
@@ -16,6 +16,8 @@ class MainActivity : ReactActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(null)
   }
+
+  
   
   override fun getMainComponentName(): String = "Esales_V2"
 

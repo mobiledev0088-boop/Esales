@@ -9,6 +9,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { twMerge } from 'tailwind-merge';
 import AppIcon from './customs/AppIcon';
+import { useThemeStore } from '../stores/useThemeStore';
+import { AppColors } from '../config/theme';
 
 interface AccordionItemProps {
   isExpanded: SharedValue<boolean>;
@@ -75,6 +77,7 @@ export default function Accordion({
   arrowSize = 24,
 }: AccordionProps) {
   const open = useSharedValue(initialOpening);
+  const AppTheme = useThemeStore((state) => state.AppTheme);
 
   const handlePress = () => {
     open.value = !open.value;
@@ -115,7 +118,7 @@ export default function Accordion({
             type="feather"
             name="chevron-right"
             size={arrowSize}
-            color="#000"
+            color={AppColors[AppTheme].text}
           />
         </Animated.View>
       </TouchableOpacity>

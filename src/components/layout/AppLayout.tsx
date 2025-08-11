@@ -10,6 +10,7 @@ import {useLoginStore} from '../../stores/useLoginStore';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {memo} from 'react';
 import {EmpInfo} from '../../types/user';
+import clsx from 'clsx';
 
 type AppLayoutProps = {
   children: React.ReactNode;
@@ -17,6 +18,7 @@ type AppLayoutProps = {
   needBack?: boolean;
   title?: string;
   needScroll?: boolean;
+  needPadding?: boolean;
 };
 
 type HeaderProps = {
@@ -34,6 +36,7 @@ const AppLayout = ({
   needBack = false,
   title,
   needScroll = true,
+  needPadding = false,
 }: AppLayoutProps) => {
   const navigation = useNavigation<DrawerNavigationProp>();
   const userInfo = useLoginStore(state => state.userInfo);
@@ -41,7 +44,7 @@ const AppLayout = ({
   const name = userInfo?.EMP_Name?.split('_')[0] || '----';
 
   return needScroll ? (
-    <View className="flex-1">
+    <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
       <Header
         needBack={needBack}
         title={title}
@@ -54,13 +57,13 @@ const AppLayout = ({
         className="flex-1"
         enableOnAndroid
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{flexGrow: 1}}
-        >
+        contentContainerStyle={[{flexGrow: 1}, needPadding && {paddingHorizontal: 16}]}
+      >
         {children}
       </KeyboardAwareScrollView>
     </View>
   ) : (
-    <View className="flex-1">
+    <View className={clsx("flex-1 bg-lightBg-base dark:bg-darkBg-base", {"px-4": needPadding})}>
       <Header
         needBack={needBack}
         title={title}

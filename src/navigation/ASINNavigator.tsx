@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import Index from "../screens/app/India";
 import ChangePassword from "../screens/app/India/User/ChangePassword/ChangePassword";
 import ProductInfo from "../screens/app/India/More/ProductInfo/ProductInfo";
+import EDMInfo from "../screens/app/India/More/EDMInfo/EDMInfo";
 
 const Stack = createNativeStackNavigator();
 
@@ -10,6 +11,7 @@ const screens = [
     { name: "Index", component: Index },
     { name: "ChangePassword", component:  ChangePassword},
     { name: "ProductInfo", component: ProductInfo },
+    { name: "EDMInfo", component: EDMInfo },
 ]
 
 export const ASINNavigator = () => (

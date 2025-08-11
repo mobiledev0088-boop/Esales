@@ -55,10 +55,10 @@ export function AppTable<T>({
     );
 
     const headerRowClasses = twMerge(
-        clsx('flex-row border-b border-gray-300', headerBgColor)
+        clsx('flex-row border-b border-gray-300 '+ headerBgColor, 'dark:bg-gray-800')
     );
     const tableWrapperClasses = twMerge(
-        clsx('border border-gray-300 rounded-md overflow-hidden', tableBgColor)
+        clsx('border border-gray-300 rounded-md overflow-hidden', tableBgColor, 'dark:bg-gray-800')
     );
 
     return (

@@ -37,7 +37,7 @@ const Card: React.FC<CardProps> = ({
     watermarkColumnGap = 0,
     ...rest }) => {
     const mergedClassName = twMerge(
-        'bg-white p-4 rounded-xl ',
+        'bg-lightBg-surface dark:bg-darkBg-surface p-4 rounded-xl',
         className
     );
     return (

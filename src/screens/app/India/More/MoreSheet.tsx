@@ -11,9 +11,12 @@ import {screenHeight} from '../../../../utils/constant';
 import {Watermark} from '../../../../components/Watermark';
 import {useLoginStore} from '../../../../stores/useLoginStore';
 import useEmpStore from '../../../../stores/useEmpStore';
-import {AppNavigationParamList, AppNavigationProp} from '../../../../types/navigation';
-import ActionSheet, { SheetManager } from 'react-native-actions-sheet';
-import { useNavigation } from '@react-navigation/native';
+import {
+  AppNavigationParamList,
+  AppNavigationProp,
+} from '../../../../types/navigation';
+import ActionSheet, {SheetManager} from 'react-native-actions-sheet';
+import {useNavigation} from '@react-navigation/native';
 
 type Option = {
   label: string;
@@ -69,7 +72,12 @@ const getASINOptions = (
     iconType: 'material-community',
     navigateTo: 'ProductInfo',
   });
-  options.push({label: 'EDMInfo', iconName: 'laptop', iconType: 'antdesign'});
+  options.push({
+    label: 'EDMInfo',
+    iconName: 'laptop',
+    iconType: 'antdesign',
+    navigateTo: 'EDMInfo',
+  });
 
   if (roleId === 24) {
     options.push({

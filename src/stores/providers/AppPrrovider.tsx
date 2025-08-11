@@ -3,14 +3,13 @@ import {PropsWithChildren, useEffect} from 'react';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {NavigationContainer} from '@react-navigation/native';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
-import {KeyboardAvoidingView, Platform} from 'react-native';
 import {QueryProvider} from './QueryProvider';
 import {useThemeStore} from '../useThemeStore';
 import {useColorScheme} from 'nativewind';
 import {AppColors} from '../../config/theme';
 import CustomStatusBar from '../../components/CustomStatusBar';
-import '../../utils/sheets';
 import {SheetProvider} from 'react-native-actions-sheet';
+import '../../utils/sheets';
 
 export const AppProviders = ({children}: PropsWithChildren) => {
   const {setColorScheme} = useColorScheme();

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "865437515684",
+    "project_id": "asus-esalesindia",
+    "storage_bucket": "asus-esalesindia.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:865437515684:android:d9389ddf7f40dbb16ccb31",
+        "android_client_info": {
+          "package_name": "com.asus.esales"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBvUFxMnu6fPnK8W4QAlFmCqeyv77pwZng"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:865437515684:android:a10e12ff6a9e89056ccb31",
+        "android_client_info": {
+          "package_name": "com.esales_v2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBvUFxMnu6fPnK8W4QAlFmCqeyv77pwZng"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

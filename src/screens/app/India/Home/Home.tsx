@@ -41,7 +41,7 @@ const Home: React.FC = () => {
     return (
         <AppLayout isDashboard>
             <Tab.Navigator
-                screenOptions={{ headerShown: false }}
+                screenOptions={{ headerShown: false, tabBarHideOnKeyboard: true }}
                 tabBar={(props) => <CustomTabBar {...props} />}
             >
                 {TabScreens.map((screen) => (

@@ -12,5 +12,6 @@ export const utilColorKeys = [
 export const ASUS = {
     BUSINESS_TYPES:{
         COMMERCIAL: 4,
-    }
+    },
+    APP_NAME: "Esales"
 }

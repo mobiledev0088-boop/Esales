@@ -11,6 +11,7 @@ type AppNavigationParamList = {
     Home: undefined;
     More: undefined;
     ProductInfo: undefined;
+    EDMInfo: undefined;
     ChangePassword: undefined;
 }
 

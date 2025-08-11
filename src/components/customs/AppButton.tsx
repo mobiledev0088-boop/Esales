@@ -1,12 +1,14 @@
 import AppText from './AppText';
 
-import { ActivityIndicator, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
 import { AppTextColorType, AppTextSizeType, AppTextWeightType } from '../../types/customs';
 import { useLoaderStore } from '../../stores/useLoaderStore';
+import AppIcon from './AppIcon';
 
 interface AppButtonProps {
     title: string | React.ReactNode; // Allow string or React node for title
     onPress: () => void;
+    iconName?: string; // Optional icon name
     className?: string;        // Tailwind classes for the button
     color?: AppTextColorType;
     size?: AppTextSizeType;
@@ -16,6 +18,7 @@ interface AppButtonProps {
 const AppButton = ({
     title,
     onPress,
+    iconName,
     className = '',
     color = 'white',
     size = 'base',
@@ -31,12 +34,15 @@ const AppButton = ({
             style={{ opacity: isLoading ? 0.7 : 1 }}
         >
             {!isLoading ?
+            <View className='flex-row items-center gap-2'>
+                {iconName && <AppIcon type='feather' name={iconName} size={16} color={color} />}
                 <AppText
                     className="text-center"
                     color={color}
                     size={size}
                     weight={weight}
-                >{title}</AppText>
+                    >{title}</AppText>
+                    </View>
                 :
                 <ActivityIndicator size="small" color="#fff" />
             }
