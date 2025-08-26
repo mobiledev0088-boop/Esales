@@ -1,5 +1,5 @@
 import {registerSheet, SheetDefinition} from 'react-native-actions-sheet';
-import MoreSheet from '../screens/app/India/More/MoreSheet';
+import MoreSheet from '../screens/app/ASIN/More/MoreSheet';
 import ConfirmationSheet from '../components/ConfirmationSheet';
  
 registerSheet('MoreSheet', MoreSheet);

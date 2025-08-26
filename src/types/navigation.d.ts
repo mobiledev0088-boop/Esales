@@ -1,6 +1,6 @@
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DrawerNavigationProp as DNP } from '@react-navigation/drawer';
-import { FeedbackItem } from '../screens/app/India/Feedback/component';
+import { FeedbackItem } from '../screens/app/ASIN/Feedback/component';
 
 type AuthStackParamList = {
     Login: undefined;

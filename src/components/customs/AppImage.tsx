@@ -1,15 +1,14 @@
-import FastImage, {FastImageProps, Source} from '@d11/react-native-fast-image';
-
-import {memo, useMemo, useRef, useState} from 'react';
-import {View, StyleProp, ViewStyle, Image} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import {ResumableZoom, ResumableZoomRefType} from 'react-native-zoom-toolkit';
+import FastImage, { FastImageProps, Source } from '@d11/react-native-fast-image';
+import { memo } from 'react';
+import { ImageStyle, StyleProp, ViewStyle } from 'react-native';
+import Zoomable from '../Zoomable';
 
 type AppImageProps = Omit<FastImageProps, 'source'> & {
   source: Source | number;
   zoomable?: boolean;
   containerStyle?: StyleProp<ViewStyle>;
   className?: string;
+  style?: StyleProp<ImageStyle>; // Better typing for image style
   onPinchStart?: () => void;
   onPinchEnd?: () => void;
 };
@@ -20,49 +19,40 @@ const AppImage = memo(
     zoomable = false,
     containerStyle,
     style,
-    resizeMode,
+    resizeMode = FastImage.resizeMode.cover,
     className,
-    onPinchStart,
-    onPinchEnd,
     ...restProps
   }: AppImageProps) => {
-    const zoomRef = useRef<ResumableZoomRefType>(null);
-
-    const ImageComponent = (
+    const image = (
       <FastImage
         source={source}
         style={style}
-        resizeMode={resizeMode ?? FastImage.resizeMode.cover}
+        resizeMode={resizeMode}
         {...restProps}
       />
     );
-    // when Zoomable is true you need to give width and height in pixel rather than percentage
+
     if (zoomable) {
+      const flattenedStyle = Array.isArray(style)
+        ? Object.assign({}, ...style)
+        : style || {};
+
       return (
-        <ResumableZoom
-          ref={zoomRef}
-          maxScale={3} // Maximum zoom level (3x)
-          minScale={1} // Minimum zoom level (1x - original size)
-          onPinchEnd={() => {
-            zoomRef.current?.reset();
-            onPinchEnd?.();
+        <Zoomable
+          minScale={1}
+          maxScale={3}
+          doubleTapScale={3}
+          style={{
+            width: flattenedStyle.width,
+            height: flattenedStyle.height,
           }}
-          onGestureEnd={() => {
-            const {scale} = zoomRef.current?.getState() || {};
-            if(scale && scale === 1) {
-              onPinchEnd?.();
-            }else if (scale && scale > 1) {
-              onPinchStart?.();
-            }
-          }}
-          onPinchStart={onPinchStart}>
-          {ImageComponent}
-        </ResumableZoom>
+        >
+          {image}
+        </Zoomable>
       );
     }
 
-    // Render standard non-zoomable image
-    return <View style={containerStyle}>{ImageComponent}</View>;
+    return image;
   },
 );
 

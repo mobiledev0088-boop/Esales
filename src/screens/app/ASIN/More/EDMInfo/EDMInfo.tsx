@@ -3,15 +3,20 @@ import {useQuery} from '@tanstack/react-query';
 import AppDropdown from '../../../../../components/customs/AppDropdown';
 import {handleASINApiCall} from '../../../../../utils/handleApiCall';
 import AppText from '../../../../../components/customs/AppText';
-import {useMemo, useState} from 'react';
+import {useMemo, useRef, useState} from 'react';
 import AppImage from '../../../../../components/customs/AppImage';
 import Card from '../../../../../components/Card';
 import AppButton from '../../../../../components/customs/AppButton';
 import {ASUS, screenWidth} from '../../../../../utils/constant';
 import RNFS from 'react-native-fs';
-import {ensureFolderExists, showToast} from '../../../../../utils/commonFunctios';
-import { useLoaderStore } from '../../../../../stores/useLoaderStore';
-import { Platform } from 'react-native';
+import {
+  ensureFolderExists,
+  showToast,
+} from '../../../../../utils/commonFunctios';
+import {useLoaderStore} from '../../../../../stores/useLoaderStore';
+import { Platform, TouchableOpacity, View } from 'react-native';
+import clsx from 'clsx';
+import AppIcon from '../../../../../components/customs/AppIcon';
 
 interface EDMModel {
   label: string;
@@ -30,24 +35,29 @@ const fetchEDMModels = async (): Promise<EDMModel[]> => {
   // Deduplicate by Model_Name
   return Array.from(
     new Map(
-      EDMmodelList.map((item: { Model_Name: string; FilePath: string }) => [
+      EDMmodelList.map((item: {Model_Name: string; FilePath: string}) => [
         item.Model_Name,
         {
           label: item.Model_Name.trim(),
           value: item.Model_Name.trim(),
           path: item.FilePath.trim(),
         },
-      ])
-    ).values()
+      ]),
+    ).values(),
   ) as any;
 };
 
 const EDMInfo = () => {
   const [selectedModel, setSelectedModel] = useState<EDMModel | null>(null);
-  const setLoading = useLoaderStore((state) => state.setLoading);
+  const setLoading = useLoaderStore(state => state.setLoading);
   const [zIndex, setZIndex] = useState(100);
+  const ref = useRef<null>(null);
 
-  const { data: edmModels = [], isLoading, isError } = useQuery({
+  const {
+    data: edmModels = [],
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ['edminfo'],
     queryFn: fetchEDMModels,
   });
@@ -91,37 +101,46 @@ const EDMInfo = () => {
 
   return (
     <AppLayout title="EDM Information" needBack needPadding>
-      <AppDropdown
+       <AppDropdown
         data={edmModels}
-        onSelect={(item:any)=>setSelectedModel(item)}
+        onSelect={(item: any) => setSelectedModel(item)}
         mode="dropdown"
-        style={{ paddingTop: 16 }}
+        style={{paddingTop: 16}}
         placeholder={dropdownPlaceholder}
         disabled={isLoading}
         zIndex={zIndex}
-      />
+      /> 
       {selectedModel ? (
-        <>
+        <View>
           <Card className="mt-5">
             <AppImage
               source={{ uri: selectedModel.path }}
-              style={{ width: screenWidth * 0.85, height: 300 }}
+              style={{ width: screenWidth * 0.85, height: 300, }}
               resizeMode="contain"
-              zoomable
-              onPinchStart={()=>setZIndex(-10)}
-              onPinchEnd={()=>setZIndex(100)}
-            />
+              />
+              <View className='flex-row mt-2'>
+              <TouchableOpacity className='p-1 bg-black/10 rounded'>
+                <AppIcon
+                type="feather"
+                name='zoom-in'
+                size={24}
+                color="#000"
+                />
+              </TouchableOpacity>
+                </View>
           </Card>
           <AppButton
-            iconName='download'
+            iconName="download"
             title="Download EDM Image"
-            className="mt-5 w-2/3 self-center -z-10"
+            className={"mt-5 w-2/3 self-center"}
             onPress={handleDownload}
           />
-        </>
-      ):
-        <AppText size="base" weight="bold" className="ml-2 mt-2">Note - Please select a model to view its EDM.</AppText>
-      }
+        </View>
+      ) : (
+        <AppText size="base" weight="bold" className="ml-2 mt-2">
+          Note - Please select a model to view its EDM.
+        </AppText>
+      )}
     </AppLayout>
   );
 };
