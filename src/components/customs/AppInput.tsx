@@ -2,9 +2,10 @@
 import AppText from './AppText';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-import { useMemo, useState } from 'react';
-import { View, TextInput, TextInputProps, Pressable, ViewStyle } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { View, TextInput, TextInputProps, Pressable, ViewStyle, StyleSheet } from 'react-native';
 import { twMerge } from 'tailwind-merge';
+import { useThemeStore } from '../../stores/useThemeStore';
 
 
 interface CustomInputProps extends TextInputProps {
@@ -12,6 +13,7 @@ interface CustomInputProps extends TextInputProps {
     isOptional?: boolean;
     isPassword?: boolean;
     containerClassName?: string;
+    inputContainerClassName?: string;
     inputClassName?: string;
     value: string;
     setValue: (text: string) => void;
@@ -22,7 +24,9 @@ interface CustomInputProps extends TextInputProps {
     error?: string;
     helpText?: string;
     showClearButton?: boolean;
+    onClear?: () => void;
     variant?: 'border' | 'underline';
+    inputWapperStyle?: ViewStyle;
 }
 
 const AppInput: React.FC<CustomInputProps> = ({
@@ -30,6 +34,7 @@ const AppInput: React.FC<CustomInputProps> = ({
     isOptional,
     isPassword = false,
     containerClassName = '',
+    inputContainerClassName = '',
     inputClassName = '',
     secureTextEntry,
     value,
@@ -41,9 +46,12 @@ const AppInput: React.FC<CustomInputProps> = ({
     error,
     helpText,
     showClearButton = true,
+    onClear,
     variant = 'border',
+    inputWapperStyle,
     ...props
 }) => {
+     const appTheme = useThemeStore(state => state.AppTheme);
     const [hidePassword, setHidePassword] = useState(secureTextEntry ?? isPassword);
     const [isFocused, setIsFocused] = useState(false);
 
@@ -59,32 +67,41 @@ const AppInput: React.FC<CustomInputProps> = ({
             alignItems: 'center' as const,
             borderColor,
         };
+        console.log({inputWapperStyle})
+        const flattenedStyle = StyleSheet.flatten(inputWapperStyle) as ViewStyle;
 
         return variant === 'underline'
             ? {
                 ...baseStyle,
+                ...flattenedStyle,
                 borderBottomWidth: 2,
                 borderBottomLeftRadius: 4,
                 borderBottomRightRadius: 4,
             }
             : {
                 ...baseStyle,
+                ...flattenedStyle,
                 borderWidth: 1,
                 borderBottomWidth: 1.5,
                 borderRadius: 8,
             };
-    }, [borderColor, variant]);
+    }, [borderColor, variant, inputWapperStyle]);
+
+    const handleClear = useCallback(() => {
+        setValue('');
+        onClear?.();
+    }, [onClear]);
 
     return (
         <View className={twMerge('w-full', containerClassName)}>
             {label && (
-                <AppText weight="bold" size="base" className="mb-1 text-gray-700">
+                <AppText weight="semibold" size="md" className="mb-1 text-gray-700">
                     {!isOptional && <AppText className="text-red-500" weight="bold">*</AppText>} {label}
                 </AppText>
             )}
 
-            <View style={inputContainerStyle}>
-                {leftIconTsx ?? (leftIcon && <Icon name={leftIcon} size={20} color="#000" style={{ marginLeft: 8, marginRight:8 }} />)}
+            <View style={inputContainerStyle} className={inputContainerClassName} >
+                {leftIconTsx ?? (leftIcon && <Icon name={leftIcon} size={20} color={appTheme === 'dark' ? "#fff" : "#000"} style={{ marginLeft: 8, marginRight:8 }} />)}
 
                 <TextInput
                     value={value}
@@ -93,7 +110,7 @@ const AppInput: React.FC<CustomInputProps> = ({
                     secureTextEntry={hidePassword}
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
-                    className={twMerge('flex-1 text-gray-900  font-manropeMedium h-14 text-md', inputClassName)}
+                    className={twMerge('flex-1 text-gray-900 dark:text-gray-100 font-manropeMedium text-md h-14', inputClassName)}
                     // for screen readers
                     accessibilityLabel={label}
                     accessibilityHint={helpText}
@@ -107,7 +124,7 @@ const AppInput: React.FC<CustomInputProps> = ({
                 )}
 
                 {showClearButton && value && !isPassword && (
-                    <Pressable onPress={() => setValue('')} className="mr-2">
+                    <Pressable onPress={handleClear} className="mr-2">
                         <Icon name="close-circle-outline" size={20} color="#9CA3AF" />
                     </Pressable>
                 )}

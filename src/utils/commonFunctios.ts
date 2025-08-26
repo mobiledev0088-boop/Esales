@@ -1,6 +1,16 @@
 import moment from 'moment';
 import CryptoJS from 'react-native-crypto-js';
 import Toast from 'react-native-simple-toast';
+import RNFS from 'react-native-fs';
+
+export const formatToINR = (amount: number, showDecimals = false) => {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    minimumFractionDigits: showDecimals ? 2 : 0,
+    maximumFractionDigits: showDecimals ? 2 : 0,
+  }).format(amount);
+}
 
 export const getPastMonths = (count: number, isForward?: boolean): string[] => {
   const months: string[] = [];
@@ -15,6 +25,36 @@ export const getPastMonths = (count: number, isForward?: boolean): string[] => {
   }
   return months.reverse(); // Reverse to get the most recent month first
 };
+
+export const getPastQuarters = (count: number = 5, isForward?: boolean): {label: string, value: string}[] => {
+  const quarters: {label: string, value: string}[] = [];
+  if (isForward) {
+    for (let i = 0; i < count; i++) {
+      const date = moment().add(i, "quarters");
+      quarters.push({
+        label: `Q${date.format("Q")}-${date.format("YYYY")}`,
+        value: `${date.format("YYYY")}${date.format("Q")}`
+      });
+    }
+    return quarters; // future quarters stay in order
+  }
+  for (let i = 0; i < count; i++) {
+    const date = moment().subtract(i, "quarters");
+    quarters.push({
+      label: `Q${date.format("Q")}-${date.format("YYYY")}`,
+      value: `${date.format("YYYY")}${date.format("Q")}`
+    });
+  }
+  return quarters.reverse(); // past quarters in chronological order
+};
+
+// Ensure folder exists
+export const ensureFolderExists = async (path: string) => {
+  if (!(await RNFS.exists(path))) {
+    await RNFS.mkdir(path);
+  }
+};
+
 
 export const ecrypt = (text: string) => {
   var secureKey = 'MAKV2SPBNI992122';

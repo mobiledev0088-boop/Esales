@@ -12,9 +12,7 @@ import Schemes from '../Schemes/Schemes';
 import PStatus from '../PStatus/PStatus';
 import CustomTabBar from './CustomTabBar';
 
-import { View } from 'react-native';
 import { ComponentType } from 'react';
-import { SheetManager } from 'react-native-actions-sheet';
 
 
 export interface TabScreens {

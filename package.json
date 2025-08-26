@@ -9,12 +9,14 @@
     "start": "react-native start",
     "test": "jest",
     "pod-install": "cd ios &&  bundle exec pod install  && cd ..",
-    "clean-gradle": "cd android && ./gradlew clean && cd .."
+    "clean-gradle": "cd android && ./gradlew clean && cd ..",
+    "open-xcode": "cd ios && open Esales_V2.xcworkspace && cd .."
   },
   "dependencies": {
     "@d11/react-native-fast-image": "^8.10.0",
     "@lodev09/react-native-true-sheet": "^2.0.6",
     "@notifee/react-native": "^9.1.8",
+    "@pushpendersingh/react-native-scanner": "^1.5.0",
     "@react-native-community/netinfo": "^11.4.1",
     "@react-native-firebase/app": "^22.4.0",
     "@react-native-firebase/messaging": "^22.4.0",
@@ -32,7 +34,7 @@
     "react": "19.0.0",
     "react-native": "0.79.0",
     "react-native-actions-sheet": "^0.9.7",
-    "react-native-camera-kit": "^15.1.0",
+    "react-native-blob-util": "^0.22.2",
     "react-native-crypto-js": "^1.0.0",
     "react-native-device-info": "^14.0.4",
     "react-native-dotenv": "^3.4.11",
@@ -47,6 +49,7 @@
     "react-native-mmkv": "^3.3.0",
     "react-native-modal": "^14.0.0-rc.1",
     "react-native-pager-view": "^6.8.1",
+    "react-native-pdf": "^6.7.7",
     "react-native-permissions": "^5.4.2",
     "react-native-reanimated": "^4.0.1",
     "react-native-safe-area-context": "^5.5.2",

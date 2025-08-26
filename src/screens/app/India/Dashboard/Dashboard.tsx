@@ -1,11 +1,12 @@
-import { View, Text } from 'react-native'
+import { View } from "react-native"
 
 const Dashboard = () => {
   return (
-    <View>
-      <Text>Dashboard</Text>
+    <View className='flex-1 justify-center items-center'>
     </View>
   )
 }
 
 export default Dashboard
+
+

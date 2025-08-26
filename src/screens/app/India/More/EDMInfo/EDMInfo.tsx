@@ -9,7 +9,7 @@ import Card from '../../../../../components/Card';
 import AppButton from '../../../../../components/customs/AppButton';
 import {ASUS, screenWidth} from '../../../../../utils/constant';
 import RNFS from 'react-native-fs';
-import {showToast} from '../../../../../utils/commonFunctios';
+import {ensureFolderExists, showToast} from '../../../../../utils/commonFunctios';
 import { useLoaderStore } from '../../../../../stores/useLoaderStore';
 import { Platform } from 'react-native';
 
@@ -40,13 +40,6 @@ const fetchEDMModels = async (): Promise<EDMModel[]> => {
       ])
     ).values()
   ) as any;
-};
-
-// Folder utility
-const ensureFolderExists = async (path: string) => {
-  if (!(await RNFS.exists(path))) {
-    await RNFS.mkdir(path);
-  }
 };
 
 const EDMInfo = () => {

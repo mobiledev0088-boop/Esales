@@ -1,8 +1,10 @@
 import CustomDrawerContent from '../../../components/drawer/CustomDrawerContent';
 import Home from './Home/Home';
+import AuditReport from './AuditReport/AuditReport';
 import Account from './User/Account/Account';
 
 import {createDrawerNavigator} from '@react-navigation/drawer';
+import Reports from './Reports/Reports';
 
 const Drawer = createDrawerNavigator();
 
@@ -10,12 +12,12 @@ const Index = () => {
   const drawerScreens = [
     {name: 'Home', component: Home},
     {name: 'Account', component: Account},
-    {name: 'AuditReport', component: Home},
-    {name: 'SchemePPACT', component: Home},
-    {name: 'PriceList', component: Home},
-    {name: 'DemoProgramLetter', component: Home},
-    {name: 'EndCustomerRelated', component: Home},
-    {name: 'MarketingMaterial', component: Home},
+    {name: 'AuditReport', component: AuditReport},
+    {name: 'SchemePPACT', component: Reports},
+    {name: 'PriceList', component: Reports},
+    {name: 'DemoProgramLetter', component: Reports},
+    {name: 'EndCustomerRelated', component: Reports},
+    {name: 'MarketingMaterial', component: Reports},
   ];
 
   return (

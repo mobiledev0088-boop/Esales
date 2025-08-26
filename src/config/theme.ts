@@ -72,3 +72,11 @@ export const AppColors = {
   utilColor10: 'rgb(20, 152, 235)',
   utilGrayTransparent: 'rgba(222,226,230,0.5)',
 }
+
+
+export const AppFonts = {
+  regular: 'Manrope-Regular',
+  medium: 'Manrope-Medium',
+  semiBold : 'Manrope-SemiBold',
+  bold: 'Manrope-Bold',
+};

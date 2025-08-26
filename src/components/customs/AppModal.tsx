@@ -1,17 +1,14 @@
 import clsx from 'clsx';
-import React from 'react';
+import React, { useRef } from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Modal from 'react-native-modal';
 
 import {
   View,
-  Dimensions,
   TouchableOpacity,
   ScrollView,
-  Pressable,
 } from 'react-native';
 import {twMerge} from 'tailwind-merge';
-import { StyleSheet } from 'nativewind';
 import { screenWidth } from '../../utils/constant';
 
 interface CustomModalProps {
@@ -38,7 +35,7 @@ const AppModal: React.FC<CustomModalProps> = ({
 }) => {
   const calculatedWidth = typeof width === 'number' ? width : screenWidth * (parseFloat(width) / 100);
 
-  const mergedClass = twMerge(clsx('bg-white rounded-xl p-4', className ?? ''));
+  const mergedClass = twMerge(clsx('bg-white rounded-xl p-4 ', className ?? ''));
   const ModalContent = (
     <View
       className={mergedClass}
@@ -56,44 +53,32 @@ const AppModal: React.FC<CustomModalProps> = ({
     </View>
   );
 
-  const OverlayContent = (
-    <View className='flex-1 justify-center items-center' >
-      {needClose && (
-        <TouchableOpacity
-          onPress={onClose}
-          activeOpacity={0.7}
-          className="relative bottom-10 w-11 h-11 rounded-full bg-primary justify-center items-center z-10">
-          <Icon name="close" size={28} color="#fff" />
-        </TouchableOpacity>
-      )}
-      {ModalContent}
-    </View>
-  );
+  const logoutActionRef = useRef(() => {});
+
 
   return (
     <Modal
       isVisible={isOpen}
-      onBackdropPress={onClose}
-      // style={StyleSheet.absoluteFillObject}
+      onBackdropPress={blurOFF ? undefined : onClose}
+      coverScreen={true}
       backdropOpacity={0.5}
       backdropColor="black"
-      // useNativeDriverForBackdrop={true}
-      // useNativeDriver={true}
-      // className="justify-center items-center"
-      // animationIn="slideInUp"
-      // animationOut="slideOutDown"
-      // animationInTiming={300}
-      // animationOutTiming={300}
-      // onBackdropPress={onClose}
+      useNativeDriver={true}
+      useNativeDriverForBackdrop={true} 
+      animationIn="slideInUp"
+      animationOut="slideOutDown"
+      animationInTiming={300}
+      animationOutTiming={300}
       >
-      {/* {!blurOFF ? (
-        OverlayContent
-      ) : (
-        <Pressable onPress={onClose} style={{flex:1}} >
-          {OverlayContent}
-        </Pressable>
-      )} */}
-      {OverlayContent}
+      {needClose && (
+        <TouchableOpacity
+          onPress={onClose}
+          activeOpacity={0.7}
+          className="relative top-5 w-11 h-11 rounded-full bg-primary justify-center items-center z-10 self-end">
+          <Icon name="close" size={28} color="#fff" />
+        </TouchableOpacity>
+      )}
+        {ModalContent}
     </Modal>
   );
 };

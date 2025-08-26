@@ -6,12 +6,18 @@ export const handleASINApiCall = async <T = any>(
     url: string,
     data?: any,
     headers?: Record<string, string>,
+    showGlobalLoading?: boolean,
     showError: boolean = false
 ): Promise<T> => {
     const { token, userInfo } = useLoginStore.getState();
     const setLoading = useLoaderStore.getState().setLoading;
+    const setGlobalLoading = useLoaderStore.getState().setGlobalLoading;
+
     try {
         setLoading(true);
+        if (showGlobalLoading) {
+            setGlobalLoading(true);
+        }
         console.time('API Call Timing');
         const response = await apiClientASIN.request<T>({
             method: 'POST',
@@ -29,6 +35,7 @@ export const handleASINApiCall = async <T = any>(
         }
         throw error;
     } finally {
+        setGlobalLoading(false);
         setLoading(false);
         if (token && userInfo?.EMP_Code) {
             void saveApiLog(url, token, userInfo.EMP_Code);

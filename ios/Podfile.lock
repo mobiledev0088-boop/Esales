@@ -87,6 +87,30 @@ PODS:
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
   - PromisesObjC (2.4.0)
+  - pushpendersingh-react-native-scanner (1.5.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RCT-Folly (2024.11.18.00):
     - boost
     - DoubleConversion
@@ -1411,6 +1435,30 @@ PODS:
     - React-jsiexecutor
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
+  - react-native-blob-util (0.22.2):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-geolocation-service (5.3.1):
     - React
   - react-native-mmkv (3.3.0):
@@ -1440,6 +1488,30 @@ PODS:
   - react-native-netinfo (11.4.1):
     - React-Core
   - react-native-pager-view (6.9.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - react-native-pdf (6.7.7):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2349,6 +2421,7 @@ DEPENDENCIES:
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
+  - "pushpendersingh-react-native-scanner (from `../node_modules/@pushpendersingh/react-native-scanner`)"
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCT-Folly/Fabric (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTDeprecation (from `../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation`)
@@ -2382,10 +2455,12 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
+  - react-native-blob-util (from `../node_modules/react-native-blob-util`)
   - react-native-geolocation-service (from `../node_modules/react-native-geolocation-service`)
   - react-native-mmkv (from `../node_modules/react-native-mmkv`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
+  - react-native-pdf (from `../node_modules/react-native-pdf`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-simple-toast (from `../node_modules/react-native-simple-toast`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
@@ -2476,6 +2551,8 @@ EXTERNAL SOURCES:
   hermes-engine:
     :podspec: "../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec"
     :tag: hermes-2025-03-03-RNv0.79.0-bc17d964d03743424823d7dd1a9f37633459c5c5
+  pushpendersingh-react-native-scanner:
+    :path: "../node_modules/@pushpendersingh/react-native-scanner"
   RCT-Folly:
     :podspec: "../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec"
   RCTDeprecation:
@@ -2538,6 +2615,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   React-microtasksnativemodule:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
+  react-native-blob-util:
+    :path: "../node_modules/react-native-blob-util"
   react-native-geolocation-service:
     :path: "../node_modules/react-native-geolocation-service"
   react-native-mmkv:
@@ -2546,6 +2625,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-pager-view:
     :path: "../node_modules/react-native-pager-view"
+  react-native-pdf:
+    :path: "../node_modules/react-native-pdf"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-simple-toast:
@@ -2669,6 +2750,7 @@ SPEC CHECKSUMS:
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
+  pushpendersingh-react-native-scanner: 192fc579ea80e5e6c994fcc0309d1c1fe0b93cdc
   RCT-Folly: e78785aa9ba2ed998ea4151e314036f6c49e6d82
   RCTDeprecation: c147f8912f768e5eedbc5f115b2b223d007d9fe3
   RCTRequired: a71a7e9efd6546704d5abc683e0b68fcaa759861
@@ -2700,10 +2782,12 @@ SPEC CHECKSUMS:
   React-logger: a5edba66e28edd1ef973971a2ec5d531eb8621ea
   React-Mapbuffer: 1b42bfae5831d01bcea685f95621b00ce6fdbeb3
   React-microtasksnativemodule: 16daaf4d4722c200c8c16947b35a56a983093c9b
+  react-native-blob-util: e032f2a9d5779aa94934139a60fe5ed6c5071328
   react-native-geolocation-service: 32b2c2a3b91e70ce2a8d0c684801aaeb0a07e0ec
   react-native-mmkv: 69af18f435f8978ed3e7b8c1b23bba35350ddcd8
   react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
   react-native-pager-view: af0a410629d77bcfeec1383d9109a2c5264b8a49
+  react-native-pdf: f879d0adc72adee79e3c64950aafbbb11f8b7206
   react-native-safe-area-context: 37c435d59dc9bf68c69f6b02be2de460f468922e
   react-native-simple-toast: a4519661006dd919f373bb0a7b0571c325555d11
   React-NativeModulesApple: 8ecbbc15f14a567821682d37b4b18896b1cc213b
@@ -2746,7 +2830,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: c50b05a3941646c4e4098344033ca4609b42be85
   RNKeychain: 48338bf1d8f5e29f84db1b605c2e107b45b83af9
   RNNotifee: 5e3b271e8ea7456a36eec994085543c9adca9168
-  RNPermissions: 913e830a18973804e2ca7cd38786e8d0c8f821eb
+  RNPermissions: bc76b0cb03f371ba0a2e1cde0411263c5a09760e
   RNReanimated: 145169afc3a64a15238f3d30389faf5176c0e905
   RNScreens: b13e4c45f0406f33986a39c0d8da0324bff94435
   RNSVG: 680e961f640e381aab730a04b2371969686ed9f7
@@ -2760,6 +2844,6 @@ SPEC CHECKSUMS:
   TrueSheet: e464e6aed89194f5b01b68ac7e967b280a5ecf34
   Yoga: df4e6df930f6d93d6647c10c61d4d6fe5a694805
 
-PODFILE CHECKSUM: 0dd2b6be4583c8ca6454979eedc2c0c294e8024a
+PODFILE CHECKSUM: a0e41f91c761a2e1b6b78f7d936642a1e92eb5c8
 
 COCOAPODS: 1.15.2

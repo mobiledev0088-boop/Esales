@@ -3,14 +3,25 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AppText from '../customs/AppText';
 
-import {View} from 'react-native';
+import {Pressable, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
-import {DrawerNavigationProp} from '../../types/navigation';
+import {AppNavigationProp, DrawerNavigationProp} from '../../types/navigation';
 import {useLoginStore} from '../../stores/useLoginStore';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
-import {memo} from 'react';
+import React, {memo, useRef, useImperativeHandle, forwardRef, useEffect} from 'react';
 import {EmpInfo} from '../../types/user';
 import clsx from 'clsx';
+
+type ScrollToOptions = {
+  x?: number;
+  y?: number;
+  animated?: boolean;
+};
+
+export type AppLayoutRef = {
+  scrollTo: (options: ScrollToOptions) => void;
+  scrollToEnd: (animated?: boolean) => void;
+};
 
 type AppLayoutProps = {
   children: React.ReactNode;
@@ -19,29 +30,55 @@ type AppLayoutProps = {
   title?: string;
   needScroll?: boolean;
   needPadding?: boolean;
+  onScrollToComplete?: () => void;
 };
 
 type HeaderProps = {
   needBack?: boolean;
   title?: string;
   navigation: DrawerNavigationProp;
+  stackNavigation: AppNavigationProp;
   name: string;
   empInfo: EmpInfo | null;
   isDashboard?: boolean;
 };
 
-const AppLayout = ({
-  children,
-  isDashboard = false,
-  needBack = false,
-  title,
-  needScroll = true,
-  needPadding = false,
-}: AppLayoutProps) => {
-  const navigation = useNavigation<DrawerNavigationProp>();
-  const userInfo = useLoginStore(state => state.userInfo);
-  const empInfo = useEmpStore(state => state.empInfo);
-  const name = userInfo?.EMP_Name?.split('_')[0] || '----';
+const AppLayout = forwardRef<AppLayoutRef, AppLayoutProps>(
+  (
+    {
+      children,
+      isDashboard = false,
+      needBack = false,
+      title,
+      needScroll = false,
+      needPadding = false,
+      onScrollToComplete,
+    },
+    ref,
+  ) => {
+    const navigation = useNavigation<DrawerNavigationProp>();
+    const stackNavigation = useNavigation<AppNavigationProp>();
+    const userInfo = useLoginStore(state => state.userInfo);
+    const empInfo = useEmpStore(state => state.empInfo);
+    const name = userInfo?.EMP_Name?.split('_')[0] || '----';
+    
+    const scrollViewRef = useRef<KeyboardAwareScrollView>(null);
+
+    // Expose scroll methods via ref
+    useImperativeHandle(
+      ref,
+      () => ({
+        scrollTo: ({x = 0, y = 0, animated = true}: ScrollToOptions) => {
+          scrollViewRef.current?.scrollToPosition(x, y, animated);
+          onScrollToComplete?.();
+        },
+        scrollToEnd: (animated = true) => {
+          scrollViewRef.current?.scrollToEnd(animated);
+          onScrollToComplete?.();
+        },
+      }),
+      [onScrollToComplete],
+    );
 
   return needScroll ? (
     <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
@@ -52,18 +89,24 @@ const AppLayout = ({
         name={name}
         empInfo={empInfo}
         isDashboard={isDashboard}
+        stackNavigation={stackNavigation}
       />
       <KeyboardAwareScrollView
+        ref={scrollViewRef}
         className="flex-1"
         enableOnAndroid
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[{flexGrow: 1}, needPadding && {paddingHorizontal: 16}]}
-      >
+        contentContainerStyle={[
+          {flexGrow: 1},
+          needPadding && {paddingHorizontal: 16},
+        ]}
+        showsVerticalScrollIndicator={false}
+        >
         {children}
       </KeyboardAwareScrollView>
     </View>
   ) : (
-    <View className={clsx("flex-1 bg-lightBg-base dark:bg-darkBg-base", {"px-4": needPadding})}>
+    <View className={clsx('flex-1 bg-lightBg-base dark:bg-darkBg-base')}>
       <Header
         needBack={needBack}
         title={title}
@@ -71,11 +114,12 @@ const AppLayout = ({
         name={name}
         empInfo={empInfo}
         isDashboard={isDashboard}
+        stackNavigation={stackNavigation}
       />
-      {children}
+      <View className={clsx('flex-1', needPadding && 'px-4')}>{children}</View>
     </View>
   );
-};
+});
 
 export default memo(AppLayout);
 
@@ -84,6 +128,7 @@ const Header = memo<HeaderProps>(
     needBack = false,
     title,
     navigation,
+    stackNavigation,
     name,
     empInfo,
     isDashboard = false,
@@ -132,12 +177,15 @@ const Header = memo<HeaderProps>(
               <Icon name="notifications" size={25} color="#fff" />
               <View className="absolute top-0 right-0 w-3 h-3 bg-success rounded-full" />
             </View>
-            <MCIcons
-              name="barcode-scan"
-              size={25}
-              color="#fff"
-              style={{marginLeft: 10}}
-            />
+            <Pressable>
+              <MCIcons
+                name="barcode-scan"
+                size={25}
+                color="#fff"
+                style={{marginLeft: 10}}
+                onPress={() => stackNavigation.push('ScanSN')}
+              />
+            </Pressable>
             <Icon
               name="logout"
               size={25}

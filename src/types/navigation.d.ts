@@ -1,5 +1,6 @@
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DrawerNavigationProp as DNP } from '@react-navigation/drawer';
+import { FeedbackItem } from '../screens/app/India/Feedback/component';
 
 type AuthStackParamList = {
     Login: undefined;
@@ -8,11 +9,19 @@ type AuthStackParamList = {
 
 type AppNavigationParamList = {
     Index: undefined;
+    // Dashboard Screen
     Home: undefined;
+    ScanSN: undefined;
     More: undefined;
+    // More Option Screen
     ProductInfo: undefined;
     EDMInfo: undefined;
+    // Account Screen
     ChangePassword: undefined;
+    // Feedback Screens
+    Feedback: undefined;
+    AddFeedback: undefined;
+    FeedbackDetails: { data: FeedbackItem };
 }
 
 export type AuthNavigationProp = NativeStackNavigationProp<AuthStackParamList>;

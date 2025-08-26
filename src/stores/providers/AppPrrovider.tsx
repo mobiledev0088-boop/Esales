@@ -9,6 +9,7 @@ import {useColorScheme} from 'nativewind';
 import {AppColors} from '../../config/theme';
 import CustomStatusBar from '../../components/CustomStatusBar';
 import {SheetProvider} from 'react-native-actions-sheet';
+import GlobalLoader from '../../components/GlobalLoader';
 import '../../utils/sheets';
 
 export const AppProviders = ({children}: PropsWithChildren) => {
@@ -32,6 +33,7 @@ export const AppProviders = ({children}: PropsWithChildren) => {
               <SafeAreaView style={{flex: 1}}>{children}</SafeAreaView>
             </SheetProvider>
           </NavigationContainer>
+          <GlobalLoader />
         </GestureHandlerRootView>
       </SafeAreaProvider>
     </QueryProvider>

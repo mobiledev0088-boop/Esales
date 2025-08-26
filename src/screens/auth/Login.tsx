@@ -9,7 +9,7 @@ import { useLoginMutation } from '../../hooks/queries/auth';
 import { ecrypt } from '../../utils/commonFunctios';
 
 const Login = () => {
-    const [formData, setFormData] = useState({ username: 'Aditya_patel', password: 'Aditya@1234567890U' });
+    const [formData, setFormData] = useState({ username: 'Ashish_Devasi', password: '@ITSMbpm07072025' });
     const [errorMessage, setErrorMessage] = useState<{ [key: string]: string }>({});
 
     const { mutate: login } = useLoginMutation();
