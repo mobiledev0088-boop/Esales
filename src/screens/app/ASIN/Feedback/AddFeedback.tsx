@@ -20,6 +20,7 @@ import { queryClient } from '../../../../stores/providers/QueryProvider';
 import useEmpStore from '../../../../stores/useEmpStore';
 import { EXPERIENCE_OPTIONS } from './constants';
 import clsx from 'clsx';
+import { useThemeStore } from '../../../../stores/useThemeStore';
 
 
 // Feedback module type definitions
@@ -73,6 +74,7 @@ const AddFeedback: React.FC = () => {
   const userInfo = useLoginStore((state) => state.userInfo);
   const empInfo = useEmpStore(state => state.empInfo);
   const empCode = empInfo?.EMP_Code ?? '';
+  const AppTheme = useThemeStore(state => state.AppTheme);
 
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -121,8 +123,8 @@ const AddFeedback: React.FC = () => {
     if (!isError) return null;
     
     return (
-      <View className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-        <Text className="text-red-700 text-sm">
+      <View className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
+        <Text className="text-red-700 dark:text-red-400 text-sm">
           {error instanceof Error ? error.message : 'Failed to load feedback form data'}
         </Text>
       </View>
@@ -165,13 +167,18 @@ const AddFeedback: React.FC = () => {
           placeholder="Enter your feedback"
           multiline
           style={{ minHeight: screenHeight*0.2, alignItems:'flex-start' }}
-          inputContainerClassName='bg-white '
-          className='p-2 text-lg w-full'
+          inputContainerClassName='bg-white dark:bg-darkBg-surface border-gray-200 dark:border-gray-700'
+          className='p-2 text-lg w-full text-gray-900 dark:text-gray-100'
           showClearButton={false}
           label='Feedback'
         />
 
-        <AppExperience appExperience={appExperience} onPress={setAppExperience} experienceOptions={experienceOptions}/>
+        <AppExperience 
+          appExperience={appExperience} 
+          onPress={setAppExperience} 
+          experienceOptions={experienceOptions}
+          AppTheme={AppTheme}
+        />
 
         <AppButton
           title="Submit Feedback"
@@ -180,7 +187,7 @@ const AddFeedback: React.FC = () => {
           disabled={isSubmitDisabled}
         />
 
-        <AppText size='xs' weight='semibold' className='text-center text-gray-500 '>
+        <AppText size='xs' weight='semibold' className='text-center text-gray-500 dark:text-gray-400'>
           Our team will review your feedback and get back to you within {'\n'} 3-5 business days.
         </AppText>
       </View>

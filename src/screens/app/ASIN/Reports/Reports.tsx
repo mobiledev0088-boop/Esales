@@ -10,8 +10,9 @@ import {useLoginStore} from '../../../../stores/useLoginStore';
 import useEmpStore from '../../../../stores/useEmpStore';
 import AppModal from '../../../../components/customs/AppModal';
 import Pdf from 'react-native-pdf';
-import { screenHeight } from '../../../../utils/constant';
+import {screenHeight, screenWidth} from '../../../../utils/constant';
 import AppButton from '../../../../components/customs/AppButton';
+import Skeleton from '../../../../components/skeleton/skeleton';
 
 // Fetch reports data from API or other sources
 const fetchReportsData = async (
@@ -53,7 +54,7 @@ export default function Reports() {
     empInfo?.Year_Qtr,
   ];
 
-  const {data} = useQuery({
+  const {data, isLoading, isError, error, refetch} = useQuery({
     queryKey: ['reports', {RoleId, employeeCode, YearQtr}],
     queryFn: () => fetchReportsData(RoleId, employeeCode, YearQtr),
   });
@@ -79,46 +80,62 @@ export default function Reports() {
   );
 
   return (
-    <>
-      <AppLayout title={name} needPadding>
+    <AppLayout title={name} needPadding>
+      {isLoading ? (
+        <ReportsSkeleton />
+      ) : isError ? (
+        <View className="flex-1 justify-center items-center mt-20">
+          <AppText className="text-red-500 dark:text-red-400 mb-2">
+            {error instanceof Error ? error.message : 'Something went wrong'}
+          </AppText>
+          <AppButton title="Retry" onPress={() => refetch()} />
+        </View>
+      ) : (
         <FlatList
           data={getData(data, name) || []}
           renderItem={renderAnnouncementData}
           keyExtractor={(item, index) => index.toString()}
           style={{marginTop: 20}}
           showsVerticalScrollIndicator={false}
+          ListEmptyComponent={() => (
+            <View className="flex-1 justify-center items-center mt-20">
+              <AppText className="text-gray-500 dark:text-gray-400" size='2xl'>
+                No reports available
+              </AppText>
+            </View>
+          )}
         />
-      </AppLayout>
+      )}
+
       <AppModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        blurOFF
-        needClose
-        >
-        <View style={{height: screenHeight * 0.7}} >
-          <AppText weight='semibold' className='mb-2 ml-2'>Pdf Preview</AppText>
+        showCloseButton>
+        <View style={{height: screenHeight * 0.7}}>
+          <AppText weight="semibold" className="mb-2 ml-2">
+            Pdf Preview
+          </AppText>
           <Pdf
-            source={{cache: true,uri: pdfUrl}}
-            style={{flex: 1,borderWidth:0.5,borderColor:'#ccc'}}
-            onLoadComplete={pages => {
-              console.log(`PDF loaded with ${pages} pages`);
-            }}
-            onPageChanged={(page, total) => {
-              console.log(`Current page: ${page} / ${total}`);
-            }}
-            onError={error => {
-              console.log(error);
-            }}
+            source={{cache: true, uri: pdfUrl}}
+            style={{flex: 1, borderWidth: 0.5, borderColor: '#ccc'}}
+            trustAllCerts={false}
+            onLoadComplete={pages =>
+              console.log(`PDF loaded with ${pages} pages`)
+            }
+            onPageChanged={(page, total) =>
+              console.log(`Current page: ${page} / ${total}`)
+            }
+            onError={error => console.log(error)}
           />
           <AppButton
-            title='Download'
-            iconName='download'
-            onPress={()=>{}}
-            className='mt-2'
+            title="Download"
+            iconName="download"
+            onPress={() => {}}
+            className="mt-2"
           />
         </View>
       </AppModal>
-    </>
+    </AppLayout>
   );
 }
 
@@ -138,3 +155,13 @@ const getData = (data: any, name: string) => {
       return [];
   }
 };
+
+function ReportsSkeleton() {
+  return (
+    <View className="px-3 pt-5 gap-4">
+      {[...Array(15)].map((_, index) => (
+        <Skeleton key={index} width={screenWidth * 0.9} height={40} borderRadius={6} />
+      ))}
+    </View>
+  );
+}

@@ -10,16 +10,16 @@ export const EXPERIENCE_OPTIONS = [
 
 export const STATUS_CONFIG = {
   CLOSED: {
-    textColor: 'text-red-600',
-    bgColor: 'bg-red-50',
-    borderColor: 'border-red-200',
+    textColor: 'text-red-600 dark:text-red-400',
+    bgColor: 'bg-red-50 dark:bg-red-900/20',
+    borderColor: 'border-red-200 dark:border-red-800',
     iconColor: '#dc2626',
     iconName: 'close-circle',
   },
   OPEN: {
-    textColor: 'text-emerald-600',
-    bgColor: 'bg-emerald-50',
-    borderColor: 'border-emerald-200',
+    textColor: 'text-emerald-600 dark:text-emerald-400',
+    bgColor: 'bg-emerald-50 dark:bg-emerald-900/20',
+    borderColor: 'border-emerald-200 dark:border-emerald-800',
     iconColor: '#059669',
     iconName: 'checkmark-circle',
   },

@@ -9,6 +9,7 @@ import { handleASINApiCall } from '../utils/handleApiCall';
 import { getDeviceId } from 'react-native-device-info';
 import { useLoginStore } from '../stores/useLoginStore';
 import { showToast } from '../utils/commonFunctios';
+import { isIOS } from '../utils/constant';
 
 const LogoutModal = ({
   isVisible,
@@ -38,7 +39,7 @@ const LogoutModal = ({
     })
     const handleLogout = () => mutate();
   return (
-    <AppModal isOpen={isVisible} onClose={onClose} width="80%" >
+    <AppModal isOpen={isVisible} onClose={onClose} modalWidth={'80%'} >
       <View className="items-center justify-center  space-y-5">
         <View className="bg-primary rounded-full p-4 mb-5">
           <AppIcon
@@ -56,14 +57,16 @@ const LogoutModal = ({
         </AppText>
         <View className="w-full space-y-3 mt-5">
           <AppButton
-            onPress={handleLogout}
+            onPress={isIOS ? handleLogout : undefined}
+            onPressOut={!isIOS ? handleLogout : undefined}
             className="py-3 bg-error"
             weight="bold"
             title="Log out"
           />
           <TouchableOpacity
             activeOpacity={0.7}
-            onPress={onClose}
+            onPress={isIOS? onClose : undefined}
+            onPressOut={!isIOS ? onClose : undefined}
             className="bg-gray-100 py-3 rounded-sm items-center mt-2">
             <AppText weight="bold"  color="primary">
               Cancel

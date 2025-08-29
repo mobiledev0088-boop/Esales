@@ -12,7 +12,9 @@ import {twMerge} from 'tailwind-merge';
 
 interface AppButtonProps {
   title: string | React.ReactNode; // Allow string or React node for title
-  onPress: () => void;
+  onPress?: () => void;
+  onPressIn?: () => void;
+  onPressOut?: () => void;
   iconName?: string; // Optional icon name
   className?: string; // Tailwind classes for the button
   color?: AppTextColorType;
@@ -25,6 +27,8 @@ interface AppButtonProps {
 const AppButton = ({
   title,
   onPress,
+  onPressIn,
+  onPressOut,
   iconName,
   className = '',
   color = 'white',
@@ -37,6 +41,8 @@ const AppButton = ({
   return (
     <TouchableOpacity
       onPress={onPress}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
       className={twMerge(`bg-primary p-3 rounded-sm items-center ${className}`)}
       activeOpacity={0.7}
       disabled={isLoading || disabled}

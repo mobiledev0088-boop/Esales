@@ -43,7 +43,6 @@ export interface AppDropdownProps {
 }
 
 const BATCH_SIZE = 40;
-
 const AppDropdown: React.FC<AppDropdownProps> = ({
   data,
   onSelect,
@@ -222,9 +221,11 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
           onScroll: handleScroll,
           scrollEventThrottle: 16,
         }}
+
+        showArrowIcon
         ArrowDownIconComponent={()=> <AppIcon type="feather" name="chevron-down" size={20} color={theme.text} />}
         ArrowUpIconComponent={() => <AppIcon type="feather" name="chevron-up" size={20} color={theme.text} />}
-
+        
         listItemLabelStyle={{ color: theme.text, borderBottomWidth:0.2, borderBottomColor: theme.text + '40' }}
         selectedItemLabelStyle={{
           color: theme.primary,

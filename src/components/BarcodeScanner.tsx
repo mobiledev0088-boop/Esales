@@ -6,7 +6,6 @@ import {
   Text,
   TouchableOpacity,
   ActivityIndicator,
-  Modal,
 } from 'react-native';
 import {
   request,
@@ -15,11 +14,11 @@ import {
   RESULTS,
   openSettings,
 } from 'react-native-permissions';
-import Animated, {SlideInDown, SlideOutDown} from 'react-native-reanimated';
 import AppText from './customs/AppText';
 import AppIcon from './customs/AppIcon';
-import {screenHeight, screenWidth} from '../utils/constant';
 import {ReactNativeScannerView} from '@pushpendersingh/react-native-scanner';
+import AppModal from './customs/AppModal';
+import { screenHeight, screenWidth } from '../utils/constant';
 
 type ScanType = 'barcode' | 'qr';
 interface BarcodeScannerProps {
@@ -37,13 +36,13 @@ interface BarcodeScannerProps {
 }
 const normalizeCodeType = (type: string) => {
   switch (type) {
-    case "org.iso.Code128":
-    case "CODE_128":
-      return "CODE_128";
+    case 'org.iso.Code128':
+    case 'CODE_128':
+      return 'CODE_128';
 
-    case "org.iso.QRCode":
-    case "QR_CODE":
-      return "QR_CODE";
+    case 'org.iso.QRCode':
+    case 'QR_CODE':
+      return 'QR_CODE';
 
     default:
       return type;
@@ -89,9 +88,9 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
         'Camera Access Required',
         'Please enable camera access from Settings.',
         [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Open Settings', onPress: () => openSettings() },
-        ]
+          {text: 'Cancel', style: 'cancel'},
+          {text: 'Open Settings', onPress: () => openSettings()},
+        ],
       );
       setHasPermission(false);
     } else {
@@ -103,15 +102,18 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
   /** ---------------- Barcode Handling ---------------- */
   const handleBarcodeScanned = useCallback(
     (event: any) => {
-      const { data, type }: { data: string; type: string } = event?.nativeEvent || {};
+      const {data, type}: {data: string; type: string} =
+        event?.nativeEvent || {};
       const normalizedType = normalizeCodeType(type);
-      const isValidType = (scanType === "barcode" && normalizedType === "CODE_128") || (scanType === "qr" && normalizedType === "QR_CODE");
+      const isValidType =
+        (scanType === 'barcode' && normalizedType === 'CODE_128') ||
+        (scanType === 'qr' && normalizedType === 'QR_CODE');
       const isValidRegex = /^[a-zA-Z0-9][a-zA-Z0-9][A-Z].{9,12}$/.test(data);
       if (isValidType && isValidRegex) {
         onCodeScanned?.(data);
       }
     },
-    [scanType, onCodeScanned]
+    [scanType, onCodeScanned],
   );
 
   /** ---------------- Loader & Error States ---------------- */
@@ -130,8 +132,9 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
         <Text className="text-white text-center mb-4">
           Camera access is required to scan codes.
         </Text>
-        <TouchableOpacity className="bg-blue-500 px-5 py-3 rounded-lg" onPress={() => openSettings()}
-        >
+        <TouchableOpacity
+          className="bg-blue-500 px-5 py-3 rounded-lg"
+          onPress={() => openSettings()}>
           <Text className="text-white text-base">Open Settings</Text>
         </TouchableOpacity>
       </View>
@@ -140,53 +143,33 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
 
   /** ---------------- Main UI ---------------- */
   return (
-    <Modal
-      transparent
-      visible={isScannerOpen}
-      animationType="none"
-      onRequestClose={closeScanner}
-      presentationStyle="overFullScreen"
-    >
-      <View
-        style={{
-          width: screenWidth,
-          height: screenHeight,
-          backgroundColor: 'black',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <Animated.View
-          entering={SlideInDown.duration(300)}
-          exiting={SlideOutDown.duration(300)}
-          style={{ width: screenWidth, height: screenHeight }}
-        >
-          <ReactNativeScannerView
-            key={scannerKey} // Force remount on iOS
-            ref={scannerRef}
-            style={{ flex: 1 }}
-            onQrScanned={handleBarcodeScanned}
-            pauseAfterCapture={false}
-            showBox
-          />
+    <AppModal isOpen={isScannerOpen} onClose={closeScanner} noCard>
+      <View style={{width:screenWidth,height:screenHeight}}>
+        <ReactNativeScannerView
+          key={scannerKey}
+          ref={scannerRef}
+          style={{flex: 1}}
+          onQrScanned={handleBarcodeScanned}
+          pauseAfterCapture={false}
+          showBox
+        />
 
-          {/* Close Button */}
-          <TouchableOpacity
-            className="absolute top-10 right-5 bg-black/60 p-3 rounded-full"
-            onPress={closeScanner}
-          >
-            <AppIcon type="feather" name="x" size={24} color="white" />
-          </TouchableOpacity>
+        {/* Close Button */}
+        <TouchableOpacity
+          className="absolute top-10 right-5 bg-black/60 p-3 rounded-full"
+          onPress={closeScanner}>
+          <AppIcon type="feather" name="x" size={24} color="white" />
+        </TouchableOpacity>
 
-          {/* Instruction */}
-          <View className="absolute bottom-8 self-center bg-black/60 px-4 py-3 rounded-md">
-            <AppText className="text-white text-base">
-              Align the {scanType === 'barcode' ? 'barcode' : 'QR code'} within the frame
-            </AppText>
-          </View>
-        </Animated.View>
+        {/* Instruction */}
+        <View className="absolute bottom-8 self-center bg-black/60 px-4 py-3 rounded-md">
+          <AppText className="text-white text-base">
+            Align the {scanType === 'barcode' ? 'barcode' : 'QR code'} within
+            the frame
+          </AppText>
+        </View>
       </View>
-    </Modal>
+    </AppModal>
   );
 };
 

@@ -20,11 +20,9 @@ const AutoUpdate = () => {
             <AppModal
                 isOpen={isOpen}
                 onClose={handleClose}
-                className="p-5"
-                width="85%"
-                height="42%"
-                needClose
-                blurOFF
+                modalWidth={85}
+                showCloseButton
+                disableOverlayPress
             >
                 <AppText
                     weight="semibold"

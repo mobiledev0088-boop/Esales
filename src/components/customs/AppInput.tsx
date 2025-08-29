@@ -67,7 +67,6 @@ const AppInput: React.FC<CustomInputProps> = ({
             alignItems: 'center' as const,
             borderColor,
         };
-        console.log({inputWapperStyle})
         const flattenedStyle = StyleSheet.flatten(inputWapperStyle) as ViewStyle;
 
         return variant === 'underline'

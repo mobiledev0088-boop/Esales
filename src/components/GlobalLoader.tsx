@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {View, Modal, StyleSheet} from 'react-native';
+import {View, StyleSheet} from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -8,17 +8,14 @@ import Animated, {
   withRepeat,
 } from 'react-native-reanimated';
 import {useLoaderStore} from '../stores/useLoaderStore';
-import {screenHeight, screenWidth} from '../utils/constant';
 import AppImage from './customs/AppImage';
-import AppText from './customs/AppText';
+import AppModal from './customs/AppModal';
 
 const GlobalLoader = () => {
   const globalLoading = useLoaderStore(state => state.globalLoading);
 
   return (
-    <Modal transparent visible={globalLoading} animationType="fade">
-      <View style={styles.overlay}>
-        <View style={styles.container}>
+    <AppModal isOpen={globalLoading} onClose={() => {}} animationType="fade" modalWidth={150}>
           <View style={styles.iconContainer}>
             <View style={styles.loaderWrapper}>
               <AppImage
@@ -28,10 +25,7 @@ const GlobalLoader = () => {
               <Loader />
             </View>
           </View>
-          {/* <AppText  weight="semibold" color="black">Loading...</AppText> */}
-        </View>
-      </View>
-    </Modal>
+    </AppModal>
   );
 };
 
@@ -45,7 +39,7 @@ const COLOR = '#00539B';
 
 const Loader = () => {
   return (
-    <View style={styles.container2}>
+    <View style={styles.container}>
       {Array.from({length: BARS}).map((_, i) => (
         <Bar key={i} index={i} />
       ))}
@@ -97,24 +91,13 @@ const Bar = ({index}: {index: number}) => {
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    width: screenWidth,
-    height: screenHeight,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  container: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 14,
-    alignItems: 'center',
-  },
   iconContainer: {
     marginBottom: 12,
+    alignItems: 'center',
+    justifyContent:'center'
   },
 
-  container2: {
+  container: {
     width: SIZE,
     height: SIZE,
     justifyContent: 'center',

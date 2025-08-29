@@ -10,6 +10,7 @@ import {screenHeight, screenWidth} from '../../../../../utils/constant';
 import Animated, { FadeInUp, FadeOutDown, SlideInDown, SlideOutDown} from 'react-native-reanimated';
 import { useThemeStore } from '../../../../../stores/useThemeStore';
 import { AppColors } from '../../../../../config/theme';
+import AppModal from '../../../../../components/customs/AppModal';
 
 interface DataType {
   icon: string;
@@ -452,8 +453,6 @@ export const SearchCard = ({
 
 export const NoResultsMessage = () => {
   const appTheme = useThemeStore(state => state.AppTheme);
-  const isDarkTheme = appTheme === 'dark';
-  
   return (
     <Card className="items-center py-8 mt-5">
       <AppIcon 
@@ -479,35 +478,10 @@ export const NoResultsMessage = () => {
 };
 
 export const CautionModal = () => {
-  const appTheme = useThemeStore(state => state.AppTheme);
-  const isDarkTheme = appTheme === 'dark';
   const [isOpen, setIsOpen] = useState(true);
-  const handleClose = () => setIsOpen(false);
-  
   return (
-    <Modal
-      transparent
-      visible={isOpen}
-      animationType="none"
-      onRequestClose={handleClose}
-      presentationStyle="overFullScreen">
-      <View style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
-        <Animated.View
-          entering={SlideInDown.duration(300)} // Slide in speed
-          exiting={SlideOutDown.duration(300)} // Slide out speed
-          style={{
-            width: screenWidth,
-            height: screenHeight,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}>
-          <View 
-            className="rounded-xl p-5 items-center w-[85%] shadow-lg"
-            style={{
-              backgroundColor: isDarkTheme ? AppColors.dark.bgSurface : 'white'
-            }}
-          >
-            <View className="flex-row items-center mb-4">
+    <AppModal isOpen={isOpen} onClose={()=>setIsOpen(false)}>
+            <View className="flex-row justify-center mb-4">
               <AppText 
                 size="xl" 
                 weight="bold" 
@@ -536,15 +510,12 @@ export const CautionModal = () => {
 
             <TouchableOpacity
               activeOpacity={0.7}
-              onPress={handleClose}
+              onPress={() => setIsOpen(false)}
               className="items-center justify-center bg-primary rounded-lg py-3 px-6 min-w-[120px] shadow-sm">
               <AppText color="white" weight="medium">
                 Continue
               </AppText>
             </TouchableOpacity>
-          </View>
-        </Animated.View>
-      </View>
-    </Modal>
+    </AppModal>
   );
 };

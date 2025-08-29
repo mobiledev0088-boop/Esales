@@ -18,10 +18,7 @@ export const useLoginMutation = () => {
         mutationFn: (dataToSend: any) => loginApi(dataToSend),
         onSuccess: async (data) => {
             const login = data?.login;
-            console.log('Login response:', login);
             if(login?.Status){
-                showToast('Login successful');
-                console.log('Login successful:', login);
                 const EMP_Code = login?.Datainfo?.[0]?.EMP_Code;
                 if (EMP_Code) {
                     const res = await getEmpInfoApi(EMP_Code);
@@ -29,6 +26,7 @@ export const useLoginMutation = () => {
                     useEmpStore.getState().setEmpInfo(empInfo);
                 }
                 setAuthData(login?.Token, login?.Datainfo?.[0]);
+                showToast('Login successful');
             }else{
                 const message = login?.Message || 'Login failed';
                 showToast(message);

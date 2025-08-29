@@ -12,6 +12,7 @@ import { showConfirmationSheet } from '../../../../components/ConfirmationSheet'
 import useEmpStore from '../../../../stores/useEmpStore'
 import { useLoginStore } from '../../../../stores/useLoginStore'
 import { AppNavigationProp } from '../../../../types/navigation'
+import { useThemeStore } from '../../../../stores/useThemeStore'
 
 const FeedbackDetails = () => {
   const route = useRoute()
@@ -20,6 +21,7 @@ const FeedbackDetails = () => {
   const empInfo = useEmpStore(state => state.empInfo);
   const userInfo = useLoginStore(state => state.userInfo);
   const closeFeedbackMutation = useCloseFeedbackMutation();
+  const AppTheme = useThemeStore(state => state.AppTheme);
   
   const empCode = empInfo?.EMP_Code ?? '';
   const userCode = userInfo?.EMP_Code ?? '';
@@ -54,11 +56,11 @@ const FeedbackDetails = () => {
     <AppLayout title="Feedback Details" needBack needPadding needScroll>
         <Card className="my-4">
           <View className="items-center py-2 pb-4">
-            <AppText size="2xl" weight="bold" className="text-gray-900">
+            <AppText size="2xl" weight="bold" className="text-gray-900 dark:text-gray-100">
               ID : {data.Feedback_ID}
             </AppText>
             
-            <AppText size="sm" weight="medium" className="text-gray-600 mt-1">
+            <AppText size="sm" weight="medium" className="text-gray-600 dark:text-gray-400 mt-1">
               {formattedDate}
             </AppText>
 
@@ -84,20 +86,20 @@ const FeedbackDetails = () => {
 
             {data.Qry_Status === 'CLOSED' && (
               <View className="mt-3">
-                <AppText size="xs" className="text-gray-500 text-center">
+                <AppText size="xs" className="text-gray-500 dark:text-gray-400 text-center">
                   Close By: {data.Status_Updated_By || "KN2500069"}
                 </AppText>
-                <AppText size="xs" className="text-gray-500 text-center">
+                <AppText size="xs" className="text-gray-500 dark:text-gray-400 text-center">
                   Close On: {data.Status_Updated_On ? moment(data.Status_Updated_On).format('DD MMMM YYYY, hh:mm A') : "14 August 2025, 02:41 PM"}
                 </AppText>
               </View>
             )}
           </View>
 
-          <View className="h-px bg-gray-200 my-4" />
+          <View className="h-px bg-gray-200 dark:bg-gray-700 my-4" />
 
           <View className="pb-4">
-            <AppText size="lg" weight="bold" className="text-gray-900 mb-4">
+            <AppText size="lg" weight="bold" className="text-gray-900 dark:text-gray-100 mb-4">
               Customer Information
             </AppText>
             
@@ -106,6 +108,7 @@ const FeedbackDetails = () => {
               label="EMAIL ADDRESS"
               value={data.Employee_EmailID}
               iconColor={ICON_COLORS.email}
+              AppTheme={AppTheme}
             />
             
             <InfoRow
@@ -113,6 +116,7 @@ const FeedbackDetails = () => {
               label="CUSTOMER NAME"
               value={data.Employee_Name}
               iconColor={ICON_COLORS.customer}
+              AppTheme={AppTheme}
             />
             
             <InfoRow
@@ -120,13 +124,14 @@ const FeedbackDetails = () => {
               label="EMPLOYEE CODE"
               value={data.Employee_Code}
               iconColor={ICON_COLORS.employee}
+              AppTheme={AppTheme}
             />
           </View>
 
-          <View className="h-px bg-gray-200 my-4" />
+          <View className="h-px bg-gray-200 dark:bg-gray-700 my-4" />
 
           <View className="pb-2">
-            <AppText size="lg" weight="bold" className="text-gray-900 mb-4">
+            <AppText size="lg" weight="bold" className="text-gray-900 dark:text-gray-100 mb-4">
               Query Details
             </AppText>
             
@@ -136,6 +141,7 @@ const FeedbackDetails = () => {
               label="QUERY TYPE"
               value={data.QueryType}
               iconColor={ICON_COLORS.queryType}
+              AppTheme={AppTheme}
             />
             
             <InfoRow
@@ -144,6 +150,7 @@ const FeedbackDetails = () => {
               label="CATEGORY"
               value={data.Category}
               iconColor={ICON_COLORS.category}
+              AppTheme={AppTheme}
             />
             
             <InfoRow
@@ -152,11 +159,12 @@ const FeedbackDetails = () => {
               label="APP EXPERIENCE"
               value={data.AFF_App_Experience}
               iconColor={ICON_COLORS.experience}
+              AppTheme={AppTheme}
             />
             
             <View className="mt-2">
               <View className="flex-row items-start gap-3 py-3">
-                <View className="w-8 h-8 rounded-full bg-gray-100 items-center justify-center mt-0.5">
+                <View className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 items-center justify-center mt-0.5">
                   <AppIcon
                     type="feather"
                     name="file-text"
@@ -168,14 +176,14 @@ const FeedbackDetails = () => {
                   <AppText
                     size="xs"
                     weight="medium"
-                    className="text-gray-500 uppercase tracking-wide mb-2"
+                    className="text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2"
                   >
                     QUERY DESCRIPTION
                   </AppText>
-                  <View className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <View className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
                     <AppText 
                       size="sm" 
-                      className="text-gray-700"
+                      className="text-gray-700 dark:text-gray-300"
                       style={{ lineHeight: 20 }}
                     >
                       {data.Feedback || "----"}
@@ -189,7 +197,7 @@ const FeedbackDetails = () => {
 
         {data.Qry_Status === 'OPEN' && (
             <TouchableOpacity
-              className="bg-error py-3 px-4 rounded flex-row items-center justify-center gap-2 mb-4"
+              className="bg-error dark:bg-red-600 py-3 px-4 rounded flex-row items-center justify-center gap-2 mb-4"
               activeOpacity={0.8}
               onPress={() => handleOpenFeedback(data.UniqueId)}
             >

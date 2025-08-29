@@ -6,7 +6,6 @@ import AuthLayout from '../../components/layout/AuthLayout';
 import { useState, useCallback } from 'react';
 import { getDeviceId } from 'react-native-device-info';
 import { useLoginMutation } from '../../hooks/queries/auth';
-import { ecrypt } from '../../utils/commonFunctios';
 
 const Login = () => {
     const [formData, setFormData] = useState({ username: 'Ashish_Devasi', password: '@ITSMbpm07072025' });
@@ -34,14 +33,12 @@ const Login = () => {
     };
 
     const handleSubmit = async () => {
-        console.log('Form Data:', getDeviceId());
         if (isValid()) {
             let dataToSend = {
                 username: formData.username,
                 password: formData.password,
                 deviceId: getDeviceId(),
             };
-            console.log('Data to send:', dataToSend);
             login(dataToSend);
         }
     };

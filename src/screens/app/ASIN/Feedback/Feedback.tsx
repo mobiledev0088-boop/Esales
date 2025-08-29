@@ -13,6 +13,7 @@ import {AppNavigationProp} from '../../../../types/navigation';
 import {handleASINApiCall} from '../../../../utils/handleApiCall';
 import {EachFeedback, FAB, useCloseFeedbackMutation} from './component';
 import {showConfirmationSheet} from '../../../../components/ConfirmationSheet';
+import {useThemeStore} from '../../../../stores/useThemeStore';
 
 const fetchEDMModels = async (empCode: string): Promise<FeedbackItem[]> => {
   const res: FeedbackApiResponse = await handleASINApiCall(
@@ -34,6 +35,7 @@ export default function Feedback(){
   const userInfo = useLoginStore(state => state.userInfo);
   const navigation = useNavigation<AppNavigationProp>();
   const closeFeedbackMutation = useCloseFeedbackMutation();
+  const AppTheme = useThemeStore(state => state.AppTheme);
 
   const empCode = empInfo?.EMP_Code ?? '';
   const userCode = userInfo?.EMP_Code ?? '';
@@ -66,7 +68,7 @@ export default function Feedback(){
         <FeedbackSkeleton />
       ) : isError ? (
         <View className="flex-1 justify-center items-center mt-20">
-          <AppText className="text-red-500 mb-2">
+          <AppText className="text-red-500 dark:text-red-400 mb-2">
             {error instanceof Error ? error.message : 'Something went wrong'}
           </AppText>
           <AppButton title="Retry" onPress={() => refetch()} />
@@ -80,13 +82,14 @@ export default function Feedback(){
               item={item}
               onClose={handleOpenFeedback}
               navigation={navigation}
+              AppTheme={AppTheme}
             />
           )}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.contentContainer}
           ListEmptyComponent={() => (
             <View className="flex-1 justify-center items-center mt-20">
-              <AppText className="text-gray-500">No feedback available</AppText>
+              <AppText className="text-gray-500 dark:text-gray-400">No feedback available</AppText>
             </View>
           )}
         />

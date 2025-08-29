@@ -18,7 +18,7 @@ import {AppColors} from '../../config/theme';
 import DrawerItemWrapper from './DrawerItemWrapper';
 import LogoutModal from '../LogoutModal';
 import {useState} from 'react';
-import {ASUS, screenHeight, screenWidth} from '../../utils/constant';
+import {ASUS} from '../../utils/constant';
 import {useLoginStore} from '../../stores/useLoginStore';
 import AppIcon from '../customs/AppIcon';
 
@@ -161,18 +161,7 @@ const CustomDrawerContent: React.FC<DrawerContentComponentProps> = ({
           <AppText size="md">Testing Screen</AppText>
         </TouchableOpacity>
       </DrawerContentScrollView>
-      {/* Modal is not Working Android is need that's this logic added  */}
-      {isOpen && (
-        <View
-          style={{
-            width: screenWidth,
-            height: screenHeight,
-            position: 'absolute',
-            backgroundColor: 'rgba(0,0,0,0.5)',
-          }}>
-          <LogoutModal isVisible={isOpen} onClose={() => setIsOpen(false)} />
-        </View>
-      )}
+      <LogoutModal isVisible={isOpen} onClose={() => setIsOpen(false)} />
     </>
   );
 };

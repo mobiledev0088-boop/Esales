@@ -13,28 +13,31 @@ import { handleASINApiCall } from '../../../../utils/handleApiCall';
 import { getDeviceId } from 'react-native-device-info';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryClient } from '../../../../stores/providers/QueryProvider';
+import { useThemeStore } from '../../../../stores/useThemeStore';
 
 export const EachFeedback = ({
   item,
   onClose,
-  navigation
+  navigation,
+  AppTheme
 }: {
   item: FeedbackItem;
   onClose?: (id: string) => void;
   navigation: AppNavigationProp;
+  AppTheme?: 'light' | 'dark';
 }) => {
   const getStatusConfig = (status: string) => {
     if (status === 'CLOSED') {
       return {
-        textColor: 'text-red-600',
-        bgColor: 'bg-red-50',
-        borderColor: 'border-red-200',
+        textColor: 'text-red-600 dark:text-red-400',
+        bgColor: 'bg-red-50 dark:bg-red-900/20',
+        borderColor: 'border-red-200 dark:border-red-800',
       };
     }
     return {
-      textColor: 'text-emerald-600',
-      bgColor: 'bg-emerald-50',
-      borderColor: 'border-emerald-200',
+      textColor: 'text-emerald-600 dark:text-emerald-400',
+      bgColor: 'bg-emerald-50 dark:bg-emerald-900/20',
+      borderColor: 'border-emerald-200 dark:border-emerald-800',
     };
   };
 
@@ -55,26 +58,26 @@ export const EachFeedback = ({
       icon="close-outline"
       disabled={item.Qry_Status === 'CLOSED'}>
       <TouchableOpacity
-        className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+        className="bg-white dark:bg-darkBg-surface rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
         activeOpacity={1} 
         onPress={handlePress}
         >
         {/* Header Section */}
-        <View className="bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3 border-b border-gray-100">
+        <View className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 px-4 py-3 border-b border-gray-100 dark:border-gray-700">
           <View className="flex-row justify-between items-center">
             <View className="flex-1">
-              <AppText size="lg" weight="bold" className="text-gray-900">
+              <AppText size="lg" weight="bold" className="text-gray-900 dark:text-gray-100">
                 #{item.Feedback_ID}
               </AppText>
-              <AppText size="xs" className="text-gray-500 mt-0.5">
+              <AppText size="xs" className="text-gray-500 dark:text-gray-400 mt-0.5">
                 {item.QueryType}
               </AppText>
             </View>
             <View className="items-end">
-              <AppText size="sm" weight="medium" className="text-gray-700">
+              <AppText size="sm" weight="medium" className="text-gray-700 dark:text-gray-300">
                 {moment(item.Uploded_On).format('DD/MM/YYYY')}
               </AppText>
-              <AppText size="xs" className="text-gray-500">
+              <AppText size="xs" className="text-gray-500 dark:text-gray-400">
                 {moment(item.Uploded_On).format('hh:mm A')}
               </AppText>
             </View>
@@ -89,13 +92,13 @@ export const EachFeedback = ({
               <AppText
                 size="xs"
                 weight="medium"
-                className="text-gray-500 uppercase tracking-wide mb-1">
+                className="text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
                 Customer
               </AppText>
-              <AppText size="sm" weight="semibold" className="text-gray-900">
+              <AppText size="sm" weight="semibold" className="text-gray-900 dark:text-gray-100">
                 {item.Employee_Name}
               </AppText>
-              <AppText size="xs" className="text-gray-600">
+              <AppText size="xs" className="text-gray-600 dark:text-gray-400">
                 {item.Employee_EmailID}
               </AppText>
             </View>
@@ -103,14 +106,14 @@ export const EachFeedback = ({
               <AppText
                 size="xs"
                 weight="medium"
-                className="text-gray-500 uppercase tracking-wide mb-1">
+                className="text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
                 Employee
               </AppText>
-              <View className="bg-gray-100 px-2 py-1 rounded-md">
+              <View className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-md">
                 <AppText
                   size="xs"
                   weight="medium"
-                  className="text-gray-700 font-mono">
+                  className="text-gray-700 dark:text-gray-300 font-mono">
                   {item.Employee_Code}
                 </AppText>
               </View>
@@ -128,12 +131,12 @@ export const EachFeedback = ({
                 {item.Qry_Status}
               </AppText>
             </View>
-            <View className="w-9 h-9 bg-gray-50 rounded-full justify-center items-center">
+            <View className="w-9 h-9 bg-gray-50 dark:bg-gray-700 rounded-full justify-center items-center">
               <AppIcon
                 type="feather"
                 name="chevron-right"
                 size={18}
-                color="#A0AEC0"
+                color={AppTheme === 'dark' ? "#9CA3AF" : "#A0AEC0"}
                 style={{marginLeft: 2}}
               />
             </View>
@@ -161,10 +164,12 @@ export const AppExperience = ({
   appExperience,
   onPress,
   experienceOptions,
+  AppTheme
 }: {
   appExperience: string | null;
   onPress: (value: string) => void;
   experienceOptions: ReadonlyArray<{readonly label: string; readonly value: string; readonly color: string}>;
+  AppTheme?: 'light' | 'dark';
 }) => {
   const StarRating = ({count}: {count: number}) => (
     <View className="flex-row items-center">
@@ -197,10 +202,10 @@ export const AppExperience = ({
   return (
     <View>
       {/* Heading */}
-      <AppText className="text-lg font-semibold text-gray-800 mb-2">
-        App Experience<AppText className="text-red-500"> *</AppText>
+      <AppText className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">
+        App Experience<AppText className="text-red-500 dark:text-red-400"> *</AppText>
       </AppText>
-      <AppText className="text-sm text-gray-600 mb-2">
+      <AppText className="text-sm text-gray-600 dark:text-gray-400 mb-2">
         Choose your rating with stars
       </AppText>
       <Card className="rounded-md">
@@ -220,12 +225,12 @@ export const AppExperience = ({
                 {/* Emoji Icon */}
                 <View
                   className={`w-14 h-14 rounded-full items-center justify-center mb-2 border-2 ${
-                    isSelected ? 'border-yellow-400' : 'border-gray-300'
+                    isSelected ? 'border-yellow-400 dark:border-yellow-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
                   style={{
                     backgroundColor: isSelected
                       ? option.color + '20'
-                      : '#f9fafb',
+                      : AppTheme === 'dark' ? '#374151' : '#f9fafb',
                     shadowColor: isSelected ? option.color : 'transparent',
                     shadowOffset: {width: 0, height: 2},
                     shadowOpacity: 0.3,
@@ -247,7 +252,7 @@ export const AppExperience = ({
                 <AppText
                   numberOfLines={1}
                   className={`text-xs text-center ${isSelected ? 'font-semibold' : 'font-medium'}`}
-                  style={{color: isSelected ? option.color : '#6b7280'}}>
+                  style={{color: isSelected ? option.color : (AppTheme === 'dark' ? '#9CA3AF' : '#6b7280')}}>
                   {option.label}
                 </AppText>
               </TouchableOpacity>
@@ -258,12 +263,12 @@ export const AppExperience = ({
         {/* Selected Rating */}
         {appExperience && (
           <View className="mt-4 items-center">
-            <View className="flex-row items-center bg-yellow-50 px-4 py-2 rounded-full border border-yellow-200">
-              <AppText className="text-sm text-yellow-700 mr-2">
+            <View className="flex-row items-center bg-yellow-50 dark:bg-yellow-900/20 px-4 py-2 rounded-full border border-yellow-200 dark:border-yellow-700">
+              <AppText className="text-sm text-yellow-700 dark:text-yellow-400 mr-2">
                 Your Rating:
               </AppText>
               <StarRating count={parseInt(appExperience)} />
-              <AppText className="text-sm text-yellow-700 ml-2">
+              <AppText className="text-sm text-yellow-700 dark:text-yellow-400 ml-2">
                 (
                 {
                   experienceOptions.find(opt => opt.value === appExperience)
@@ -285,7 +290,8 @@ export const InfoRow = memo(({
     label,
     value,
     iconColor = '#6B7280',
-    renderCustomValue
+    renderCustomValue,
+    AppTheme
   }: {
     icon: string;
     iconType?: 'ionicons' | 'feather' | 'materialIcons' | 'material-community';
@@ -293,9 +299,10 @@ export const InfoRow = memo(({
     value?: string;
     iconColor?: string;
     renderCustomValue?: () => React.ReactNode;
+    AppTheme?: 'light' | 'dark';
   }) => (
     <View className="flex-row items-start gap-3 py-3">
-      <View className="w-8 h-8 rounded-full bg-gray-100 items-center justify-center mt-0.5">
+      <View className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 items-center justify-center mt-0.5">
         <AppIcon
           type={iconType || 'ionicons'}
           name={icon}
@@ -307,12 +314,12 @@ export const InfoRow = memo(({
         <AppText
           size="xs"
           weight="medium"
-          className="text-gray-500 uppercase tracking-wide mb-1"
+          className="text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1"
         >
           {label}
         </AppText>
         {renderCustomValue ? renderCustomValue() : (
-          <AppText size="sm" weight="semibold" className="text-gray-900">
+          <AppText size="sm" weight="semibold" className="text-gray-900 dark:text-gray-100">
             {value || "----"}
           </AppText>
         )}

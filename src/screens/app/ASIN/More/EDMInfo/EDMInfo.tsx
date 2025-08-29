@@ -7,16 +7,16 @@ import {useMemo, useRef, useState} from 'react';
 import AppImage from '../../../../../components/customs/AppImage';
 import Card from '../../../../../components/Card';
 import AppButton from '../../../../../components/customs/AppButton';
-import {ASUS, screenWidth} from '../../../../../utils/constant';
+import {ASUS, screenHeight, screenWidth} from '../../../../../utils/constant';
 import RNFS from 'react-native-fs';
 import {
   ensureFolderExists,
   showToast,
 } from '../../../../../utils/commonFunctios';
 import {useLoaderStore} from '../../../../../stores/useLoaderStore';
-import { Platform, TouchableOpacity, View } from 'react-native';
-import clsx from 'clsx';
+import { Button, Platform, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import AppIcon from '../../../../../components/customs/AppIcon';
+import AppModal from '../../../../../components/customs/AppModal';
 
 interface EDMModel {
   label: string;
@@ -50,8 +50,7 @@ const fetchEDMModels = async (): Promise<EDMModel[]> => {
 const EDMInfo = () => {
   const [selectedModel, setSelectedModel] = useState<EDMModel | null>(null);
   const setLoading = useLoaderStore(state => state.setLoading);
-  const [zIndex, setZIndex] = useState(100);
-  const ref = useRef<null>(null);
+  const [isOpen,setIsOpen] = useState(false);
 
   const {
     data: edmModels = [],
@@ -108,7 +107,7 @@ const EDMInfo = () => {
         style={{paddingTop: 16}}
         placeholder={dropdownPlaceholder}
         disabled={isLoading}
-        zIndex={zIndex}
+        zIndex={100}
       /> 
       {selectedModel ? (
         <View>
@@ -119,7 +118,7 @@ const EDMInfo = () => {
               resizeMode="contain"
               />
               <View className='flex-row mt-2'>
-              <TouchableOpacity className='p-1 bg-black/10 rounded'>
+              <TouchableOpacity className='p-1 bg-black/10 rounded' onPress={() => setIsOpen(true)}>
                 <AppIcon
                 type="feather"
                 name='zoom-in'
@@ -141,7 +140,35 @@ const EDMInfo = () => {
           Note - Please select a model to view its EDM.
         </AppText>
       )}
+      <ImageModal selectedModel={selectedModel} isOpen={isOpen} onClose={() => setIsOpen(false)} />
     </AppLayout>
+  );
+};
+
+const ImageModal = ({isOpen,onClose,selectedModel}:{isOpen:boolean,onClose:()=>void,selectedModel:EDMModel|null}) => {
+  return (
+    <AppModal isOpen={isOpen} onClose={onClose} animationType="slide" noCard >
+      <View style={{width:screenWidth,height:screenHeight,justifyContent:'center',alignItems:'center'}}>
+        <TouchableWithoutFeedback onPress={onClose}>
+          <View style={{position: 'absolute', top: 50, right: 20, padding:5,borderRadius:50, backgroundColor: 'rgba(0, 0, 0, 0.5)'}}>
+            <AppIcon type="feather" name="x" size={24} color="#fff" />
+          </View>
+        </TouchableWithoutFeedback>
+      {selectedModel && (
+        <AppImage
+        source={{ uri: selectedModel.path }}
+        style={{ width: screenWidth * 0.91, height: 300 }}
+        resizeMode="contain"
+        zoomable
+        />
+      )}
+      <View className="absolute bottom-8 self-center bg-black/60 px-4 py-3 rounded-md">
+          <AppText className="text-white text-base">
+              Double tap to zoom in/out
+          </AppText>
+        </View>
+      </View>
+    </AppModal>
   );
 };
 
