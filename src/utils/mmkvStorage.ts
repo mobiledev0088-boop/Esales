@@ -2,7 +2,7 @@ import * as Keychain from 'react-native-keychain';
 
 import { MMKV } from 'react-native-mmkv';
 import { PersistStorage } from 'zustand/middleware';
-
+import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 let mmkvInstance: MMKV | null = null;
 
 // Generate a secure random hex string
@@ -57,3 +57,20 @@ export function createMMKVStorage<T>(keyPrefix?: string): PersistStorage<T> {
         },
     };
 }
+// --- React Query-compatible wrapper ---
+export function createRQMMKVPersister(): ReturnType<typeof createAsyncStoragePersister> {
+  return createAsyncStoragePersister({
+    storage: {
+      setItem: (name, value) => {
+        getMMKV().set(name, value); // value is already serialized
+      },
+      getItem: (name) => {
+        return getMMKV().getString(name) ?? null;
+      },
+      removeItem: (name) => {
+        getMMKV().delete(name);
+      },
+    },
+  });
+}
+

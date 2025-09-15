@@ -4,20 +4,23 @@ import Index from "../screens/app/ASIN";
 import ChangePassword from "../screens/app/ASIN/User/ChangePassword/ChangePassword";
 import ProductInfo from "../screens/app/ASIN/More/ProductInfo/ProductInfo";
 import EDMInfo from "../screens/app/ASIN/More/EDMInfo/EDMInfo";
-import ScanSN from "../screens/app/ASIN/Dashboard/ScanSN/ScanSN";
 import Feedback from "../screens/app/ASIN/Feedback/Feedback";
 import AddFeedback from "../screens/app/ASIN/Feedback/AddFeedback";
 import FeedbackDetails from "../screens/app/ASIN/Feedback/FeedbackDetails";
+import ActivatedDetails from "../screens/app/ASIN/More/ActivatedDetails/ActivatedDetails";
+import ScanSN from "../screens/app/ASIN/ScanSN/ScanSN";
 
 const Stack = createNativeStackNavigator();
 
 const screens = [
     { name: "Index", component: Index },
     { name: "ChangePassword", component:  ChangePassword},
-    { name: "ProductInfo", component: ProductInfo },
-    { name: "EDMInfo", component: EDMInfo },
+    // Dashboard Screens
     { name: "ScanSN", component: ScanSN },
-    
+    // More Screens
+    { name: "ActivatedDetails", component: ActivatedDetails },
+    { name: "EDMInfo", component: EDMInfo },
+    { name: "ProductInfo", component: ProductInfo },
     // Feedback Screens
     { name: "Feedback", component: Feedback },
     { name: "AddFeedback", component: AddFeedback },

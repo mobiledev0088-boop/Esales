@@ -11,10 +11,12 @@ import CustomStatusBar from '../../components/CustomStatusBar';
 import {SheetProvider} from 'react-native-actions-sheet';
 import GlobalLoader from '../../components/GlobalLoader';
 import '../../utils/sheets';
+import { useLoaderStore } from '../useLoaderStore';
 
 export const AppProviders = ({children}: PropsWithChildren) => {
   const {setColorScheme} = useColorScheme();
   const AppTheme = useThemeStore(state => state.AppTheme);
+  const globalLoading = useLoaderStore(state => state.globalLoading);
 
   useEffect(() => {
     setColorScheme(AppTheme);
@@ -33,7 +35,7 @@ export const AppProviders = ({children}: PropsWithChildren) => {
               <SafeAreaView style={{flex: 1}}>{children}</SafeAreaView>
             </SheetProvider>
           </NavigationContainer>
-          <GlobalLoader />
+          <GlobalLoader globalLoading={globalLoading} />
         </GestureHandlerRootView>
       </SafeAreaProvider>
     </QueryProvider>

@@ -8,7 +8,7 @@ import { twMerge } from 'tailwind-merge';
 import { ResizeMode } from '@d11/react-native-fast-image';
 
 
-type SwiperItem = {
+export type SwiperItem = {
     image: string;
     link: string;
     helperText?: string;
@@ -18,7 +18,7 @@ type CustomSwiperProps = {
     data: SwiperItem[];
     width?: number;
     height?: number;
-    onPress: (link: string) => void;
+    onPress: (items: SwiperItem) => void;
     show: boolean;
     onClose?: () => void;
     expandImage?: boolean;
@@ -48,7 +48,7 @@ const ImageSlider: React.FC<CustomSwiperProps> = ({
     return (
         <View
             className={twMerge(
-                'rounded-xl overflow-hidden relative',
+                'rounded-lg overflow-hidden relative',
                 expandImage && 'z-50'
             )}
             style={{ width, height }}
@@ -70,19 +70,19 @@ const ImageSlider: React.FC<CustomSwiperProps> = ({
                 activeDotColor={activeDotColor}
                 removeClippedSubviews={false}
                 style={{ flexGrow: 1 }}
+                paginationStyle={{ bottom: 10 }}
             >
                 {data.map((item, index) => (
                     <TouchableOpacity
                         key={index}
                         activeOpacity={0.85}
-                        onPress={() => onPress(item.link)}
+                        onPress={() => onPress(item)}
                         className="relative"
                     >
                         <AppImage
                             source={{ uri: item.image }}
                             style={{ width: width, height: height }}
                             resizeMode={resizeMode}
-                        // className="w-full h-full"
                         />
                         {item.helperText && (
                             <View className="absolute bottom-2 left-2 bg-black/60 px-3 py-1 rounded-md">

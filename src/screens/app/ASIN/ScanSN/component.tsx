@@ -1,16 +1,16 @@
-import AppText from '../../../../../components/customs/AppText';
+import AppText from '../../../../components/customs/AppText';
 import {Modal, TouchableOpacity, View, FlatList} from 'react-native';
-import AppIcon, {IconType} from '../../../../../components/customs/AppIcon';
-import {formatToINR} from '../../../../../utils/commonFunctios';
-import AppButton from '../../../../../components/customs/AppButton';
-import Card from '../../../../../components/Card';
-import AppInput from '../../../../../components/customs/AppInput';
+import AppIcon, {IconType} from '../../../../components/customs/AppIcon';
+import {formatToINR} from '../../../../utils/commonFunctios';
+import AppButton from '../../../../components/customs/AppButton';
+import Card from '../../../../components/Card';
+import AppInput from '../../../../components/customs/AppInput';
 import {useState} from 'react';
-import {screenHeight, screenWidth} from '../../../../../utils/constant';
-import Animated, { FadeInUp, FadeOutDown, SlideInDown, SlideOutDown} from 'react-native-reanimated';
-import { useThemeStore } from '../../../../../stores/useThemeStore';
-import { AppColors } from '../../../../../config/theme';
-import AppModal from '../../../../../components/customs/AppModal';
+import {screenHeight, screenWidth} from '../../../../utils/constant';
+import Animated, { FadeInUp, FadeOutDown} from 'react-native-reanimated';
+import { useThemeStore } from '../../../../stores/useThemeStore';
+import { AppColors } from '../../../../config/theme';
+import AppModal from '../../../../components/customs/AppModal';
 
 interface DataType {
   icon: string;

@@ -1,10 +1,10 @@
 import { TouchableOpacity, View } from "react-native";
-import AppText from "../../../../../components/customs/AppText";
+import AppText from "../../../../components/customs/AppText";
 import { useState } from "react";
-import Card from "../../../../../components/Card";
+import Card from "../../../../components/Card";
 import { AmountItem, Header, InfoItem } from "./component";
 import moment from "moment";
-import { useThemeStore } from "../../../../../stores/useThemeStore";
+import { useThemeStore } from "../../../../stores/useThemeStore";
 
 export const EachClaim = ({values, needBorder}: any) => {
   const appTheme = useThemeStore(state => state.AppTheme);

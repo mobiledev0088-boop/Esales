@@ -7,20 +7,17 @@ import Animated, {
   withDelay,
   withRepeat,
 } from 'react-native-reanimated';
-import {useLoaderStore} from '../stores/useLoaderStore';
 import AppImage from './customs/AppImage';
 import AppModal from './customs/AppModal';
 
-const GlobalLoader = () => {
-  const globalLoading = useLoaderStore(state => state.globalLoading);
-
+const GlobalLoader = ({globalLoading}:{globalLoading: boolean}) => {
   return (
-    <AppModal isOpen={globalLoading} onClose={() => {}} animationType="fade" modalWidth={150}>
+    <AppModal isOpen={globalLoading} onClose={() => {}} animationType="fade" modalWidth={120}>
           <View style={styles.iconContainer}>
             <View style={styles.loaderWrapper}>
               <AppImage
                 source={require('../assets/images/logo2.png')}
-                style={{width: 50, height: 50 , marginBottom:5, marginLeft:3}}
+                style={{width: 50, height: 50 , marginBottom: 5,}}
               />
               <Loader />
             </View>
@@ -31,8 +28,8 @@ const GlobalLoader = () => {
 
 export default GlobalLoader;
 
-const BARS = 11; // total bars
-const SIZE = 110; // loader size
+const BARS = 10; // total bars
+const SIZE = 100; // loader size
 const BAR_WIDTH = 8;
 const BAR_HEIGHT = 20;
 const COLOR = '#00539B';
@@ -92,9 +89,7 @@ const Bar = ({index}: {index: number}) => {
 
 const styles = StyleSheet.create({
   iconContainer: {
-    marginBottom: 12,
     alignItems: 'center',
-    justifyContent:'center'
   },
 
   container: {
@@ -114,7 +109,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: BAR_WIDTH,
     height: BAR_HEIGHT,
-    borderRadius: 2,
+    borderRadius: 3,
     backgroundColor: COLOR,
   },
 });

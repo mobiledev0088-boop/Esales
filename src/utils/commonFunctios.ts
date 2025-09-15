@@ -12,6 +12,11 @@ export const formatToINR = (amount: number, showDecimals = false) => {
   }).format(amount);
 }
 
+export const convertToASINUnits = (n: number) => 
+  n >= 1e7 ? (n/1e7).toFixed(2).replace(/\.00$/, '') + " Cr" :
+  n >= 1e5 ? (n/1e5).toFixed(2).replace(/\.00$/, '') + " L" :
+  n.toString();
+
 export const getPastMonths = (count: number, isForward?: boolean): string[] => {
   const months: string[] = [];
   if (isForward) {
@@ -82,6 +87,12 @@ export const showToast = (message: string) => {
       tapToDismissEnabled: true,
     },
   );
+};
+
+export const convertToTitleCase = (text: string): string => {
+  return text
+    .toLowerCase() // Convert the entire string to lowercase first
+    .replace(/\b\w/g, char => char.toUpperCase()); // Capitalize first letter of each word
 };
 
 export const convertCamelCaseToSentence = (text: string): string => {

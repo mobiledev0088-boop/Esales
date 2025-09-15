@@ -1,7 +1,7 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useRef, useState, useEffect } from 'react';
 import { PieChart, BarChart } from 'react-native-gifted-charts';
 import AppText from './AppText';
-import { TouchableOpacity } from 'react-native';
+import { Animated, TouchableOpacity, View, Easing } from 'react-native';
 
 // Constants for better maintainability
 const CHART_DEFAULTS = {
@@ -123,6 +123,133 @@ const CompletionChart: React.FC<CompletionPieChartProps> = ({
             />
         </TouchableOpacity>
     );
+};
+
+import Svg, {Circle} from 'react-native-svg';
+
+interface CircularProgressBarProps {
+  progress: number; // 0-100
+  progressColor: string;
+  size?: number;
+  strokeWidth?: number;
+  duration?: number;
+}
+
+export const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
+  progress,
+  progressColor,
+  size = 120,
+  strokeWidth = 8,
+  duration = 800,
+}) => {
+  const animatedValue = useRef(new Animated.Value(0)).current;
+  const [displayProgress, setDisplayProgress] = useState(0);
+  const [strokeDashoffset, setStrokeDashoffset] = useState(0);
+  
+  // Clamp progress to ensure it's between 0 and 100
+  const clampedProgress = clampValue(progress, 0, 100);
+  
+  // Memoized calculations
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const center = size / 2;
+  
+  // Optimized color function with memoization
+  const lighterColor = useMemo(() => {
+    if (progressColor.startsWith('#')) {
+      const hex = progressColor.slice(1);
+      const num = parseInt(hex, 16);
+      const r = (num >> 16) & 255;
+      const g = (num >> 8) & 255;
+      const b = num & 255;
+      
+      const newR = Math.min(255, Math.round(r + (255 - r) * 0.7));
+      const newG = Math.min(255, Math.round(g + (255 - g) * 0.7));
+      const newB = Math.min(255, Math.round(b + (255 - b) * 0.7));
+      
+      return `rgb(${newR}, ${newG}, ${newB})`;
+    }
+    
+    const colorMap: Record<string, string> = {
+      green: '#E6F7FF',
+      blue: '#E3F2FD',
+      red: '#FFEBEE',
+      orange: '#FFF3E0',
+      purple: '#F3E5F5',
+    };
+    
+    return colorMap[progressColor] || '#F5F5F5';
+  }, [progressColor]);
+  
+  useEffect(() => {
+    // Reset values
+    animatedValue.setValue(0);
+    setDisplayProgress(0);
+    setStrokeDashoffset(circumference);
+    
+    const animation = Animated.timing(animatedValue, {
+      toValue: clampedProgress,
+      duration,
+      useNativeDriver: false,
+      easing: Easing.out(Easing.cubic), // Smooth easing function
+    });
+    
+    // Use a more efficient listener with throttling
+    let lastUpdate = 0;
+    const throttleTime = 16; // ~60fps
+    
+    const listener = animatedValue.addListener(({value}) => {
+      const now = Date.now();
+      if (now - lastUpdate >= throttleTime) {
+        // Calculate the actual progress to display based on the original progress value
+        const actualProgress = clampedProgress > 0 ? (value / clampedProgress) * progress : 0;
+        setDisplayProgress(Math.round(actualProgress));
+        setStrokeDashoffset(circumference - (circumference * value) / 100);
+        lastUpdate = now;
+      }
+    });
+    
+    animation.start();
+    
+    return () => {
+      animatedValue.removeListener(listener);
+    };
+  }, [clampedProgress, duration, circumference, progress]);
+
+  return (
+    <View style={{width: size, height: size}} className="items-center justify-center">
+      <Svg width={size} height={size} style={{position: 'absolute'}}>
+        {/* Background Circle */}
+        <Circle
+          cx={center}
+          cy={center}
+          r={radius}
+          stroke={lighterColor}
+          strokeWidth={strokeWidth}
+          fill="transparent"
+        />
+        {/* Progress Circle */}
+        <Circle
+          cx={center}
+          cy={center}
+          r={radius}
+          stroke={progressColor}
+          strokeWidth={strokeWidth}
+          fill="transparent"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          transform={`rotate(-90 ${center} ${center})`}
+        />
+      </Svg>
+      {/* Center Text */}
+      <View className="absolute items-center justify-center">
+        <AppText size="md" weight="bold" style={{color: progressColor}}>
+          {displayProgress}%
+        </AppText>
+      </View>
+    </View>
+  );
 };
 
 const FilledChart: React.FC<FilledPieChartProps> = ({

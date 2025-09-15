@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, TouchableOpacity, View ,Animated} from "react-native";
-import AppText from "../../../../../components/customs/AppText";
-import Card from "../../../../../components/Card";
+import Card from "../../../../components/Card";
 import { Header, InfoGrid } from "./component";
 import moment from "moment";
-import { IconType } from "../../../../../components/customs/AppIcon";
-import { useThemeStore } from "../../../../../stores/useThemeStore";
-import { AppColors } from "../../../../../config/theme";
+import { IconType } from "../../../../components/customs/AppIcon";
+import { useThemeStore } from "../../../../stores/useThemeStore";
+import { AppColors } from "../../../../config/theme";
+import AppText from "../../../../components/customs/AppText";
 
 interface DataType {
   icon: string;

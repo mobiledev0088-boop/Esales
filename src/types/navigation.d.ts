@@ -14,8 +14,9 @@ type AppNavigationParamList = {
     ScanSN: undefined;
     More: undefined;
     // More Option Screen
-    ProductInfo: undefined;
+    ActivatedDetails: undefined;
     EDMInfo: undefined;
+    ProductInfo: undefined;
     // Account Screen
     ChangePassword: undefined;
     // Feedback Screens

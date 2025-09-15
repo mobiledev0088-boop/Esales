@@ -2,21 +2,18 @@ import {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import AppLayout, {
   AppLayoutRef,
-} from '../../../../../components/layout/AppLayout';
+} from '../../../../components/layout/AppLayout';
 
-import BarcodeScanner from '../../../../../components/BarcodeScanner';
+import BarcodeScanner from '../../../../components/BarcodeScanner';
 import {useMutation} from '@tanstack/react-query';
-import {handleASINApiCall} from '../../../../../utils/handleApiCall';
-import {useLoginStore} from '../../../../../stores/useLoginStore';
-import {showToast} from '../../../../../utils/commonFunctios';
-import Animated, {SlideInDown, SlideOutDown} from 'react-native-reanimated';
-import {screenHeight, screenWidth} from '../../../../../utils/constant';
+import {handleASINApiCall} from '../../../../utils/handleApiCall';
+import {useLoginStore} from '../../../../stores/useLoginStore';
+import {showToast} from '../../../../utils/commonFunctios';
 import {InformationTab} from './InformationCard';
 import {ClaimSchemeInfo} from './ClaimSchemeCard';
 import {CautionModal, NoResultsMessage, SearchCard} from './component';
-import {useScanSNStore} from '../../../../../stores/useScanSNStore';
-import {useThemeStore} from '../../../../../stores/useThemeStore';
-import AppIcon from '../../../../../components/customs/AppIcon';
+import {useScanSNStore} from '../../../../stores/useScanSNStore';
+import {useThemeStore} from '../../../../stores/useThemeStore';
 
 const ScanSN = () => {
   const userInfo = useLoginStore(state => state.userInfo);

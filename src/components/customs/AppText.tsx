@@ -87,7 +87,7 @@ const AppText: React.FC<CustomTextProps> = ({
     }
 
     return (
-        <TextComponent className={mergedClass} style={style} {...props}>
+        <TextComponent className={mergedClass} style={style} {...props} allowFontScaling={false}>
             {children}
         </TextComponent>
     );

@@ -62,7 +62,7 @@ export function AppTable<T>({
     );
 
     return (
-        <View style={{ width: '100%' }} className="my-2">
+        <View style={{ width: '100%' }} >
             <ScrollView horizontal showsHorizontalScrollIndicator={false} scrollEnabled={scrollEnabled}>
                 <View className={tableWrapperClasses}>
                     {/* Header */}

@@ -98,7 +98,7 @@ const AppLayout = forwardRef<AppLayoutRef, AppLayoutProps>(
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[
           {flexGrow: 1},
-          needPadding && {paddingHorizontal: 16},
+          needPadding && {paddingHorizontal: 8},
         ]}
         showsVerticalScrollIndicator={false}
         >
@@ -116,7 +116,7 @@ const AppLayout = forwardRef<AppLayoutRef, AppLayoutProps>(
         isDashboard={isDashboard}
         stackNavigation={stackNavigation}
       />
-      <View className={clsx('flex-1', needPadding && 'px-4')}>{children}</View>
+      <View className={clsx('flex-1', needPadding && 'px-2')}>{children}</View>
     </View>
   );
 });

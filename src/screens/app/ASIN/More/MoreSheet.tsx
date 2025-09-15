@@ -57,6 +57,7 @@ const getASINOptions = (
       label: 'Activated Details',
       iconName: 'toggle-switch',
       iconType: 'material-community',
+      navigateTo: 'ActivatedDetails',
     });
   }
   if (
@@ -132,7 +133,6 @@ const getAPEXOptions = (countryId?: string): Option[] => {
 const MoreSheet = () => {
   const empInfo = useEmpStore(state => state.empInfo);
   const userInfo = useLoginStore(state => state.userInfo);
-  const AppTheme = useThemeStore(state => state.AppTheme);
   const navigation = useNavigation<AppNavigationProp>();
 
   const roleId = userInfo?.EMP_RoleId;
@@ -149,9 +149,10 @@ const MoreSheet = () => {
 
   const chunkedOptions = useMemo(() => chunkArray(options, 6), [options]);
   const handlePress = (whereTo: keyof AppNavigationParamList) => {
-    navigation.navigate(whereTo);
+    navigation.navigate(whereTo as any);
     SheetManager.hide('MoreSheet');
   };
+  
 
   return (
     <View>
