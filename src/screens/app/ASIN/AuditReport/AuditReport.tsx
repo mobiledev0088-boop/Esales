@@ -52,7 +52,7 @@ export default function AuditReport() {
 
   const quarters = useMemo(() => getPastQuarters(), []);
 
-  const defaultQuarter = quarters[quarters.length - 1]?.value;
+  const defaultQuarter = quarters[0]?.value;
   const [yearQtrSelected, setYearQtrSelected] = useState(defaultQuarter);
   const [selectedPartner, setSelectedPartner] =useState<AppDropdownItem | null>(null);
   const [downloadLink, setDownloadLink] = useState<string | null>(null);

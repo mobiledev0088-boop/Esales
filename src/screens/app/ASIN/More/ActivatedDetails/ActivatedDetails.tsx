@@ -18,7 +18,6 @@ import {EmpInfo, UserInfo} from '../../../../../types/user';
 import {DatePickerState} from '../../../../../components/customs/AppDatePicker';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {ASUS} from '../../../../../utils/constant';
-import GlobalLoader from '../../../../../components/GlobalLoader';
 import {useLoaderStore} from '../../../../../stores/useLoaderStore';
 
 interface ApiResponse {
@@ -171,7 +170,7 @@ export default function ActivatedDetails() {
         isAWP:
           (userInfo?.EMP_RoleId === ASUS.ROLE_ID.PARTNERS
             ? userInfo?.EMP_Type
-            : '') === ASUS.PARTNER_TYPE.AWP,
+            : '') === ASUS.PARTNER_TYPE.T2.AWP,
       });
     },
     [mutate, userInfo],

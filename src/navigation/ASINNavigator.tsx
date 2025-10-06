@@ -9,6 +9,8 @@ import AddFeedback from "../screens/app/ASIN/Feedback/AddFeedback";
 import FeedbackDetails from "../screens/app/ASIN/Feedback/FeedbackDetails";
 import ActivatedDetails from "../screens/app/ASIN/More/ActivatedDetails/ActivatedDetails";
 import ScanSN from "../screens/app/ASIN/ScanSN/ScanSN";
+import SpotLightVideos from "../screens/app/ASIN/More/SpotLightVideos/SpotLightVideos";
+import ProductDescription from "../screens/app/ASIN/More/ProductInfo/ProductDescription";
 
 const Stack = createNativeStackNavigator();
 
@@ -21,6 +23,8 @@ const screens = [
     { name: "ActivatedDetails", component: ActivatedDetails },
     { name: "EDMInfo", component: EDMInfo },
     { name: "ProductInfo", component: ProductInfo },
+    { name: "ProductDescription", component: ProductDescription },
+    { name: "SpotLightVideos", component: SpotLightVideos },
     // Feedback Screens
     { name: "Feedback", component: Feedback },
     { name: "AddFeedback", component: AddFeedback },

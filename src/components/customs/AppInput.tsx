@@ -25,7 +25,8 @@ interface CustomInputProps extends TextInputProps {
     helpText?: string;
     showClearButton?: boolean;
     onClear?: () => void;
-    variant?: 'border' | 'underline';
+    variant?: 'border' | 'underline' | 'pill';
+    size?: 'sm' | 'md' | 'lg';
     inputWapperStyle?: ViewStyle;
 }
 
@@ -48,6 +49,7 @@ const AppInput: React.FC<CustomInputProps> = ({
     showClearButton = true,
     onClear,
     variant = 'border',
+    size = 'md',
     inputWapperStyle,
     ...props
 }) => {
@@ -61,11 +63,16 @@ const AppInput: React.FC<CustomInputProps> = ({
         return '#D1D5DB';
     }, [error, isFocused]);
 
+    const height = size === 'sm' ? 40 : size === 'lg' ? 54 : 48;
+    const fontSize = size === 'sm' ? 13 : size === 'lg' ? 16 : 14;
     const inputContainerStyle: ViewStyle = useMemo(() => {
         const baseStyle = {
             flexDirection: 'row' as const,
             alignItems: 'center' as const,
             borderColor,
+            height,
+            paddingHorizontal: variant === 'pill' ? 14 : 0,
+            backgroundColor: variant === 'pill' ? '#F1F5F9' : 'transparent'
         };
         const flattenedStyle = StyleSheet.flatten(inputWapperStyle) as ViewStyle;
 
@@ -77,6 +84,14 @@ const AppInput: React.FC<CustomInputProps> = ({
                 borderBottomLeftRadius: 4,
                 borderBottomRightRadius: 4,
             }
+            : variant === 'pill'
+            ? {
+                ...baseStyle,
+                ...flattenedStyle,
+                borderWidth: 1,
+                borderColor: '#CBD5E1',
+                borderRadius: 999,
+            }
             : {
                 ...baseStyle,
                 ...flattenedStyle,
@@ -84,7 +99,7 @@ const AppInput: React.FC<CustomInputProps> = ({
                 borderBottomWidth: 1.5,
                 borderRadius: 8,
             };
-    }, [borderColor, variant, inputWapperStyle]);
+    }, [borderColor, variant, inputWapperStyle, height]);
 
     const handleClear = useCallback(() => {
         setValue('');
@@ -109,7 +124,8 @@ const AppInput: React.FC<CustomInputProps> = ({
                     secureTextEntry={hidePassword}
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
-                    className={twMerge('flex-1 text-gray-900 dark:text-gray-100 font-manropeMedium text-md h-14', inputClassName)}
+                    className={twMerge('flex-1 text-gray-900 dark:text-gray-100 font-manropeMedium', inputClassName)}
+                    style={{fontSize, height: '100%'}}
                     // for screen readers
                     accessibilityLabel={label}
                     accessibilityHint={helpText}

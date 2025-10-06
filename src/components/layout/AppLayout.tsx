@@ -139,12 +139,16 @@ const Header = memo<HeaderProps>(
       <View className="flex-row items-center justify-between px-4 py-4 bg-primary dark:bg-primary-dark rounded-b-md">
         {/* Left */}
         <View className="flex-row items-center max-w-[70%]">
+          <Pressable
+            onPress={needBack ? navigation.goBack : navigation.openDrawer}
+            hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+          >
           <Icon
             name={needBack ? 'arrow-back' : 'menu'}
             size={25}
             color="#fff"
-            onPress={needBack ? navigation.goBack : navigation.openDrawer}
-          />
+            />
+            </Pressable>
 
           <View className="ml-4">
             {title ? (

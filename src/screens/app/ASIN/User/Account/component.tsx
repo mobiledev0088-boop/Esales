@@ -391,7 +391,6 @@ export const SpecialAccessUI = ({
                 onSelect={item => setSelectedCountry(item?.value || null)}
                 selectedValue={selectedCountry || undefined}
                 zIndex={9000}
-                zIndexInverse={9000}
                 onOpenChange={() => setIsDropdownOpen(!isDropdownOpen)}
               />
             </View>

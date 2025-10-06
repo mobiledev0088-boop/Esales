@@ -7,12 +7,14 @@ import {AppTextSizeType, AppTextWeightType} from '../types/customs';
 import {useState} from 'react';
 import AppText from './customs/AppText';
 import AppIcon from './customs/AppIcon';
+import { AppColors } from '../config/theme';
 
 type CardProps = {
   children?: React.ReactNode;
   className?: string;
   needSeeMore?: boolean;
-  onPress?: () => void;
+  seeMoreText?: string;
+  seeMoreOnPress?: () => void;
   needSeeMoreIcon?: boolean;
   watermark?: boolean;
   watermarkText?: string;
@@ -32,6 +34,8 @@ const Card: React.FC<CardProps> = ({
   className,
   needSeeMore = false,
   needSeeMoreIcon = false,
+  seeMoreText = 'See More',
+  seeMoreOnPress = () => {},
   watermark,
   watermarkText,
   watermarkTextOpacity,
@@ -81,16 +85,18 @@ const Card: React.FC<CardProps> = ({
       </View>
       {needSeeMore && (
         <TouchableOpacity
+          onPress={seeMoreOnPress}
           activeOpacity={0.6}
-          className="bg-blue-200 py-2 flex-row items-center justify-center -z-10 w-[91%] self-center rounded-xl rounded-t-none" style={getShadowStyle(1)}>
-          <AppText size="base" weight="medium" color="white" className="mr-1 text-gray-600">
-            See More
+          className="bg-secondary dark:bg-secondary-dark py-2.5 flex-row items-center justify-center w-[91%] self-center rounded-xl rounded-t-none -mt-1 -z-10"
+          style={getShadowStyle(1)}>
+          <AppText size="base" weight="medium" className="mr-1 text-white dark:text-slate-200">
+            {seeMoreText}
           </AppText>
           {needSeeMoreIcon && (
             <AppIcon
               name="chevron-right"
               size={18}
-              color="#4b5563"
+              color={AppColors.bgBase}
               type="feather"
               style={{marginTop: 2}}
             />

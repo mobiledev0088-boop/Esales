@@ -25,4 +25,5 @@ export type AppTextWeightType =
     | "regular"
     | "medium"
     | "semibold"
-    | "bold";
+    | "bold"
+    | "extraBold";

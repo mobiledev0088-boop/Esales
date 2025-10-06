@@ -26,10 +26,11 @@ interface CustomTextProps extends RNTextProps {
 
 // Font weight to Tailwind class
 const weightToClass: Record<NonNullable<CustomTextProps["weight"]>, string> = {
-    regular: "font-manropeRegular",
-    medium: "font-medium",
-    semibold: "font-semibold",
-    bold: "font-bold",
+    regular: "font-manrope",
+    medium: "font-manropeMedium",
+    semibold: "font-manropeSemibold",
+    bold: "font-manropeBold",
+    extraBold: "font-manropeExtraBold",
 };
 
 // Size to Tailwind text size class

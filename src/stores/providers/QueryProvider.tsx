@@ -18,13 +18,17 @@ export const queryClient = new QueryClient({
     },
 });
 
+const subscibe = [
+    'dashboardData',
+    'dashboardDataAM',
+]
 persistQueryClient({
   queryClient,
   persister: createRQMMKVPersister(),
   maxAge: 24 * 60 * 60 * 1000, // keep data max 1 day
   dehydrateOptions: {
     shouldDehydrateQuery: (query) =>
-      query.queryKey[0] === "dashboardData" && query.state.status === "success",
+      subscibe.includes(query.queryKey[0] as string) && query.state.status === "success",
   },
 });
 

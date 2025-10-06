@@ -78,7 +78,7 @@ const CustomDrawerContent: React.FC<DrawerContentComponentProps> = ({
         ]}>
         {/* Header */}
         <View className="px-5 py-5 bg-lightBg-surface dark:bg-darkBg-surface flex-row  justify-between">
-          <View>
+          <View className='w-[80%]'>
             <AppImage
               source={require('../../assets/images/dp.png')}
               style={styles.avatar}
@@ -86,7 +86,7 @@ const CustomDrawerContent: React.FC<DrawerContentComponentProps> = ({
             <AppText weight="bold" size="md" className="capitalize">
               {name}
             </AppText>
-            <AppText size="base">{userInfo?.EMP_EmailID}</AppText>
+            <AppText size="base" className='mt-2'>{userInfo?.EMP_EmailID}</AppText>
           </View>
           <ThemeToggle size={60} />
         </View>

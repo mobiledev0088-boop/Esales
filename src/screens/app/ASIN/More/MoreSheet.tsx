@@ -36,7 +36,7 @@ const hasRole = (roleId: number | undefined, allowedRoles: number[]) =>
 const getASINOptions = (
   roleId: number | undefined,
   empType: string | undefined | null,
-  empCode: string | undefined,
+  empCode: string,
 ): Option[] => {
   const options: Option[] = [];
 
@@ -80,6 +80,15 @@ const getASINOptions = (
     navigateTo: 'EDMInfo',
   });
 
+  if (['KN2200052', 'KN1800037', 'KN2500069'].includes(empCode)) {
+    options.push({
+      label: 'Asus SpotLight Videos',
+      iconName: 'youtube',
+      iconType: 'antdesign',
+      navigateTo: 'SpotLightVideos',
+    });
+  }
+
   if (roleId === 24) {
     options.push({
       label: 'Incentive',
@@ -94,9 +103,7 @@ const getASINOptions = (
       iconType: 'material-community',
     });
   }
-  if (
-    ['KN2100033', 'KN2100029', 'KN2200052', 'KN1800037'].includes(empCode ?? '')
-  ) {
+  if (['KN2100033', 'KN2100029', 'KN2200052', 'KN1800037'].includes(empCode)) {
     options.push({
       label: 'Display Stand & POSM',
       iconName: 'storefront-outline',
@@ -137,7 +144,7 @@ const MoreSheet = () => {
 
   const roleId = userInfo?.EMP_RoleId;
   const empType = userInfo?.EMP_Type;
-  const empCode = empInfo?.EMP_Code;
+  const empCode = empInfo?.EMP_Code ?? '';
   const countryId = userInfo?.EMP_CountryID;
 
   const options: Option[] = useMemo(() => {
@@ -152,7 +159,6 @@ const MoreSheet = () => {
     navigation.navigate(whereTo as any);
     SheetManager.hide('MoreSheet');
   };
-  
 
   return (
     <View>

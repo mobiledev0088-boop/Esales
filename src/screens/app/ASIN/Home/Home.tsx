@@ -25,6 +25,7 @@ import AppIcon from '../../../../components/customs/AppIcon';
 import {useLoginStore} from '../../../../stores/useLoginStore';
 import {ASUS} from '../../../../utils/constant';
 import Dashboard_AM from '../Dashboard/Dashboard_AM';
+import Dashboard_Partner from '../Dashboard/Dashboard_Partner';
 
 interface TabScreens {
   name: string;
@@ -47,7 +48,6 @@ const Home: React.FC = () => {
   
     const getScreens = () => {
     const arr = [];
-    // dashboard
     if (userInfo?.EMP_Btype === ASUS.BUSINESS_TYPES.COMMERCIAL) {
       // dashboard for  Rooling Funnel
     } else {
@@ -55,21 +55,11 @@ const Home: React.FC = () => {
         userInfo?.EMP_RoleId === ASUS.ROLE_ID.AM ||
         userInfo?.EMP_RoleId === ASUS.ROLE_ID.ASE
       ) {
-        // dashboard for Area Manager and Asus Solution Expert
-      } else if (
-        userInfo?.EMP_RoleId === ASUS.ROLE_ID.DISTRIBUTORS ||
-        userInfo?.EMP_RoleId === ASUS.ROLE_ID.DISTI_HO
-      ) {
-        // dashboard for DISTRIBUTORS and Disti HO;
-      } else if (
-        userInfo?.EMP_RoleId === ASUS.ROLE_ID.LFR_HO ||
-        userInfo?.EMP_RoleId === ASUS.ROLE_ID.ONLINE_HO
-      ) {
-        // dashboard for LFR HO and ONLINE HO
-      } else if (userInfo?.EMP_RoleId === ASUS.ROLE_ID.PARTNERS) {
-        // dashboard for PARTNERS
-      } else {
         arr.push({name: 'Dashboard', component: Dashboard_AM, icon: 'bar-chart'});
+      } else if (userInfo?.EMP_RoleId === ASUS.ROLE_ID.PARTNERS) {
+         arr.push({name: 'Dashboard', component: Dashboard_Partner, icon: 'bar-chart'});
+      } else {
+        arr.push({name: 'Dashboard', component: Dashboard, icon: 'bar-chart'});
       }
     }
     // Demo
@@ -87,12 +77,12 @@ const Home: React.FC = () => {
         // Demo for PARTNERS
       } else if (
         userInfo?.EMP_RoleId === ASUS.ROLE_ID.PARTNERS &&
-        userInfo?.EMP_Type === ASUS.PARTNER_TYPE.AWP
+        userInfo?.EMP_Type === ASUS.PARTNER_TYPE.T2.AWP
       ) {
         // Demo for PARTNERS
       } else if (
-        userInfo?.EMP_RoleId !== ASUS.ROLE_ID.DISTRIBUTORS ||
-        userInfo?.EMP_RoleId !== ASUS.ROLE_ID.DISTI_HO ||
+        userInfo?.EMP_RoleId !== ASUS.ROLE_ID.DISTRIBUTORS &&
+        userInfo?.EMP_RoleId !== ASUS.ROLE_ID.DISTI_HO &&
         userInfo?.EMP_RoleId !== ASUS.ROLE_ID.ESHOP_HO
       ) {
         // Demo for DISTRIBUTORS and Disti HO and ESHOP HO
@@ -107,8 +97,8 @@ const Home: React.FC = () => {
       ) {
         // Claim for LFR HO and ONLINE HO
       } else if (
-        userInfo?.EMP_RoleId !== ASUS.ROLE_ID.DISTRIBUTORS ||
-        userInfo?.EMP_RoleId !== ASUS.ROLE_ID.DISTI_HO ||
+        userInfo?.EMP_RoleId !== ASUS.ROLE_ID.DISTRIBUTORS &&
+        userInfo?.EMP_RoleId !== ASUS.ROLE_ID.DISTI_HO &&
         userInfo?.EMP_RoleId !== ASUS.ROLE_ID.ESHOP_HO
       ) {
         // Claim for DISTRIBUTORS and Disti HO and ESHOP HO
@@ -118,10 +108,8 @@ const Home: React.FC = () => {
     // schemes
     if (
       userInfo?.EMP_Btype == ASUS.BUSINESS_TYPES.COMMERCIAL ||
-      (userInfo &&
-        [ASUS.ROLE_ID.DISTI_HO, ASUS.ROLE_ID.DISTRIBUTORS].includes(
-          userInfo?.EMP_RoleId,
-        ))
+      userInfo?.EMP_RoleId === ASUS.ROLE_ID.DISTI_HO ||
+      userInfo?.EMP_RoleId === ASUS.ROLE_ID.DISTRIBUTORS
     ) {
       // Account
     } else {
@@ -132,7 +120,7 @@ const Home: React.FC = () => {
     if (
       (userInfo?.EMP_Btype !== ASUS.BUSINESS_TYPES.COMMERCIAL &&
         userInfo?.EMP_RoleId !== ASUS.ROLE_ID.PARTNERS) ||
-      userInfo?.EMP_Type === ASUS.PARTNER_TYPE.AWP
+      userInfo?.EMP_Type === ASUS.PARTNER_TYPE.T2.AWP
     ) {
       arr.push({name: 'P.Status', component: PStatus, icon: 'timeline-clock'});
     }

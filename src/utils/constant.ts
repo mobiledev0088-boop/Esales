@@ -16,7 +16,7 @@ export const DASHBOARD = {
         LFR: 'LFR',
         ONLINE: 'ONLINE',
     }
-}
+} as const;
 
 
 
@@ -26,12 +26,16 @@ export const ASUS = {
     },
     APP_NAME: "Esales",
     PARTNER_TYPE: {
-        AWP: 'AWP', // ASUS Wholesale Partner
-        ASP: 'ASP', // ASUS Silver Partner
-        ALP: 'ALP', // ASUS Loyal Partner
-        AGP: 'AGP', // ASUS Gold Partner
-        T3: 'T3Partner',
-        END_CUSTOMER: 'End Customer',
+        T2:{
+            AWP: 'AWP', // ASUS Wholesale Partner
+            AES: 'AES', // ASUS Enterprise Solution
+        },
+        T3:{
+            AGP: 'AGP', // ASUS Gold Partner,
+            ASP: 'ASP', // ASUS Silver Partner
+            T3: 'T3Partner',
+        },
+        END_CUSTOMER: 'EndCustomer',
     },
     Country:{
         ASIN: 'ASIN', // India
@@ -42,9 +46,9 @@ export const ASUS = {
         DIR_HOD_MAN: 1,
         HO_EMPLOYEES: 2,
         BSM: 3, // branch sales manager
-        TN: 4,  // territory  manager
+        TM: 4,  // territory  manager
         SALES_EXE: 5,
-        PARTNERS: 6,
+        PARTNERS: 6 ,
         DISTRIBUTORS: 7,
         COUNTRY_HEAD: 9,
         SALES_REPS: 10,
@@ -60,4 +64,4 @@ export const ASUS = {
         DISTI_HO: 28,
         CHANNEL_MARKETING: 29,
     },
-}
+} as const;

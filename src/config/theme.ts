@@ -3,7 +3,7 @@
 export const AppColors = {
   light: {
     primary: '#00539B',
-    secondary: '#78CBFF',
+    secondary: '#0077b6',
     text: '#1F2937',
     border: '#ccc',
     success: '#34D399',
@@ -15,6 +15,8 @@ export const AppColors = {
 
     heading: '#2D3B44',
     subheading: '#000000',
+
+    tabSelected: '#3b82f6',
   },
   dark: {
     primary: '#2c334d',
@@ -30,10 +32,12 @@ export const AppColors = {
 
     heading: '#f3f6f4',
     subheading: '#e1e1e1',
+
+    tabSelected: '#0076ff',
   },
   // Brand colors
   primary: '#00539B',
-  secondary: '#78CBFF',
+  secondary: '#0077b6',
   text: '#1F2937',
   border: '#ccc',
   success: '#34D399',
@@ -49,6 +53,7 @@ export const AppColors = {
   // Component-specific
   tabSelected: '#0076ff',
   tabSelectedBg: 'rgba(0,118,255,0.1)',
+  // tabSelectedBg: 'white',
   button: '#0C5D96',
   disabled: '#060505ff',
 
@@ -69,14 +74,13 @@ export const AppColors = {
   utilColor7: '#9c76f7',
   utilColor8: '#ef8b60',
   utilColor9: '#a5a662',
-  utilColor10: 'rgb(20, 152, 235)',
+  utilColor10: '#f78c1e',
   utilGrayTransparent: 'rgba(222,226,230,0.5)',
-}
-
+};
 
 export const AppFonts = {
   regular: 'Manrope-Regular',
   medium: 'Manrope-Medium',
-  semiBold : 'Manrope-SemiBold',
+  semiBold: 'Manrope-SemiBold',
   bold: 'Manrope-Bold',
 };

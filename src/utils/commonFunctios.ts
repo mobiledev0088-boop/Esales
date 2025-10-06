@@ -17,25 +17,36 @@ export const convertToASINUnits = (n: number) =>
   n >= 1e5 ? (n/1e5).toFixed(2).replace(/\.00$/, '') + " L" :
   n.toString();
 
-export const getPastMonths = (count: number, isForward?: boolean): string[] => {
-  const months: string[] = [];
+export const convertToCapitalized = (text: string): string => {
+  return text.split('').map(char => char.toUpperCase()).join('');
+}
+
+export const getPastMonths = (count: number, isForward?: boolean): {label: string, value: string}[] => {
+  const months: {label: string, value: string}[]  = [];
   if (isForward) {
     for (let i = 0; i < count; i++) {
-      months.push(moment().add(i, 'months').format('MMM YYYY'));
+      months.push({
+      label: moment().subtract(i, 'months').format("MMM-YYYY"),
+      value: moment().subtract(i, 'months').format("YYYYM")
+      });
     }
-    return months; // No need to reverse for future months
+    return months;
   }
   for (let i = 0; i < count; i++) {
-    months.push(moment().subtract(i, 'months').format('MMM YYYY'));
+    months.push({
+      label: moment().subtract(i, 'months').format("MMM-YYYY"),
+      value: moment().subtract(i, 'months').format("YYYYM")
+    });
   }
-  return months.reverse(); // Reverse to get the most recent month first
+  return months
 };
 
 export const getPastQuarters = (count: number = 5, isForward?: boolean): {label: string, value: string}[] => {
   const quarters: {label: string, value: string}[] = [];
+  const baseDate = moment().subtract(10, "days");
   if (isForward) {
     for (let i = 0; i < count; i++) {
-      const date = moment().add(i, "quarters");
+      const date = baseDate.clone().add(i, "quarters");
       quarters.push({
         label: `Q${date.format("Q")}-${date.format("YYYY")}`,
         value: `${date.format("YYYY")}${date.format("Q")}`
@@ -44,13 +55,13 @@ export const getPastQuarters = (count: number = 5, isForward?: boolean): {label:
     return quarters; // future quarters stay in order
   }
   for (let i = 0; i < count; i++) {
-    const date = moment().subtract(i, "quarters");
+    const date = baseDate.clone().subtract(i, "quarters");
     quarters.push({
       label: `Q${date.format("Q")}-${date.format("YYYY")}`,
       value: `${date.format("YYYY")}${date.format("Q")}`
     });
   }
-  return quarters.reverse(); // past quarters in chronological order
+  return quarters 
 };
 
 // Ensure folder exists

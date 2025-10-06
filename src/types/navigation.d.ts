@@ -17,6 +17,8 @@ type AppNavigationParamList = {
     ActivatedDetails: undefined;
     EDMInfo: undefined;
     ProductInfo: undefined;
+    ProductDescription: { product: any };
+    SpotLightVideos: undefined;
     // Account Screen
     ChangePassword: undefined;
     // Feedback Screens

@@ -1,7 +1,5 @@
-import { Alert, TouchableOpacity, View } from 'react-native';
-import { ErrorDisplayProps } from '../../../../types/dashboard';
-import AppIcon from '../../../../components/customs/AppIcon';
-import AppText from '../../../../components/customs/AppText';
+import { Alert } from 'react-native';
+import { ActivationData, TabConfig, TableColumn } from '../../../../types/dashboard';
 
 // Error handling utilities for Dashboard
 export const handleApiError = (error: Error | null, componentName: string = 'Component') => {
@@ -38,13 +36,8 @@ export const getPerformanceColor = (percentage: number): {
 
 export const formatDisplayValue = (value: string | number | undefined): string => {
   if (value === undefined || value === null || value === '') return '0';
-  
   const numValue = Number(value);
-  
-  // Check if it's a valid number
   if (isNaN(numValue)) return String(value);
-  
-  // Convert to Indian numbering system (with commas)
   return numValue.toLocaleString('en-IN');
 };
 
@@ -65,41 +58,190 @@ export const showErrorAlert = (title: string, message: string, onRetry?: () => v
   );
 };
 
-export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
-  title,
-  message,
-  onRetry,
-  showRetry = true,
-}) => {
-  return (
-    <View className="flex-1 items-center justify-center p-6">
-      <View className="w-16 h-16 bg-red-100 rounded-full items-center justify-center mb-4">
-        <AppIcon name="alert-circle" type="feather" color="#EF4444" size={32} />
-      </View>
+const NAME_COLUMN: TableColumn[] = [
+  {
+    key: 'name',
+    label: 'Name',
+    width: 'flex-1',
+    dataKey: 'name',
+    colorType: 'text',
+  },
+];
+const COMMON_COLUMNS: TableColumn[] = [
+  {
+    key: 'act',
+    label: 'ACT',
+    width: 'w-16',
+    dataKey: 'Act_Cnt',
+    colorType: 'success',
+  },
+  {
+    key: 'nAct',
+    label: 'N-ACT',
+    width: 'w-20',
+    dataKey: 'NonAct_Cnt',
+    colorType: 'error',
+  },
+];
 
-      <AppText
-        size="lg"
-        weight="bold"
-        color="text"
-        className="text-center mb-2">
-        {title}
-      </AppText>
+export const TAB_CONFIGS: TabConfig[] = [
+  {
+    id: 'branch',
+    label: 'Branch',
+    columns: [
+      ...NAME_COLUMN,
+      {
+        key: 'pod',
+        label: 'POD',
+        width: 'w-16',
+        dataKey: 'POD_Cnt',
+        colorType: 'text',
+      },
+      {
+        key: 'st',
+        label: 'ST',
+        width: 'w-16',
+        dataKey: 'ST_Cnt',
+        colorType: 'primary',
+      },
+      ...COMMON_COLUMNS,
+    ],
+  },
+  {
+    id: 'alp',
+    label: 'ALP',
+    columns: [
+      ...NAME_COLUMN,
+      {
+        key: 'st',
+        label: 'ST',
+        width: 'w-16',
+        dataKey: 'ST_Cnt',
+        colorType: 'primary',
+      },
+      {
+        key: 'so',
+        label: 'SO',
+        width: 'w-16',
+        dataKey: 'SO_Cnt',
+        colorType: 'secondary',
+      },
+      ...COMMON_COLUMNS,
+    ],
+  },
+  {
+    id: 'model',
+    label: 'Model',
+    columns: [
+      ...NAME_COLUMN,
+      {
+        key: 'st',
+        label: 'ST',
+        width: 'w-16',
+        dataKey: 'ST_Cnt',
+        colorType: 'primary',
+      },
+      {
+        key: 'so',
+        label: 'SO',
+        width: 'w-16',
+        dataKey: 'SO_Cnt',
+        colorType: 'secondary',
+      },
+      ...COMMON_COLUMNS,
+    ],
+  },
+  {
+    id: 'agp',
+    label: 'AGP',
+    columns: [
+      ...NAME_COLUMN,
+      {
+        key: 'so',
+        label: 'SO',
+        width: 'w-16',
+        dataKey: 'SO_Cnt',
+        colorType: 'secondary',
+      },
+      ...COMMON_COLUMNS,
+    ],
+  },
+  {
+    id: 'asp',
+    label: 'ASP',
+    columns: [
+      ...NAME_COLUMN,
+      {
+        key: 'so',
+        label: 'SO',
+        width: 'w-16',
+        dataKey: 'SO_Cnt',
+        colorType: 'secondary',
+      },
+      ...COMMON_COLUMNS,
+    ],
+  },
+  {
+    id: 'disti',
+    label: 'Disti',
+    columns: [
+      ...NAME_COLUMN,
+      {
+        key: 'pod',
+        label: 'POD',
+        width: 'w-16',
+        dataKey: 'POD_Cnt',
+        colorType: 'text',
+      },
+      {
+        key: 'st',
+        label: 'ST',
+        width: 'w-16',
+        dataKey: 'ST_Cnt',
+        colorType: 'primary',
+      },
+      ...COMMON_COLUMNS,
+    ],
+  },
+];
 
-      <AppText size="sm" color="gray" className="text-center mb-6 max-w-xs">
-        {message}
-      </AppText>
+export const getCurrentTabConfig = (tabId: string): TabConfig => {
+  return TAB_CONFIGS.find(config => config.id === tabId) || TAB_CONFIGS[0];
+};
 
-      {showRetry && onRetry && (
-        <TouchableOpacity
-          className="bg-blue-600 px-6 py-3 rounded-lg flex-row items-center"
-          activeOpacity={0.7}
-          onPress={onRetry}>
-          <AppIcon name="refresh-cw" type="feather" color="white" size={16} />
-          <AppText size="sm" weight="semibold" color="white" className="ml-2">
-            Try Again
-          </AppText>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
+// ---------------------------------------------
+// Activation Performance Utilities (hoisted)
+// ---------------------------------------------
+export const DEFAULT_ACTIVATION_TABS = ['Branch', 'ALP', 'Model', 'AGP', 'ASP', 'Disti'] as const;
+
+export const TAB_LABEL_TO_ID: Record<string, string> = {
+  Branch: 'branch',
+  ALP: 'alp',
+  Model: 'model',
+  AGP: 'agp',
+  ASP: 'asp',
+  Disti: 'disti',
+};
+
+export const ACTIVATION_ID_TO_DATA_KEY: Record<string, string> = {
+  branch: 'Top5Branch',
+  alp: 'Top5ALP',
+  model: 'Top5Model',
+  agp: 'Top5AGP',
+  asp: 'Top5ASP',
+  disti: 'Top5Disti',
+};
+
+export const deriveInitialActiveId = (labels: string[]): string => {
+  if (!labels || labels.length === 0) return TAB_CONFIGS[0].id;
+  const first = labels[0];
+  return TAB_LABEL_TO_ID[first] || TAB_CONFIGS[0].id;
+};
+
+export const getActivationTabData = (baseData: any, tabId: string): ActivationData[] => {
+  if (!baseData) return [];
+  const key = ACTIVATION_ID_TO_DATA_KEY[tabId];
+  // Fallback if mapping missing
+  if (!key) return [];
+  return (baseData as any)[key] || [];
 };

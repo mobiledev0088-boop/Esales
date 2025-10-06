@@ -1,3 +1,14 @@
+/**
+ * MaterialTabBar
+ * Extended to support three ways of supplying screen content per tab:
+ * 1. Simple component type:
+ *    { name: 'Home', label: 'Home', component: HomeScreen }
+ * 2. Component with injected props via componentProps:
+ *    { name: 'Home', label: 'Home', component: HomeScreen, componentProps: { data } }
+ * 3. Pre-created element (props already or additionally provided):
+ *    { name: 'Home', label: 'Home', component: <HomeScreen data={data} another={x} /> }
+ *    (You may still add/override with componentProps which will be merged via cloneElement.)
+ */
 import { 
   View, 
   TouchableOpacity, 
@@ -17,16 +28,19 @@ import React, {
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import AppText from './customs/AppText';
 import { getShadowStyle } from '../utils/appStyles';
+import { useThemeStore } from '../stores/useThemeStore';
+import { AppColors } from '../config/theme';
 
 const Tab = createMaterialTopTabNavigator();
 
 type TabItem = {
   name: string;
-  component: React.ComponentType<any>;
+  component: React.ComponentType<any> | React.ReactElement; // extended to accept element instances
   label: string;
   disabled?: boolean;
   badge?: string | number;
   icon?: React.ReactNode;
+  componentProps?: Record<string, any>; // optional props merged/injected when rendering
 };
 
 type AnimationConfig = {
@@ -96,6 +110,11 @@ const CustomTabBar = memo(({
   pressAnimationEnabled = true,
   tabs = [],
 }: any) => {
+  if(!tabs.length) return null;
+  if(tabs.length === 1) return null; // No need for tab bar if only one tab
+
+  const appTheme = useThemeStore(state => state.AppTheme);
+  const isDark = appTheme === 'dark';
   const animatedValue = useRef(new Animated.Value(0)).current;
   const screenWidth = Dimensions.get('window').width;
   
@@ -117,15 +136,19 @@ const CustomTabBar = memo(({
     ...animation,
   }), [animation]);
 
-  const themeConfig = useMemo(() => ({
-    backgroundColor: '#FFFFFF',
-    activeIndicatorColor: '#3B82F6',
-    activeTintColor: '#FFFFFF',
-    inactiveTintColor: '#64748B',
-    shadowColor: '#3B82F6',
-    borderRadius: 6,
-    ...theme,
-  }), [theme]);
+  const themeConfig = useMemo(() => {
+    // Base palette derived from AppColors + mode
+    const palette = isDark ? AppColors.dark : AppColors.light;
+    return {
+      backgroundColor: palette.bgSurface,
+      activeIndicatorColor: palette.tabSelected,
+      activeTintColor: palette.bgBase,
+      inactiveTintColor: palette.heading,
+      shadowColor: palette.primary,
+      borderRadius: 8,
+      ...theme, // user overrides last
+    } as Required<TabBarTheme> & { inactiveTintColor: string; activeTintColor: string; activeIndicatorColor: string; };
+  }, [isDark, theme, appTheme]);
 
   useEffect(() => {
     if (animationConfig.type === 'spring') {
@@ -176,7 +199,8 @@ const CustomTabBar = memo(({
 
   return (
     <View
-      className="flex-row px-2 mx-3 my-2 rounded-md"
+      // NativeWind classes for light / dark backgrounds
+      className={`flex-row px-2 mx-3 my-2 rounded-md ${isDark ? '' : ''}`}
       style={[
         {
           backgroundColor: themeConfig.backgroundColor,
@@ -189,6 +213,7 @@ const CustomTabBar = memo(({
       
       {/* Animated Indicator */}
       <Animated.View
+        // Using style due to animated values; tailwind cannot handle animated dynamic translate
         style={[
           styles.activeIndicator,
           {
@@ -217,7 +242,7 @@ const CustomTabBar = memo(({
             accessibilityState={isFocused ? { selected: true } : {}}
             onPress={() => handleTabPress(route, index)}
             disabled={disabled}
-            className="justify-center items-center py-1.5 rounded-xl h-8 relative"
+            className={`justify-center items-center py-1.5 rounded-xl h-8 relative ${isFocused ? '' : ''}`}
             style={[
               { width: tabWidth },
               isFocused && activeTabStyle,
@@ -236,7 +261,7 @@ const CustomTabBar = memo(({
               <AppText
                 size="xs"
                 weight="semibold"
-                className="text-center tracking-wider"
+                className={`text-center tracking-wider ${isFocused ? '' : ''}`}
                 style={[
                   {
                     color: isFocused 
@@ -275,13 +300,12 @@ const MaterialTabBar: React.FC<AppTabBarsProps> = ({
   tabs,
   initialRouteName,
   swipeEnabled = false,
-  tabBarStyle,
   containerStyle,
   tabStyle,
   labelStyle,
   activeTabStyle,
   activeLabelStyle,
-  theme,
+  theme, // still allow overrides; base colors come from zustand
   animation,
   tabSpacing = 32,
   tabPadding = 3,
@@ -293,16 +317,20 @@ const MaterialTabBar: React.FC<AppTabBarsProps> = ({
   equalWidth = true,
   minTabWidth,
   maxTabWidth,
-  scrollEnabled = false,
-  bounces = true,
   pressAnimationEnabled = true,
-  hapticFeedback = false,
 }) => {
   // Validate tabs
-  const validTabs = useMemo(() => 
-    tabs.filter(tab => tab.name && tab.component && tab.label),
-    [tabs]
-  );
+  const validTabs = useMemo(() => {
+    const filtered = tabs.filter(tab => {
+      const hasBasics = !!(tab.name && tab.component && tab.label);
+      if(!hasBasics) return false;
+      return true;
+    });
+    if (__DEV__ && filtered.length !== tabs.length) {
+      console.warn('[MaterialTabBar] Some tabs were excluded because they are missing name/component/label');
+    }
+    return filtered;
+  }, [tabs]);
 
   if (!validTabs.length) {
     console.warn('AppTabBars: No valid tabs provided');
@@ -341,23 +369,57 @@ const MaterialTabBar: React.FC<AppTabBarsProps> = ({
             tabs={validTabs}
           />
         )}>
-        {validTabs.map((tab) => (
-          <Tab.Screen
-            key={tab.name}
-            name={tab.name}
-            component={tab.component}
-            options={{
-              tabBarLabel: tab.label,
-            }}
-            listeners={{
-              tabPress: (e) => {
-                if (tab.disabled) {
-                  e.preventDefault();
-                }
-              },
-            }}
-          />
-        ))}
+        {validTabs.map((tab) => {
+          const useRenderProp = React.isValidElement(tab.component) || !!tab.componentProps;
+
+          if (useRenderProp) {
+            return (
+              <Tab.Screen
+                key={tab.name}
+                name={tab.name}
+                options={{
+                  tabBarLabel: tab.label,
+                }}
+                listeners={{
+                  tabPress: (e) => {
+                    if (tab.disabled) {
+                      e.preventDefault();
+                    }
+                  },
+                }}
+              >
+                {() => {
+                  // If user passed an element instance, clone it to merge componentProps (if any)
+                  if (React.isValidElement(tab.component)) {
+                    return React.cloneElement(tab.component, tab.componentProps);
+                  }
+                  // Otherwise it's a component type with extra props
+                  const Comp = tab.component as React.ComponentType<any>;
+                  return <Comp {...tab.componentProps} />;
+                }}
+              </Tab.Screen>
+            );
+          }
+
+            // Legacy path: component is a component type without injected props
+            return (
+              <Tab.Screen
+                key={tab.name}
+                name={tab.name}
+                component={tab.component as React.ComponentType<any>}
+                options={{
+                  tabBarLabel: tab.label,
+                }}
+                listeners={{
+                  tabPress: (e) => {
+                    if (tab.disabled) {
+                      e.preventDefault();
+                    }
+                  },
+                }}
+              />
+            );
+        })}
       </Tab.Navigator>
     </View>
   );

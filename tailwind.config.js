@@ -9,65 +9,62 @@ module.exports = {
         // Primary brand palette
         primary: {
           DEFAULT: "#00539B",
-          dark: "#2c334d",
+          dark: "#2c334d"
         },
         secondary: {
-          DEFAULT: "#78CBFF",
-          light: "#A3DEFF",
-          dark: "#409ED1",
+          DEFAULT: "#0077b6",
+          dark: "#409ED1"
         },
 
         // UI States
         success: {
           DEFAULT: "#34D399",
-          dark: "#059669",
+          dark: "#059669"
         },
         warning: {
           DEFAULT: "#FBBF24",
-          dark: "#D97706",
+          dark: "#D97706"
         },
         error: {
           DEFAULT: "#EF4444",
-          dark: "#B91C1C",
+          dark: "#B91C1C"
         },
 
         // Text
         text: {
           DEFAULT: "#1F2937",
-          light: "#4B5563",
-          dark: "#374151",
+          dark: "#374151"
         },
 
         // Backgrounds
         background: {
-          light: "#F5F5F5",
           DEFAULT: "#E1E2E1",
-          dark: "#C7C8C7",
+          dark: "#C7C8C7"
         },
         darkBg: {
           base: "#030612",
-          surface: "#252838",
+          surface: "#252838"
         },
         lightBg: {
           base: "#f2f2f2",
-          surface: "#ffffff",
+          surface: "#ffffff"
         },
 
         // Typography themes
         heading: {
-          light: "#2D3B44",
-          dark: "#f3f6f4",
+          DEFAULT: "#2D3B44",
+          dark: "#f3f6f4"
         },
         subheading: {
-          light: "#000000",
-          dark: "#e1e1e1",
+          DEFAULT: "#000000",
+          dark: "#e1e1e1"
         },
 
         // Component-specific
         border: "#ccc",
-        tab: {
-          selected: "#0076ff",
-          background: "rgba(0,118,255,0.1)",
+        tabSelected: {
+          DEFAULT: "#0076ff",
+          dark: "rgba(0,118,255,0.1)"
         },
         button: "#0C5D96",
         disabled: "#060505ff",
@@ -75,7 +72,7 @@ module.exports = {
         // Form
         formLabel: {
           DEFAULT: "#7F7F7F",
-          muted: "#666a7b",
+          muted: "#666a7b"
         },
 
         // Grid / Chart
@@ -93,7 +90,7 @@ module.exports = {
           orange: "#ef8b60",
           olive: "#a5a662",
           sky: "rgb(20, 152, 235)",
-          grayTransparent: "rgba(222,226,230,0.5)",
+          grayTransparent: "rgba(222,226,230,0.5)"
         },
       },
 
@@ -108,7 +105,7 @@ module.exports = {
         '2xl': 24,
         '3xl': 30,
         '4xl': 36,
-        '5xl': 48,
+        '5xl': 48
       },
 
       borderRadius: {
@@ -119,14 +116,15 @@ module.exports = {
         lg: 16,
         xl: 24,
         '2xl': 32,
-        full: 9999,
+        full: 9999
       },
 
       fontFamily: {
         manrope: ["Manrope-Regular"],
-        manropeMedium: ["Manrope-Medium"],
-        manropeSemibold: ["Manrope-SemiBold"],
-        manropeBold: ["Manrope-Bold"],
+        manropeMedium:  ["Manrope-Medium"],
+        manropeSemibold:  ["Manrope-SemiBold"],
+        manropeBold:  ["Manrope-Bold"],
+        manropeExtraBold: ["Manrope-ExtraBold"]
       },
 
       borderWidth: {
@@ -134,13 +132,13 @@ module.exports = {
         0: 0,
         2: 2,
         4: 4,
-        8: 8,
+        8: 8
       },
 
       boxShadow: {
         sm: '0px 1px 3px rgba(0,0,0,0.1)',
         md: '0px 4px 6px rgba(0,0,0,0.1)',
-        lg: '0px 10px 15px rgba(0,0,0,0.15)',
+        lg: '0px 10px 15px rgba(0,0,0,0.15)'
       },
     },
   },

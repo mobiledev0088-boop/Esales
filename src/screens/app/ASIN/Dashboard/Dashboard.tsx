@@ -2,56 +2,40 @@ import {useState, useMemo, useCallback, memo} from 'react';
 import {View, TouchableOpacity, ScrollView, RefreshControl} from 'react-native';
 
 import {MaterialTopTabScreenProps} from '@react-navigation/material-top-tabs';
-import moment from 'moment';
 
 import AppText from '../../../../components/customs/AppText';
-import AppDropdown, {
-  AppDropdownItem,
-} from '../../../../components/customs/AppDropdown';
+import AppDropdown, {AppDropdownItem} from '../../../../components/customs/AppDropdown';
 import AppIcon from '../../../../components/customs/AppIcon';
-import AppDatePicker, {
-  DatePickerState,
-} from '../../../../components/customs/AppDatePicker';
 import {CircularProgressBar} from '../../../../components/customs/AppChart';
 import Card from '../../../../components/Card';
-import ImageSlider, {SwiperItem} from '../../../../components/ImageSlider';
 import MaterialTabBar from '../../../../components/MaterialTabBar';
 import CustomTabBar from '../../../../components/CustomTabBar';
-import { ErrorDisplay } from './dashboardUtils';
+import {
+  ErrorDisplay,
+  BannerComponent,
+  ActivationPerformanceComponent,
+} from './components';
 
 import {
-  DashboardBannerSkeleton,
   DashboardSalesData,
   TargetVsAchievementSkeleton,
-  ActivationPerformanceSkeleton,
   ASEDataSkeleton,
   PartnerAnalyticsSkeleton,
   DashboardSkeleton,
 } from '../../../../components/skeleton/DashboardSkeleton';
 
-import {
-  useDashboardActivationData,
-  useDashboardBanner,
-  useDashboardData,
-} from '../../../../hooks/queries/dashboard';
+import {useDashboardData} from '../../../../hooks/queries/dashboard';
 
 import {
   HeaderProps,
-  BannerComponentProps,
   TargetVsAchievementProps,
-  ActivationPerformanceProps,
   ASEDataProps,
   PartnerAnalyticsProps,
   SalesHeaderData,
   TargetVsAchievementData,
-  ActivationPerformanceData,
   ASERelatedData,
   PartnerData,
   ProductCategoryData,
-  ActivationData,
-  TableColumn,
-  TabConfig,
-  ErrorDisplayProps,
 } from '../../../../types/dashboard';
 
 import {
@@ -59,165 +43,15 @@ import {
   convertToTitleCase,
   getPastQuarters,
 } from '../../../../utils/commonFunctios';
-import {DASHBOARD, screenWidth} from '../../../../utils/constant';
+import {ASUS, DASHBOARD} from '../../../../utils/constant';
 import {AppColors} from '../../../../config/theme';
 import {
   calculatePercentage,
   getPerformanceColor,
   formatDisplayValue,
 } from './dashboardUtils';
-
-// helper functions and constants
-const BASE_COLUMNS: TableColumn[] = [
-  {
-    key: 'name',
-    label: 'Name',
-    width: 'flex-1',
-    dataKey: 'name',
-    colorType: 'text',
-  },
-];
-const COMMON_COLUMNS: TableColumn[] = [
-  {
-    key: 'act',
-    label: 'ACT',
-    width: 'w-16',
-    dataKey: 'Act_Cnt',
-    colorType: 'success',
-  },
-  {
-    key: 'nAct',
-    label: 'N-ACT',
-    width: 'w-20',
-    dataKey: 'NonAct_Cnt',
-    colorType: 'error',
-  },
-];
-
-const TAB_CONFIGS: TabConfig[] = [
-  {
-    id: 'branch',
-    label: 'Branch',
-    columns: [
-      ...BASE_COLUMNS,
-      {
-        key: 'pod',
-        label: 'POD',
-        width: 'w-16',
-        dataKey: 'POD_Cnt',
-        colorType: 'text',
-      },
-      {
-        key: 'st',
-        label: 'ST',
-        width: 'w-16',
-        dataKey: 'ST_Cnt',
-        colorType: 'primary',
-      },
-      ...COMMON_COLUMNS,
-    ],
-  },
-  {
-    id: 'alp',
-    label: 'ALP',
-    columns: [
-      ...BASE_COLUMNS,
-      {
-        key: 'st',
-        label: 'ST',
-        width: 'w-16',
-        dataKey: 'ST_Cnt',
-        colorType: 'primary',
-      },
-      {
-        key: 'so',
-        label: 'SO',
-        width: 'w-16',
-        dataKey: 'SO_Cnt',
-        colorType: 'secondary',
-      },
-      ...COMMON_COLUMNS,
-    ],
-  },
-  {
-    id: 'models',
-    label: 'Models',
-    columns: [
-      ...BASE_COLUMNS,
-      {
-        key: 'st',
-        label: 'ST',
-        width: 'w-16',
-        dataKey: 'ST_Cnt',
-        colorType: 'primary',
-      },
-      {
-        key: 'so',
-        label: 'SO',
-        width: 'w-16',
-        dataKey: 'SO_Cnt',
-        colorType: 'secondary',
-      },
-      ...COMMON_COLUMNS,
-    ],
-  },
-  {
-    id: 'agp',
-    label: 'AGP',
-    columns: [
-      ...BASE_COLUMNS,
-      {
-        key: 'so',
-        label: 'SO',
-        width: 'w-16',
-        dataKey: 'SO_Cnt',
-        colorType: 'secondary',
-      },
-      ...COMMON_COLUMNS,
-    ],
-  },
-  {
-    id: 'asp',
-    label: 'ASP',
-    columns: [
-      ...BASE_COLUMNS,
-      {
-        key: 'so',
-        label: 'SO',
-        width: 'w-16',
-        dataKey: 'SO_Cnt',
-        colorType: 'secondary',
-      },
-      ...COMMON_COLUMNS,
-    ],
-  },
-  {
-    id: 'disti',
-    label: 'Disti',
-    columns: [
-      ...BASE_COLUMNS,
-      {
-        key: 'pod',
-        label: 'POD',
-        width: 'w-16',
-        dataKey: 'POD_Cnt',
-        colorType: 'text',
-      },
-      {
-        key: 'st',
-        label: 'ST',
-        width: 'w-16',
-        dataKey: 'ST_Cnt',
-        colorType: 'primary',
-      },
-      ...COMMON_COLUMNS,
-    ],
-  },
-];
-
-const getCurrentTabConfig = (tabId: string): TabConfig => {
-  return TAB_CONFIGS.find(config => config.id === tabId) || TAB_CONFIGS[0];
-};
+import {useLoginStore} from '../../../../stores/useLoginStore';
+import clsx from 'clsx';
 
 // Static fallback tabs to prevent recreation
 const STATIC_DASHBOARD_TABS = [
@@ -227,140 +61,6 @@ const STATIC_DASHBOARD_TABS = [
   {name: 'LFR', component: null, label: 'LFR'},
   {name: 'ONLINE', component: null, label: 'ONLINE'},
 ];
-const getDaysBetween = (start: string, end: string): number => {
-  const startDate = moment(start);
-  const endDate = moment(end);
-  return endDate.diff(startDate, 'days');
-};
-
-const DateRangeCard = ({
-  setIsVisible,
-  dateRange,
-}: {
-  setIsVisible: (visible: boolean) => void;
-  dateRange: DatePickerState;
-}) => (
-  <Card className="mb-3 rounded-2xl p-0">
-    <TouchableOpacity className="p-4" onPress={() => setIsVisible(true)}>
-      <View className="flex-row items-center justify-between">
-        <View className="flex-row items-center">
-          <View className="w-8 h-8 bg-blue-100 rounded-full items-center justify-center mr-3">
-            <AppIcon
-              name="calendar"
-              size={16}
-              color="#3B82F6"
-              type="ionicons"
-            />
-          </View>
-          <View>
-            <AppText size="xs" color="gray" className="mb-0.5">
-              Date Range
-            </AppText>
-            <AppText size="sm" color="text" weight="semibold">
-              {dateRange.start && dateRange.end
-                ? `${moment(dateRange.start).format('MMM D, YYYY')} - ${moment(dateRange.end).format('MMM D, YYYY')} ${dateRange.end instanceof Date && dateRange.end === moment().toDate() ? '(Today)' : ''}`
-                : 'Select a date range'}
-            </AppText>
-          </View>
-        </View>
-        <View className="bg-green-100 px-3 py-1.5 rounded-full">
-          <AppText size="xs" weight="semibold" color="success">
-            {dateRange.start && dateRange.end
-              ? getDaysBetween(
-                  moment(dateRange.start).format('YYYY-MM-DD'),
-                  moment(dateRange.end).format('YYYY-MM-DD'),
-                )
-              : 0}{' '}
-            days
-          </AppText>
-        </View>
-      </View>
-    </TouchableOpacity>
-  </Card>
-);
-
-const TableHeader = ({columns}: {columns: TableColumn[]}) => (
-  <View className="bg-white border-b border-gray-200">
-    <View className="flex-row items-center px-4 py-3">
-      {columns.map(column => (
-        <View
-          key={column.key}
-          className={`${column.width} ${column.key === 'name' ? '' : 'items-center'}`}>
-          <AppText size="sm" weight="semibold" color="gray">
-            {column.label}
-          </AppText>
-        </View>
-      ))}
-    </View>
-  </View>
-);
-
-const TabButton = ({
-  tab,
-  isActive,
-  onPress,
-}: {
-  tab: TabConfig;
-  isActive: boolean;
-  onPress: () => void;
-}) => (
-  <TouchableOpacity
-    key={tab.id}
-    className={`px-4 py-2 rounded-full ${isActive ? 'bg-[#3B82F6]' : 'bg-gray-100'}`}
-    activeOpacity={0.7}
-    onPress={onPress}>
-    <AppText size="sm" weight="medium" color={isActive ? 'white' : 'gray'}>
-      {tab.label}
-    </AppText>
-  </TouchableOpacity>
-);
-
-const TableRow = ({
-  item,
-  isLast,
-  columns,
-}: {
-  item: ActivationData;
-  isLast: boolean;
-  columns: TableColumn[];
-}) => (
-  <View
-    className={`flex-row items-center px-4 py-3 ${!isLast ? 'border-b border-gray-100' : ''}`}>
-    {columns.map(column => (
-      <View
-        key={column.key}
-        className={`${column.width} ${column.key === 'name' ? 'flex-row items-center' : 'items-center'}`}>
-        <AppText
-          size="sm"
-          weight={column.key === 'name' ? 'semibold' : 'bold'}
-          color={column.colorType}>
-          {item[column.dataKey] || '0'}
-        </AppText>
-      </View>
-    ))}
-  </View>
-);
-
-const DataTable = ({
-  data,
-  activeTab,
-  columns,
-}: {
-  data: ActivationData[];
-  activeTab: string;
-  columns: TableColumn[];
-}) => (
-  <View className="bg-white rounded-b-xl overflow-hidden">
-    {data.map((item, index) => (
-      <TableRow
-        key={`${activeTab}-${item.name}-${index}`}
-        item={item}
-        isLast={index === data.length - 1}
-        columns={columns}
-      />
-    ))}
-  </View>
-);
 
 /**
  * Dashboard Header Component - Shows sales data and quarter selection
@@ -437,52 +137,6 @@ const DashboardHeader: React.FC<HeaderProps> = ({
   );
 };
 /**
- * Banner Component - Shows promotional banners with error handling
- */
-const BannerComponent: React.FC<BannerComponentProps> = ({error, onRetry}) => {
-  const {data: banners, isLoading, error: queryError} = useDashboardBanner();
-
-  const actualError = error || queryError;
-
-  const handleBannerPress = useCallback((item: SwiperItem) => {
-    console.log('Banner pressed:', item);
-  }, []);
-
-  if (actualError) {
-    return (
-      <View className="w-full items-center pt-4">
-        <ErrorDisplay
-          title="Failed to Load Banners"
-          message="Unable to retrieve banner information"
-          onRetry={onRetry}
-          showRetry={!!onRetry}
-        />
-      </View>
-    );
-  }
-
-  return (
-    <View className="w-full items-center pt-4">
-      {isLoading ? (
-        <DashboardBannerSkeleton />
-      ) : (
-        <ImageSlider
-          data={banners || []}
-          width={screenWidth - 20}
-          height={200}
-          onPress={handleBannerPress}
-          show={true}
-          autoplay={true}
-          autoplayTimeout={4}
-          dotColor="#E5E7EB"
-          activeDotColor="#3B82F6"
-          resizeMode="cover"
-        />
-      )}
-    </View>
-  );
-};
-/**
  * Target vs Achievement Component - Shows POD wise and Sell Through performance
  */
 const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
@@ -491,8 +145,9 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
   error,
   onRetry,
 }) => {
+  const userInfo = useLoginStore(state => state.userInfo);
   const getProductConfig = useCallback(
-    (category: string, index: number): {icon: string; color: string} => {
+    (category: string): {icon: string; color: string} => {
       const configs: Record<string, {icon: string; color: string}> = {
         NB: {icon: 'laptop', color: AppColors.utilColor1}, // Notebook/Laptop
         NR: {icon: 'monitor', color: AppColors.utilColor2}, // Network Router or Desktop Monitor
@@ -520,7 +175,7 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
 
   const renderProductCard = useCallback(
     (item: ProductCategoryData, index: number, animationDelay: number = 0) => {
-      const config = getProductConfig(item.Product_Category, index);
+      const config = getProductConfig(item.Product_Category);
 
       return (
         <Card
@@ -572,19 +227,30 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
     },
     [getProductConfig],
   );
-
+  // Determine if Distributor Wise button should be shown
+  const needDistributorAccess = ![
+    ASUS.ROLE_ID.DISTRIBUTORS,
+    ASUS.ROLE_ID.DISTI_HO,
+    ASUS.ROLE_ID.LFR_HO,
+  ].includes(userInfo?.EMP_RoleId as any);
   const renderActionButtons = useCallback(
     () => (
-      <View className="flex-row w-full justify-between px-3 mt-4">
-        <TouchableOpacity
-          className="py-1 flex-row items-center border-b border-blue-600"
-          activeOpacity={0.7}
-          onPress={handleDistributorWisePress}>
-          <AppIcon name="users" type="feather" color="#2563eb" size={16} />
-          <AppText size="sm" weight="medium" className="text-blue-600 ml-2">
-            Distributor Wise
-          </AppText>
-        </TouchableOpacity>
+      <View
+        className={clsx(
+          'flex-row w-full px-3 mt-4',
+          needDistributorAccess ? 'justify-between' : 'justify-end',
+        )}>
+        {needDistributorAccess && (
+          <TouchableOpacity
+            className="py-1 flex-row items-center border-b border-blue-600"
+            activeOpacity={0.7}
+            onPress={handleDistributorWisePress}>
+            <AppIcon name="users" type="feather" color="#2563eb" size={16} />
+            <AppText size="sm" weight="medium" className="text-blue-600 ml-2">
+              Distributor Wise
+            </AppText>
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity
           className="py-1 flex-row items-center border-b border-blue-600"
@@ -630,13 +296,24 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
 
       {/* POD Wise Section */}
       <View className="mt-3">
-        <AppText size="md" color="gray" weight="semibold" className="pl-3">
-          POD Wise
-        </AppText>
+        <View className="flex-row items-center pl-3 ">
+          <View className="rounded-full bg-emerald-100 p-2">
+            <AppIcon
+              type="material-community"
+              name="watermark"
+              size={20}
+              color="#10b981"
+            />
+          </View>
+          <AppText size="md" color="gray" weight="semibold" className="pl-3">
+            POD Wise
+          </AppText>
+        </View>
+
         <ScrollView
           horizontal
           contentContainerClassName="gap-3 py-2 px-3"
-          className="mt-4"
+          className="mt-2"
           showsHorizontalScrollIndicator={false}>
           {data.PODwise.map((item, index) =>
             renderProductCard(item, index, index * 100),
@@ -647,13 +324,23 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
 
       {/* Sell Through Section */}
       <View className="mt-3">
-        <AppText size="md" color="gray" weight="semibold" className="pl-3">
-          Sell Through
-        </AppText>
+        <View className="flex-row items-center pl-3">
+          <View className="rounded-full bg-orange-100 p-2">
+            <AppIcon
+              type="material-community"
+              name="chart-timeline-variant"
+              size={20}
+              color="#f97316"
+            />
+          </View>
+          <AppText size="md" color="gray" weight="semibold" className="pl-3">
+            Sell Through
+          </AppText>
+        </View>
         <ScrollView
           horizontal
           contentContainerClassName="gap-3 py-2 px-3"
-          className="mt-4"
+          className="mt-2"
           showsHorizontalScrollIndicator={false}>
           {data.SellThru.map((item, index) =>
             renderProductCard(item, index, 0),
@@ -661,165 +348,6 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
         </ScrollView>
         {renderActionButtons()}
       </View>
-    </View>
-  );
-};
-/**
- * Activation Performance Component - Shows top 5 performance data with tabs
- */
-const ActivationPerformanceComponent: React.FC<ActivationPerformanceProps> = ({
-  data,
-  isLoading,
-  error,
-  onRetry,
-  name
-}) => {
-  const {mutate, data: activationData, isPending: isMutationLoading, reset} = useDashboardActivationData();
-  const [activeTab, setActiveTab] = useState<string>(TAB_CONFIGS[0].id);
-  const [isVisible, setIsVisible] = useState(false);
-  const [dateRange, setDateRange] = useState<DatePickerState>({
-    start: moment().startOf('quarter').toDate(),
-    end: moment().toDate(),
-  });
-  const maximumDate = useMemo(() => new Date(), []);
-  const minimumDate = useMemo(() => moment().subtract(5, 'years').toDate(), []);
-
-  // Get current tab configuration
-  const currentTabConfig = useMemo(
-    () => getCurrentTabConfig(activeTab),
-    [activeTab],
-  );
-
-  // Get data based on active tab - prioritize activationData if available, otherwise use default data
-  const getTabData = useCallback(
-    (tabId: string): ActivationData[] => {
-      // Use activationData if available (from date range selection), otherwise use default data
-      const sourceData = activationData || data;
-      
-      switch (tabId) {
-        case 'branch':
-          return sourceData.Top5Branch || [];
-        case 'alp':
-          return sourceData.Top5ALP || [];
-        case 'models':
-          return sourceData.Top5Model || [];
-        case 'agp':
-          return sourceData.Top5AGP || [];
-        case 'asp':
-          return sourceData.Top5ASP || [];
-        case 'disti':
-          return sourceData.Top5Disti || [];
-        default:
-          return [];
-      }
-    },
-    [data, activationData],
-  );
-
-  const currentData = useMemo(
-    () => getTabData(activeTab),
-    [activeTab, getTabData],
-  );
-
-  const handleTabPress = useCallback((tabId: string) => {
-    setActiveTab(tabId);
-  }, []);
-
-  const handleActivationDataFetch = useCallback(
-    (startDate?: Date, endDate?: Date) => {
-      if (startDate && endDate) {
-        const formattedStartDate = moment(startDate).format('YYYY-MM-DD');
-        const formattedEndDate = moment(endDate).format('YYYY-MM-DD');
-        mutate({
-          startDate: formattedStartDate,
-          endDate: formattedEndDate,
-          masterTab: name
-        });
-      }
-    },
-    [mutate, name],
-  );
-
-  const handleClearFilter = useCallback(() => {
-    reset(); // Clear the mutation data
-    setDateRange({ start: undefined, end: undefined }); // Clear the date range
-  }, [reset]);
-
-  if (error) {
-    return (
-      <View className="px-3 py-3">
-        <ErrorDisplay
-          title="Failed to Load Activation Data"
-          message="Unable to retrieve activation performance information"
-          onRetry={onRetry}
-          showRetry={!!onRetry}
-        />
-      </View>
-    );
-  }
-
-  if (isLoading || isMutationLoading) {
-    return <ActivationPerformanceSkeleton />;
-  }
-
-  return (
-    <View className="px-3 py-3">
-      <View className="flex-row items-center justify-between mb-3">
-        <View className="flex-row items-center">
-          <AppText size="xl" weight="semibold" color="text">
-            Activation Performance
-          </AppText>
-          {activationData && (
-            <View className="flex-row items-center ml-2">
-              <View className="px-2 py-1 bg-green-100 rounded-full">
-                <AppText size="xs" weight="medium" className="text-green-700">
-                  Filtered
-                </AppText>
-              </View>
-              <TouchableOpacity
-                className="ml-2 p-1 bg-gray-100 rounded-full"
-                onPress={handleClearFilter}
-                activeOpacity={0.7}>
-                <AppIcon name="x" type="feather" color="#6B7280" size={14} />
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-      </View>
-      <DateRangeCard setIsVisible={setIsVisible} dateRange={dateRange} />
-      <AppDatePicker
-        mode="dateRange"
-        visible={isVisible}
-        onClose={() => setIsVisible(false)}
-        initialStartDate={dateRange.start}
-        initialEndDate={dateRange.end}
-        initialDate={maximumDate}
-        maximumDate={maximumDate}
-        minimumDate={minimumDate}
-        onDateRangeSelect={(startDate, endDate) => {
-          setDateRange({start: startDate, end: endDate});
-          handleActivationDataFetch(startDate, endDate);
-        }}
-      />
-      <Card className="p-0" needSeeMore needSeeMoreIcon>
-        <View className="flex-row w-full justify-between py-3 bg-white px-3 rounded-t-xl border-b border-gray-200">
-          {TAB_CONFIGS.map(tab => (
-            <TabButton
-              key={tab.id}
-              tab={tab}
-              isActive={activeTab === tab.id}
-              onPress={() => handleTabPress(tab.id)}
-            />
-          ))}
-        </View>
-
-        <TableHeader columns={currentTabConfig.columns} />
-        <DataTable
-          data={currentData}
-          activeTab={activeTab}
-          columns={currentTabConfig.columns}
-        />
-      </Card>
     </View>
   );
 };
@@ -834,6 +362,7 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
   error,
   onRetry,
 }) => {
+  const userInfo = useLoginStore(state => state.userInfo);
   const renderMetricCard = useCallback(
     ({
       label,
@@ -888,20 +417,24 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
     return (
       <View>
         <View className="flex-row flex-wrap justify-between px-4">
-          {renderHeadCountCard(totalData.Head_Cnt)}
+          {renderMetricCard({
+            label: 'HEAD COUNT',
+            value: totalData.Head_Cnt,
+            iconName: 'users',
+          })}
           {renderMetricCard({
             label: 'TARGET',
-            value: totalData.Target,
+            value: convertToASINUnits(Number(totalData.Target)),
             iconName: 'target',
           })}
           {renderMetricCard({
             label: 'SELL THRU',
-            value: totalData.SellThru,
+            value: convertToASINUnits(Number(totalData.SellThru)),
             iconName: 'trending-up',
           })}
           {renderMetricCard({
             label: 'SELL OUT',
-            value: totalData.SellOut,
+            value: convertToASINUnits(Number(totalData.SellOut)),
             iconName: 'shopping-cart',
           })}
         </View>
@@ -916,7 +449,7 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
         </View>
       </View>
     );
-  }, [totalData, renderHeadCountCard, renderMetricCard]);
+  }, [totalData, renderMetricCard]);
 
   const ASEChannelTab = useCallback(() => {
     return (
@@ -924,45 +457,56 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
         {renderHeadCountCard(channelData.Head_Cnt)}
         {renderMetricCard({
           label: 'TARGET',
-          value: channelData.Target,
+          value: convertToASINUnits(Number(channelData.Target)),
           iconName: 'target',
         })}
         {renderMetricCard({
           label: 'SELL THRU',
-          value: channelData.SellThru,
+          value: convertToASINUnits(Number(channelData.SellThru)),
           iconName: 'trending-up',
         })}
         {renderMetricCard({
           label: 'SELL OUT',
-          value: channelData.SellOut,
+          value: convertToASINUnits(Number(channelData.SellOut)),
           iconName: 'shopping-cart',
         })}
       </View>
     );
   }, [channelData, renderHeadCountCard, renderMetricCard]);
 
-  const ASELFRTab = useCallback(() => {
-    return (
-      <View className="flex-row flex-wrap justify-between px-4">
-        {renderHeadCountCard(lfrData.Head_Cnt)}
-        {renderMetricCard({
-          label: 'TARGET',
-          value: lfrData.Target,
-          iconName: 'target',
-        })}
-        {renderMetricCard({
-          label: 'SELL THRU',
-          value: lfrData.SellThru,
-          iconName: 'trending-up',
-        })}
-        {renderMetricCard({
-          label: 'SELL OUT',
-          value: lfrData.SellOut,
-          iconName: 'shopping-cart',
-        })}
-      </View>
-    );
-  }, [lfrData, renderHeadCountCard, renderMetricCard]);
+  const ASELFRTab = useCallback(
+    ({needHeader = true}: {needHeader: boolean}) => {
+      return (
+        <View>
+          <View className="flex-row flex-wrap justify-between px-4">
+            {needHeader
+              ? renderHeadCountCard(lfrData.Head_Cnt)
+              : renderMetricCard({
+                  label: 'HEAD COUNT',
+                  value: lfrData.Head_Cnt,
+                  iconName: 'users',
+                })}
+            {renderMetricCard({
+              label: 'TARGET',
+              value: convertToASINUnits(Number(lfrData.Target)),
+              iconName: 'target',
+            })}
+            {renderMetricCard({
+              label: 'SELL THRU',
+              value: convertToASINUnits(Number(lfrData.SellThru)),
+              iconName: 'trending-up',
+            })}
+            {renderMetricCard({
+              label: 'SELL OUT',
+              value: convertToASINUnits(Number(lfrData.SellOut)),
+              iconName: 'shopping-cart',
+            })}
+          </View>
+        </View>
+      );
+    },
+    [lfrData, renderHeadCountCard, renderMetricCard],
+  );
 
   if (error) {
     return (
@@ -980,17 +524,44 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
   if (isLoading) {
     return <ASEDataSkeleton />;
   }
-
+  // Build tabs based on role. Previous implementation forgot to assign the array in the else branch.
+  let tabs: any[] = [];
+  if (userInfo?.EMP_RoleId === ASUS.ROLE_ID.LFR_HO) {
+    tabs = [
+      {
+        name: 'ASE LFR',
+        label: 'ASE LFR',
+        // Need header=false for LFR HO single tab view
+        component: <ASELFRTab needHeader={false} />,
+      },
+    ];
+  } else {
+    tabs = [
+      {
+        name: 'ASE Total',
+        label: 'ASE Total',
+        component: ASETotalTab, 
+      },
+        {
+        name: 'ASE Channel',
+        label: 'ASE Channel',
+        component: ASEChannelTab,
+      },
+      {
+        name: 'ASE LFR',
+        label: 'ASE LFR',
+        component: ASELFRTab,
+      },
+    ];
+  }
+  const needSeeMore = userInfo?.EMP_RoleId === ASUS.ROLE_ID.LFR_HO;
   return (
     <View className="px-3">
       <AppText size="xl" color="text" weight="bold" className="mb-2">
         ASE Related
       </AppText>
-      <Card className="p-0 pt-3">
-        <CustomTabBar
-          tabs={['ASE Total', 'ASE Channel', 'ASE LFR']}
-          tabComponents={[ASETotalTab, ASEChannelTab, ASELFRTab]}
-        />
+      <Card className="p-0 pt-3" needSeeMore={needSeeMore}>
+        <CustomTabBar tabs={tabs} />
       </Card>
     </View>
   );
@@ -1010,7 +581,7 @@ const PartnerAnalyticsComponent: React.FC<PartnerAnalyticsProps> = ({
     return calculatePercentage(achieved, target);
   }, []);
 
-  const renderPartnerRow = useCallback(() => {
+  const UniquePartnerBilled = useMemo(() => {
     const partnerConfigs = [
       {
         key: 'ALP',
@@ -1049,7 +620,6 @@ const PartnerAnalyticsComponent: React.FC<PartnerAnalyticsProps> = ({
         showPercentage: false,
       },
     ];
-
     return (
       <View>
         {partnerConfigs.map((config, index) => {
@@ -1138,23 +708,145 @@ const PartnerAnalyticsComponent: React.FC<PartnerAnalyticsProps> = ({
       </AppText>
       <Card className="">
         <CustomTabBar
-          tabs={['Unique Partner Billed']}
-          tabComponents={[renderPartnerRow]}
+          tabs={[
+            {
+              name: 'Unique Partner Billed',
+              label: 'Unique Partner Billed',
+              // Pass the memoized element directly (it's a ReactNode, not a component type)
+              component: UniquePartnerBilled,
+            },
+          ]}
         />
       </Card>
     </View>
   );
 };
 /**
+ * Disti Sellout Qty Component - Shows sellout split With / Without SSN
+ */
+const DistiSelloutQtyComponent: React.FC<{
+  data?: {WithSSN_Qty?: number; WithoutSSN_Qty?: number};
+  isLoading?: boolean;
+  error?: any;
+  onRetry?: () => void;
+}> = ({data, isLoading, error, onRetry}) => {
+  const safeData = data || {WithSSN_Qty: 0, WithoutSSN_Qty: 0};
+  const {WithSSN_Qty = 0, WithoutSSN_Qty = 0} = safeData;
+
+  const {total, withPerc, withoutPerc} = useMemo(() => {
+    const totalVal = (WithSSN_Qty || 0) + (WithoutSSN_Qty || 0);
+    const wp = totalVal ? Math.round(((WithSSN_Qty || 0) / totalVal) * 100) : 0;
+    const wop = totalVal ? 100 - wp : 0;
+    return {total: totalVal, withPerc: wp, withoutPerc: wop};
+  }, [WithSSN_Qty, WithoutSSN_Qty]);
+
+  if (error) {
+    return (
+      <Card className="p-4">
+        <ErrorDisplay
+          title="Failed to Load Disti Sellout"
+          message="Unable to retrieve distributor sellout quantities"
+          onRetry={onRetry}
+          showRetry={!!onRetry}
+        />
+      </Card>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <Card className="p-4 gap-3">
+        <View className="h-5 w-40 bg-gray-200 rounded" />
+        <View className="h-3 w-full bg-gray-200 rounded" />
+        <View className="h-3 w-full bg-gray-200 rounded" />
+        <View className="h-3 w-1/2 bg-gray-200 rounded" />
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="p-4" watermark>
+      <View className="flex-row items-center justify-between mb-3">
+        <View className="flex-row items-center">
+          <View className="w-9 h-9 rounded-full bg-blue-100 items-center justify-center mr-3">
+            <AppIcon name="trending-up" type="feather" color="#2563EB" size={18} />
+          </View>
+          <View>
+            <AppText size="md" weight="bold" color="text">
+              Disti Sellout Qty
+            </AppText>
+            <AppText size="xs" color="gray">
+              SSN vs Non-SSN Sellout
+            </AppText>
+          </View>
+        </View>
+        <View className="items-end">
+          <AppText size="xs" color="gray" className="mb-0.5">
+            Total
+          </AppText>
+          <AppText size="lg" weight="bold" color="text">
+            {formatDisplayValue(total)}
+          </AppText>
+        </View>
+      </View>
+
+      {/* Stacked progress bar */}
+      <View className="w-full h-3 rounded-full overflow-hidden bg-gray-200 flex-row mb-4">
+        <View
+          style={{flex: withPerc}}
+          className="h-full bg-emerald-500"
+        />
+        <View
+          style={{flex: withoutPerc}}
+          className="h-full bg-orange-400"
+        />
+      </View>
+
+      <View className="gap-3">
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center">
+            <View className="w-3 h-3 rounded-full bg-emerald-500 mr-2" />
+            <AppText size="sm" weight="semibold" color="text">
+              With SSN
+            </AppText>
+          </View>
+          <View className="items-end">
+            <AppText size="sm" weight="bold" color="text">
+              {formatDisplayValue(WithSSN_Qty)}
+            </AppText>
+            <AppText size="xs" color="success">
+              {withPerc}%
+            </AppText>
+          </View>
+        </View>
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center">
+            <View className="w-3 h-3 rounded-full bg-orange-400 mr-2" />
+            <AppText size="sm" weight="semibold" color="text">
+              Without SSN
+            </AppText>
+          </View>
+          <View className="items-end">
+            <AppText size="sm" weight="bold" color="text">
+              {formatDisplayValue(WithoutSSN_Qty)}
+            </AppText>
+            <AppText size="xs" color="warning">
+              {withoutPerc}%
+            </AppText>
+          </View>
+        </View>
+      </View>
+    </Card>
+  );
+};
+/**
  * Dashboard Container Component - Main dashboard logic and data management
  */
 const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
+  const userInfo = useLoginStore(state => state.userInfo);
   const quarters = useMemo(() => getPastQuarters(), []);
   const [selectedQuarter, setSelectedQuarter] =
-    useState<AppDropdownItem | null>(() => {
-      const reversedQuarters = [...quarters].reverse();
-      return reversedQuarters[0] || null;
-    });
+    useState<AppDropdownItem | null>(quarters[0] || null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const {
@@ -1177,46 +869,37 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
       : undefined;
   }, [dashboardData?.MasterTab, route.name]);
 
-  // Process activation performance data
-  const activationPerformanceData: ActivationPerformanceData = useMemo(
-    () => ({
-      Top5AGP:
-        dashboardData?.Top5AGP?.map((item: any) => ({
+  const [acvTab, acvTabData] = useMemo(() => {
+    const ORDER = ['Branch', 'ALP', 'Model', 'AGP', 'ASP', 'Disti'];
+    const allTop5Objects = Object.keys(dashboardData || {}).filter(key =>
+      key.startsWith('Top5'),
+    );
+    const acvTab = allTop5Objects
+      .map(key => key.replace('Top5', ''))
+      .sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b));
+    const acvTabUnArray = allTop5Objects.map(key => ({
+      [key]: dashboardData?.[key] || {},
+    }));
+    const acvTabUnManage = Object.assign(
+      {},
+      ...acvTabUnArray.filter(obj => {
+        const value = Object.values(obj)[0];
+        return value && Object.keys(value).length > 0; // keep only non-empty objects
+      }),
+    );
+    const acvTabData = Object.keys(acvTabUnManage).reduce(
+      (acc, key) => {
+        acc[key] = acvTabUnManage[key].map((item: any) => ({
           ...item,
-          name: item.Top_5_AGP,
+          name: item[`Top_5_${key.replace('Top5', '')}`],
           SO_Cnt: item.SO_Cnt || item.SellOut_Qty || '0',
-        })) || [],
-      Top5ALP:
-        dashboardData?.Top5ALP?.map((item: any) => ({
-          ...item,
-          name: item.Top_5_ALP,
-          SO_Cnt: item.SO_Cnt || item.SellOut_Qty || '0',
-        })) || [],
-      Top5ASP:
-        dashboardData?.Top5ASP?.map((item: any) => ({
-          ...item,
-          name: item.Top_5_ASP,
-          SO_Cnt: item.SO_Cnt || item.SellOut_Qty || '0',
-        })) || [],
-      Top5Branch:
-        dashboardData?.Top5Branch?.map((item: any) => ({
-          ...item,
-          name: item.Top_5_Branch,
-        })) || [],
-      Top5Disti:
-        dashboardData?.Top5Disti?.map((item: any) => ({
-          ...item,
-          name: item.Top_5_Disti,
-        })) || [],
-      Top5Model:
-        dashboardData?.Top5Model?.map((item: any) => ({
-          ...item,
-          name: item.Top_5_Model,
-          SO_Cnt: item.SO_Cnt || item.SellOut_Qty || '0',
-        })) || [],
-    }),
-    [dashboardData],
-  );
+        }));
+        return acc;
+      },
+      {} as Record<string, any[]>,
+    );
+    return [acvTab, acvTabData];
+  }, [dashboardData]);
 
   // Process ASE data
   const aseData: ASERelatedData = useMemo(
@@ -1238,6 +921,12 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
         T3: '',
       },
     [dashboardData?.UniqueBilled],
+  );
+
+  // Process disti sellout qty data
+  const distiSelloutQtyData = useMemo(
+    () => dashboardData?.DistiSelloutQty?.[0],
+    [dashboardData?.DistiSelloutQty],
   );
 
   // Process target vs achievement data
@@ -1265,7 +954,7 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
       setIsRefreshing(false);
     }
   }, [refetchDashboard]);
-  console.log('Dashboard Rendered:', route.name, selectedQuarter?.value);
+
   return (
     <View className="flex-1 bg-slate-50">
       <ScrollView
@@ -1292,7 +981,7 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
           onRetry={handleRetry}
         />
 
-        <BannerComponent error={dashboardError} onRetry={handleRetry} />
+        <BannerComponent />
 
         <TargetVsAchievementComponent
           data={targetVsAchievementData}
@@ -1300,33 +989,54 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
           error={dashboardError}
           onRetry={handleRetry}
         />
-
-        <ActivationPerformanceComponent
-          data={activationPerformanceData}
-          isLoading={isLoading}
-          error={dashboardError}
-          onRetry={handleRetry}
-          name={route.name}
-        />
-
-        {['Total', 'CHANNEL', 'LFR'].includes(route.name) && (
-          <ASEDataComponent
-            totalData={aseData.total}
-            channelData={aseData.channel}
-            lfrData={aseData.lfr}
+        <View className="px-3">
+          <ActivationPerformanceComponent
+            tabs={acvTab}
+            data={acvTabData}
             isLoading={isLoading}
             error={dashboardError}
             onRetry={handleRetry}
+            name={route.name}
           />
-        )}
+        </View>
 
-        {['Total', 'CHANNEL'].includes(route.name) && (
-          <PartnerAnalyticsComponent
-            data={partnerData}
-            isLoading={isLoading}
-            error={dashboardError}
-            onRetry={handleRetry}
-          />
+        {['Total', 'CHANNEL', 'LFR'].includes(route.name) &&
+          ![ASUS.ROLE_ID.DISTI_HO, ASUS.ROLE_ID.DISTRIBUTORS].includes(
+            userInfo?.EMP_RoleId as any,
+          ) && (
+            <ASEDataComponent
+              totalData={aseData.total}
+              channelData={aseData.channel}
+              lfrData={aseData.lfr}
+              isLoading={isLoading}
+              error={dashboardError}
+              onRetry={handleRetry}
+            />
+          )}
+
+        {['Total', 'CHANNEL'].includes(route.name) &&
+          ![ASUS.ROLE_ID.DISTI_HO, ASUS.ROLE_ID.DISTRIBUTORS].includes(
+            userInfo?.EMP_RoleId as any,
+          ) && (
+            <PartnerAnalyticsComponent
+              data={partnerData}
+              isLoading={isLoading}
+              error={dashboardError}
+              onRetry={handleRetry}
+            />
+          )}
+        {/* DistiSelloutQty */}
+        {[ASUS.ROLE_ID.DISTI_HO, ASUS.ROLE_ID.DISTRIBUTORS].includes(
+          userInfo?.EMP_RoleId as any,
+        ) && (
+          <View className="px-3">
+            <DistiSelloutQtyComponent
+              data={distiSelloutQtyData}
+              isLoading={isLoading}
+              error={dashboardError}
+              onRetry={handleRetry}
+            />
+          </View>
         )}
       </ScrollView>
     </View>
@@ -1334,39 +1044,37 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
 });
 
 //Main Dashboard Component
-const Dashboard: React.FC = () => {
+export default function Dashboard() {
   const quarters = useMemo(() => getPastQuarters(), []);
-  const [selectedQuarter, setSelectedQuarter] =
-    useState<AppDropdownItem | null>(() => {
-      const reversedQuarters = [...quarters].reverse();
-      return reversedQuarters[0] || null;
-    });
+  const userInfo = useLoginStore(state => state.userInfo);
 
   // Fetch dashboard data to get MasterTab for dynamic tabs
+  const initialTab =
+    userInfo?.EMP_RoleId === ASUS.ROLE_ID.LFR_HO ? 'LFR' : 'Total';
   const {
     data: dashboardData,
     isLoading: isTabsLoading,
     error: tabsError,
-  } = useDashboardData(selectedQuarter?.value || '', 'Total'); // Use 'Total' as default to get all tabs
+  } = useDashboardData(quarters[0]?.value || '', initialTab);
 
   // Generate tabs dynamically from API response
   const dashboardTabs = useMemo(() => {
     if (dashboardData?.MasterTab && Array.isArray(dashboardData.MasterTab)) {
       // Filter out any invalid tabs and create dynamic tabs
-      const validTabs = dashboardData.MasterTab
-        .filter((tab: any) => tab?.Type && typeof tab.Type === 'string')
-        .map((tab: any) => ({
-          name: tab.Type,
-          component: DashboardContainer,
-          label: tab.Type,
-        }));
-      
+      const validTabs = dashboardData.MasterTab.filter(
+        (tab: any) => tab?.Type && typeof tab.Type === 'string',
+      ).map((tab: any) => ({
+        name: tab.Type,
+        component: DashboardContainer,
+        label: tab.Type,
+      }));
+
       // Return dynamic tabs if we have valid ones, otherwise fallback
       if (validTabs.length > 0) {
         return validTabs;
       }
     }
-    
+
     // Fallback to static tabs if API data is not available or invalid
     return STATIC_DASHBOARD_TABS.map(tab => ({
       ...tab,
@@ -1399,6 +1107,4 @@ const Dashboard: React.FC = () => {
       />
     </View>
   );
-};
-
-export default Dashboard;
+}

@@ -122,6 +122,22 @@ export const PartnerAnalyticsSkeleton = () => {
   );
 };
 
+export const TargetAchievementSkeleton =  ()=>{
+  return(
+      <View className="px-3 mb-2">
+        <Skeleton width={screenWidth - 40} height={100} borderRadius={8} />
+      </View>
+  );
+};
+export const MonthlyTargetAchievementSkeleton =  ()=>{
+  return(
+      <View className="mb-2">
+        <Skeleton width={screenWidth - 40} height={150} borderRadius={8} />
+      </View>
+  );
+};
+
+
 export const DashboardSkeleton = () => {
   return(
     <View className="pt-3">

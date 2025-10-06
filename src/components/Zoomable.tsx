@@ -245,6 +245,4 @@ const Zoomable = forwardRef<ZoomableMethods, ZoomableProps>((props, ref) => {
   );
 });
 
-Zoomable.displayName = 'Zoomable';
-
 export default Zoomable;

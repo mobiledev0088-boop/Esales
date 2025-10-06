@@ -29,12 +29,12 @@ export interface ActivationData {
 }
 
 export interface ActivationPerformanceData {
-  Top5AGP: ActivationData[];
-  Top5ALP: ActivationData[];
-  Top5ASP: ActivationData[];
-  Top5Branch: ActivationData[];
-  Top5Disti: ActivationData[];
-  Top5Model: ActivationData[];
+  Top5AGP?: ActivationData[];
+  Top5ALP?: ActivationData[];
+  Top5ASP?: ActivationData[];
+  Top5Branch?: ActivationData[];
+  Top5Disti?: ActivationData[];
+  Top5Model?: ActivationData[];
 }
 
 export interface ASEData {
@@ -82,10 +82,6 @@ export interface HeaderProps {
   onRetry?: () => void;
 }
 
-export interface BannerComponentProps {
-  error?: Error | null;
-  onRetry?: () => void;
-}
 
 export interface TargetVsAchievementProps {
   data: TargetVsAchievementData;
@@ -100,6 +96,7 @@ export interface ActivationPerformanceProps {
   error?: Error | null;
   onRetry?: () => void;
   name: string;
+  tabs?: string[];
 }
 
 export interface ASEDataProps {
