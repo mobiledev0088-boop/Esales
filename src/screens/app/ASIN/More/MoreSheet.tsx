@@ -34,7 +34,7 @@ const hasRole = (roleId: number | undefined, allowedRoles: number[]) =>
   roleId !== undefined && allowedRoles.includes(roleId);
 
 const getASINOptions = (
-  roleId: number | undefined,
+  roleId: number,
   empType: string | undefined | null,
   empCode: string,
 ): Option[] => {
@@ -89,13 +89,14 @@ const getASINOptions = (
     });
   }
 
-  if (roleId === 24) {
+  // if (roleId === 24) {
     options.push({
       label: 'Incentive',
       iconName: 'money',
       iconType: 'fontAwesome',
+      navigateTo: 'ASEIncentive',
     });
-  }
+  // }
   if (hasRole(roleId, [1, 2, 3, 4, 9, 10, 25, 26])) {
     options.push({
       label: 'Shop Expansion',
@@ -110,7 +111,14 @@ const getASINOptions = (
       iconType: 'material-community',
     });
   }
-
+  if([1, 2, 9, 3, 7, 25, 26, 28].includes(roleId)){
+    options.push({
+      label: 'Credit Limit',
+      iconName: 'credit-card',
+      iconType: 'fontAwesome',
+      navigateTo: 'CreditLimit',
+    })
+  }
   return options;
 };
 
@@ -142,7 +150,7 @@ const MoreSheet = () => {
   const userInfo = useLoginStore(state => state.userInfo);
   const navigation = useNavigation<AppNavigationProp>();
 
-  const roleId = userInfo?.EMP_RoleId;
+  const roleId = userInfo.EMP_RoleId;
   const empType = userInfo?.EMP_Type;
   const empCode = empInfo?.EMP_Code ?? '';
   const countryId = userInfo?.EMP_CountryID;

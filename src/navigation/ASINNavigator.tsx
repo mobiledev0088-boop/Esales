@@ -11,6 +11,10 @@ import ActivatedDetails from "../screens/app/ASIN/More/ActivatedDetails/Activate
 import ScanSN from "../screens/app/ASIN/ScanSN/ScanSN";
 import SpotLightVideos from "../screens/app/ASIN/More/SpotLightVideos/SpotLightVideos";
 import ProductDescription from "../screens/app/ASIN/More/ProductInfo/ProductDescription";
+import CreditLimit from "../screens/app/ASIN/More/CreditLimit/CreditLimit";
+import PartnersCreditLimit from "../screens/app/ASIN/More/CreditLimit/PartnersCreditLimit";
+import PartnerCreditLimitDetails from "../screens/app/ASIN/More/CreditLimit/PartnerCreditLimitDetails";
+import ASEIncentive from "../screens/app/ASIN/More/Incentive/ASEIncentive";
 
 const Stack = createNativeStackNavigator();
 
@@ -25,6 +29,10 @@ const screens = [
     { name: "ProductInfo", component: ProductInfo },
     { name: "ProductDescription", component: ProductDescription },
     { name: "SpotLightVideos", component: SpotLightVideos },
+    { name: "CreditLimit", component: CreditLimit },
+    { name: "PartnersCreditLimit", component: PartnersCreditLimit },
+    { name: "PartnerCreditLimitDetails", component: PartnerCreditLimitDetails },
+    { name: "ASEIncentive", component: ASEIncentive },
     // Feedback Screens
     { name: "Feedback", component: Feedback },
     { name: "AddFeedback", component: AddFeedback },

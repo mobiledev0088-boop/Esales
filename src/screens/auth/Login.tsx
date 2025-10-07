@@ -8,7 +8,7 @@ import { getDeviceId } from 'react-native-device-info';
 import { useLoginMutation } from '../../hooks/queries/auth';
 
 const Login = () => {
-    const [formData, setFormData] = useState({ username: 'Ashish_Devasi', password: '@ITSMbpm07072025' });
+    const [formData, setFormData] = useState({ username: 'Shrey Sourabh', password: 'cR7V0HZgh3i$ykv' });
     const [errorMessage, setErrorMessage] = useState<{ [key: string]: string }>({});
 
     const { mutate: login } = useLoginMutation();

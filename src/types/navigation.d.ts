@@ -19,6 +19,10 @@ type AppNavigationParamList = {
     ProductInfo: undefined;
     ProductDescription: { product: any };
     SpotLightVideos: undefined;
+    CreditLimit: undefined;
+    PartnersCreditLimit: { distributorId: string };
+    PartnerCreditLimitDetails: { partner: any };
+    ASEIncentive: undefined;
     // Account Screen
     ChangePassword: undefined;
     // Feedback Screens

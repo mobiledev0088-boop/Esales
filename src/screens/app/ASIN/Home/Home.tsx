@@ -52,11 +52,10 @@ const Home: React.FC = () => {
       // dashboard for  Rooling Funnel
     } else {
       if (
-        userInfo?.EMP_RoleId === ASUS.ROLE_ID.AM ||
-        userInfo?.EMP_RoleId === ASUS.ROLE_ID.ASE
+        userInfo?.EMP_RoleId === ASUS.ROLE_ID.AM 
       ) {
         arr.push({name: 'Dashboard', component: Dashboard_AM, icon: 'bar-chart'});
-      } else if (userInfo?.EMP_RoleId === ASUS.ROLE_ID.PARTNERS) {
+      } else if (userInfo?.EMP_RoleId === ASUS.ROLE_ID.PARTNERS || userInfo?.EMP_RoleId === ASUS.ROLE_ID.ASE) {
          arr.push({name: 'Dashboard', component: Dashboard_Partner, icon: 'bar-chart'});
       } else {
         arr.push({name: 'Dashboard', component: Dashboard, icon: 'bar-chart'});

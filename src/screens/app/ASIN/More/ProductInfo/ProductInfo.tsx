@@ -102,18 +102,11 @@ const SpecItem = ({
 }) => {
   if (!value) return null;
   return (
-    <View className="flex-row items-start mr-4 mb-3 w-[45%]">
-      {/* grey color */}
+    <View className="flex-row items-start mr-4 mb-3 w-[45%] ">
       <AppIcon name={icon} type={type} size={20} color="#4B5563" />
       <View className="ml-2 flex-1">
-        {label && (
-          <AppText size="xs" color="gray" className="mb-0.5 leading-3">
-            {label}
-          </AppText>
-        )}
-        <AppText size="sm" weight="medium">
-          {value}
-        </AppText>
+        {label && (<AppText size="xs" className="mb-0.5 leading-3 text-gray-400">{label}</AppText>)}
+        <AppText size="sm" weight="medium">{value}</AppText>
       </View>
     </View>
   );
@@ -132,20 +125,18 @@ const ProductInfoCard = memo(
       <Card className="px-0">
         <TouchableOpacity activeOpacity={0.7} onPress={() => handleNavigation(item)}>
           <View className="flex-row items-center mb-3 px-3">
-            <View className="w-16 h-16 rounded-full bg-primary/10 items-center justify-center mr-3">
+            <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mr-3">
               <AppIcon
                 name="laptop"
                 type="material-community"
-                size={40}
+                size={25}
                 color={AppColors[AppTheme].heading}
               />
             </View>
             <View className="flex-1">
+              <AppText size="xs" color="gray">Sales Model Name</AppText>
               <AppText weight="semibold" size="base" className="text-text">
                 {item?.PD_sales_model_name || 'Unknown Model'}
-              </AppText>
-              <AppText size="sm" color="gray" className="mt-0.5">
-                {storage} • {cpu}
               </AppText>
             </View>
             <View className="ml-2 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 items-center justify-center">
@@ -159,6 +150,7 @@ const ProductInfoCard = memo(
           </View>
           <View className="border-b border-gray-200 dark:border-gray-700 mb-4" />
           <View className="flex-row flex-wrap px-3">
+            <SpecItem icon="cpu" type="feather" label="CPU" value={cpu} />
             <SpecItem
               icon="memory"
               type="material-community"
@@ -171,7 +163,6 @@ const ProductInfoCard = memo(
               label="Storage"
               value={storage}
             />
-            <SpecItem icon="cpu" type="feather" label="CPU" value={cpu} />
             <SpecItem
               icon="microsoft-windows"
               type="material-community"

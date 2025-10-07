@@ -181,7 +181,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
       borderColor: theme.border,
       borderWidth: 1.5,
       borderRadius: 12,
-      minHeight: 54,
+      minHeight: 45,
     },
     pickerText: {
       color: theme.text,

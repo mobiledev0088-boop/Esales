@@ -81,7 +81,7 @@ const AppLayout = forwardRef<AppLayoutRef, AppLayoutProps>(
     );
 
   return needScroll ? (
-    <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
+    <View className="flex-1 bg-slate-50 dark:bg-darkBg-base">
       <Header
         needBack={needBack}
         title={title}
@@ -106,7 +106,7 @@ const AppLayout = forwardRef<AppLayoutRef, AppLayoutProps>(
       </KeyboardAwareScrollView>
     </View>
   ) : (
-    <View className={clsx('flex-1 bg-lightBg-base dark:bg-darkBg-base')}>
+    <View className={clsx('flex-1 bg-slate-50 dark:bg-darkBg-base')}>
       <Header
         needBack={needBack}
         title={title}
