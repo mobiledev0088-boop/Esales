@@ -13,7 +13,7 @@ import AppText from './AppText';
 import AppIcon from './AppIcon';
 import { DatePickerSheetPayload } from '../DatePickerSheet';
 
-export type DatePickerMode = 'date' | 'dateRange' | 'time';
+export type DatePickerMode = 'date' | 'dateRange' | 'time' | 'month';
 
 type DateState = Date | undefined;
 type TimeState = {hours: number; minutes: number} | undefined;
@@ -40,6 +40,10 @@ export interface DatePickerProps {
   initialTime?: {hours: number; minutes: number};
   minimumDate?: Date;
   maximumDate?: Date;
+  /** Earliest selectable month (1-indexed) and year when in month mode */
+  minMonthYear?: { month: number; year: number };
+  /** Latest selectable month (1-indexed) and year when in month mode */
+  maxMonthYear?: { month: number; year: number };
   title?: string;
   confirmText?: string;
   cancelText?: string;
@@ -58,6 +62,8 @@ export interface DatePickerInputProps {
   initialTime?: {hours: number; minutes: number};
   minimumDate?: Date;
   maximumDate?: Date;
+  minMonthYear?: { month: number; year: number };
+  maxMonthYear?: { month: number; year: number };
   title?: string;
   confirmText?: string;
   cancelText?: string;
@@ -89,6 +95,8 @@ const AppDatePicker: React.FC<DatePickerProps> = ({
   },
   minimumDate,
   maximumDate,
+  minMonthYear,
+  maxMonthYear,
   title,
   confirmText = 'Confirm',
   cancelText = 'Cancel',
@@ -118,6 +126,8 @@ const AppDatePicker: React.FC<DatePickerProps> = ({
         initialTime,
         minimumDate,
         maximumDate,
+        minMonthYear,
+        maxMonthYear,
         title,
         confirmText,
         cancelText,
@@ -131,7 +141,7 @@ const AppDatePicker: React.FC<DatePickerProps> = ({
         },
       });
     }
-  }, [visible, mode, onDateSelect, onDateRangeSelect, onTimeSelect, initialDate, initialStartDate, initialEndDate, initialTime, minimumDate, maximumDate, title, confirmText, cancelText, is24Hour, onClose]);
+  }, [visible, mode, onDateSelect, onDateRangeSelect, onTimeSelect, initialDate, initialStartDate, initialEndDate, initialTime, minimumDate, maximumDate, minMonthYear, maxMonthYear, title, confirmText, cancelText, is24Hour, onClose]);
 
   // This component doesn't render anything visible since ActionSheet handles the UI
   return null;
@@ -149,6 +159,8 @@ export const DatePickerInput = ({
   initialTime,
   minimumDate,
   maximumDate,
+  minMonthYear,
+  maxMonthYear,
   title,
   confirmText = 'Confirm',
   cancelText = 'Cancel',
@@ -209,6 +221,13 @@ export const DatePickerInput = ({
         return '';
       case 'time':
         return selectedTime ? formatTime(selectedTime) : '';
+      case 'month':
+        if (selectedStartDate && selectedEndDate) {
+          return `${selectedStartDate.toLocaleString('default', {month: 'short', year: 'numeric'})} - ${selectedEndDate.toLocaleString('default', {month: 'short', year: 'numeric'})}`;
+        } else if (selectedStartDate) {
+          return `${selectedStartDate.toLocaleString('default', {month: 'short', year: 'numeric'})} - Select end month`;
+        }
+        return '';
       default:
         return '';
     }
@@ -231,6 +250,8 @@ export const DatePickerInput = ({
         return 'Select date range';
       case 'time':
         return 'Select time';
+      case 'month':
+        return 'Select month range';
       default:
         return 'Select';
     }
@@ -243,6 +264,8 @@ export const DatePickerInput = ({
         return 'calendar-outline';
       case 'time':
         return 'time-outline';
+      case 'month':
+        return 'calendar-outline';
       default:
         return 'calendar-outline';
     }
@@ -286,6 +309,8 @@ export const DatePickerInput = ({
         initialTime: selectedTime || initialTime,
         minimumDate,
         maximumDate,
+        minMonthYear,
+        maxMonthYear,
         title,
         confirmText,
         cancelText,
@@ -296,7 +321,7 @@ export const DatePickerInput = ({
         payload,
       });
     }
-  }, [disabled, mode, selectedDate, selectedStartDate, selectedEndDate, selectedTime, initialDate, initialStartDate, initialEndDate, initialTime, minimumDate, maximumDate, title, confirmText, cancelText, is24Hour, handleDateSelect, handleDateRangeSelect, handleTimeSelect]);
+  }, [disabled, mode, selectedDate, selectedStartDate, selectedEndDate, selectedTime, initialDate, initialStartDate, initialEndDate, initialTime, minimumDate, maximumDate, minMonthYear, maxMonthYear, title, confirmText, cancelText, is24Hour, handleDateSelect, handleDateRangeSelect, handleTimeSelect]);
 
   const displayValue = getDisplayValue();
   const placeholderText = getPlaceholderText();
@@ -411,6 +436,16 @@ export const DatePickerInput = ({
               isDarkTheme ? 'text-blue-400' : 'text-blue-600'
             }`}>
             Now select the end date
+          </AppText>
+        </View>
+      )}
+      {mode === 'month' && selectedStartDate && !selectedEndDate && (
+        <View className="mt-1">
+          <AppText
+            className={`text-xs ${
+              isDarkTheme ? 'text-blue-400' : 'text-blue-600'
+            }`}>
+            Now select the end month
           </AppText>
         </View>
       )}

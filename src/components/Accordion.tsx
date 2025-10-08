@@ -63,6 +63,7 @@ interface AccordionProps {
   headerClassName?: string;
   contentClassName?: string;
   containerClassName?: string;
+  needBottomBorder?: boolean;
   arrowSize?: number;
 }
 
@@ -74,6 +75,7 @@ export default function Accordion({
   headerClassName,
   contentClassName,
   containerClassName,
+  needBottomBorder = true,
   arrowSize = 24,
 }: AccordionProps) {
   const open = useSharedValue(initialOpening);
@@ -130,7 +132,8 @@ export default function Accordion({
         duration={duration}>
         {children}
       </AccordionItem>
-      <View className="border-b border-gray-200" />
+      {/* condition Based Rendering */}
+      {needBottomBorder && <View className="border-b border-gray-200" />}
     </View>
   );
 }

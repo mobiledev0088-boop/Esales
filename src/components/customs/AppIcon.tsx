@@ -6,6 +6,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import { StyleProp, TextStyle } from 'react-native';
 
 const iconMap = {
@@ -16,6 +17,7 @@ const iconMap = {
     ionicons: Ionicons,
     fontAwesome: FontAwesome,
     materialIcons: MaterialIcons,
+    SimpleLineIcons: SimpleLineIcons
 }
 
 export type IconType = keyof typeof iconMap

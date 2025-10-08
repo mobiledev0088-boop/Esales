@@ -10,7 +10,7 @@ import AppIcon from './customs/AppIcon';
 
 const {width: screenWidth} = Dimensions.get('window');
 
-export type DatePickerMode = 'date' | 'dateRange' | 'time';
+export type DatePickerMode = 'date' | 'dateRange' | 'time' | 'month';
 
 export interface DatePickerSheetPayload {
   mode: DatePickerMode;
@@ -23,6 +23,10 @@ export interface DatePickerSheetPayload {
   initialTime?: {hours: number; minutes: number};
   minimumDate?: Date;
   maximumDate?: Date;
+  /** Earliest selectable month (1-indexed) and year when in month mode */
+  minMonthYear?: { month: number; year: number };
+  /** Latest selectable month (1-indexed) and year when in month mode */
+  maxMonthYear?: { month: number; year: number };
   title?: string;
   confirmText?: string;
   cancelText?: string;
@@ -66,6 +70,8 @@ const DatePickerSheet: React.FC = () => {
     },
     minimumDate,
     maximumDate,
+    minMonthYear,
+    maxMonthYear,
     title,
     confirmText = 'Confirm',
     cancelText = 'Cancel',
@@ -92,6 +98,19 @@ const DatePickerSheet: React.FC = () => {
     end: initialEndDate,
   });
   const [time, setTime] = useState(initialTime);
+  // Month mode range (store normalized Date objects representing first day of month)
+  const [monthRange, setMonthRange] = useState<{start?: Date; end?: Date}>(() => {
+    if (mode === 'month') {
+      const start = initialStartDate
+        ? new Date(initialStartDate.getFullYear(), initialStartDate.getMonth(), 1)
+        : undefined;
+      const end = initialEndDate
+        ? new Date(initialEndDate.getFullYear(), initialEndDate.getMonth(), 1)
+        : undefined;
+      return {start, end};
+    }
+    return {};
+  });
   const [currentDate, setCurrentDate] = useState(getInitialDisplayDate());
   const [showYearPicker, setShowYearPicker] = useState(false);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
@@ -220,35 +239,72 @@ const DatePickerSheet: React.FC = () => {
     if (mode === 'date' && onDateSelect && selectedDate) {
       onDateSelect(selectedDate);
       SheetManager.hide('DatePickerSheet');
-    } else if (mode === 'dateRange' && onDateRangeSelect) {
+      return;
+    }
+    if (mode === 'dateRange' && onDateRangeSelect) {
       if (dateRange.start && dateRange.end) {
         onDateRangeSelect(dateRange.start, dateRange.end);
         SheetManager.hide('DatePickerSheet');
+        return;
       }
-    } else if (mode === 'time' && onTimeSelect && time) {
+    }
+    if (mode === 'month' && onDateRangeSelect) {
+      if (monthRange.start && monthRange.end) {
+        // Return first day of start month and last day of end month for clarity
+        const start = new Date(monthRange.start.getFullYear(), monthRange.start.getMonth(), 1);
+        const end = new Date(monthRange.end.getFullYear(), monthRange.end.getMonth()+1, 0); // last day
+        onDateRangeSelect(start, end);
+        SheetManager.hide('DatePickerSheet');
+        return;
+      }
+    }
+    if (mode === 'time' && onTimeSelect && time) {
       onTimeSelect(time);
       SheetManager.hide('DatePickerSheet');
     }
-  }, [
-    mode,
-    selectedDate,
-    dateRange,
-    time,
-    onDateSelect,
-    onDateRangeSelect,
-    onTimeSelect,
-  ]);
+  }, [mode, selectedDate, dateRange, monthRange, time, onDateSelect, onDateRangeSelect, onTimeSelect]);
 
   // Year options
   const yearOptions = useMemo(() => {
     const currentYear = new Date().getFullYear();
+    // If month mode, derive from minMonthYear/maxMonthYear first
+    if (mode === 'month') {
+      const startYear = (minMonthYear?.year) ?? (minimumDate?.getFullYear() ?? currentYear - 5);
+      const endYear = (maxMonthYear?.year) ?? (maximumDate?.getFullYear() ?? currentYear + 1);
+      if (endYear < startYear) return [startYear];
+      return Array.from({length: endYear - startYear + 1}, (_, i) => startYear + i);
+    }
     const startYear = minimumDate?.getFullYear() || currentYear - 100;
     const endYear = maximumDate?.getFullYear() || currentYear + 100;
-    return Array.from(
-      {length: endYear - startYear + 1},
-      (_, i) => startYear + i,
-    );
-  }, [minimumDate, maximumDate]);
+    return Array.from({length: endYear - startYear + 1}, (_, i) => startYear + i);
+  }, [mode, minMonthYear, maxMonthYear, minimumDate, maximumDate]);
+
+  // Clamp currentDate inside month bounds when in month mode
+  React.useEffect(() => {
+    if (mode !== 'month') return;
+    if (!minMonthYear && !maxMonthYear) return;
+    setCurrentDate(prev => {
+      let year = prev.getFullYear();
+      let month = prev.getMonth();
+      if (minMonthYear && year < minMonthYear.year) {
+        year = minMonthYear.year;
+        month = (minMonthYear.month - 1);
+      }
+      if (maxMonthYear && year > maxMonthYear.year) {
+        year = maxMonthYear.year;
+        month = (maxMonthYear.month - 1);
+      }
+      // If we are exactly at boundary year, ensure month also within range
+      if (minMonthYear && year === minMonthYear.year && month < (minMonthYear.month - 1)) {
+        month = minMonthYear.month - 1;
+      }
+      if (maxMonthYear && year === maxMonthYear.year && month > (maxMonthYear.month - 1)) {
+        month = maxMonthYear.month - 1;
+      }
+      const adjusted = new Date(year, month, 1);
+      return adjusted.getTime() === prev.getTime() ? prev : adjusted;
+    });
+  }, [mode, minMonthYear, maxMonthYear]);
 
   // Calendar renderer
   const renderCalendar = () => {
@@ -415,19 +471,80 @@ const DatePickerSheet: React.FC = () => {
       ? 'Select Date'
       : mode === 'dateRange'
         ? 'Select Date Range'
-        : 'Select Time';
+        : mode === 'month'
+          ? 'Select Month Range'
+          : 'Select Time';
   };
 
   const isConfirmDisabled = useMemo(() => {
-    if (mode === 'date') {
-      return !selectedDate;
-    } else if (mode === 'dateRange') {
-      return !dateRange.start || !dateRange.end;
-    } else if (mode === 'time') {
-      return !time || time.hours === undefined || time.minutes === undefined;
+    if (mode === 'date') return !selectedDate;
+    if (mode === 'dateRange') return !dateRange.start || !dateRange.end;
+    if (mode === 'month') return !monthRange.start || !monthRange.end;
+    if (mode === 'time') return !time || time.hours === undefined || time.minutes === undefined;
+    return false;
+  }, [mode, selectedDate, dateRange, monthRange, time]);
+
+  // Month mode helpers
+  const minMonthDate = useMemo(() => {
+    if (!minMonthYear) return undefined;
+    return new Date(minMonthYear.year, minMonthYear.month - 1, 1);
+  }, [minMonthYear]);
+  const maxMonthDate = useMemo(() => {
+    if (!maxMonthYear) return undefined;
+    return new Date(maxMonthYear.year, maxMonthYear.month - 1, 1);
+  }, [maxMonthYear]);
+
+  const isMonthDisabled = useCallback((monthIndex: number, year: number) => {
+    const date = new Date(year, monthIndex, 1);
+    if (minMonthDate && date < minMonthDate) return true;
+    if (maxMonthDate && date > maxMonthDate) return true;
+    // Additionally clamp month within same year boundaries
+    if (mode === 'month') {
+      if (minMonthYear && year === minMonthYear.year && monthIndex < (minMonthYear.month - 1)) return true;
+      if (maxMonthYear && year === maxMonthYear.year && monthIndex > (maxMonthYear.month - 1)) return true;
+    }
+    // If start selected enforce max 12 month span (inclusive)
+    if (monthRange.start && !monthRange.end) {
+      const diffMonths = (year - monthRange.start.getFullYear()) * 12 + (monthIndex - monthRange.start.getMonth());
+      if (diffMonths > 11) return true; // over 12 months span
+      if (diffMonths < 0) return false; // allow earlier selection to restart
     }
     return false;
-  }, [mode, selectedDate, dateRange, time]);
+  }, [minMonthDate, maxMonthDate, monthRange.start, mode, minMonthYear, maxMonthYear]);
+
+  const isMonthInRange = useCallback((monthIndex: number, year: number) => {
+    if (!monthRange.start || !monthRange.end) return false;
+    const date = new Date(year, monthIndex, 1);
+    return date >= monthRange.start && date <= monthRange.end;
+  }, [monthRange]);
+
+  const handleMonthPress = useCallback((monthIndex: number, year: number) => {
+    if (isMonthDisabled(monthIndex, year)) return;
+    const date = new Date(year, monthIndex, 1);
+    setCurrentDate(date);
+    setShowMonthPicker(false);
+    setShowYearPicker(false);
+    setMonthRange(prev => {
+      const {start, end} = prev;
+      if (!start || (start && end)) {
+        return {start: date, end: undefined};
+      }
+      if (start && !end) {
+        if (date < start) {
+          // restart from earlier date
+            return {start: date, end: undefined};
+        } else {
+          // ensure within 12 months
+          const diffMonths = (date.getFullYear() - start.getFullYear()) * 12 + (date.getMonth() - start.getMonth());
+          if (diffMonths > 11) {
+            return {start, end}; // ignore
+          }
+          return {start, end: date};
+        }
+      }
+      return prev;
+    });
+  }, [isMonthDisabled]);
 
   return (
     <View>
@@ -483,7 +600,7 @@ const DatePickerSheet: React.FC = () => {
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false}>
-            {mode !== 'time' && (
+            {mode !== 'time' && mode !== 'month' && (
               <>
                 {/* Month/Year Navigation */}
                 <View className="flex-row justify-between items-center mb-6 px-4">
@@ -682,6 +799,107 @@ const DatePickerSheet: React.FC = () => {
                     </View>
                   </View>
                 )}
+              </>
+            )}
+
+            {/* Month Mode UI */}
+            {mode === 'month' && (
+              <>
+                {/* Year selector header */}
+                <View className="flex-row justify-between items-center mb-4 px-4">
+                  <TouchableOpacity
+                    onPress={() => setShowYearPicker(true)}
+                    className={`py-2 px-4 rounded-lg ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}
+                  >
+                    <AppText className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{currentDate.getFullYear()}</AppText>
+                  </TouchableOpacity>
+                  <View className="flex-1 items-center">
+                    <AppText className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Select up to 12 months</AppText>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => setMonthRange({start: undefined, end: undefined})}
+                  >
+                    <AppText className={`${isDark ? 'text-blue-400' : 'text-blue-500'}`}>Reset</AppText>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Year Picker (reuse) */}
+                {showYearPicker && (
+                  <View className="mb-4">
+                    <View className="flex-row justify-between items-center mb-2 px-4">
+                      <AppText className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Select Year</AppText>
+                      <TouchableOpacity onPress={() => setShowYearPicker(false)}>
+                        <AppText className={`${isDark ? 'text-blue-400' : 'text-blue-500'}`}>Close</AppText>
+                      </TouchableOpacity>
+                    </View>
+                    <ScrollView className="max-h-60" contentContainerStyle={{paddingVertical:8}}>
+                      {yearOptions.map(year => (
+                        <TouchableOpacity
+                          key={year}
+                          onPress={() => { setCurrentDate(new Date(year, currentDate.getMonth(), 1)); setShowYearPicker(false); }}
+                          className={`py-3 px-4 mx-4 my-1 rounded-lg ${year === currentDate.getFullYear() ? (isDark ? 'bg-blue-600' : 'bg-blue-500') : (isDark ? 'bg-gray-800' : 'bg-gray-100')}`}
+                        >
+                          <AppText className={`text-center text-base ${year === currentDate.getFullYear() ? 'text-white font-semibold' : (isDark ? 'text-white' : 'text-gray-900')}`}>{year}</AppText>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
+
+                {/* Months grid */}
+                {!showYearPicker && (
+                  <View className="px-4 mb-4">
+                    <View className="flex-row flex-wrap justify-center gap-2">
+                      {MONTH_NAMES.map((m, idx) => {
+                        const year = currentDate.getFullYear();
+                        const disabled = isMonthDisabled(idx, year);
+                        const isStart = monthRange.start && monthRange.start.getFullYear() === year && monthRange.start.getMonth() === idx;
+                        const isEnd = monthRange.end && monthRange.end.getFullYear() === year && monthRange.end.getMonth() === idx;
+                        const inRange = isMonthInRange(idx, year);
+                        let bg = isDark ? 'bg-gray-800' : 'bg-gray-100';
+                        let text = isDark ? 'text-white' : 'text-gray-900';
+                        if (inRange) {
+                          bg = isDark ? 'bg-blue-700' : 'bg-blue-200';
+                          text = isDark ? 'text-white' : 'text-blue-800';
+                        }
+                        if (isStart || isEnd) {
+                          bg = isDark ? 'bg-blue-600' : 'bg-blue-500';
+                          text = 'text-white font-semibold';
+                        }
+                        return (
+                          <TouchableOpacity
+                            key={m}
+                            onPress={() => handleMonthPress(idx, year)}
+                            disabled={disabled}
+                            className={`py-3 px-3 rounded-lg ${bg} ${disabled ? 'opacity-30' : ''}`}
+                            style={{width: (screenWidth - 64) / 3}}
+                          >
+                            <AppText className={`text-center text-sm ${text}`}>{m.substring(0,3)}</AppText>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </View>
+                )}
+
+                {/* Month Range Info */}
+                <View className="px-4 mb-4">
+                  <View className={`p-4 rounded-lg ${isDark ? 'bg-gray-800' : 'bg-gray-50'}`}>
+                    <View className="flex-row justify-between">
+                      <View className="flex-1">
+                        <AppText className={`text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Start Month</AppText>
+                        <AppText className={`text-base ${isDark ? 'text-white' : 'text-gray-900'}`}>{monthRange.start ? monthRange.start.toLocaleString('default',{month:'short', year:'numeric'}) : 'Not selected'}</AppText>
+                      </View>
+                      <View className="flex-1">
+                        <AppText className={`text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>End Month</AppText>
+                        <AppText className={`text-base ${isDark ? 'text-white' : 'text-gray-900'}`}>{monthRange.end ? monthRange.end.toLocaleString('default',{month:'short', year:'numeric'}) : 'Not selected'}</AppText>
+                      </View>
+                    </View>
+                    {monthRange.start && !monthRange.end && (
+                      <AppText className={`mt-2 text-xs ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>Select end month (max 12 months)</AppText>
+                    )}
+                  </View>
+                </View>
               </>
             )}
 
