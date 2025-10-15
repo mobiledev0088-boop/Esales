@@ -6,7 +6,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import AppText from '../customs/AppText';
 import { DrawerContentComponentProps } from '@react-navigation/drawer';
 import { AppColors } from '../../config/theme';
-import { convertCamelCaseToSentence } from '../../utils/commonFunctios';
+import { convertCamelCaseToSentence } from '../../utils/commonFunctions';
 
 interface DrawerItemWrapperProps {
     route: Route<string>;

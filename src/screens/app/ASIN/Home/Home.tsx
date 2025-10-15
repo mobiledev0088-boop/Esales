@@ -31,6 +31,16 @@ interface TabScreens {
   name: string;
   component: ComponentType<any>;
   icon: string;
+  // Optional icon type (library). If omitted, defaults to 'ionicons'
+  iconType?:
+    | 'feather'
+    | 'entypo'
+    | 'material-community'
+    | 'antdesign'
+    | 'ionicons'
+    | 'fontAwesome'
+    | 'materialIcons'
+    | 'SimpleLineIcons';
   options?: BottomTabNavigationOptions;
   action?: () => void;
 }
@@ -45,18 +55,27 @@ const Tab = createBottomTabNavigator();
 
 const Home: React.FC = () => {
   const userInfo = useLoginStore(state => state.userInfo);
-  
-    const getScreens = () => {
-    const arr = [];
+
+  const getScreens = () => {
+    const arr: TabScreens[] = [];
     if (userInfo?.EMP_Btype === ASUS.BUSINESS_TYPES.COMMERCIAL) {
       // dashboard for  Rooling Funnel
     } else {
-      if (
-        userInfo?.EMP_RoleId === ASUS.ROLE_ID.AM 
+      if (userInfo?.EMP_RoleId === ASUS.ROLE_ID.AM) {
+        arr.push({
+          name: 'Dashboard',
+          component: Dashboard_AM,
+          icon: 'bar-chart',
+        });
+      } else if (
+        userInfo?.EMP_RoleId === ASUS.ROLE_ID.PARTNERS ||
+        userInfo?.EMP_RoleId === ASUS.ROLE_ID.ASE
       ) {
-        arr.push({name: 'Dashboard', component: Dashboard_AM, icon: 'bar-chart'});
-      } else if (userInfo?.EMP_RoleId === ASUS.ROLE_ID.PARTNERS || userInfo?.EMP_RoleId === ASUS.ROLE_ID.ASE) {
-         arr.push({name: 'Dashboard', component: Dashboard_Partner, icon: 'bar-chart'});
+        arr.push({
+          name: 'Dashboard',
+          component: Dashboard_Partner,
+          icon: 'bar-chart',
+        });
       } else {
         arr.push({name: 'Dashboard', component: Dashboard, icon: 'bar-chart'});
       }
@@ -91,17 +110,19 @@ const Home: React.FC = () => {
     // Claim
     if (userInfo?.EMP_Btype !== ASUS.BUSINESS_TYPES.COMMERCIAL) {
       if (
-        userInfo?.EMP_RoleId === ASUS.ROLE_ID.LFR_HO ||
-        userInfo?.EMP_RoleId === ASUS.ROLE_ID.ONLINE_HO
+        userInfo?.EMP_RoleId === ASUS.ROLE_ID.ESHOP_HO ||
+        userInfo?.EMP_RoleId === ASUS.ROLE_ID.AM ||
+        userInfo?.EMP_RoleId === ASUS.ROLE_ID.ASE
       ) {
-        // Claim for LFR HO and ONLINE HO
-      } else if (
-        userInfo?.EMP_RoleId !== ASUS.ROLE_ID.DISTRIBUTORS &&
-        userInfo?.EMP_RoleId !== ASUS.ROLE_ID.DISTI_HO &&
-        userInfo?.EMP_RoleId !== ASUS.ROLE_ID.ESHOP_HO
-      ) {
-        // Claim for DISTRIBUTORS and Disti HO and ESHOP HO
-        arr.push({name: 'Claim', component: Claim, icon: 'pricetag'});
+        // No Claim for this Roles
+      } else {
+        // For all other roles
+        arr.push({
+          name: 'Claim',
+          component: Claim,
+          icon: 'currency-rupee',
+          iconType: 'materialIcons',
+        });
       }
     }
     // schemes
@@ -121,7 +142,12 @@ const Home: React.FC = () => {
         userInfo?.EMP_RoleId !== ASUS.ROLE_ID.PARTNERS) ||
       userInfo?.EMP_Type === ASUS.PARTNER_TYPE.T2.AWP
     ) {
-      arr.push({name: 'P.Status', component: PStatus, icon: 'timeline-clock'});
+      arr.push({
+        name: 'P.Status',
+        component: PStatus,
+        icon: 'timeline-clock',
+        iconType: 'material-community',
+      });
     }
     // more
     if (userInfo?.EMP_Btype !== ASUS.BUSINESS_TYPES.COMMERCIAL) {
@@ -130,6 +156,7 @@ const Home: React.FC = () => {
         name: 'More',
         component: Demo,
         icon: 'ellipsis-horizontal',
+        // More uses default ionicons
         action: () => SheetManager.show('MoreSheet'),
       });
     }
@@ -140,7 +167,7 @@ const Home: React.FC = () => {
     return arr;
   };
   const TabScreens: TabScreens[] = useMemo(() => getScreens(), [userInfo]);
-  
+
   return (
     <AppLayout isDashboard>
       <Tab.Navigator
@@ -169,6 +196,7 @@ const CustomTabBar: React.FC<MyTabBarProps> = ({
         const isFocused = state.index === index;
         const screen = TabScreens.find(s => s.name === route.name);
         const icon = screen?.icon || 'circle';
+        const iconType: TabScreens['iconType'] = screen?.iconType ?? 'ionicons';
 
         const onPress = () => {
           // Handle custom actions (like More button)
@@ -187,8 +215,13 @@ const CustomTabBar: React.FC<MyTabBarProps> = ({
             navigation.navigate(route.name);
           }
         };
-        
-        const iconName = isFocused ? icon : `${icon}-outline`;
+
+        // Only append -outline for ionicons set; otherwise keep the same icon name
+        const iconName = isFocused
+          ? icon
+          : iconType === 'ionicons'
+            ? `${icon}-outline`
+            : icon;
         const iconColor = isFocused ? AppColors.primary : '#95a5a6';
 
         return (
@@ -197,9 +230,7 @@ const CustomTabBar: React.FC<MyTabBarProps> = ({
             onPress={onPress}
             className="flex-1 items-center justify-center">
             <AppIcon
-              type={
-                route.name === 'P.Status' ? 'material-community' : 'ionicons'
-              }
+              type={iconType}
               name={iconName}
               size={22}
               color={iconColor}

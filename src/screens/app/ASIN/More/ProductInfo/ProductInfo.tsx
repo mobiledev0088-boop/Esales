@@ -10,7 +10,7 @@ import {useThemeStore} from '../../../../../stores/useThemeStore';
 import AppImage from '../../../../../components/customs/AppImage';
 import {useMutation} from '@tanstack/react-query';
 import {handleASINApiCall} from '../../../../../utils/handleApiCall';
-import {showToast} from '../../../../../utils/commonFunctios';
+import {showToast} from '../../../../../utils/commonFunctions';
 import Card from '../../../../../components/Card';
 import { useNavigation } from '@react-navigation/native';
 import { AppNavigationProp } from '../../../../../types/navigation';
@@ -228,17 +228,6 @@ export default function ProductInfo() {
     mutate();
   };
 
-  const shouldShowResults = hasSearched && !isPending;
-  const rawData = hasSearched ? data || [] : [];
-  const displayedData = useMemo(
-    () =>
-      onlyIndia
-        ? rawData.filter(
-            (i: any) => i?.PD_Made_In_India && i.PD_Made_In_India === 'Y',
-          )
-        : rawData,
-    [rawData, onlyIndia],
-  );
   const handleScroll = useCallback(
     (e: any) => {
       const y = e.nativeEvent.contentOffset.y;
@@ -262,6 +251,19 @@ export default function ProductInfo() {
   const handleNavigation = useCallback((item: ProductInfoItem) => {
     navigation.navigate('ProductDescription', { product: item });
   }, []);
+
+  const shouldShowResults = hasSearched && !isPending;
+  const rawData = hasSearched ? data || [] : [];
+  
+  const displayedData = useMemo(
+    () =>
+      onlyIndia
+        ? rawData.filter(
+            (i: any) => i?.PD_Made_In_India && i.PD_Made_In_India === 'Y',
+          )
+        : rawData,
+    [rawData, onlyIndia],
+  );
 
   return (
     <AppLayout needBack title="Product Info">

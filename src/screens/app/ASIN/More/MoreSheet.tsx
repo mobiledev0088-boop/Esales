@@ -11,10 +11,7 @@ import {screenHeight} from '../../../../utils/constant';
 import {Watermark} from '../../../../components/Watermark';
 import {useLoginStore} from '../../../../stores/useLoginStore';
 import useEmpStore from '../../../../stores/useEmpStore';
-import {
-  AppNavigationParamList,
-  AppNavigationProp,
-} from '../../../../types/navigation';
+import {AppNavigationParamList,AppNavigationProp} from '../../../../types/navigation';
 import ActionSheet, {SheetManager} from 'react-native-actions-sheet';
 import {useNavigation} from '@react-navigation/native';
 
@@ -35,7 +32,7 @@ const hasRole = (roleId: number | undefined, allowedRoles: number[]) =>
 
 const getASINOptions = (
   roleId: number,
-  empType: string | undefined | null,
+  empType: string,
   empCode: string,
 ): Option[] => {
   const options: Option[] = [];
@@ -62,9 +59,14 @@ const getASINOptions = (
   }
   if (
     hasRole(roleId, [1, 2, 3, 4, 9, 10, 25, 26, 29]) ||
-    (roleId === 6 && ['AWP', 'T3Partner'].includes(empType ?? ''))
+    (roleId === 6 && ['AWP', 'T3Partner'].includes(empType))
   ) {
-    options.push({label: 'LMS', iconName: 'package', iconType: 'feather'});
+    options.push({
+      label: 'LMS',
+      iconName: 'package',
+      iconType: 'feather',
+      navigateTo: 'LMSList_HO',
+    });
   }
 
   options.push({
@@ -89,14 +91,14 @@ const getASINOptions = (
     });
   }
 
-  // if (roleId === 24) {
+  if (roleId === 24) {
     options.push({
       label: 'Incentive',
       iconName: 'money',
       iconType: 'fontAwesome',
       navigateTo: 'ASEIncentive',
     });
-  // }
+  }
   if (hasRole(roleId, [1, 2, 3, 4, 9, 10, 25, 26])) {
     options.push({
       label: 'Shop Expansion',
@@ -111,13 +113,13 @@ const getASINOptions = (
       iconType: 'material-community',
     });
   }
-  if([1, 2, 9, 3, 7, 25, 26, 28].includes(roleId)){
+  if ([1, 2, 9, 3, 7, 25, 26, 28].includes(roleId)) {
     options.push({
       label: 'Credit Limit',
       iconName: 'credit-card',
       iconType: 'fontAwesome',
       navigateTo: 'CreditLimit',
-    })
+    });
   }
   return options;
 };
@@ -151,7 +153,7 @@ const MoreSheet = () => {
   const navigation = useNavigation<AppNavigationProp>();
 
   const roleId = userInfo.EMP_RoleId;
-  const empType = userInfo?.EMP_Type;
+  const empType = userInfo.EMP_Type ?? '';
   const empCode = empInfo?.EMP_Code ?? '';
   const countryId = userInfo?.EMP_CountryID;
 
@@ -162,7 +164,7 @@ const MoreSheet = () => {
     return getAPEXOptions(countryId);
   }, [roleId, empType, empCode, countryId]);
 
-  const chunkedOptions = useMemo(() => chunkArray(options, 6), [options]);
+  const chunkedOptions = useMemo(() => chunkArray(options, 9), [options]);
   const handlePress = (whereTo: keyof AppNavigationParamList) => {
     navigation.navigate(whereTo as any);
     SheetManager.hide('MoreSheet');
@@ -170,8 +172,12 @@ const MoreSheet = () => {
 
   return (
     <View>
-      <ActionSheet zIndex={100}>
-        <View style={{height: screenHeight / 3, zIndex: 100}}>
+      <ActionSheet zIndex={100} gestureEnabled indicatorStyle={{
+        // backgroundColor: '#'
+      }}>
+        {/* Create Indicator */}
+        {/*  */}
+        <View style={{height: screenHeight / 2, zIndex: 100}}>
           <Watermark />
           <Swiper
             loop={false}

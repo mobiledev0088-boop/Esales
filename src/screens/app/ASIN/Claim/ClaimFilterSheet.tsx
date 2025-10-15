@@ -14,6 +14,7 @@ export interface ClaimFilterPayload {
   partnerType?: string;
   schemeCategory?: string;
   productLine?: string;
+  includePartnerType?: boolean; // new flag to optionally hide partner type group
 
   // dynamic sources
   allSchemeCategories?: string[];
@@ -98,7 +99,9 @@ const ClaimFilterSheet: React.FC = () => {
     payload.schemeCategory ?? '',
   );
   const [productLine, setProductLine] = useState(payload.productLine ?? ''); 
-  const [group, setGroup] = useState<Group>('partnerType');
+  const [group, setGroup] = useState<Group>(
+    payload.includePartnerType === false ? 'schemeCategory' : 'partnerType',
+  );
   const [schemeSearch, setSchemeSearch] = useState('');
   const [productSearch, setProductSearch] = useState('');
   const dSchemeSearch = useDeferredValue(schemeSearch);
@@ -141,23 +144,31 @@ const ClaimFilterSheet: React.FC = () => {
     return c;
   }, [partnerType, schemeCategory, productLine]);
 
-  const groups = useMemo(
-    () => [
-      {
+  const groups = useMemo(() => {
+    const arr = [] as {
+      key: 'partnerType' | 'schemeCategory' | 'productLine';
+      label: string;
+      hasValue: boolean;
+    }[];
+    if (payload.includePartnerType !== false) {
+      arr.push({
         key: 'partnerType',
         label: 'Partner Type',
-        hasValue: partnerType && partnerType !== 'Channel',
-      },
-      {
-        key: 'schemeCategory',
-        label: 'Scheme Category',
-        hasValue: !!schemeCategory,
-      },
-      {key: 'productLine', label: 'Product Line', hasValue: !!productLine},
-      // {key: 'sort', label: 'Sort By', hasValue: !!sortField}, // (sorting disabled)
-    ],
-    [partnerType, schemeCategory, productLine],
-  );
+        hasValue: !!partnerType && partnerType !== 'Channel',
+      });
+    }
+    arr.push({
+      key: 'schemeCategory',
+      label: 'Scheme Category',
+      hasValue: !!schemeCategory,
+    });
+    arr.push({
+      key: 'productLine',
+      label: 'Product Line',
+      hasValue: !!productLine,
+    });
+    return arr;
+  }, [partnerType, schemeCategory, productLine, payload.includePartnerType]);
 
   const renderRadio = useCallback(
     ({item}: {item: string}) => (
@@ -228,6 +239,10 @@ const ClaimFilterSheet: React.FC = () => {
           />
         </View>
       );
+    }
+    if (payload.includePartnerType === false) {
+      // Should not render partner type list
+      return <View className="flex-1" />;
     }
     return (
       <FlatList

@@ -13,7 +13,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import { useLoginStore } from '../../../../stores/useLoginStore';
 import { useLoaderStore } from '../../../../stores/useLoaderStore';
 import { handleASINApiCall } from '../../../../utils/handleApiCall';
-import { ensureFolderExists, getPastQuarters } from '../../../../utils/commonFunctios';
+import { ensureFolderExists, getPastQuarters } from '../../../../utils/commonFunctions';
 
 
 // API fetch function

@@ -3,19 +3,28 @@ import CryptoJS from 'react-native-crypto-js';
 import Toast from 'react-native-simple-toast';
 import RNFS from 'react-native-fs';
 
-export const formatToINR = (amount: number, showDecimals = false) => {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    minimumFractionDigits: showDecimals ? 2 : 0,
-    maximumFractionDigits: showDecimals ? 2 : 0,
-  }).format(amount);
-}
+export const convertToASINUnits = (
+  amount: number,
+  needFull = false,
+  needCurrencySymbol = false
+): string => {
+  const currencySymbol = needCurrencySymbol ? '\u20B9' : '';
+  
+  if (needFull) {
+    return `${currencySymbol}${amount.toLocaleString('en-IN')}`;
+  }
 
-export const convertToASINUnits = (n: number) => 
-  n >= 1e7 ? (n/1e7).toFixed(2).replace(/\.00$/, '') + " Cr" :
-  n >= 1e5 ? (n/1e5).toFixed(2).replace(/\.00$/, '') + " L" :
-  n.toString();
+  let formattedValue: string;
+  if (amount >= 1e7) {
+    formattedValue = `${(amount / 1e7).toFixed(2).replace(/\.00$/, '')} Cr`;
+  } else if (amount >= 1e5) {
+    formattedValue = `${(amount / 1e5).toFixed(2).replace(/\.00$/, '')} L`;
+  } else {
+    formattedValue = amount.toString();
+  }
+  return `${currencySymbol}${formattedValue}`;
+};
+
 
 export const convertToCapitalized = (text: string): string => {
   return text.split('').map(char => char.toUpperCase()).join('');
@@ -43,7 +52,7 @@ export const getPastMonths = (count: number, isForward?: boolean): {label: strin
 
 export const getPastQuarters = (count: number = 5, isForward?: boolean): {label: string, value: string}[] => {
   const quarters: {label: string, value: string}[] = [];
-  const baseDate = moment().subtract(10, "days");
+  const baseDate = moment().subtract(15, "days");
   if (isForward) {
     for (let i = 0; i < count; i++) {
       const date = baseDate.clone().add(i, "quarters");

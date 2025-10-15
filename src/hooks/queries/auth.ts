@@ -3,7 +3,7 @@ import useEmpStore from "../../stores/useEmpStore";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLoginStore } from "../../stores/useLoginStore";
 import { handleASINApiCall } from "../../utils/handleApiCall";
-import { showToast } from "../../utils/commonFunctios";
+import { showToast } from "../../utils/commonFunctions";
 import { useNavigation } from "@react-navigation/native";
 import { AuthNavigationProp } from "../../types/navigation";
 

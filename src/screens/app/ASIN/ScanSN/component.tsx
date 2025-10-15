@@ -1,7 +1,6 @@
 import AppText from '../../../../components/customs/AppText';
 import {Modal, TouchableOpacity, View, FlatList} from 'react-native';
 import AppIcon, {IconType} from '../../../../components/customs/AppIcon';
-import {formatToINR} from '../../../../utils/commonFunctios';
 import AppButton from '../../../../components/customs/AppButton';
 import Card from '../../../../components/Card';
 import AppInput from '../../../../components/customs/AppInput';
@@ -11,6 +10,7 @@ import Animated, { FadeInUp, FadeOutDown} from 'react-native-reanimated';
 import { useThemeStore } from '../../../../stores/useThemeStore';
 import { AppColors } from '../../../../config/theme';
 import AppModal from '../../../../components/customs/AppModal';
+import { convertToASINUnits } from '../../../../utils/commonFunctions';
 
 interface DataType {
   icon: string;
@@ -110,7 +110,7 @@ export const AmountItem = ({
       className={
         isFinal ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-200'
       }>
-      {formatToINR(amount)}
+      {convertToASINUnits(amount, false, true)}
     </AppText>
   </View>
 );

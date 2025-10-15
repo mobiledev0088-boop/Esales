@@ -5,7 +5,7 @@ import AppText from '../../../../../components/customs/AppText';
 import {
   convertSnakeCaseToSentence,
   showToast,
-} from '../../../../../utils/commonFunctios';
+} from '../../../../../utils/commonFunctions';
 import AppIcon, {IconType} from '../../../../../components/customs/AppIcon';
 import {EmpInfo, UserInfo} from '../../../../../types/user';
 import AppInput from '../../../../../components/customs/AppInput';

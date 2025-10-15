@@ -13,7 +13,7 @@ import {screenWidth} from '../../../../../utils/constant';
 import AppDropdown, {
   AppDropdownItem,
 } from '../../../../../components/customs/AppDropdown';
-import {convertToASINUnits} from '../../../../../utils/commonFunctios';
+import {convertToASINUnits} from '../../../../../utils/commonFunctions';
 
 // -------------------- Types --------------------
 interface PartnerDetails {

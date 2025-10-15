@@ -13,7 +13,7 @@ import AppButton from '../../../../components/customs/AppButton';
 import AppText from '../../../../components/customs/AppText';
 import { getDeviceId } from 'react-native-device-info';
 import { useLoginStore } from '../../../../stores/useLoginStore';
-import { showToast } from '../../../../utils/commonFunctios';
+import { showToast } from '../../../../utils/commonFunctions';
 import { useNavigation } from '@react-navigation/native';
 import { AppNavigationProp } from '../../../../types/navigation';
 import { queryClient } from '../../../../stores/providers/QueryProvider';

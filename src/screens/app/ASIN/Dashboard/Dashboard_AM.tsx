@@ -25,7 +25,7 @@ import {
   convertToTitleCase,
   getPastMonths,
   getPastQuarters,
-} from '../../../../utils/commonFunctios';
+} from '../../../../utils/commonFunctions';
 import {
   ActivationPerformanceSkeleton,
   DashboardSalesData,

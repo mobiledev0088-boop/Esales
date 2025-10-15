@@ -12,7 +12,7 @@ import RNFS from 'react-native-fs';
 import {
   ensureFolderExists,
   showToast,
-} from '../../../../../utils/commonFunctios';
+} from '../../../../../utils/commonFunctions';
 import {useLoaderStore} from '../../../../../stores/useLoaderStore';
 import { Button, Platform, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import AppIcon from '../../../../../components/customs/AppIcon';

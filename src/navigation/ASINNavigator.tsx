@@ -15,14 +15,28 @@ import CreditLimit from "../screens/app/ASIN/More/CreditLimit/CreditLimit";
 import PartnersCreditLimit from "../screens/app/ASIN/More/CreditLimit/PartnersCreditLimit";
 import PartnerCreditLimitDetails from "../screens/app/ASIN/More/CreditLimit/PartnerCreditLimitDetails";
 import ASEIncentive from "../screens/app/ASIN/More/Incentive/ASEIncentive";
+import ClaimInfo from "../screens/app/ASIN/Claim/ClaimInfo";
+import LMSList_HO from "../screens/app/ASIN/More/LMS/LMSList_HO";
+import ClaimApplicationDetails from "../screens/app/ASIN/Claim/ClaimApplicationDetails";
+import ClaimInfoPartner from "../screens/app/ASIN/Claim/ClaimInfoPartner";
+
+type Screen = {
+    name: string;
+    component: React.ComponentType<any>;
+}
 
 const Stack = createNativeStackNavigator();
 
-const screens = [
+const screens: Screen[] = [
+    // Drawer Screen
     { name: "Index", component: Index },
     { name: "ChangePassword", component:  ChangePassword},
     // Dashboard Screens
     { name: "ScanSN", component: ScanSN },
+    // Claim Screens
+    { name: "ClaimInfo", component: ClaimInfo },
+    { name: "ClaimApplicationDetails", component: ClaimApplicationDetails },
+    { name: "ClaimInfoPartner", component: ClaimInfoPartner },
     // More Screens
     { name: "ActivatedDetails", component: ActivatedDetails },
     { name: "EDMInfo", component: EDMInfo },
@@ -33,6 +47,7 @@ const screens = [
     { name: "PartnersCreditLimit", component: PartnersCreditLimit },
     { name: "PartnerCreditLimitDetails", component: PartnerCreditLimitDetails },
     { name: "ASEIncentive", component: ASEIncentive },
+    { name: "LMSList_HO", component: LMSList_HO },
     // Feedback Screens
     { name: "Feedback", component: Feedback },
     { name: "AddFeedback", component: AddFeedback },

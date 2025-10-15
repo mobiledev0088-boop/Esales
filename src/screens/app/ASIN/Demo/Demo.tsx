@@ -16,7 +16,7 @@ import Animated, {
 import AppDropdown, {
   AppDropdownItem,
 } from '../../../../components/customs/AppDropdown';
-import {getPastQuarters} from '../../../../utils/commonFunctios';
+import {getPastQuarters} from '../../../../utils/commonFunctions';
 
 // --- Types -----------------------------------------------------------------
 type SummaryStat = {id: string; title: string; count: number};

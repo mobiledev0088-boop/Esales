@@ -38,7 +38,7 @@ import AppButton from '../../../../components/customs/AppButton';
 import AppIcon from '../../../../components/customs/AppIcon';
 import Card from '../../../../components/Card';
 import moment from 'moment';
-import {showToast} from '../../../../utils/commonFunctios';
+import {showToast} from '../../../../utils/commonFunctions';
 import RNCB from '@react-native-clipboard/clipboard';
 import {handleASINApiCall} from '../../../../utils/handleApiCall';
 import {useLoginStore} from '../../../../stores/useLoginStore';

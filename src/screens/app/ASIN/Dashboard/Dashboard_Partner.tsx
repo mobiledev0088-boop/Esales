@@ -6,7 +6,7 @@ import Card from '../../../../components/Card';
 import AppDropdown, {
   AppDropdownItem,
 } from '../../../../components/customs/AppDropdown';
-import {getPastQuarters} from '../../../../utils/commonFunctios';
+import {getPastQuarters} from '../../../../utils/commonFunctions';
 import {useDashboardData, useGetSubCodeData} from '../../../../hooks/queries/dashboard';
 import {
   ActivationPerformanceComponent,

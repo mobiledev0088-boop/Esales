@@ -8,7 +8,7 @@ import { useMutation } from '@tanstack/react-query';
 import { handleASINApiCall } from '../utils/handleApiCall';
 import { getDeviceId } from 'react-native-device-info';
 import { useLoginStore } from '../stores/useLoginStore';
-import { showToast } from '../utils/commonFunctios';
+import { showToast } from '../utils/commonFunctions';
 import { isIOS } from '../utils/constant';
 
 const LogoutModal = ({

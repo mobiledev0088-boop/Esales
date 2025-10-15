@@ -5,7 +5,7 @@ import {useQuery} from '@tanstack/react-query';
 import {handleASINApiCall} from '../../../../../utils/handleApiCall';
 import {useLoginStore} from '../../../../../stores/useLoginStore';
 import AppDropdown, {AppDropdownItem} from '../../../../../components/customs/AppDropdown';
-import {getPastMonths, formatToINR} from '../../../../../utils/commonFunctios';
+import {getPastMonths, convertToASINUnits} from '../../../../../utils/commonFunctions';
 import Card from '../../../../../components/Card';
 import AppText from '../../../../../components/customs/AppText';
 import AppIcon from '../../../../../components/customs/AppIcon';
@@ -258,7 +258,7 @@ export default function ASEIncentive() {
                     Final Incentive Amount
                   </AppText>
                   <AppText size="3xl" weight="extraBold" className="text-gray-900 dark:text-gray-100 mt-1">
-                    {formatToINR(toNumber(incentive?.Final_Incentive_Amount))}
+                    {convertToASINUnits(toNumber(incentive?.Final_Incentive_Amount), false, true)}
                   </AppText>
                 </View>
                 {/* <TouchableOpacity

@@ -8,7 +8,7 @@ import BarcodeScanner from '../../../../components/BarcodeScanner';
 import {useMutation} from '@tanstack/react-query';
 import {handleASINApiCall} from '../../../../utils/handleApiCall';
 import {useLoginStore} from '../../../../stores/useLoginStore';
-import {showToast} from '../../../../utils/commonFunctios';
+import {showToast} from '../../../../utils/commonFunctions';
 import {InformationTab} from './InformationCard';
 import {ClaimSchemeInfo} from './ClaimSchemeCard';
 import {CautionModal, NoResultsMessage, SearchCard} from './component';

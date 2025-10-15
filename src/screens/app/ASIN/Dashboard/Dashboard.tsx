@@ -42,7 +42,7 @@ import {
   convertToASINUnits,
   convertToTitleCase,
   getPastQuarters,
-} from '../../../../utils/commonFunctios';
+} from '../../../../utils/commonFunctions';
 import {ASUS, DASHBOARD} from '../../../../utils/constant';
 import {AppColors} from '../../../../config/theme';
 import {
@@ -179,11 +179,11 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
 
       return (
         <Card
-          className="w-36 p-4 rounded-md"
+          className="w-40 p-4 rounded-md"
           watermark
           key={`${item.Product_Category}-${index}`}>
           <View className="items-center">
-            <View className="flex-row items-center gap-2 mb-3">
+            <View className="flex-row items-center gap-2 mb-1">
               <AppIcon
                 name={config.icon}
                 size={18}
@@ -194,7 +194,6 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
                 {item.Product_Category}
               </AppText>
             </View>
-
             <CircularProgressBar
               progress={item.Percent || 0}
               progressColor={config.color}
@@ -202,22 +201,21 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
               strokeWidth={6}
               duration={1000 + animationDelay}
             />
-
             <View className="mt-3 w-full flex-row items-center justify-between ">
-              <View className="flex-1 items-start">
-                <AppText size="xs" className="text-gray-400 ">
-                  Achieved
+               <View className="flex-1 items-start">
+                <AppText size="sm" className="text-gray-400 ">
+                  Target
                 </AppText>
                 <AppText size="sm" weight="semibold">
-                  {convertToASINUnits(item.Achieved_Qty)}
+                  {convertToASINUnits(item.Target_Qty,true)}
                 </AppText>
               </View>
               <View className="flex-1 items-end">
                 <AppText size="xs" className="text-gray-400 ">
-                  Target
+                  Achieved
                 </AppText>
                 <AppText size="sm" weight="semibold">
-                  {convertToASINUnits(item.Target_Qty)}
+                  {convertToASINUnits(item.Achieved_Qty,true)}
                 </AppText>
               </View>
             </View>
@@ -291,7 +289,7 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
   return (
     <View className="">
       <AppText size="xl" color="gray" weight="bold" className="pl-3">
-        Achievement / Target
+        Target / Achievement  
       </AppText>
 
       {/* POD Wise Section */}

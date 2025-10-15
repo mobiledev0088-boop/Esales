@@ -10,7 +10,7 @@ import AppText from '../../../../../components/customs/AppText';
 
 import { useLoginStore } from '../../../../../stores/useLoginStore';
 import { handleAPACApiCall, handleASINApiCall } from '../../../../../utils/handleApiCall';
-import { showToast } from '../../../../../utils/commonFunctios';
+import { showToast } from '../../../../../utils/commonFunctions';
 
 const PASSWORD_RULE = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_\-+={}[\]:;"'<>,.?/]).{15,}$/;
 

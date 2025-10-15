@@ -5,7 +5,7 @@ import AppLayout from '../../../../../components/layout/AppLayout';
 import Card from '../../../../../components/Card';
 import AppText from '../../../../../components/customs/AppText';
 import {BarChart, ruleTypes} from 'react-native-gifted-charts';
-import {convertToASINUnits} from '../../../../../utils/commonFunctios';
+import {convertToASINUnits} from '../../../../../utils/commonFunctions';
 // (Removed unused screenWidth import)
 
 // -------------------- Types --------------------

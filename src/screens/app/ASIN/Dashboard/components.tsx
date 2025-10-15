@@ -32,7 +32,7 @@ import AppDatePicker, {
 import moment from 'moment';
 import Card from '../../../../components/Card';
 import AppTabBar, {TabItem} from '../../../../components/CustomTabBar';
-import {convertToASINUnits} from '../../../../utils/commonFunctios';
+import {convertToASINUnits} from '../../../../utils/commonFunctions';
 import {CircularProgressBar} from '../../../../components/customs/AppChart';
 
 export const buildActivationTabItems = (

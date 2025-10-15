@@ -6,7 +6,8 @@ import AppIcon from '../../../../components/customs/AppIcon';
 import Accordion from '../../../../components/Accordion';
 import {AppColors} from '../../../../config/theme';
 import Skeleton from '../../../../components/skeleton/skeleton';
-import { screenWidth } from '../../../../utils/constant';
+import {screenWidth} from '../../../../utils/constant';
+import Card from '../../../../components/Card';
 
 interface SchemeStatProps {
   label: string;
@@ -83,18 +84,19 @@ export const buildGroups = (data: DataItem[]): TransformResult => {
   let productCounter = 0;
 
   const groupedMap = data.reduce((acc: Record<string, GroupedData>, item) => {
-    const { Scheme_Category, Product_Line, Product_Line_Name, ...months } = item;
+    const {Scheme_Category, Product_Line, Product_Line_Name, ...months} = item;
 
     // Track unique schemes & products
     schemeSet.add(Scheme_Category);
     productSet.add(Product_Line_Name);
-    if (!productOrder.has(Product_Line)) productOrder.set(Product_Line, productCounter++);
+    if (!productOrder.has(Product_Line))
+      productOrder.set(Product_Line, productCounter++);
 
     if (!acc[Scheme_Category]) {
       acc[Scheme_Category] = {
         Scheme_Category,
         Months: [],
-        Totals: { total: 0, processed: 0, under_Processed: 0 },
+        Totals: {total: 0, processed: 0, under_Processed: 0},
       };
     }
 
@@ -136,7 +138,7 @@ export const buildGroups = (data: DataItem[]): TransformResult => {
   const allSchemeCategories = Array.from(schemeSet);
   const allProductLinesName = Array.from(productSet);
 
-  return { groupedData, allSchemeCategories, allProductLinesName };
+  return {groupedData, allSchemeCategories, allProductLinesName};
 };
 
 const schemeColorMap: Record<
@@ -221,21 +223,21 @@ export const MonthRangeCard: React.FC<{
 
 export const FilterButton: React.FC<{onPress: () => void}> = ({onPress}) => {
   return (
-    <View className=''>
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.4}
-      className="flex-row items-center justify-center rounded border border-gray-300 bg-white px-4 shadow-sm ml-2 h-[56px] w-[55px]">
-      <AppIcon
-        type="material-community"
-        name="tune-variant"
-        size={22}
-        color={AppColors.primary}
+    <View className="">
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.4}
+        className="flex-row items-center justify-center rounded border border-gray-300 bg-white px-4 shadow-sm ml-2 h-[56px] w-[55px]">
+        <AppIcon
+          type="material-community"
+          name="tune-variant"
+          size={22}
+          color={AppColors.primary}
         />
-    </TouchableOpacity>
-  </View>
+      </TouchableOpacity>
+    </View>
   );
-}
+};
 
 export const MonthProductRow: React.FC<MonthProductRowProps> = memo(
   ({
@@ -300,6 +302,7 @@ export const MonthProductRow: React.FC<MonthProductRowProps> = memo(
 export const GroupAccordion: React.FC<GroupedAccordionProps> = memo(
   ({group: g, onNavigate}) => {
     return (
+      <Card className='p-0 rounded'>
       <Accordion
         key={g.Scheme_Category}
         header={
@@ -309,7 +312,7 @@ export const GroupAccordion: React.FC<GroupedAccordionProps> = memo(
             </AppText>
             <View className="border-b border-gray-200 mb-2 border-dashed" />
             <View className="flex-row items-center">
-                 <SchemeStat
+              <SchemeStat
                 label="Total Claims"
                 value={g.Totals.total}
                 color="primary"
@@ -335,7 +338,7 @@ export const GroupAccordion: React.FC<GroupedAccordionProps> = memo(
         contentClassName="px-0"
         needBottomBorder={false}>
         <View className="px-1 pb-3 pt-1">
-           <View className="border-b border-gray-200 mt-2 mb-2 border-dashed" />
+          <View className="border-b border-gray-200 mt-2 mb-2 border-dashed" />
           <View className="flex-row items-center mb-2 px-2">
             <AppText
               size="sm"
@@ -373,6 +376,7 @@ export const GroupAccordion: React.FC<GroupedAccordionProps> = memo(
                   scheme: g.Scheme_Category,
                   month,
                   productLine: month.Product_Line,
+                  Product_Line_Name: month.Product_Line_Name,
                   type: 'processed',
                 })
               }
@@ -381,6 +385,7 @@ export const GroupAccordion: React.FC<GroupedAccordionProps> = memo(
                   scheme: g.Scheme_Category,
                   month,
                   productLine: month.Product_Line,
+                  Product_Line_Name: month.Product_Line_Name,
                   type: 'underProcess',
                 })
               }
@@ -388,6 +393,7 @@ export const GroupAccordion: React.FC<GroupedAccordionProps> = memo(
           ))}
         </View>
       </Accordion>
+      </Card>
     );
   },
 );
@@ -465,6 +471,16 @@ export const ClaimListSkeleton = () => {
           />
         ))}
       </View>
+    </View>
+  );
+};
+export const ClaimDataSkeleton = () => {
+  return (
+    <View className="gap-3">
+      <Skeleton width={screenWidth - 24} height={100} borderRadius={8} />
+      <Skeleton width={screenWidth - 24} height={100} borderRadius={8} />
+      <Skeleton width={screenWidth - 24} height={100} borderRadius={8} />
+      <Skeleton width={screenWidth - 24} height={100} borderRadius={8} />
     </View>
   );
 };
