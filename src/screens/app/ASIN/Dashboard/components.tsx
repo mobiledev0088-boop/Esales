@@ -220,9 +220,7 @@ export const BannerComponent = () => {
     refetch,
   } = useDashboardBanner();
 
-  const handleBannerPress = useCallback((item: SwiperItem) => {
-    console.log('Banner pressed:', item);
-  }, []);
+  const handleBannerPress = useCallback((item: SwiperItem) => {console.log('Banner pressed:', item)}, []);
 
   if (queryError) {
     return (
@@ -315,6 +313,7 @@ export const ActivationPerformanceComponent: React.FC<
   if (isLoading || isMutationLoading) {
     return <ActivationPerformanceSkeleton />;
   }
+
 
   return (
     <View className="py-3">

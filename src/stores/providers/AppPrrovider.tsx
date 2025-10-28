@@ -17,11 +17,12 @@ export const AppProviders = ({children}: PropsWithChildren) => {
   const {setColorScheme} = useColorScheme();
   const AppTheme = useThemeStore(state => state.AppTheme);
   const globalLoading = useLoaderStore(state => state.globalLoading);
-
+  
   useEffect(() => {
     setColorScheme(AppTheme);
   }, [AppTheme, setColorScheme]);
-
+  
+  
   return (
     <QueryProvider>
       <SafeAreaProvider>

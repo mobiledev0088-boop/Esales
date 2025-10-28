@@ -17,6 +17,7 @@ import {PartnerAnalyticsSkeleton} from '../../../../components/skeleton/Dashboar
 import AppTabBar from '../../../../components/CustomTabBar';
 import useEmpStore from '../../../../stores/useEmpStore';
 import {ASUS} from '../../../../utils/constant';
+import clsx from 'clsx';
 
 
 // Map an array to a standardized top-N shape
@@ -367,7 +368,7 @@ const NoDataAvailable = () => (
   </View>
 );
 
-export default function Dashboard_Partner() {
+export default function Dashboard_Partner({noBanner,DifferentEmployeeCode,noPadding}: {noBanner?: boolean,DifferentEmployeeCode?:string,noPadding?:boolean}) {
   const quarters = useMemo(getPastQuarters, []); // Static quarter list
   const empInfo = useEmpStore(s => s.empInfo);
   const [selectedQuarter, setSelectedQuarter] =
@@ -381,8 +382,7 @@ export default function Dashboard_Partner() {
     isLoading,
     error: dashboardError,
     refetch: refetchDashboard,
-  } = useDashboardData(selectedQuarter?.value || '', 'Total', selectedSubCode?.value || '');
-
+  } = useDashboardData(selectedQuarter?.value || '', 'Total', selectedSubCode?.value || '',DifferentEmployeeCode);
   const {data: subCodeData,isLoading: isLoadingSubCode} = useGetSubCodeData();
 
   // Target vs Achievement summary
@@ -409,8 +409,8 @@ export default function Dashboard_Partner() {
   const activeTabsArray = useMemo(
     () =>
       empInfo?.EMP_Type === ASUS.PARTNER_TYPE.T2.AWP
-        ? ['Models', 'AGP']
-        : ['Models'],
+        ? ['Model', 'AGP']
+        : ['Model'],
     [empInfo?.EMP_Type],
   );
 
@@ -426,11 +426,10 @@ export default function Dashboard_Partner() {
     }
   }, [refetchDashboard]);
 
-  const isDataEmpty = !isLoading && !dashboardData; 
-
+  const isDataEmpty = !isLoading && !dashboardData;
   return (
     <ScrollView
-      className="flex-1 bg-slate-100 px-3"
+      className={clsx("flex-1 bg-lightBg-base", noPadding ? '' : 'px-3')}
       contentContainerClassName="flex-grow pb-10 gap-5 pt-3"
       showsVerticalScrollIndicator={false}
       refreshControl={
@@ -443,7 +442,7 @@ export default function Dashboard_Partner() {
           titleColor="#6B7280"
         />
       }>
-      <BannerComponent />
+      {!noBanner && <BannerComponent />}
       <View className="mb-2 flex-row items-center justify-between px-3 border-b border-slate-300 pb-4">
         <View>
           <AppText weight="semibold" className="text-md  text-slate-700">
@@ -528,12 +527,12 @@ export default function Dashboard_Partner() {
             monthlyData={dashboardData?.TRGTSummaryMonth}
           />
           <ActivationPerformanceComponent
+            tabs={activeTabsArray}
             data={activationDataObj}
             isLoading={isLoading}
             error={dashboardError}
             onRetry={refetchDashboard}
             name="Total"
-            tabs={activeTabsArray}
           />
           <PartnerAnalytics
             dashboardData={dashboardData}

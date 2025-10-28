@@ -56,6 +56,12 @@ type AppNavigationParamList = {
   PartnerCreditLimitDetails: {partner: any};
   ASEIncentive: undefined;
   LMSList_HO: undefined;
+  ChannelMap: undefined;
+  ChannelMapALPFinance: {
+    financerDataALP?: any;
+    ALPpartnerCode: string;
+    getALPinfo: (code: string,isRefetch:boolean) => void;
+  };
   // Account Screen
   ChangePassword: undefined;
   // Feedback Screens

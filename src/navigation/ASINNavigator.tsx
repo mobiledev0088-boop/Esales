@@ -19,6 +19,8 @@ import ClaimInfo from "../screens/app/ASIN/Claim/ClaimInfo";
 import LMSList_HO from "../screens/app/ASIN/More/LMS/LMSList_HO";
 import ClaimApplicationDetails from "../screens/app/ASIN/Claim/ClaimApplicationDetails";
 import ClaimInfoPartner from "../screens/app/ASIN/Claim/ClaimInfoPartner";
+import ChannelMap from "../screens/app/ASIN/More/ChannelMap/ChannelMap";
+import ChannelMapALPFinance from "../screens/app/ASIN/More/ChannelMap/ChannelMapALPFinance";
 
 type Screen = {
     name: string;
@@ -48,6 +50,8 @@ const screens: Screen[] = [
     { name: "PartnerCreditLimitDetails", component: PartnerCreditLimitDetails },
     { name: "ASEIncentive", component: ASEIncentive },
     { name: "LMSList_HO", component: LMSList_HO },
+    { name: "ChannelMap", component: ChannelMap },
+    { name: "ChannelMapALPFinance", component: ChannelMapALPFinance },
     // Feedback Screens
     { name: "Feedback", component: Feedback },
     { name: "AddFeedback", component: AddFeedback },

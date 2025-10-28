@@ -9,11 +9,14 @@ module.exports = {
         // Primary brand palette
         primary: {
           DEFAULT: "#00539B",
-          dark: "#2c334d"
+          // dark: "#2c334d"
+          // dark: "#1D4559"
+          dark: "#3399FF"
         },
         secondary: {
           DEFAULT: "#0077b6",
-          dark: "#409ED1"
+          // dark: "#38bdf8"
+          dark: "#66CCFF"
         },
 
         // UI States
@@ -33,8 +36,10 @@ module.exports = {
         // Text
         text: {
           DEFAULT: "#1F2937",
-          dark: "#374151"
+          // dark: "#374151"
+          dark: "#E5E7EB"
         },
+
 
         // Backgrounds
         background: {
@@ -42,11 +47,11 @@ module.exports = {
           dark: "#C7C8C7"
         },
         darkBg: {
-          base: "#030612",
-          surface: "#252838"
+          base: "#121212",
+          surface: "#1F1F1F"
         },
         lightBg: {
-          base: "#f2f2f2",
+          base: "#f8fafc",
           surface: "#ffffff"
         },
 
@@ -64,7 +69,8 @@ module.exports = {
         border: "#ccc",
         tabSelected: {
           DEFAULT: "#0076ff",
-          dark: "rgba(0,118,255,0.1)"
+          // dark: "rgba(0,118,255,0.1)"
+          dark: "#3399FF"
         },
         button: "#0C5D96",
         disabled: "#060505ff",

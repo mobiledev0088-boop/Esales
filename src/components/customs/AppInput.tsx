@@ -124,7 +124,7 @@ const AppInput: React.FC<CustomInputProps> = ({
                     secureTextEntry={hidePassword}
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
-                    className={twMerge('flex-1 text-gray-900 dark:text-gray-100 font-manropeMedium', inputClassName)}
+                    className={twMerge('flex-1 text-gray-900 dark:text-gray-100 font-manropeMedium ', inputClassName)}
                     style={{fontSize, height: '100%'}}
                     // for screen readers
                     accessibilityLabel={label}

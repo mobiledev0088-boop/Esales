@@ -14,7 +14,6 @@ export const getShadowStyle = (elevation = 4, shadowColor = '#000') => {
     } else {
         return {
             elevation,
-            shadowColor,
         };
     }
 };

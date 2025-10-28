@@ -42,6 +42,7 @@ const getASINOptions = (
       label: 'Channel Map',
       iconName: 'codesandbox',
       iconType: 'feather',
+      navigateTo: 'ChannelMap',
     });
   }
   if (hasRole(roleId, [1, 2, 3, 4, 6, 9, 10, 25, 26, 29])) {

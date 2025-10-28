@@ -158,7 +158,7 @@ export const useT2PartnerList = () => {
   const employeeCode = userInfo?.EMP_Code || '';
   const roleId = userInfo?.EMP_RoleId || '';
   return useQuery<{label:string; value:string}[]>({
-    queryKey: ['partnerListT2', employeeCode, roleId],
+    queryKey: ['ALPList', employeeCode, roleId],
     queryFn: async () => {
       const res = await handleASINApiCall('/Information/GetALPList', {employeeCode, RoleId: roleId});
       const result = res.DashboardData;

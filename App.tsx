@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { AppProviders } from './src/stores/providers/AppPrrovider';
 import DynamicSplash from './src/components/DynamicSplash';
 
+
 function App() {
   const isConnected = useNetworkStatus();
   const [isSplashDone, setIsSplashDone] = useState(false);

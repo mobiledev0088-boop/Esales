@@ -57,6 +57,7 @@ export const useDashboardData = (
   YearQtr: string | null,
   masterTab: string | null,
   subCode?: string | null,
+  DifferentEmployeeCode?: string | null,
 ) => {
   let {employeeCode, yearQtr} = getUserCredentials();
   const effectiveYearQtr = YearQtr || yearQtr;
@@ -68,10 +69,11 @@ export const useDashboardData = (
       employeeCode,
       effectiveMasterTab,
       effectiveYearQtr,
+      DifferentEmployeeCode
     ],
     queryFn: async () => {
       const res = await handleASINApiCall('/Dashboard/GetDashboardData_New', {
-        employeeCode,
+        employeeCode:DifferentEmployeeCode || employeeCode,
         masterTab: effectiveMasterTab,
         YearQtr: effectiveYearQtr,
       });

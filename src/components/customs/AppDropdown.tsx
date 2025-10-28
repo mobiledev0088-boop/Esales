@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, SetStateAction, memo, useCallback, ReactNode, useRef } from 'react';
+import { useState, useMemo, useEffect, SetStateAction, memo, useCallback, ReactNode, useRef } from 'react';
 import { Pressable } from 'react-native';
 import {
   View,
@@ -42,11 +42,10 @@ export interface AppDropdownProps {
   disabled?: boolean;
   zIndex?: number;
   onOpenChange?: () => void;
-  forceTheme?: 'light' | 'dark';
   needIndicator?: boolean;
 }
-
 const BATCH_SIZE = 40;
+
 const AppDropdown: React.FC<AppDropdownProps> = ({
   data,
   onSelect,
@@ -67,16 +66,15 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
   disabled = false,
   zIndex = 1000,
   onOpenChange,
-  forceTheme,
   needIndicator= false
 }) => {
   const { AppTheme } = useThemeStore();
   const deviceColorScheme = useColorScheme();
 
   const theme = useMemo(() => {
-    const activeTheme = forceTheme || AppTheme || deviceColorScheme || 'light';
+    const activeTheme =  AppTheme || deviceColorScheme || 'light';
     return AppColors[activeTheme];
-  }, [AppTheme, deviceColorScheme, forceTheme]);
+  }, [AppTheme, deviceColorScheme]);
 
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState<string | null>(selectedValue);
@@ -113,9 +111,9 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
   const handleOpenChange = useCallback((state: SetStateAction<boolean>) => {
     setOpen(state);
     if(!state) {
+      // Reset search results but keep all loaded items to preserve selected item visibility
       setSearchResults(data);
-      setDisplayedItems(data.slice(0, BATCH_SIZE));
-      setLoadedCount(BATCH_SIZE);
+      isLoadingMoreRef.current = false;
     }
     onOpenChange?.();
   }, [data, onOpenChange]);
@@ -318,7 +316,6 @@ export interface AppDropdownMultipleProps {
   zIndex?: number;
   zIndexInverse?: number;
   onOpenChange?: () => void;
-  forceTheme?: "light" | "dark";
   needIndicator?: boolean;
 }
 
@@ -340,7 +337,6 @@ export const AppDropdownMultiple: React.FC<AppDropdownMultipleProps> = memo(
     zIndex = 1000,
     zIndexInverse = 1000,
     onOpenChange,
-    forceTheme,
     needIndicator = false,
   allowClear = false,
   }) => {
@@ -348,9 +344,9 @@ export const AppDropdownMultiple: React.FC<AppDropdownMultipleProps> = memo(
     const deviceColorScheme = useColorScheme();
 
     const theme = useMemo(() => {
-      const activeTheme = forceTheme || AppTheme || deviceColorScheme || "light";
+      const activeTheme = AppTheme || deviceColorScheme || "light";
       return AppColors[activeTheme];
-    }, [AppTheme, deviceColorScheme, forceTheme]);
+    }, [AppTheme, deviceColorScheme]);
 
     const [open, setOpen] = useState(false);
     const [values, setValues] = useState<string[]>(selectedValues);
@@ -384,9 +380,9 @@ useEffect(() => {
     const handleOpenChange = (state: SetStateAction<boolean>) => {
       setOpen(state);
       if (!state) {
+        // Reset search results but keep all loaded items to preserve selected items visibility
         setSearchResults(data);
-        setDisplayedItems(data.slice(0, BATCH_SIZE));
-        setLoadedCount(BATCH_SIZE);
+        isLoadingMoreRef.current = false;
       }
       onOpenChange?.();
     };
@@ -549,5 +545,3 @@ useEffect(() => {
     );
   }
 );
-
-

@@ -5,7 +5,7 @@ import config from './env';
 const apiClientASIN = axios.create({
     // baseURL: config.API_BASE_URL,
     baseURL: "https://esalesindia.asus.com/app/api/",
-    timeout: 10000,
+    timeout: 30000,
     headers: {
         'Content-Type': 'application/json',
         'Expect': '',

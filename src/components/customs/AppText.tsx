@@ -86,9 +86,8 @@ const AppText: React.FC<CustomTextProps> = ({
         TextComponent =
             animationLibrary === "reanimated" ? Reanimated.Text : RNAnimated.Text;
     }
-
     return (
-        <TextComponent className={mergedClass} style={style} {...props} allowFontScaling={false}>
+        <TextComponent {...props} className={mergedClass} style={style} allowFontScaling={false}>
             {children}
         </TextComponent>
     );

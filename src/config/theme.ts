@@ -19,7 +19,8 @@ export const AppColors = {
     tabSelected: '#3b82f6',
   },
   dark: {
-    primary: '#2c334d',
+    // primary: '#2c334d',
+    primary: '#1D4559',
     secondary: '#78CBFF',
     text: '#f3f6f4',
     border: '#ccc',

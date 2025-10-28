@@ -6,6 +6,7 @@ import {
   View,
   StyleSheet,
 } from 'react-native';
+import { screenWidth } from '../utils/constant';
 
 interface Props {
   backgroundColor: string;
@@ -34,7 +35,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: Platform.OS === 'ios' ? 60: StatusBar.currentHeight ?? 0,
+    height: Platform.OS === 'ios' ? screenWidth * 0.16: StatusBar.currentHeight ?? 0,
     zIndex: 1,
   },
 });

@@ -1,22 +1,18 @@
 import AppText from './AppText';
+import AppIcon from './AppIcon';
 
 import {ActivityIndicator, TouchableOpacity, View} from 'react-native';
-import {
-  AppTextColorType,
-  AppTextSizeType,
-  AppTextWeightType,
-} from '../../types/customs';
+import {AppTextColorType,AppTextSizeType,AppTextWeightType} from '../../types/customs';
 import {useLoaderStore} from '../../stores/useLoaderStore';
-import AppIcon from './AppIcon';
 import {twMerge} from 'tailwind-merge';
 
 interface AppButtonProps {
-  title: string | React.ReactNode; // Allow string or React node for title
+  title: string | React.ReactNode;
   onPress?: () => void;
   onPressIn?: () => void;
   onPressOut?: () => void;
-  iconName?: string; // Optional icon name
-  className?: string; // Tailwind classes for the button
+  iconName?: string; 
+  className?: string; 
   color?: AppTextColorType;
   size?: AppTextSizeType;
   weight?: AppTextWeightType;
@@ -24,7 +20,7 @@ interface AppButtonProps {
   noLoading?: boolean;
 }
 
-const AppButton = ({
+export default function AppButton ({
   title,
   onPress,
   onPressIn,
@@ -36,7 +32,7 @@ const AppButton = ({
   weight = 'medium',
   disabled = false,
   noLoading = false,
-}: AppButtonProps) => {
+}: AppButtonProps) {
   const isLoading = useLoaderStore(state => state.isLoading);
   return (
     <TouchableOpacity
@@ -66,5 +62,3 @@ const AppButton = ({
     </TouchableOpacity>
   );
 };
-
-export default AppButton;

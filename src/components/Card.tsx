@@ -81,8 +81,8 @@ const Card: React.FC<CardProps> = ({
         )}
         {children}
         <View
-          className={twMerge(mergedClassName, 'absolute top-0 -z-10 ')}
-          style={{width: size.width, height: size.height, ...getShadowStyle(1)}}
+          className={twMerge(mergedClassName, 'absolute top-0 ')}
+          style={{width: size.width, height: size.height, ...getShadowStyle(1), zIndex: -1}}
         />
       </View>
       {needSeeMore && (

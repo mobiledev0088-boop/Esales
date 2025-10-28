@@ -18,7 +18,8 @@ export const handleASINApiCall = async <T = any>(
         if (showGlobalLoading) {
             setGlobalLoading(true);
         }
-        console.time('API Call Timing');
+        const timerName = `API Call Timing - ${url} - ${Date.now()}`;
+        console.time(timerName);
         const response = await apiClientASIN.request<T>({
             method: 'POST',
             url,
@@ -27,7 +28,7 @@ export const handleASINApiCall = async <T = any>(
                 ...headers,
             },
         });
-        console.timeEnd('API Call Timing');
+        console.timeEnd(timerName);
         return response.data;
     } catch (error: any) {
         if (showError) {
@@ -83,7 +84,6 @@ const saveApiLog = async (
     empCode: string,
 ): Promise<void> => {
     try {
-        console.log('Saving API log:', url);
         await apiClientASIN.post('/Information/SaveAPIRequestInfo', {
             Employee_Code: empCode,
             API_Name: url,

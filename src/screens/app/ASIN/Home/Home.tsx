@@ -9,14 +9,9 @@ import Dashboard from '../Dashboard/Dashboard';
 import Demo from '../Demo/Demo';
 import Claim from '../Claim/Claim';
 import Schemes from '../Schemes/Schemes';
-import PStatus from '../PStatus/PStatus';
 
 import {ComponentType, useMemo} from 'react';
-import {
-  NavigationHelpers,
-  ParamListBase,
-  TabNavigationState,
-} from '@react-navigation/native';
+import {NavigationHelpers,ParamListBase,TabNavigationState} from '@react-navigation/native';
 import {Pressable, View} from 'react-native';
 import {AppColors} from '../../../../config/theme';
 import AppText from '../../../../components/customs/AppText';
@@ -26,6 +21,7 @@ import {useLoginStore} from '../../../../stores/useLoginStore';
 import {ASUS} from '../../../../utils/constant';
 import Dashboard_AM from '../Dashboard/Dashboard_AM';
 import Dashboard_Partner from '../Dashboard/Dashboard_Partner';
+import WOD from '../WOD/WOD';
 
 interface TabScreens {
   name: string;
@@ -143,9 +139,9 @@ const Home: React.FC = () => {
       userInfo?.EMP_Type === ASUS.PARTNER_TYPE.T2.AWP
     ) {
       arr.push({
-        name: 'P.Status',
-        component: PStatus,
-        icon: 'timeline-clock',
+        name: 'W.O.D',
+        component: WOD,
+        icon: 'account-clock',
         iconType: 'material-community',
       });
     }
@@ -171,7 +167,7 @@ const Home: React.FC = () => {
   return (
     <AppLayout isDashboard>
       <Tab.Navigator
-        screenOptions={{headerShown: false, tabBarHideOnKeyboard: true}}
+        screenOptions={{headerShown: false, tabBarHideOnKeyboard: true, }}
         tabBar={props => <CustomTabBar {...props} TabScreens={TabScreens} />}>
         {TabScreens.map(screen => (
           <Tab.Screen
@@ -219,7 +215,7 @@ const CustomTabBar: React.FC<MyTabBarProps> = ({
         // Only append -outline for ionicons set; otherwise keep the same icon name
         const iconName = isFocused
           ? icon
-          : iconType === 'ionicons'
+          : (iconType === 'ionicons' || iconType === 'material-community')
             ? `${icon}-outline`
             : icon;
         const iconColor = isFocused ? AppColors.primary : '#95a5a6';

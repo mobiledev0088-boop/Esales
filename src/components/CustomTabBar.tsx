@@ -113,7 +113,7 @@ const TabBar = React.memo(({
         const disabled = tab.disabled;
         return (
           <AnimatedTouchable
-            key={tab.name}
+            key={index}
             accessibilityRole="tab"
             accessibilityState={{ selected: index === activeIndex, disabled }}
             accessibilityLabel={tab.label}
@@ -220,7 +220,7 @@ const AppTabBar: React.FC<AppTabBarProps> = ({
   }, [activeTab]);
 
   return (
-    <View>
+    <View >
       <TabBar
         tabs={tabs}
         activeIndex={internalIndex}

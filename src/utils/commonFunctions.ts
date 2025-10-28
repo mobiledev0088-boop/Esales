@@ -2,6 +2,7 @@ import moment from 'moment';
 import CryptoJS from 'react-native-crypto-js';
 import Toast from 'react-native-simple-toast';
 import RNFS from 'react-native-fs';
+import React, { useEffect, useRef } from 'react';
 
 export const convertToASINUnits = (
   amount: number,
