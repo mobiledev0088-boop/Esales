@@ -63,7 +63,8 @@ const AppInput: React.FC<CustomInputProps> = ({
         return '#D1D5DB';
     }, [error, isFocused]);
 
-    const height = size === 'sm' ? 40 : size === 'lg' ? 54 : 48;
+
+    const height = size === 'sm' ? 40 : size === 'lg' ? 54 : 45;
     const fontSize = size === 'sm' ? 13 : size === 'lg' ? 16 : 14;
     const inputContainerStyle: ViewStyle = useMemo(() => {
         const baseStyle = {
@@ -105,7 +106,6 @@ const AppInput: React.FC<CustomInputProps> = ({
         setValue('');
         onClear?.();
     }, [onClear]);
-
     return (
         <View className={twMerge('w-full', containerClassName)}>
             {label && (

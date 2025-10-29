@@ -230,7 +230,7 @@ export default function PartnersCreditLimit() {
 
   const handlePartnerPress = useCallback(
     (partner: PartnerDetails) => {
-      navigation.navigate('PartnerCreditLimitDetails', {partner});
+      navigation.push('PartnerCreditLimitDetails', {partner});
     },
     [navigation],
   );

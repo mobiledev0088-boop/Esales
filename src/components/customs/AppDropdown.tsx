@@ -43,6 +43,7 @@ export interface AppDropdownProps {
   zIndex?: number;
   onOpenChange?: () => void;
   needIndicator?: boolean;
+  error?: string;
 }
 const BATCH_SIZE = 40;
 
@@ -66,7 +67,8 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
   disabled = false,
   zIndex = 1000,
   onOpenChange,
-  needIndicator= false
+  needIndicator= false,
+  error
 }) => {
   const { AppTheme } = useThemeStore();
   const deviceColorScheme = useColorScheme();
@@ -176,7 +178,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
   const stylesMemo = useMemo(() => ({
     pickerStyle: {
       backgroundColor: theme.bgSurface,
-      borderColor: theme.border,
+      borderColor: error ? '#EF4444' : theme.border,
       borderWidth: 1.5,
       borderRadius: 12,
       minHeight: 45,
@@ -188,7 +190,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
     },
     pickerContainer: {
       backgroundColor: theme.bgSurface,
-      borderColor: theme.border,
+      borderColor: error ? '#EF4444' : theme.border,
       borderWidth: 1,
       borderRadius: 12,
       borderTopLeftRadius: 0,
@@ -210,7 +212,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
       fontWeight: '500' as const,
       marginBottom: 8,
     },
-  }), [theme, listHeight]);
+  }), [theme, listHeight, error]);
 
   return (
     <View style={[styles.container, style]}>
@@ -288,6 +290,9 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
         disabledItemLabelStyle={{color: theme.text + '40',}}
       />
       </View>
+      {error && (
+        <AppText className="mt-1 text-xs text-red-500">{error}</AppText>
+      )}
     </View>
   );
 };
@@ -317,6 +322,7 @@ export interface AppDropdownMultipleProps {
   zIndexInverse?: number;
   onOpenChange?: () => void;
   needIndicator?: boolean;
+  error?: string;
 }
 
 export const AppDropdownMultiple: React.FC<AppDropdownMultipleProps> = memo(
@@ -338,7 +344,8 @@ export const AppDropdownMultiple: React.FC<AppDropdownMultipleProps> = memo(
     zIndexInverse = 1000,
     onOpenChange,
     needIndicator = false,
-  allowClear = false,
+    allowClear = false,
+    error
   }) => {
     const { AppTheme } = useThemeStore();
     const deviceColorScheme = useColorScheme();
@@ -430,7 +437,7 @@ useEffect(() => {
       () => ({
         pickerStyle: {
           backgroundColor: theme.bgSurface,
-          borderColor: theme.border,
+          borderColor: error ? '#EF4444' : theme.border,
           borderWidth: 1.5,
           borderRadius: 12,
           minHeight: 54,
@@ -442,7 +449,7 @@ useEffect(() => {
         },
         pickerContainer: {
           backgroundColor: theme.bgSurface,
-          borderColor: theme.border,
+          borderColor: error ? '#EF4444' : theme.border,
           borderWidth: 1,
           borderRadius: 12,
           borderTopLeftRadius: 0,
@@ -465,7 +472,7 @@ useEffect(() => {
           marginBottom: 8,
         },
       }),
-      [theme, listHeight]
+      [theme, listHeight, error]
     );
 
     return (
@@ -541,6 +548,9 @@ useEffect(() => {
           disabledItemLabelStyle={{ color: theme.text + "40" }}
         />
         </View>
+        {error && (
+          <AppText className="mt-1 text-xs text-red-500">{error}</AppText>
+        )}
       </View>
     );
   }

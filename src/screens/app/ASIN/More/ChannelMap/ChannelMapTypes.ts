@@ -15,13 +15,6 @@ export interface DropdownOption {
   value: string;
 }
 
-export interface APIResponse<T> {
-  DashboardData: {
-    Status: boolean;
-    Datainfo: T;
-  };
-}
-
 export interface ALPDetails {
   //Shop Info
   PM_Name: string;

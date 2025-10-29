@@ -21,6 +21,10 @@ import ClaimApplicationDetails from "../screens/app/ASIN/Claim/ClaimApplicationD
 import ClaimInfoPartner from "../screens/app/ASIN/Claim/ClaimInfoPartner";
 import ChannelMap from "../screens/app/ASIN/More/ChannelMap/ChannelMap";
 import ChannelMapALPFinance from "../screens/app/ASIN/More/ChannelMap/ChannelMapALPFinance";
+import ChannelMapAddAGP from "../screens/app/ASIN/More/ChannelMap/ChanelMapAGP/ChannelMapAddAGP";
+import ChannelFriendlyClaimListHO from "../screens/app/ASIN/More/ChannelFriendly/ChannelFriendlyClaimListHO";
+import ChannelFriendlyPartnerClaimInfo from "../screens/app/ASIN/More/ChannelFriendly/ChannelFriendlyPartnerClaimInfo";
+import ChannelFriendlyClaimView from "../screens/app/ASIN/More/ChannelFriendly/ChannelFriendlyClaimView";
 
 type Screen = {
     name: string;
@@ -52,6 +56,10 @@ const screens: Screen[] = [
     { name: "LMSList_HO", component: LMSList_HO },
     { name: "ChannelMap", component: ChannelMap },
     { name: "ChannelMapALPFinance", component: ChannelMapALPFinance },
+    { name: "ChannelMapAddAGP", component: ChannelMapAddAGP },
+    { name: "ChannelFriendlyClaimListHO", component: ChannelFriendlyClaimListHO },
+    { name: "ChannelFriendlyPartnerClaimInfo", component: ChannelFriendlyPartnerClaimInfo },
+    { name: "ChannelFriendlyClaimView", component: ChannelFriendlyClaimView },
     // Feedback Screens
     { name: "Feedback", component: Feedback },
     { name: "AddFeedback", component: AddFeedback },

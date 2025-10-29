@@ -17,6 +17,7 @@ import Animated, {
   SlideInDown,
   SlideOutDown,
 } from 'react-native-reanimated';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import clsx from 'clsx';
 import {twMerge} from 'tailwind-merge';
 
@@ -174,35 +175,37 @@ const AppModal: React.FC<AppModalProps> = ({
       presentationStyle="overFullScreen"
       statusBarTranslucent
     >
-      <View
-        className={overlayClasses}
-        style={[
-          overlayBaseStyle,
-          !noCard && {
-            justifyContent: 'center',
-            alignItems: 'center',
-          },
-        ]}
-      >
-        {!disableOverlayPress && (
-          <Pressable
-            style={StyleSheet.absoluteFill}
-            onPress={isIOS ? handleOverlayPress : undefined}
-            onPressOut={!isIOS ? handleOverlayPress : undefined}
-            accessibilityRole="button"
-            accessibilityLabel="Close modal overlay"
-          />
-        )}
-        
-        <Animated.View
-          entering={animations.entering}
-          exiting={animations.exiting}
-          style={animatedViewStyle}
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View
+          className={overlayClasses}
+          style={[
+            overlayBaseStyle,
+            !noCard && {
+              justifyContent: 'center',
+              alignItems: 'center',
+            },
+          ]}
         >
-          {renderCloseButton()}
-          {renderContent()}
-        </Animated.View>
-      </View>
+          {!disableOverlayPress && (
+            <Pressable
+              style={StyleSheet.absoluteFill}
+              onPress={isIOS ? handleOverlayPress : undefined}
+              onPressOut={!isIOS ? handleOverlayPress : undefined}
+              accessibilityRole="button"
+              accessibilityLabel="Close modal overlay"
+            />
+          )}
+          
+          <Animated.View
+            entering={animations.entering}
+            exiting={animations.exiting}
+            style={animatedViewStyle}
+          >
+            {renderCloseButton()}
+            {renderContent()}
+          </Animated.View>
+        </View>
+      </GestureHandlerRootView>
     </Modal>
   );
 };

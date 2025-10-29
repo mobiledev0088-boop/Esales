@@ -249,7 +249,7 @@ export default function ProductInfo() {
   }, []);
 
   const handleNavigation = useCallback((item: ProductInfoItem) => {
-    navigation.navigate('ProductDescription', { product: item });
+    navigation.push('ProductDescription', { product: item });
   }, []);
 
   const shouldShowResults = hasSearched && !isPending;

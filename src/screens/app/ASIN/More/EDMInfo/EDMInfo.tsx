@@ -150,14 +150,14 @@ const ImageModal = ({isOpen,onClose,selectedModel}:{isOpen:boolean,onClose:()=>v
     <AppModal isOpen={isOpen} onClose={onClose} animationType="slide" noCard >
       <View style={{width:screenWidth,height:screenHeight,justifyContent:'center',alignItems:'center'}}>
         <TouchableWithoutFeedback onPress={onClose}>
-          <View style={{position: 'absolute', top: 50, right: 20, padding:5,borderRadius:50, backgroundColor: 'rgba(0, 0, 0, 0.5)'}}>
+          <View style={{position: 'absolute', top: 50, right: 20, padding:5,borderRadius:50, backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 9999}}>
             <AppIcon type="feather" name="x" size={24} color="#fff" />
           </View>
         </TouchableWithoutFeedback>
       {selectedModel && (
         <AppImage
         source={{ uri: selectedModel.path }}
-        style={{ width: screenWidth * 0.91, height: 300 }}
+        style={{ width: screenWidth * 0.95, height: screenHeight * 0.6 }}
         resizeMode="contain"
         zoomable
         />

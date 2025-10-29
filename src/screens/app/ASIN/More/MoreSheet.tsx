@@ -50,6 +50,7 @@ const getASINOptions = (
       label: 'Channel Friendly',
       iconName: 'houzz',
       iconType: 'entypo',
+      navigateTo: 'ChannelFriendlyClaimListHO',
     });
     options.push({
       label: 'Activated Details',

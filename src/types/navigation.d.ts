@@ -62,6 +62,13 @@ type AppNavigationParamList = {
     ALPpartnerCode: string;
     getALPinfo: (code: string,isRefetch:boolean) => void;
   };
+  ChannelMapAddAGP: undefined;
+  ChannelFriendlyClaimListHO: undefined;
+  ChannelFriendlyPartnerClaimInfo: {
+    partnerCode: string;
+    yearQTR: string;
+  };
+  ChannelFriendlyClaimView: {data:any};
   // Account Screen
   ChangePassword: undefined;
   // Feedback Screens
@@ -89,3 +96,11 @@ type DrawerStackParamList = {
 };
 
 export type DrawerNavigationProp = DNP<DrawerStackParamList>;
+
+
+export interface APIResponse<T> {
+  DashboardData: {
+    Status: boolean;
+    Datainfo: T;
+  };
+}

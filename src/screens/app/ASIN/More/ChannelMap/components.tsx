@@ -1,6 +1,5 @@
 import {memo, useMemo} from 'react';
-import {Linking, ScrollView, TouchableOpacity} from 'react-native';
-import {View} from 'react-native-reanimated/lib/typescript/Animated';
+import {Linking, ScrollView, TouchableOpacity,View} from 'react-native';
 import {
   AGPBasicInfoProps,
   AGPCompetitionInfoProps,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
 import Animated, {
   SharedValue,
@@ -11,6 +11,8 @@ import { twMerge } from 'tailwind-merge';
 import AppIcon from './customs/AppIcon';
 import { useThemeStore } from '../stores/useThemeStore';
 import { AppColors } from '../config/theme';
+import AppText from './customs/AppText';
+import { getShadowStyle } from '../utils/appStyles';
 
 interface AccordionItemProps {
   isExpanded: SharedValue<boolean>;
@@ -59,11 +61,14 @@ interface AccordionProps {
   header: React.ReactNode | string;
   children: React.ReactNode;
   initialOpening?: boolean;
+  isOpen?: boolean; // Controlled state
+  onToggle?: () => void; // Controlled toggle handler
   duration?: number;
   headerClassName?: string;
   contentClassName?: string;
   containerClassName?: string;
   needBottomBorder?: boolean;
+  needShadow?: boolean;
   arrowSize?: number;
 }
 
@@ -71,26 +76,44 @@ export default function Accordion({
   header,
   children,
   initialOpening = false,
+  isOpen,
+  onToggle,
   duration = 250,
   headerClassName,
   contentClassName,
   containerClassName,
   needBottomBorder = true,
+  needShadow = false,
   arrowSize = 24,
 }: AccordionProps) {
-  const open = useSharedValue(initialOpening);
+  const internalOpen = useSharedValue(initialOpening);
   const AppTheme = useThemeStore((state) => state.AppTheme);
 
+  // Use controlled state if provided, otherwise use internal state
+  const isControlled = isOpen !== undefined && onToggle !== undefined;
+  const open = isControlled ? useSharedValue(isOpen) : internalOpen;
+
+  // Update shared value when controlled isOpen changes
+  useEffect(() => {
+    if (isControlled) {
+      open.value = isOpen;
+    }
+  }, [isOpen, isControlled, open]);
+
   const handlePress = () => {
-    open.value = !open.value;
+    if (isControlled && onToggle) {
+      onToggle();
+    } else {
+      open.value = !open.value;
+    }
   };
 
   const renderHeader = () => {
     if (typeof header === 'string') {
       return (
-        <Text className={twMerge('text-base font-semibold text-gray-800', headerClassName)}>
+        <AppText className={twMerge('text-base font-semibold text-gray-800', headerClassName)}>
           {header}
-        </Text>
+        </AppText>
       );
     }
     return header;
@@ -108,8 +131,9 @@ export default function Accordion({
         rotateZ: `${iconRotation.value}deg`,
       },
     ],
-  }));  return (
-    <View className={twMerge('w-full overflow-hidden', containerClassName)}>
+  }));  
+  return (
+    <View className={twMerge('w-full overflow-hidden', containerClassName)} style={needShadow && {...getShadowStyle(1),borderWidth:0.3,borderColor:AppColors[AppTheme].border}}>
       <TouchableOpacity
         className={twMerge('flex-row items-center justify-between px-3 pb-2', headerClassName)}
         onPress={handlePress}

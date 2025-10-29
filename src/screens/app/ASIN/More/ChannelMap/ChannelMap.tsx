@@ -9,18 +9,37 @@ import {AppDropdownItem} from '../../../../../components/customs/AppDropdown';
 import AppTabBar from '../../../../../components/CustomTabBar';
 import Dashboard_Partner from '../../Dashboard/Dashboard_Partner';
 import AppButton from '../../../../../components/customs/AppButton';
-import useEmpStore from '../../../../../stores/useEmpStore';
-import { useNavigation } from '@react-navigation/native';
-import { AppNavigationProp } from '../../../../../types/navigation';
-import { useGetAGPDetails, useGetAGPList, useGetALPDetails, useGetALPList, useGetLFRDetails, useGetLFRList } from '../../../../../hooks/queries/channelMap';
-import { AGPDetails, ALPDetails, LFRDetails } from './ChannelMapTypes';
-import { AGPBasicInfo, AGPCompetitionInfo, ALPDetailsLoadingSkeleton, ListSkeleton, BasicInfo, CompetitionInfo, EmptySelectionState, ErrorState, NoDetailsState, AGPNoDetailsState, AGPEmptySelectionState, LFRBasicInfo, LFRCompetitionInfo, LFRDetailsLoadingSkeleton } from './components';
-
+import {useNavigation} from '@react-navigation/native';
+import {AppNavigationProp} from '../../../../../types/navigation';
+import {
+  useGetAGPDetails,
+  useGetAGPList,
+  useGetALPDetails,
+  useGetALPList,
+  useGetLFRDetails,
+  useGetLFRList,
+} from '../../../../../hooks/queries/channelMap';
+import {AGPDetails, ALPDetails, LFRDetails} from './ChannelMapTypes';
+import {
+  AGPBasicInfo,
+  AGPCompetitionInfo,
+  ALPDetailsLoadingSkeleton,
+  ListSkeleton,
+  BasicInfo,
+  CompetitionInfo,
+  EmptySelectionState,
+  ErrorState,
+  NoDetailsState,
+  AGPNoDetailsState,
+  AGPEmptySelectionState,
+  LFRBasicInfo,
+  LFRCompetitionInfo,
+  LFRDetailsLoadingSkeleton,
+} from './components';
 
 const ALPInfo = () => {
-    const userInfo = useLoginStore(state => state.userInfo);
-    const empInfo = useEmpStore(state => state.empInfo);
-    const navigation = useNavigation<AppNavigationProp>();
+  const userInfo = useLoginStore(state => state.userInfo);
+  const navigation = useNavigation<AppNavigationProp>();
   const [selectedItem, setSelectedItem] = useState<AppDropdownItem | null>(
     null,
   );
@@ -70,13 +89,14 @@ const ALPInfo = () => {
     return <ErrorState message="Error loading ALP data. Please try again." />;
   }
 
-  const showButton = [
-    ASUS.ROLE_ID.BSM,
-    ASUS.ROLE_ID.TM,
-    ASUS.ROLE_ID.SALES_REPS,
-    ASUS.ROLE_ID.BPM
-  ].includes(userInfo.EMP_RoleId as any) ||
-  ['KN2200052','KN1800037','KN2500069'].includes(empInfo?.EMP_Code || '');
+  const showButton =
+    [
+      ASUS.ROLE_ID.BSM,
+      ASUS.ROLE_ID.TM,
+      ASUS.ROLE_ID.SALES_REPS,
+      ASUS.ROLE_ID.BPM,
+    ].includes(userInfo.EMP_RoleId as any) ||
+    ['KN2200052', 'KN1800037', 'KN2500069'].includes(userInfo?.EMP_Code || '');
 
   return (
     <View className="flex-1 bg-lightBg-base px-1">
@@ -93,23 +113,31 @@ const ALPInfo = () => {
         ) : detailsError ? (
           <ErrorState message="Error loading ALP details. Please try again." />
         ) : alpDetails ? (
-            <View className='flex-1'>
-          <ScrollView
-            className="flex-1 pt-4"
-            showsVerticalScrollIndicator={false}>
-            <AppTabBar
-              tabs={tabs}
-              containerStyle={{marginLeft: 0, marginRight: 0}}
-              contentContainerStyle={{paddingTop: 16}}
-            />
-          </ScrollView>
-          {/* create button here */}
-         {showButton && <AppButton
-          title="Add ALP Finance Map"
-          iconName='plus-circle'
-          className='rounded py-4 mt-2 bg-secondary'
-          onPress={()=>navigation.push('ChannelMapALPFinance',{financerDataALP: data?.Table1[0], ALPpartnerCode: selectedItem.value, getALPinfo: useGetALPDetails})}
-          />}
+          <View className="flex-1">
+            <ScrollView
+              className="flex-1 pt-4"
+              showsVerticalScrollIndicator={false}>
+              <AppTabBar
+                tabs={tabs}
+                containerStyle={{marginLeft: 0, marginRight: 0}}
+                contentContainerStyle={{paddingTop: 16}}
+              />
+            </ScrollView>
+            {/* create button here */}
+            {showButton && (
+              <AppButton
+                title="Add ALP Finance Map"
+                iconName="plus-circle"
+                className="rounded py-4 mt-2 bg-secondary"
+                onPress={() =>
+                  navigation.push('ChannelMapALPFinance', {
+                    financerDataALP: data?.Table1[0],
+                    ALPpartnerCode: selectedItem.value,
+                    getALPinfo: useGetALPDetails,
+                  })
+                }
+              />
+            )}
           </View>
         ) : (
           <NoDetailsState />
@@ -122,6 +150,8 @@ const ALPInfo = () => {
 };
 
 const AGPInfo = () => {
+  const navigation = useNavigation<AppNavigationProp>();
+  const userInfo = useLoginStore(state => state.userInfo);
   const [selectedItem, setSelectedItem] = useState<AppDropdownItem | null>(null);
 
   const {data: listData, isLoading, error} = useGetAGPList();
@@ -170,6 +200,14 @@ const AGPInfo = () => {
     return <ErrorState message="Error loading AGP data. Please try again." />;
   }
 
+  const showButton =
+    [
+      ASUS.ROLE_ID.BSM,
+      ASUS.ROLE_ID.TM,
+      ASUS.ROLE_ID.SALES_REPS,
+      ASUS.ROLE_ID.BPM,
+    ].includes(userInfo.EMP_RoleId as any) ||
+    ['KN2200052', 'KN1800037', 'KN2500069'].includes(userInfo?.EMP_Code || '');
   return (
     <View className="flex-1 bg-lightBg-base px-1">
       <SearchableDropdown
@@ -178,28 +216,45 @@ const AGPInfo = () => {
         onSelect={setSelectedItem}
         onClear={() => setSelectedItem(null)}
       />
-
       {selectedItem?.value ? (
         detailsLoading ? (
           <ALPDetailsLoadingSkeleton />
         ) : detailsError ? (
           <ErrorState message="Error loading AGP details. Please try again." />
         ) : agpDetails ? (
-          <ScrollView
-            className="flex-1 pt-4"
-            showsVerticalScrollIndicator={false}>
-            <AppTabBar
-              tabs={tabs}
-              containerStyle={{marginLeft: 0, marginRight: 0}}
-              contentContainerStyle={{paddingTop: 16}}
-            />
-          </ScrollView>
+            <ScrollView
+              className="flex-1 pt-4"
+              showsVerticalScrollIndicator={false}>
+              <AppTabBar
+                tabs={tabs}
+                containerStyle={{marginLeft: 0, marginRight: 0}}
+                contentContainerStyle={{paddingTop: 16}}
+              />
+            </ScrollView>
         ) : (
           <AGPNoDetailsState />
         )
       ) : (
         <AGPEmptySelectionState />
       )}
+      {showButton && selectedItem?.value ? (
+        <View>
+        <AppButton
+          title="Add 3 Finance Map"
+          iconName="plus-circle"
+          className="rounded py-4 mt-2 bg-secondary"
+          onPress={() =>{}}
+          />
+          </View>
+      ): 
+       <AppButton
+          title="Add New Partner"
+          iconName="plus-circle"
+          size='lg'
+          className="rounded py-4 mt-2 bg-secondary"
+          onPress={() => navigation.push('ChannelMapAddAGP')}
+        />
+      }
     </View>
   );
 };
@@ -208,7 +263,6 @@ const LFRInfo = () => {
   const [selectedItem, setSelectedItem] = useState<AppDropdownItem | null>(
     null,
   );
-
   const {data: listData, isLoading, error} = useGetLFRList();
   const {
     data,
@@ -238,7 +292,7 @@ const LFRInfo = () => {
     ];
   }, [lfrDetails]);
 
-  if (isLoading) return <ListSkeleton/>;
+  if (isLoading) return <ListSkeleton />;
 
   if (error) {
     return <ErrorState message="Error loading LFR data. Please try again." />;
@@ -303,4 +357,4 @@ export default function ChannelMap() {
       />
     </AppLayout>
   );
-};
+}
