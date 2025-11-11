@@ -99,9 +99,7 @@ const useDistributorCreditSummary = () => {
       if (!result?.Status)
         throw new Error(result?.Message || 'Failed to load credit limit');
       return result?.Datainfo?.SummaryDetails || [];
-    },
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    }
   });
 };
 

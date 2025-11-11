@@ -1,61 +1,80 @@
-import { Alert } from 'react-native';
-import { ActivationData, TabConfig, TableColumn } from '../../../../types/dashboard';
+import {Alert} from 'react-native';
+import {
+  ActivationData,
+  TabConfig,
+  TableColumn,
+} from '../../../../types/dashboard';
+import moment from 'moment';
 
 // Error handling utilities for Dashboard
-export const handleApiError = (error: Error | null, componentName: string = 'Component') => {
+export const handleApiError = (
+  error: Error | null,
+  componentName: string = 'Component',
+) => {
   if (!error) return null;
-  
+
   console.error(`${componentName} Error:`, error.message);
   return {
     title: 'Something went wrong',
     message: `Unable to load ${componentName.toLowerCase()} data. Please try again.`,
-    retry: true
+    retry: true,
   };
 };
 
-export const calculatePercentage = (achieved: string | number, target: string | number): number => {
+export const calculatePercentage = (
+  achieved: string | number,
+  target: string | number,
+): number => {
   const achievedNum = Number(achieved) || 0;
   const targetNum = Number(target) || 0;
-  
+
   if (targetNum === 0) return 0;
   return Math.round((achievedNum / targetNum) * 100);
 };
 
-export const getPerformanceColor = (percentage: number): {
+export const getPerformanceColor = (
+  percentage: number,
+): {
   bgColor: string;
   textColor: 'success' | 'warning' | 'error';
 } => {
   if (percentage >= 90) {
-    return { bgColor: 'bg-green-100', textColor: 'success' };
+    return {bgColor: 'bg-green-100', textColor: 'success'};
   } else if (percentage >= 70) {
-    return { bgColor: 'bg-orange-100', textColor: 'warning' };
+    return {bgColor: 'bg-orange-100', textColor: 'warning'};
   } else {
-    return { bgColor: 'bg-red-100', textColor: 'error' };
+    return {bgColor: 'bg-red-100', textColor: 'error'};
   }
 };
 
-export const formatDisplayValue = (value: string | number | undefined): string => {
+export const formatDisplayValue = (
+  value: string | number | undefined,
+): string => {
   if (value === undefined || value === null || value === '') return '0';
   const numValue = Number(value);
   if (isNaN(numValue)) return String(value);
   return numValue.toLocaleString('en-IN');
 };
 
-export const showErrorAlert = (title: string, message: string, onRetry?: () => void) => {
-  Alert.alert(
-    title,
-    message,
-    [
-      {
-        text: 'Cancel',
-        style: 'cancel',
-      },
-      ...(onRetry ? [{
-        text: 'Retry',
-        onPress: onRetry,
-      }] : []),
-    ]
-  );
+export const showErrorAlert = (
+  title: string,
+  message: string,
+  onRetry?: () => void,
+) => {
+  Alert.alert(title, message, [
+    {
+      text: 'Cancel',
+      style: 'cancel',
+    },
+    ...(onRetry
+      ? [
+          {
+            text: 'Retry',
+            onPress: onRetry,
+          },
+        ]
+      : []),
+  ]);
 };
 
 const NAME_COLUMN: TableColumn[] = [
@@ -212,7 +231,14 @@ export const getCurrentTabConfig = (tabId: string): TabConfig => {
 // ---------------------------------------------
 // Activation Performance Utilities (hoisted)
 // ---------------------------------------------
-export const DEFAULT_ACTIVATION_TABS = ['Branch', 'ALP', 'Model', 'AGP', 'ASP', 'Disti'] as const;
+export const DEFAULT_ACTIVATION_TABS = [
+  'Branch',
+  'ALP',
+  'Model',
+  'AGP',
+  'ASP',
+  'Disti',
+] as const;
 
 export const TAB_LABEL_TO_ID: Record<string, string> = {
   Branch: 'branch',
@@ -238,10 +264,27 @@ export const deriveInitialActiveId = (labels: string[]): string => {
   return TAB_LABEL_TO_ID[first] || TAB_CONFIGS[0].id;
 };
 
-export const getActivationTabData = (baseData: any, tabId: string): ActivationData[] => {
+export const getActivationTabData = (
+  baseData: any,
+  tabId: string,
+): ActivationData[] => {
   if (!baseData) return [];
   const key = ACTIVATION_ID_TO_DATA_KEY[tabId];
   // Fallback if mapping missing
   if (!key) return [];
   return (baseData as any)[key] || [];
+};
+
+export const getQuarterDateRange = (input:string) => {
+  const year = Number(input.slice(0, 4));
+  const quarter = Number(input.slice(4));
+
+  const quarterStart = moment().year(year).quarter(quarter).startOf('quarter');
+  const quarterEnd = moment().year(year).quarter(quarter).endOf('quarter');
+  const today = moment();
+
+  return {
+    startDate: quarterStart.format('YYYY-MM-DD'),
+    endDate: moment.min(quarterEnd, today).format('YYYY-MM-DD'),
+  };
 };

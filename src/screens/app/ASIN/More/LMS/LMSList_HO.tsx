@@ -210,8 +210,8 @@ export default function LMSList_HO() {
             style={{height: 36}}
           />
         </View>
-                        {/* <SummarySection total={TotalCount} branches={BranchWiseDetails} /> */}
-                        {/* <BranchExplorer rawData={BranchWiseDetails} /> */}
+                        <SummarySection total={TotalCount} branches={BranchWiseDetails} />
+                        <BranchExplorer rawData={BranchWiseDetails} />
       </View>
     </AppLayout>
   );

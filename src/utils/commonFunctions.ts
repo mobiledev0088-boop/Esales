@@ -3,6 +3,7 @@ import CryptoJS from 'react-native-crypto-js';
 import Toast from 'react-native-simple-toast';
 import RNFS from 'react-native-fs';
 import React, { useEffect, useRef } from 'react';
+import ReactNativeBlobUtil  from 'react-native-blob-util';
 
 export const convertToASINUnits = (
   amount: number,
@@ -74,6 +75,12 @@ export const getPastQuarters = (count: number = 5, isForward?: boolean): {label:
   return quarters 
 };
 
+export const getDaysBetween = (start: string, end: string): number => {
+  const startDate = moment(start);
+  const endDate = moment(end);
+  return endDate.diff(startDate, 'days');
+};
+
 // Ensure folder exists
 export const ensureFolderExists = async (path: string) => {
   if (!(await RNFS.exists(path))) {
@@ -133,4 +140,31 @@ export const convertSnakeCaseToSentence = (text: string): string => {
     .trim() // Remove leading/trailing spaces
     .toLowerCase() // Ensure all lowercase before capitalizing
     .replace(/\b\w/g, char => char.toUpperCase()); // Capitalize first letter of each word
+};
+
+export const convertImageToBase64 = async (imageUri: string, needPrefix=false): Promise<string> => {
+  try {
+    if(!imageUri || imageUri.length === 0) return '';
+    
+    // Normalize URI
+    let normalizedUri = imageUri;
+    if (imageUri.startsWith('file://')) {
+      normalizedUri = imageUri.replace('file://', '');
+    }
+
+    // Read file as base64
+    const base64String = await ReactNativeBlobUtil.fs.readFile(
+      normalizedUri,
+      'base64',
+    );
+
+    if (!needPrefix) {
+      return base64String;
+    }
+    // Return with data URI prefix
+    return `data:image/jpeg;base64,${base64String}`;
+  } catch (error) {
+    console.error('Error converting image to base64:', error);
+    throw new Error('Failed to convert image to base64');
+  }
 };

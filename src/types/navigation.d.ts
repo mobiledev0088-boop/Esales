@@ -12,6 +12,8 @@ type AppNavigationParamList = {
   // Dashboard Screen
   Home: undefined;
   ScanSN: undefined;
+  // Demo Screen
+  DemoPartners: {partners: Array<any>; yearQtr: string};
   // Claim Screen
   ClaimInfo: {
     SchemeCategory: string;
@@ -24,16 +26,16 @@ type AppNavigationParamList = {
   ClaimApplicationDetails: {
     Product_Line: string;
     Status_data: string;
-    Scheme_Month:string,
-    SchemeCategory:string,
-    PartnerType:string,
-    MonthAPI:string,
-    Distributor:string,
-    ApplicationNo:string,
-    Claim_Code:string,
-    caseId:string,
-    Amount_Props:string,
-    ClaimStatus:string
+    Scheme_Month: string;
+    SchemeCategory: string;
+    PartnerType: string;
+    MonthAPI: string;
+    Distributor: string;
+    ApplicationNo: string;
+    Claim_Code: string;
+    caseId: string;
+    Amount_Props: string;
+    ClaimStatus: string;
   };
   ClaimInfoPartner: {
     Product_Line: string;
@@ -50,6 +52,7 @@ type AppNavigationParamList = {
   EDMInfo: undefined;
   ProductInfo: undefined;
   ProductDescription: {product: any};
+  ProductComparison: {product1: any; product2: any};
   SpotLightVideos: undefined;
   CreditLimit: undefined;
   PartnersCreditLimit: {distributorId: string};
@@ -60,21 +63,44 @@ type AppNavigationParamList = {
   ChannelMapALPFinance: {
     financerDataALP?: any;
     ALPpartnerCode: string;
-    getALPinfo: (code: string,isRefetch:boolean) => void;
   };
   ChannelMapAddAGP: undefined;
   ChannelFriendlyClaimListHO: undefined;
+  ChannelFriendlyClaimListPartner: undefined;
+  ChannelFriendlyClaimListALP: undefined;
+  ChannelFriendlyClaimViewALP: {
+    data: any;
+    yearQTR: string;
+  };
   ChannelFriendlyPartnerClaimInfo: {
     partnerCode: string;
     yearQTR: string;
   };
-  ChannelFriendlyClaimView: {data:any};
+  ChannelFriendlyClaimView: {data: any};
+  StandPOSM: undefined;
+  AddNewStandPOSM: undefined;
+  ShopExpansion: undefined;
+  StoreDetails: {PartnerCode: string; StoreType: string};
   // Account Screen
   ChangePassword: undefined;
+  // Notifications Screens
+  Notification: undefined;
   // Feedback Screens
   Feedback: undefined;
   AddFeedback: undefined;
   FeedbackDetails: {data: FeedbackItem};
+
+  // Reports Screens
+  ActPerformanceBranchWise: {
+    masterTab: string;
+    StartDate: string;
+    EndDate: string;
+    Product_Category: string;
+    Territory?: string;
+  };
+  DistiTargetSummaryPOD: undefined;
+  // Other Screens
+  Banners: {Banner_Group_SeqNum: string};
 };
 
 export type AuthNavigationProp = NativeStackNavigationProp<AuthStackParamList>;
@@ -97,10 +123,10 @@ type DrawerStackParamList = {
 
 export type DrawerNavigationProp = DNP<DrawerStackParamList>;
 
-
 export interface APIResponse<T> {
   DashboardData: {
     Status: boolean;
     Datainfo: T;
+    Message?: string;
   };
 }

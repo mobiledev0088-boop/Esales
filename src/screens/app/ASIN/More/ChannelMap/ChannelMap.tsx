@@ -133,7 +133,6 @@ const ALPInfo = () => {
                   navigation.push('ChannelMapALPFinance', {
                     financerDataALP: data?.Table1[0],
                     ALPpartnerCode: selectedItem.value,
-                    getALPinfo: useGetALPDetails,
                   })
                 }
               />

@@ -43,6 +43,7 @@ export const useDashboardBanner = () => {
       // Use optional chaining and provide fallback
       return (
         result.Datainfo?.BannerInfo?.map((item: any) => ({
+          BannerURL_Link: item.BannerURL_Link,
           image: item.Banner_Link,
           Group_Sequence_No: item.Group_Sequence_No,
         })) || []

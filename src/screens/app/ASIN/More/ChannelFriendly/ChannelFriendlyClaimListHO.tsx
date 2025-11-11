@@ -591,7 +591,7 @@ export default function ChannelFriendlyClaimListHO() {
   }, []);
 
   const handlePartnerPress = useCallback((item: ChannelFriendlyDataItem) => {
-    navigation.navigate('ChannelFriendlyPartnerClaimInfo', {
+    navigation.push('ChannelFriendlyPartnerClaimInfo', {
       partnerCode: item.Partner_Code,
       yearQTR: selectedQuarter?.value,
     });

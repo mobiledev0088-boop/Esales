@@ -1,7 +1,7 @@
 import {useEffect, useState, useMemo, useCallback, memo} from 'react';
 import {View} from 'react-native';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
-import {useMutation} from '@tanstack/react-query';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
 import {getDeviceId} from 'react-native-device-info';
 import AppLayout from '../../../../../components/layout/AppLayout';
 import AppInput from '../../../../../components/customs/AppInput';
@@ -283,7 +283,7 @@ const FinancerFirstTimeInput: React.FC<{
 FinancerFirstTimeInput.displayName = 'FinancerFirstTimeInput';
 
 const FinancerExistingInput: React.FC<{
-  formKey: FormKeys;
+  formValue: string;
   label: string;
   statusText: string;
   backgroundColor: FieldStatus;
@@ -294,7 +294,7 @@ const FinancerExistingInput: React.FC<{
   onChangeReType: (text: string) => void;
 }> = memo(
   ({
-    formKey,
+    formValue,
     label,
     statusText,
     backgroundColor,
@@ -306,11 +306,12 @@ const FinancerExistingInput: React.FC<{
   }) => (
     <View>
       <AppInput
-        value={statusText}
+        value={`${formValue}${statusText}`}
         size="sm"
         label={label}
         setValue={() => {}}
         placeholder="Type Dealer Code"
+        inputClassName='ml-3'
         inputWapperStyle={{backgroundColor}}
         isOptional
         readOnly={!isEditable}
@@ -369,7 +370,7 @@ const FinancerFieldRenderer: React.FC<{
         />
       ) : (
         <FinancerExistingInput
-          formKey={formKey}
+          formValue={formValue}
           label={config.label}
           statusText={statusText}
           backgroundColor={backgroundColor}
@@ -388,8 +389,9 @@ export default function ChannelMapALPFinance() {
   // ========== navigation & Route & Store ==========
   const navigation = useNavigation<AppNavigationProp>();
   const {params} = useRoute<RouteProp<AppNavigationParamList, 'ChannelMapALPFinance'>>();
-  const {financerDataALP, ALPpartnerCode, getALPinfo} = params;
+  const {financerDataALP, ALPpartnerCode} = params;
   const userInfo = useLoginStore(state => state.userInfo);
+  const queryClient = useQueryClient();
 
   // ========== State ==========
   const [isFirstTime, setIsFirstTime] = useState(true);
@@ -424,7 +426,10 @@ export default function ChannelMapALPFinance() {
     },
     onSuccess: () => {
       showToast('Dealer codes submitted successfully!');
-      getALPinfo(ALPpartnerCode,true);
+      // Invalidate the ALP details query to refetch fresh data
+      queryClient.invalidateQueries({
+        queryKey: ['ALPDetails', userInfo?.EMP_Code, userInfo?.EMP_RoleId, ALPpartnerCode],
+      });
       navigation.goBack();
     },
     onError: (error: Error) => {

@@ -124,9 +124,9 @@ const AddFeedback: React.FC = () => {
     
     return (
       <View className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
-        <Text className="text-red-700 dark:text-red-400 text-sm">
+        <AppText className="text-red-700 dark:text-red-400 text-sm">
           {error instanceof Error ? error.message : 'Failed to load feedback form data'}
-        </Text>
+        </AppText>
       </View>
     );
   }, [isError, error]);

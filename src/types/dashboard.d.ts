@@ -88,6 +88,8 @@ export interface TargetVsAchievementProps {
   isLoading: boolean;
   error?: Error | null;
   onRetry?: () => void;
+  tabName: string;
+  quarter: string;
 }
 
 export interface ActivationPerformanceProps {
@@ -97,6 +99,7 @@ export interface ActivationPerformanceProps {
   onRetry?: () => void;
   name: string;
   tabs?: string[];
+  noTitle?: boolean;
 }
 
 export interface ASEDataProps {

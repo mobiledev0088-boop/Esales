@@ -121,7 +121,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
     return (
       <View className="flex-1 items-center justify-center bg-black p-5">
         <ActivityIndicator size="large" color="#007AFF" />
-        <Text className="text-white mt-3">Checking camera permissions...</Text>
+        <AppText className="text-white mt-3">Checking camera permissions...</AppText>
       </View>
     );
   }
@@ -129,13 +129,13 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
   if (!hasPermission) {
     return (
       <View className="flex-1 items-center justify-center bg-black px-5">
-        <Text className="text-white text-center mb-4">
+        <AppText className="text-white text-center mb-4">
           Camera access is required to scan codes.
-        </Text>
+        </AppText>
         <TouchableOpacity
           className="bg-blue-500 px-5 py-3 rounded-lg"
           onPress={() => openSettings()}>
-          <Text className="text-white text-base">Open Settings</Text>
+          <AppText className="text-white text-base">Open Settings</AppText>
         </TouchableOpacity>
       </View>
     );

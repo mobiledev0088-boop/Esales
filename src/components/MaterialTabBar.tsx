@@ -17,6 +17,8 @@ import {
   Dimensions,
   ViewStyle,
   TextStyle,
+  ScrollView,
+  LayoutChangeEvent,
 } from 'react-native';
 import React, { 
   useEffect, 
@@ -24,6 +26,7 @@ import React, {
   useMemo, 
   useCallback, 
   memo,
+  useState,
 } from 'react';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import AppText from './customs/AppText';
@@ -94,8 +97,8 @@ const CustomTabBar = memo(({
   navigation,
   theme = {},
   animation = {},
-  tabSpacing = 32,
-  tabPadding = 3,
+  tabSpacing = 16,
+  tabPadding = 10,
   showShadow = true,
   shadowIntensity = 2,
   onTabPress,
@@ -104,9 +107,11 @@ const CustomTabBar = memo(({
   labelStyle,
   activeTabStyle,
   activeLabelStyle,
-  equalWidth = true,
-  minTabWidth,
+  equalWidth = false, // Changed default to false for dynamic width
+  minTabWidth = 80, // Default minimum width
   maxTabWidth,
+  scrollEnabled = true, // Enable scrolling by default
+  bounces = true,
   pressAnimationEnabled = true,
   tabs = [],
 }: any) => {
@@ -116,17 +121,54 @@ const CustomTabBar = memo(({
   const appTheme = useThemeStore(state => state.AppTheme);
   const isDark = appTheme === 'dark';
   const animatedValue = useRef(new Animated.Value(0)).current;
+  const scrollViewRef = useRef<ScrollView>(null);
   const screenWidth = Dimensions.get('window').width;
   
-  const tabWidth = useMemo(() => {
+  // State to store measured widths for each tab
+  const [tabWidths, setTabWidths] = useState<number[]>([]);
+  const [tabPositions, setTabPositions] = useState<number[]>([]);
+  const measurementsRef = useRef<{ [key: number]: number }>({});
+  
+  // Calculate tab width based on mode (equal or dynamic)
+  const getTabWidth = useCallback((index: number) => {
     if (equalWidth) {
-      const calculatedWidth = (screenWidth - tabSpacing) / state.routes.length;
-      if (maxTabWidth && calculatedWidth > maxTabWidth) return maxTabWidth;
-      if (minTabWidth && calculatedWidth < minTabWidth) return minTabWidth;
-      return calculatedWidth;
+      // Equal width mode: calculate based on screen width
+      const availableWidth = screenWidth - tabSpacing * 2 - tabPadding * 2;
+      const calculatedWidth = availableWidth / state.routes.length;
+      
+      let finalWidth = calculatedWidth;
+      if (maxTabWidth && calculatedWidth > maxTabWidth) finalWidth = maxTabWidth;
+      if (minTabWidth && calculatedWidth < minTabWidth) finalWidth = minTabWidth;
+      
+      return finalWidth;
+    } else {
+      // Dynamic width mode: use measured widths or fallback to minTabWidth
+      return tabWidths[index] || minTabWidth;
     }
-    return minTabWidth || 120;
-  }, [screenWidth, state.routes.length, tabSpacing, equalWidth, minTabWidth, maxTabWidth]);
+  }, [equalWidth, screenWidth, state.routes.length, tabSpacing, tabPadding, maxTabWidth, minTabWidth, tabWidths]);
+
+  // Handle tab layout measurement for dynamic widths
+  const handleTabLayout = useCallback((event: LayoutChangeEvent, index: number) => {
+    if (!equalWidth) {
+      const { width } = event.nativeEvent.layout;
+      measurementsRef.current[index] = Math.max(width, minTabWidth);
+      
+      // Update state when all tabs are measured
+      if (Object.keys(measurementsRef.current).length === state.routes.length) {
+        const widths = Object.values(measurementsRef.current);
+        const positions: number[] = [];
+        let currentPos = tabPadding + 6; // Initial padding + indicator offset
+        
+        widths.forEach((width, idx) => {
+          positions[idx] = currentPos;
+          currentPos += width + 8; // Add spacing between tabs
+        });
+        
+        setTabWidths(widths);
+        setTabPositions(positions);
+      }
+    }
+  }, [equalWidth, minTabWidth, state.routes.length, tabPadding]);
 
   const animationConfig = useMemo(() => ({
     type: 'spring',
@@ -167,14 +209,53 @@ const CustomTabBar = memo(({
     }
   }, [state.index, animationConfig]);
 
+  // Scroll to active tab when it changes
+  useEffect(() => {
+    if (scrollViewRef.current && scrollEnabled && tabPositions.length > 0) {
+      const activeTabPosition = tabPositions[state.index];
+      const activeTabWidth = getTabWidth(state.index);
+      const centerOffset = screenWidth / 2 - activeTabWidth / 2;
+      const scrollToX = Math.max(0, activeTabPosition - centerOffset);
+      
+      scrollViewRef.current.scrollTo({
+        x: scrollToX,
+        animated: true,
+      });
+    }
+  }, [state.index, scrollEnabled, tabPositions, screenWidth, getTabWidth]);
+
+  // Calculate translateX for the indicator
   const translateX = useMemo(() => {
+    // Need at least 2 routes for proper interpolation
+    if (state.routes.length < 2) {
+      return 6; // Return static value for single tab
+    }
+
+    if (equalWidth) {
+      // Equal width mode: simple calculation
+      const singleTabWidth = getTabWidth(0);
+      return animatedValue.interpolate({
+        inputRange: state.routes.map((_: any, index: number) => index),
+        outputRange: state.routes.map((_: any, index: number) => 
+          6 + index * (singleTabWidth + 8)
+        ),
+      });
+    } else {
+      // Dynamic width mode: use measured positions
+      if (tabPositions.length >= state.routes.length) {
+        return animatedValue.interpolate({
+          inputRange: state.routes.map((_: any, index: number) => index),
+          outputRange: tabPositions,
+        });
+      }
+    }
+    
+    // Fallback: create a simple two-point interpolation
     return animatedValue.interpolate({
-      inputRange: state.routes.map((_: any, index: number) => index),
-      outputRange: state.routes.map((_: any, index: number) => 
-        6 + index * tabWidth
-      ),
+      inputRange: [0, 1],
+      outputRange: [6, 6 + minTabWidth + 8],
     });
-  }, [animatedValue, state.routes, tabWidth]);
+  }, [animatedValue, state.routes, equalWidth, tabPositions, getTabWidth, minTabWidth]);
 
   const handleTabPress = useCallback((route: any, index: number) => {
     const isFocused = state.index === index;
@@ -199,98 +280,116 @@ const CustomTabBar = memo(({
 
   return (
     <View
-      // NativeWind classes for light / dark backgrounds
-      className={`flex-row px-2 mx-3 my-2 rounded-md ${isDark ? '' : ''}`}
+      className={`mx-3 my-2 rounded-md ${isDark ? '' : ''}`}
       style={[
         {
           backgroundColor: themeConfig.backgroundColor,
-          paddingVertical: tabPadding,
           borderRadius: themeConfig.borderRadius,
         },
         showShadow && getShadowStyle(shadowIntensity),
         tabStyle,
       ]}>
-      
-      {/* Animated Indicator */}
-      <Animated.View
-        // Using style due to animated values; tailwind cannot handle animated dynamic translate
-        style={[
-          styles.activeIndicator,
-          {
-            transform: [{ translateX }],
-            width: tabWidth - 2,
-            backgroundColor: themeConfig.activeIndicatorColor,
-            shadowColor: themeConfig.shadowColor,
-          },
-        ]}
-      />
-      
-      {/* Tab Buttons */}
-      {state.routes.map((route: any, index: number) => {
-        const { options } = descriptors[route.key];
-        const label = options.tabBarLabel || route.name;
-        const isFocused = state.index === index;
-        const currentTab = tabs.find((tab: TabItem) => tab.name === route.name);
-        const disabled = currentTab?.disabled;
-        const badge = currentTab?.badge;
-        const icon = currentTab?.icon;
+      <ScrollView
+        ref={scrollViewRef}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        scrollEnabled={scrollEnabled}
+        bounces={bounces}
+        contentContainerStyle={{
+          paddingHorizontal: tabPadding + 4,
+          paddingVertical: tabPadding,
+          minWidth: equalWidth ? screenWidth - tabSpacing * 2 : undefined,
+        }}
+        style={{ flexGrow: 0 }}>
+        
+        {/* Animated Indicator */}
+        <Animated.View
+          style={[
+            styles.activeIndicator,
+            {
+              transform: [{ translateX }],
+              width: getTabWidth(state.index) - 4,
+              backgroundColor: themeConfig.activeIndicatorColor,
+              shadowColor: themeConfig.shadowColor,
+            },
+          ]}
+        />
+        
+        {/* Tab Buttons */}
+        {state.routes.map((route: any, index: number) => {
+          const { options } = descriptors[route.key];
+          const label = options.tabBarLabel || route.name;
+          const isFocused = state.index === index;
+          const currentTab = tabs.find((tab: TabItem) => tab.name === route.name);
+          const disabled = currentTab?.disabled;
+          const badge = currentTab?.badge;
+          const icon = currentTab?.icon;
 
-        return (
-          <TouchableOpacity
-            key={route.key}
-            accessibilityRole="button"
-            accessibilityState={isFocused ? { selected: true } : {}}
-            onPress={() => handleTabPress(route, index)}
-            disabled={disabled}
-            className={`justify-center items-center py-1.5 rounded-xl h-8 relative ${isFocused ? '' : ''}`}
-            style={[
-              { width: tabWidth },
-              isFocused && activeTabStyle,
-              disabled && styles.disabledTab,
-            ]}
-            activeOpacity={pressAnimationEnabled ? 0.8 : 1}>
-            
-            {/* Tab Content */}
-            <View className="flex-row items-center">
-              {icon && (
-                <View className="mr-1">
-                  {icon}
-                </View>
-              )}
+          return (
+            <TouchableOpacity
+              key={route.key}
+              accessibilityRole="button"
+              accessibilityState={isFocused ? { selected: true } : {}}
+              onPress={() => handleTabPress(route, index)}
+              onLayout={(event) => handleTabLayout(event, index)}
+              disabled={disabled}
+              className={`justify-center items-center py-1.5 rounded-xl h-8 relative ${isFocused ? '' : ''}`}
+              style={[
+                equalWidth 
+                  ? { width: getTabWidth(index) }
+                  : { 
+                      minWidth: minTabWidth,
+                      paddingHorizontal: 16,
+                      marginRight: index < state.routes.length - 1 ? 8 : 0,
+                    },
+                isFocused && activeTabStyle,
+                disabled && styles.disabledTab,
+              ]}
+              activeOpacity={pressAnimationEnabled ? 0.8 : 1}>
               
-              <AppText
-                size="xs"
-                weight="semibold"
-                className={`text-center tracking-wider ${isFocused ? '' : ''}`}
-                style={[
-                  {
-                    color: isFocused 
-                      ? themeConfig.activeTintColor 
-                      : themeConfig.inactiveTintColor,
-                  },
-                  labelStyle,
-                  isFocused && activeLabelStyle,
-                  disabled && styles.disabledText,
-                ]}>
-                {label}
-              </AppText>
-            </View>
-
-            {/* Badge */}
-            {badge && (
-              <View className="absolute -top-1 -right-1">
-                {renderBadge ? renderBadge(badge) : (
-                  <View className="bg-red-500 rounded-full min-w-[16px] h-4 items-center justify-center px-1">
-                    <AppText size="xs" color="white" weight="bold">
-                      {badge}
-                    </AppText>
+              {/* Tab Content */}
+              <View className="flex-row items-center">
+                {icon && (
+                  <View className="mr-1">
+                    {icon}
                   </View>
                 )}
+                
+                <AppText
+                  size="xs"
+                  weight="semibold"
+                  numberOfLines={1}
+                  className={`text-center tracking-wider ${isFocused ? '' : ''}`}
+                  style={[
+                    {
+                      color: isFocused 
+                        ? themeConfig.activeTintColor 
+                        : themeConfig.inactiveTintColor,
+                    },
+                    labelStyle,
+                    isFocused && activeLabelStyle,
+                    disabled && styles.disabledText,
+                  ]}>
+                  {label}
+                </AppText>
               </View>
-            )}
-          </TouchableOpacity>
-        );
-      })}
+
+              {/* Badge */}
+              {badge && (
+                <View className="absolute -top-1 -right-1">
+                  {renderBadge ? renderBadge(badge) : (
+                    <View className="bg-red-500 rounded-full min-w-[16px] h-4 items-center justify-center px-1">
+                      <AppText size="xs" color="white" weight="bold">
+                        {badge}
+                      </AppText>
+                    </View>
+                  )}
+                </View>
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
     </View>
   );
 });
@@ -305,18 +404,20 @@ const MaterialTabBar: React.FC<AppTabBarsProps> = ({
   labelStyle,
   activeTabStyle,
   activeLabelStyle,
-  theme, // still allow overrides; base colors come from zustand
+  theme,
   animation,
-  tabSpacing = 32,
-  tabPadding = 3,
+  tabSpacing = 16,
+  tabPadding = 10,
   showShadow = true,
   shadowIntensity = 2,
   onTabPress,
   renderBadge,
   tabBarPosition = 'top',
-  equalWidth = true,
-  minTabWidth,
+  equalWidth = false,
+  minTabWidth = 80,
   maxTabWidth,
+  scrollEnabled = true,
+  bounces = true,
   pressAnimationEnabled = true,
 }) => {
   // Validate tabs
@@ -365,6 +466,8 @@ const MaterialTabBar: React.FC<AppTabBarsProps> = ({
             equalWidth={equalWidth}
             minTabWidth={minTabWidth}
             maxTabWidth={maxTabWidth}
+            scrollEnabled={scrollEnabled}
+            bounces={bounces}
             pressAnimationEnabled={pressAnimationEnabled}
             tabs={validTabs}
           />

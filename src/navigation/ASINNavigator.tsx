@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import Index from "../screens/app/ASIN";
 import ChangePassword from "../screens/app/ASIN/User/ChangePassword/ChangePassword";
 import ProductInfo from "../screens/app/ASIN/More/ProductInfo/ProductInfo";
+import ProductComparison from "../screens/app/ASIN/More/ProductInfo/ProductComparison";
 import EDMInfo from "../screens/app/ASIN/More/EDMInfo/EDMInfo";
 import Feedback from "../screens/app/ASIN/Feedback/Feedback";
 import AddFeedback from "../screens/app/ASIN/Feedback/AddFeedback";
@@ -25,6 +26,18 @@ import ChannelMapAddAGP from "../screens/app/ASIN/More/ChannelMap/ChanelMapAGP/C
 import ChannelFriendlyClaimListHO from "../screens/app/ASIN/More/ChannelFriendly/ChannelFriendlyClaimListHO";
 import ChannelFriendlyPartnerClaimInfo from "../screens/app/ASIN/More/ChannelFriendly/ChannelFriendlyPartnerClaimInfo";
 import ChannelFriendlyClaimView from "../screens/app/ASIN/More/ChannelFriendly/ChannelFriendlyClaimView";
+import ChannelFriendlyClaimListALP from "../screens/app/ASIN/More/ChannelFriendly/ChannelFriendlyClaimListALP";
+import ChannelFriendlyClaimViewALP from "../screens/app/ASIN/More/ChannelFriendly/ChannelFriendlyClaimViewALP";
+import Notification from "../screens/app/ASIN/Notification/Notification";
+import ChannelFriendlyClaimListPartner from "../screens/app/ASIN/More/ChannelFriendly/ChannelFriendlyClaimListPartner";
+import StandPOSM from "../screens/app/ASIN/More/StandPOSM/StandPOSM";
+import Banners from "../screens/app/ASIN/Others/Banners";
+import AddNewStandPOSM from "../screens/app/ASIN/More/StandPOSM/AddNewStandPOSM";
+import ActPerformanceBranchWise from "../screens/app/ASIN/Reports/ActPerformanceBranchWise";
+import DistiTargetSummaryPOD from "../screens/app/ASIN/Reports/DistiTargetSummaryPOD";
+import DemoPartners from "../screens/app/ASIN/Demo/DemoPartners";
+import ShopExpansion from "../screens/app/ASIN/More/ShopExpansion/ShopExpansion";
+import StoreDetails from "../screens/app/ASIN/More/ShopExpansion/StoreDetails";
 
 type Screen = {
     name: string;
@@ -39,6 +52,8 @@ const screens: Screen[] = [
     { name: "ChangePassword", component:  ChangePassword},
     // Dashboard Screens
     { name: "ScanSN", component: ScanSN },
+    // Demo Screens
+    { name: "DemoPartners", component: DemoPartners },
     // Claim Screens
     { name: "ClaimInfo", component: ClaimInfo },
     { name: "ClaimApplicationDetails", component: ClaimApplicationDetails },
@@ -48,6 +63,7 @@ const screens: Screen[] = [
     { name: "EDMInfo", component: EDMInfo },
     { name: "ProductInfo", component: ProductInfo },
     { name: "ProductDescription", component: ProductDescription },
+    { name: "ProductComparison", component: ProductComparison },
     { name: "SpotLightVideos", component: SpotLightVideos },
     { name: "CreditLimit", component: CreditLimit },
     { name: "PartnersCreditLimit", component: PartnersCreditLimit },
@@ -58,12 +74,27 @@ const screens: Screen[] = [
     { name: "ChannelMapALPFinance", component: ChannelMapALPFinance },
     { name: "ChannelMapAddAGP", component: ChannelMapAddAGP },
     { name: "ChannelFriendlyClaimListHO", component: ChannelFriendlyClaimListHO },
+    { name: "ChannelFriendlyClaimListPartner", component: ChannelFriendlyClaimListPartner },
+    { name: "ChannelFriendlyClaimListALP", component: ChannelFriendlyClaimListALP },
+    { name: "ChannelFriendlyClaimViewALP", component: ChannelFriendlyClaimViewALP },
     { name: "ChannelFriendlyPartnerClaimInfo", component: ChannelFriendlyPartnerClaimInfo },
     { name: "ChannelFriendlyClaimView", component: ChannelFriendlyClaimView },
+    { name: "StandPOSM", component: StandPOSM },
+    { name: "AddNewStandPOSM", component: AddNewStandPOSM },
+    { name: "ShopExpansion", component: ShopExpansion },
+    { name: "StoreDetails", component: StoreDetails },
+
+    // Notification Screen
+    { name: "Notification", component: Notification },
     // Feedback Screens
     { name: "Feedback", component: Feedback },
     { name: "AddFeedback", component: AddFeedback },
-    { name: "FeedbackDetails", component: FeedbackDetails }
+    { name: "FeedbackDetails", component: FeedbackDetails },
+    //Reposts Screens
+    { name: "ActPerformanceBranchWise", component: ActPerformanceBranchWise },
+    { name: "DistiTargetSummaryPOD", component: DistiTargetSummaryPOD },
+    //Other screens 
+    { name: "Banners", component: Banners }
 ]
 
 export const ASINNavigator = () => (

@@ -199,14 +199,6 @@ const ImageCard: React.FC<ImageCardProps> = memo(({title, imageUrl, icon}) => {
   const {AppTheme} = useThemeStore();
   const theme = AppColors[AppTheme || 'light'];
 
-  const handleImagePress = useCallback(() => {
-    if (imageUrl) {
-      Linking.openURL(imageUrl).catch(() => {
-        Alert.alert('Error', 'Unable to open image');
-      });
-    }
-  }, [imageUrl]);
-
   if (!imageUrl) {
     return (
       <View style={{width: '48%', marginBottom: 12}}>

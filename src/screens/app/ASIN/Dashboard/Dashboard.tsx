@@ -4,7 +4,9 @@ import {View, TouchableOpacity, ScrollView, RefreshControl} from 'react-native';
 import {MaterialTopTabScreenProps} from '@react-navigation/material-top-tabs';
 
 import AppText from '../../../../components/customs/AppText';
-import AppDropdown, {AppDropdownItem} from '../../../../components/customs/AppDropdown';
+import AppDropdown, {
+  AppDropdownItem,
+} from '../../../../components/customs/AppDropdown';
 import AppIcon from '../../../../components/customs/AppIcon';
 import {CircularProgressBar} from '../../../../components/customs/AppChart';
 import Card from '../../../../components/Card';
@@ -49,9 +51,14 @@ import {
   calculatePercentage,
   getPerformanceColor,
   formatDisplayValue,
+  getQuarterDateRange,
 } from './dashboardUtils';
 import {useLoginStore} from '../../../../stores/useLoginStore';
 import clsx from 'clsx';
+import {useNavigation} from '@react-navigation/native';
+import {AppNavigationProp} from '../../../../types/navigation';
+import moment from 'moment';
+import useEmpStore from '../../../../stores/useEmpStore';
 
 // Static fallback tabs to prevent recreation
 const STATIC_DASHBOARD_TABS = [
@@ -144,8 +151,12 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
   isLoading,
   error,
   onRetry,
+  tabName,
+  quarter,
 }) => {
   const userInfo = useLoginStore(state => state.userInfo);
+  const empInfo = useEmpStore(state => state.empInfo);
+  const navigation = useNavigation<AppNavigationProp>();
   const getProductConfig = useCallback(
     (category: string): {icon: string; color: string} => {
       const configs: Record<string, {icon: string; color: string}> = {
@@ -166,7 +177,7 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
   );
 
   const handleDistributorWisePress = useCallback(() => {
-    console.log('Distributor Wise pressed');
+    navigation.push('DistiTargetSummaryPOD')
   }, []);
 
   const handleSeeMorePress = useCallback(() => {
@@ -174,53 +185,63 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
   }, []);
 
   const renderProductCard = useCallback(
-    (item: ProductCategoryData, index: number, animationDelay: number = 0) => {
+    (
+      item: ProductCategoryData,
+      index: number,
+      animationDelay: number = 0,
+      onPress?: (item: ProductCategoryData) => void,
+    ) => {
       const config = getProductConfig(item.Product_Category);
-
       return (
-        <Card
-          className="w-40 p-4 rounded-md"
-          watermark
-          key={`${item.Product_Category}-${index}`}>
-          <View className="items-center">
-            <View className="flex-row items-center gap-2 mb-1">
-              <AppIcon
-                name={config.icon}
-                size={18}
-                color={config.color}
-                type="material-community"
+        <TouchableOpacity
+          disabled={!onPress}
+          key={index}
+          activeOpacity={0.7}
+          onPress={() => onPress?.(item)}>
+          <Card
+            className="min-w-40 rounded-md"
+            watermark
+            key={`${item.Product_Category}-${index}`}>
+            <View className="items-center">
+              <View className="flex-row items-center gap-2 mb-1">
+                <AppIcon
+                  name={config.icon}
+                  size={18}
+                  color={config.color}
+                  type="material-community"
+                />
+                <AppText size="base" weight="bold" color="text">
+                  {item.Product_Category}
+                </AppText>
+              </View>
+              <CircularProgressBar
+                progress={item.Percent || 0}
+                progressColor={config.color}
+                size={70}
+                strokeWidth={6}
+                duration={1000 + animationDelay}
               />
-              <AppText size="base" weight="bold" color="text">
-                {item.Product_Category}
-              </AppText>
-            </View>
-            <CircularProgressBar
-              progress={item.Percent || 0}
-              progressColor={config.color}
-              size={70}
-              strokeWidth={6}
-              duration={1000 + animationDelay}
-            />
-            <View className="mt-3 w-full flex-row items-center justify-between ">
-               <View className="flex-1 items-start">
-                <AppText size="sm" className="text-gray-400 ">
-                  Target
-                </AppText>
-                <AppText size="sm" weight="semibold">
-                  {convertToASINUnits(item.Target_Qty,true)}
-                </AppText>
-              </View>
-              <View className="flex-1 items-end">
-                <AppText size="xs" className="text-gray-400 ">
-                  Achieved
-                </AppText>
-                <AppText size="sm" weight="semibold">
-                  {convertToASINUnits(item.Achieved_Qty,true)}
-                </AppText>
+              <View className="mt-3 flex-row items-center justify-between ">
+                <View className="flex-1 items-start">
+                  <AppText size="sm" className="text-gray-400 ">
+                    Target
+                  </AppText>
+                  <AppText size="sm" weight="semibold">
+                    {convertToASINUnits(item.Target_Qty, true)}
+                  </AppText>
+                </View>
+                <View className="flex-1 items-end">
+                  <AppText size="xs" className="text-gray-400 ">
+                    Achieved
+                  </AppText>
+                  <AppText size="sm" weight="semibold">
+                    {convertToASINUnits(item.Achieved_Qty, true)}
+                  </AppText>
+                </View>
               </View>
             </View>
-          </View>
-        </Card>
+          </Card>
+        </TouchableOpacity>
       );
     },
     [getProductConfig],
@@ -231,6 +252,7 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
     ASUS.ROLE_ID.DISTI_HO,
     ASUS.ROLE_ID.LFR_HO,
   ].includes(userInfo?.EMP_RoleId as any);
+
   const renderActionButtons = useCallback(
     () => (
       <View
@@ -286,10 +308,46 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
     return <TargetVsAchievementSkeleton />;
   }
 
+  const onPress = (item: any) => {
+    // Block access for ACCY and WEP categories
+    if (['ACCY', 'WEP'].includes(item.Product_Category)) return;
+
+    const { startDate, endDate } = getQuarterDateRange(quarter);
+
+    let dataToSend = {
+      masterTab: tabName,
+      StartDate: startDate,
+      EndDate: endDate,
+      Product_Category: item.Product_Category,
+      Territory:  '',
+    };
+
+    let validForManagers = [
+      ASUS.ROLE_ID.BSM,
+      ASUS.ROLE_ID.BPM,
+      ASUS.ROLE_ID.CHANNEL_MARKETING,
+      ASUS.ROLE_ID.RSM,
+    ] as number[];
+    
+    if (validForManagers.includes(userInfo.EMP_RoleId)) {
+      dataToSend = {
+        ...dataToSend,
+        masterTab: 'CHANNEL',
+      };
+    } else if (userInfo.EMP_RoleId == ASUS.ROLE_ID.TM) {
+      dataToSend = {
+        ...dataToSend,
+        masterTab: 'CHANNEL',
+        Territory: empInfo?.Territory_Name || '',
+      };
+    }
+    navigation.push('ActPerformanceBranchWise', dataToSend);
+  };
+
   return (
     <View className="">
       <AppText size="xl" color="gray" weight="bold" className="pl-3">
-        Target / Achievement  
+        Target / Achievement
       </AppText>
 
       {/* POD Wise Section */}
@@ -321,7 +379,7 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
       </View>
 
       {/* Sell Through Section */}
-      <View className="mt-3">
+      <View className="mt-5">
         <View className="flex-row items-center pl-3">
           <View className="rounded-full bg-orange-100 p-2">
             <AppIcon
@@ -341,7 +399,7 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
           className="mt-2"
           showsHorizontalScrollIndicator={false}>
           {data.SellThru.map((item, index) =>
-            renderProductCard(item, index, 0),
+            renderProductCard(item, index, index * 100, onPress),
           )}
         </ScrollView>
         {renderActionButtons()}
@@ -538,9 +596,9 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
       {
         name: 'ASE Total',
         label: 'ASE Total',
-        component: ASETotalTab, 
+        component: ASETotalTab,
       },
-        {
+      {
         name: 'ASE Channel',
         label: 'ASE Channel',
         component: ASEChannelTab,
@@ -767,7 +825,12 @@ const DistiSelloutQtyComponent: React.FC<{
       <View className="flex-row items-center justify-between mb-3">
         <View className="flex-row items-center">
           <View className="w-9 h-9 rounded-full bg-blue-100 items-center justify-center mr-3">
-            <AppIcon name="trending-up" type="feather" color="#2563EB" size={18} />
+            <AppIcon
+              name="trending-up"
+              type="feather"
+              color="#2563EB"
+              size={18}
+            />
           </View>
           <View>
             <AppText size="md" weight="bold" color="text">
@@ -790,14 +853,8 @@ const DistiSelloutQtyComponent: React.FC<{
 
       {/* Stacked progress bar */}
       <View className="w-full h-3 rounded-full overflow-hidden bg-gray-200 flex-row mb-4">
-        <View
-          style={{flex: withPerc}}
-          className="h-full bg-emerald-500"
-        />
-        <View
-          style={{flex: withoutPerc}}
-          className="h-full bg-orange-400"
-        />
+        <View style={{flex: withPerc}} className="h-full bg-emerald-500" />
+        <View style={{flex: withoutPerc}} className="h-full bg-orange-400" />
       </View>
 
       <View className="gap-3">
@@ -986,6 +1043,8 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
           isLoading={isLoading}
           error={dashboardError}
           onRetry={handleRetry}
+          tabName={route.name}
+          quarter={selectedQuarter?.value || ''}
         />
         <View className="px-3">
           <ActivationPerformanceComponent

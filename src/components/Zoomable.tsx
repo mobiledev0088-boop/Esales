@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle } from 'react';
+import { useImperativeHandle } from 'react';
 import { LayoutChangeEvent, ViewProps } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -8,7 +8,7 @@ import Animated, {
   withTiming,
   SharedValue,
 } from 'react-native-reanimated';
-import { runOnJS, runOnUI } from 'react-native-worklets';
+import { runOnUI } from 'react-native-worklets';
 
 type ZoomableMethods = {
   reset: (animated?: boolean) => void;
@@ -31,7 +31,6 @@ const DEFAULTS = {
   rubberBandFactor: 0.35,
 };
 
-// mark clamp as worklet-safe
 const clamp = (v: number, a: number, b: number) => {
   'worklet';
   return Math.max(a, Math.min(b, v));
@@ -59,7 +58,7 @@ const useBounds = (
   return { getLimits, halfWidth, halfHeight };
 };
 
-const Zoomable = forwardRef<ZoomableMethods, ZoomableProps>((props, ref) => {
+export default function Zoomable(props: ZoomableProps, ref: React.Ref<ZoomableMethods>) {
   const {
     children,
     minScale = DEFAULTS.minScale,
@@ -243,6 +242,4 @@ const Zoomable = forwardRef<ZoomableMethods, ZoomableProps>((props, ref) => {
       </Animated.View>
     </GestureDetector>
   );
-});
-
-export default Zoomable;
+};

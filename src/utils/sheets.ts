@@ -6,6 +6,9 @@ import { FilterActionSheet } from '../screens/app/ASIN/More/ActivatedDetails/com
 import DemoFilterSheet from '../screens/app/ASIN/Demo/DemoFilterSheet';
 import ClaimFilterSheet from '../screens/app/ASIN/Claim/ClaimFilterSheet';
 import WODFilterSheet from '../screens/app/ASIN/WOD/WODFilterSheet';
+import SchemeInfoSheet from '../components/SchemeInfoSheet';
+import ActivationFilterSheet from '../screens/app/ASIN/Reports/ActivationFilterSheet';
+import {PartnerDetailsSheet} from '../screens/app/ASIN/Demo/DemoPartners';
  
 registerSheet('MoreSheet', MoreSheet);
 registerSheet('ConfirmationSheet', ConfirmationSheet);
@@ -14,6 +17,9 @@ registerSheet('FilterActionSheet', FilterActionSheet);
 registerSheet('DemoFilterSheet', DemoFilterSheet);
 registerSheet('ClaimFilterSheet', ClaimFilterSheet);
 registerSheet('WODFilterSheet', WODFilterSheet);
+registerSheet('SchemeInfoSheet', SchemeInfoSheet);
+registerSheet('ActivationFilterSheet', ActivationFilterSheet);
+registerSheet('PartnerDetailsSheet', PartnerDetailsSheet);
  
 // We extend some of the types here to give us great intellisense
 // across the app for all registered sheets.
@@ -26,6 +32,11 @@ declare module 'react-native-actions-sheet' {
     'DemoFilterSheet': SheetDefinition;
     'ClaimFilterSheet': SheetDefinition;
     'WODFilterSheet': SheetDefinition;
+    'SchemeInfoSheet': SheetDefinition;
+    'ActivationFilterSheet': SheetDefinition;
+    'PartnerDetailsSheet': SheetDefinition<{
+      payload: {partner: any; yearQtr: string};
+    }>;
   }
 }
  

@@ -1487,6 +1487,33 @@ PODS:
     - Yoga
   - react-native-geolocation-service (5.3.1):
     - React
+  - react-native-image-crop-tools (1.6.4):
+    - React-Core
+    - TOCropViewController (= 2.5.3)
+  - react-native-image-picker (8.2.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-mmkv (3.3.3):
     - DoubleConversion
     - glog
@@ -2412,6 +2439,7 @@ PODS:
     - SDWebImage/Core (~> 5.17)
   - SocketRocket (0.7.1)
   - Toast (4.1.1)
+  - TOCropViewController (2.5.3)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2460,6 +2488,8 @@ DEPENDENCIES:
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
   - react-native-blob-util (from `../node_modules/react-native-blob-util`)
   - react-native-geolocation-service (from `../node_modules/react-native-geolocation-service`)
+  - react-native-image-crop-tools (from `../node_modules/react-native-image-crop-tools`)
+  - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-mmkv (from `../node_modules/react-native-mmkv`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
@@ -2535,6 +2565,7 @@ SPEC REPOS:
     - SDWebImageWebPCoder
     - SocketRocket
     - Toast
+    - TOCropViewController
 
 EXTERNAL SOURCES:
   boost:
@@ -2624,6 +2655,10 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-blob-util"
   react-native-geolocation-service:
     :path: "../node_modules/react-native-geolocation-service"
+  react-native-image-crop-tools:
+    :path: "../node_modules/react-native-image-crop-tools"
+  react-native-image-picker:
+    :path: "../node_modules/react-native-image-picker"
   react-native-mmkv:
     :path: "../node_modules/react-native-mmkv"
   react-native-netinfo:
@@ -2789,6 +2824,8 @@ SPEC CHECKSUMS:
   React-microtasksnativemodule: 16daaf4d4722c200c8c16947b35a56a983093c9b
   react-native-blob-util: e032f2a9d5779aa94934139a60fe5ed6c5071328
   react-native-geolocation-service: 32b2c2a3b91e70ce2a8d0c684801aaeb0a07e0ec
+  react-native-image-crop-tools: 0995d2ece9b4b6b04d298bd1dfe00b2b841507f2
+  react-native-image-picker: f6ece66f251f4a17aab08f5add7be6eb9e7f5356
   react-native-mmkv: ec96a16cd90e0d994d486c3993abf712186f7262
   react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
   react-native-pager-view: af0a410629d77bcfeec1383d9109a2c5264b8a49
@@ -2835,7 +2872,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: c50b05a3941646c4e4098344033ca4609b42be85
   RNKeychain: 48338bf1d8f5e29f84db1b605c2e107b45b83af9
   RNNotifee: 5e3b271e8ea7456a36eec994085543c9adca9168
-  RNPermissions: bc76b0cb03f371ba0a2e1cde0411263c5a09760e
+  RNPermissions: 98695200d412598033b030bcc2ff71bb1503818d
   RNReanimated: 7d28912b9349b44943a04884c457d235fac77d65
   RNScreens: eb3800639b236501d2d6487d930b35fe3db68cb0
   RNSVG: d2bcb09b6a3527f6d37f0f351bc5149c69876263
@@ -2846,8 +2883,9 @@ SPEC CHECKSUMS:
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Toast: 1f5ea13423a1e6674c4abdac5be53587ae481c4e
+  TOCropViewController: 20a14b6a7a098308bf369e7c8d700dc983a974e6
   Yoga: df4e6df930f6d93d6647c10c61d4d6fe5a694805
 
-PODFILE CHECKSUM: a0e41f91c761a2e1b6b78f7d936642a1e92eb5c8
+PODFILE CHECKSUM: c8c6faba9f765ff9da63563e05c7e91a17de098b
 
 COCOAPODS: 1.15.2

@@ -97,17 +97,16 @@ const Header = memo<HeaderProps>(
         {/* Right */}
         {isDashboard && (
           <View className="flex-row items-center">
-            <View className="relative">
+            <Pressable hitSlop={20} className="relative" onPress={()=>stackNavigation.push('Notification')}>
               <Icon name="notifications" size={25} color="#fff" />
               <View className="absolute top-0 right-0 w-3 h-3 bg-success rounded-full" />
-            </View>
-            <Pressable>
+            </Pressable>
+            <Pressable onPress={() => stackNavigation.push('ScanSN')}>
               <MCIcons
                 name="barcode-scan"
                 size={25}
                 color="#fff"
                 style={{marginLeft: 10}}
-                onPress={() => stackNavigation.push('ScanSN')}
               />
             </Pressable>
             <Icon

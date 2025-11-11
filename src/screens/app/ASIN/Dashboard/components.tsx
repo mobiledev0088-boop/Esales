@@ -9,8 +9,8 @@ import {
   ErrorDisplayProps,
   TableColumn,
 } from '../../../../types/dashboard';
-import ImageSlider, {SwiperItem} from '../../../../components/ImageSlider';
-import {TouchableOpacity, View, ScrollView} from 'react-native';
+import ImageSlider from '../../../../components/ImageSlider';
+import {TouchableOpacity, View, ScrollView, Linking} from 'react-native';
 import {
   ActivationPerformanceSkeleton,
   DashboardBannerSkeleton,
@@ -32,8 +32,10 @@ import AppDatePicker, {
 import moment from 'moment';
 import Card from '../../../../components/Card';
 import AppTabBar, {TabItem} from '../../../../components/CustomTabBar';
-import {convertToASINUnits} from '../../../../utils/commonFunctions';
+import {convertToASINUnits, getDaysBetween, showToast} from '../../../../utils/commonFunctions';
 import {CircularProgressBar} from '../../../../components/customs/AppChart';
+import {useNavigation} from '@react-navigation/native';
+import {AppNavigationProp} from '../../../../types/navigation';
 
 export const buildActivationTabItems = (
   labels: string[],
@@ -56,12 +58,6 @@ export const buildActivationTabItems = (
       ),
     } as TabItem;
   });
-};
-
-const getDaysBetween = (start: string, end: string): number => {
-  const startDate = moment(start);
-  const endDate = moment(end);
-  return endDate.diff(startDate, 'days');
 };
 
 const DateRangeCard = ({
@@ -219,8 +215,29 @@ export const BannerComponent = () => {
     error: queryError,
     refetch,
   } = useDashboardBanner();
+  const navigation = useNavigation<AppNavigationProp>();
 
-  const handleBannerPress = useCallback((item: SwiperItem) => {console.log('Banner pressed:', item)}, []);
+  const handleBannerPress = useCallback(
+    (item: any) => {
+      if (item.BannerURL_Link?.includes('Summary')) {
+        //  Move To Scheme Summary Screen
+      } else if (!item?.BannerURL_Link?.endsWith('pdf')) {
+        console.log('Opening link:', item?.BannerURL_Link);
+        Linking.canOpenURL(item?.BannerURL_Link)
+          .then(() => {
+            Linking.openURL(item?.BannerURL_Link);
+          })
+          .catch(e => {
+            showToast('Unable to open the link');
+          });
+      } else {
+        navigation.push('Banners', {
+          Banner_Group_SeqNum: item.Group_Sequence_No,
+        });
+      }
+    },
+    [navigation, Linking],
+  );
 
   if (queryError) {
     return (
@@ -241,7 +258,7 @@ export const BannerComponent = () => {
         data={banners || []}
         width={screenWidth - 20}
         height={200}
-        onPress={handleBannerPress}
+        onPress={item => handleBannerPress(item)}
         show={true}
         autoplay={true}
         autoplayTimeout={4}
@@ -255,7 +272,7 @@ export const BannerComponent = () => {
 
 export const ActivationPerformanceComponent: React.FC<
   ActivationPerformanceProps
-> = ({data, isLoading, error, onRetry, name, tabs}) => {
+> = ({data, isLoading, error, onRetry, name, tabs,noTitle=false}) => {
   const {
     mutate,
     data: activationData,
@@ -314,10 +331,9 @@ export const ActivationPerformanceComponent: React.FC<
     return <ActivationPerformanceSkeleton />;
   }
 
-
   return (
     <View className="py-3">
-      <View className="flex-row items-center justify-between mb-3">
+      {!noTitle && <View className="flex-row items-center justify-between mb-3">
         <View className="mb-3">
           <View className="flex-row items-center mb-1">
             <View className="w-8 h-8 rounded-lg bg-blue-100 items-center justify-center mr-2">
@@ -336,7 +352,7 @@ export const ActivationPerformanceComponent: React.FC<
             Top models performance snapshot (sell-out & activation mix)
           </AppText>
         </View>
-      </View>
+      </View>}
       <DateRangeCard setIsVisible={setIsVisible} dateRange={dateRange} />
       <AppDatePicker
         mode="dateRange"

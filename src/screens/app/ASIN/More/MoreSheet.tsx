@@ -7,11 +7,14 @@ import {useThemeStore} from '../../../../stores/useThemeStore';
 import {getShadowStyle} from '../../../../utils/appStyles';
 import AppIcon, {IconType} from '../../../../components/customs/AppIcon';
 import Swiper from 'react-native-swiper';
-import {screenHeight} from '../../../../utils/constant';
+import {ASUS, screenHeight} from '../../../../utils/constant';
 import {Watermark} from '../../../../components/Watermark';
 import {useLoginStore} from '../../../../stores/useLoginStore';
 import useEmpStore from '../../../../stores/useEmpStore';
-import {AppNavigationParamList,AppNavigationProp} from '../../../../types/navigation';
+import {
+  AppNavigationParamList,
+  AppNavigationProp,
+} from '../../../../types/navigation';
 import ActionSheet, {SheetManager} from 'react-native-actions-sheet';
 import {useNavigation} from '@react-navigation/native';
 
@@ -46,11 +49,18 @@ const getASINOptions = (
     });
   }
   if (hasRole(roleId, [1, 2, 3, 4, 6, 9, 10, 25, 26, 29])) {
+    let navigateTo = () =>
+      (roleId === ASUS.ROLE_ID.PARTNERS
+        ? 'ChannelFriendlyClaimListPartner'
+        : ['KN2200052', 'KN1800045', 'KN1500008', 'KN2500069'].includes(empCode)
+          ? 'ChannelFriendlyClaimListPartner'
+          : // ? 'ChannelFriendlyClaimListALP'
+            'ChannelFriendlyClaimListHO') as any;
     options.push({
       label: 'Channel Friendly',
       iconName: 'houzz',
       iconType: 'entypo',
-      navigateTo: 'ChannelFriendlyClaimListHO',
+      navigateTo: navigateTo(),
     });
     options.push({
       label: 'Activated Details',
@@ -101,18 +111,35 @@ const getASINOptions = (
       navigateTo: 'ASEIncentive',
     });
   }
-  if (hasRole(roleId, [1, 2, 3, 4, 9, 10, 25, 26])) {
+  if (
+    hasRole(roleId, [
+      ASUS.ROLE_ID.DIR_HOD_MAN,
+      ASUS.ROLE_ID.HO_EMPLOYEES,
+      ASUS.ROLE_ID.BSM,
+      ASUS.ROLE_ID.TM,
+      ASUS.ROLE_ID.COUNTRY_HEAD,
+      ASUS.ROLE_ID.SALES_REPS,
+      ASUS.ROLE_ID.BPM,
+      ASUS.ROLE_ID.RSM,
+    ])
+  ) {
     options.push({
       label: 'Shop Expansion',
       iconName: 'store-outline',
       iconType: 'material-community',
+      navigateTo: 'ShopExpansion',
     });
   }
-  if (['KN2100033', 'KN2100029', 'KN2200052', 'KN1800037'].includes(empCode)) {
+  if (
+    ['KN2100033', 'KN2100029', 'KN2200052', 'KN1800037', 'KN2500069'].includes(
+      empCode,
+    )
+  ) {
     options.push({
       label: 'Display Stand & POSM',
       iconName: 'storefront-outline',
       iconType: 'material-community',
+      navigateTo: 'StandPOSM',
     });
   }
   if ([1, 2, 9, 3, 7, 25, 26, 28].includes(roleId)) {
@@ -168,15 +195,20 @@ const MoreSheet = () => {
 
   const chunkedOptions = useMemo(() => chunkArray(options, 9), [options]);
   const handlePress = (whereTo: keyof AppNavigationParamList) => {
-    navigation.navigate(whereTo as any);
+    navigation.push(whereTo as any);
     SheetManager.hide('MoreSheet');
   };
 
   return (
     <View>
-      <ActionSheet zIndex={100} gestureEnabled indicatorStyle={{
-        // backgroundColor: '#'
-      }}>
+      <ActionSheet
+        zIndex={100}
+        gestureEnabled
+        indicatorStyle={
+          {
+            // backgroundColor: '#'
+          }
+        }>
         {/* Create Indicator */}
         {/*  */}
         <View style={{height: screenHeight / 2, zIndex: 100}}>

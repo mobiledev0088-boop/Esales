@@ -6,10 +6,12 @@ import { useCallback, useMemo, useState } from 'react';
 import { View, TextInput, TextInputProps, Pressable, ViewStyle, StyleSheet } from 'react-native';
 import { twMerge } from 'tailwind-merge';
 import { useThemeStore } from '../../stores/useThemeStore';
+import { AppTextSizeType } from '../../types/customs';
 
 
 interface CustomInputProps extends TextInputProps {
     label?: string;
+    labelSize?: AppTextSizeType;
     isOptional?: boolean;
     isPassword?: boolean;
     containerClassName?: string;
@@ -32,6 +34,7 @@ interface CustomInputProps extends TextInputProps {
 
 const AppInput: React.FC<CustomInputProps> = ({
     label,
+    labelSize = 'md',
     isOptional,
     isPassword = false,
     containerClassName = '',
@@ -109,7 +112,7 @@ const AppInput: React.FC<CustomInputProps> = ({
     return (
         <View className={twMerge('w-full', containerClassName)}>
             {label && (
-                <AppText weight="semibold" size="md" className="mb-1 text-gray-700">
+                <AppText size={labelSize} weight="semibold" className="mb-1 text-gray-700">
                     {!isOptional && <AppText className="text-red-500" weight="bold">*</AppText>} {label}
                 </AppText>
             )}
