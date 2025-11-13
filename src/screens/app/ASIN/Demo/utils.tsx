@@ -11,6 +11,16 @@ export type DemoItem = {
   PartnerType: string;
 };
 
+export interface DemoItemRetailer {
+  BranchName: string;
+  PartnerCode: string;
+  PartnerName: string;
+  PartnerType: string;
+  DemoExecuted: number;
+  TotalCompulsoryDemo: number;
+  Demo_UnitModel: string;
+}
+
 export type TransformedBranch = {
   id: string;
   state: string;
@@ -22,6 +32,7 @@ export type TransformedBranch = {
   awp_Count: number;
   pkiosk_rogkiosk: number;
   partners: DemoItem[];
+  at_80_demo?: number;
 };
 
 export type TerritoryItem = {
@@ -55,10 +66,11 @@ export type MetricProps = {
 
 export type Filters = {
   category: string | null;
-  premiumKiosk: string | null;
-  rogKiosk: string | null;
+  premiumKiosk?: string | null;
+  rogKiosk?: string | null;
   partnerType: string | null;
-  agpName: string | null;
+  agpName?: string | null;
+  compulsory?: string | null;
 };
 
 export const METRIC_COLOR: Record<MetricProps['tint'], string> = {
@@ -196,4 +208,94 @@ export const transformDemoData = (apiData: {
   });
 
   return Array.from(branchMap.values());
+};
+
+export const transformDemoDataRetailer = (apiData: DemoItemRetailer[]): TransformedBranch[] => {
+  const branchMap = new Map<
+    string,
+    {
+      id: string;
+      state: string;
+      partner_count: number;
+      at_least_single_demo: number;
+      at_80_demo: number;
+      demo_100: number;
+      rog_kiosk: number;
+      pkiosk: number;
+      awp_Count: number;
+      pkiosk_rogkiosk: number;
+      partners: Map<string, DemoItemRetailer>; // store partners in a Map to merge directly
+    }
+  >();
+
+  // Step 1: Aggregate data by branch and partner
+  for (const item of apiData) {
+    const {
+      BranchName,
+      PartnerName,
+      PartnerType,
+      PartnerCode,
+      DemoExecuted,
+      Demo_UnitModel,
+    } = item;
+
+    const branchKey = BranchName;
+    const partnerKey = `${PartnerName}-${PartnerType}-${PartnerCode}`;
+
+    // Ensure branch exists
+    if (!branchMap.has(branchKey)) {
+      branchMap.set(branchKey, {
+        id: String(branchMap.size + 1),
+        state: BranchName,
+        partner_count: 0,
+        at_least_single_demo: 0,
+        at_80_demo: 0,
+        demo_100: 0,
+        rog_kiosk: 0,
+        pkiosk: 0,
+        awp_Count: 0,
+        pkiosk_rogkiosk: 0,
+        partners: new Map(),
+      });
+    }
+    const branch = branchMap.get(branchKey)!;
+    const existingPartner = branch.partners.get(partnerKey);
+    if (existingPartner) {
+      // Merge partner details
+      existingPartner.DemoExecuted += DemoExecuted;
+
+      if (Demo_UnitModel) {
+        const existingModels = new Set(
+          existingPartner.Demo_UnitModel?.split(',') ?? [],
+        );
+        existingModels.add(Demo_UnitModel);
+        existingPartner.Demo_UnitModel = Array.from(existingModels).join(',');
+      }
+    } else {
+      // Add new partner
+      branch.partners.set(partnerKey, {...item});
+      branch.partner_count++;
+    }
+  }
+
+  // Step 2: Compute percentages & category counts
+  for (const branch of branchMap.values()) {
+    for (const partner of branch.partners.values()) {
+      const total = partner.TotalCompulsoryDemo || 0;
+      const percentage = total > 0 ? (partner.DemoExecuted / total) * 100 : 0;
+      if (percentage > 0 && percentage < 80) {
+        branch.at_least_single_demo++;
+      } else if (percentage >= 80 && percentage < 100) {
+        branch.at_80_demo++;
+      } else if (percentage >= 100) {
+        branch.demo_100++;
+      }
+    }
+  }
+
+  //Step 3: Convert nested Maps to arrays
+  return Array.from(branchMap.values()).map(branch => ({
+    ...branch,
+    partners: Array.from(branch.partners.values()) as any,
+  }));
 };

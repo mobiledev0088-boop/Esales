@@ -34,10 +34,11 @@ import StandPOSM from "../screens/app/ASIN/More/StandPOSM/StandPOSM";
 import Banners from "../screens/app/ASIN/Others/Banners";
 import AddNewStandPOSM from "../screens/app/ASIN/More/StandPOSM/AddNewStandPOSM";
 import ActPerformanceBranchWise from "../screens/app/ASIN/Reports/ActPerformanceBranchWise";
-import DistiTargetSummaryPOD from "../screens/app/ASIN/Reports/DistiTargetSummaryPOD";
+import TargetSummaryPOD from "../screens/app/ASIN/Reports/TargetSummaryPOD";
 import DemoPartners from "../screens/app/ASIN/Demo/DemoPartners";
 import ShopExpansion from "../screens/app/ASIN/More/ShopExpansion/ShopExpansion";
 import StoreDetails from "../screens/app/ASIN/More/ShopExpansion/StoreDetails";
+import VerticalASE_HO from "../screens/app/ASIN/Reports/VerticalASE_HO";
 
 type Screen = {
     name: string;
@@ -92,7 +93,8 @@ const screens: Screen[] = [
     { name: "FeedbackDetails", component: FeedbackDetails },
     //Reposts Screens
     { name: "ActPerformanceBranchWise", component: ActPerformanceBranchWise },
-    { name: "DistiTargetSummaryPOD", component: DistiTargetSummaryPOD },
+    { name: "TargetSummaryPOD", component: TargetSummaryPOD },
+    { name: "VerticalASE_HO", component: VerticalASE_HO },
     //Other screens 
     { name: "Banners", component: Banners }
 ]

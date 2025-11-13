@@ -16,7 +16,7 @@ import {
   DashboardBannerSkeleton,
   TargetAchievementSkeleton,
 } from '../../../../components/skeleton/DashboardSkeleton';
-import {screenWidth} from '../../../../utils/constant';
+import {ASUS, screenWidth} from '../../../../utils/constant';
 import AppIcon from '../../../../components/customs/AppIcon';
 import AppText from '../../../../components/customs/AppText';
 import {
@@ -24,6 +24,7 @@ import {
   deriveInitialActiveId,
   getActivationTabData,
   getCurrentTabConfig,
+  getQuarterDateRange,
   TAB_LABEL_TO_ID,
 } from './dashboardUtils';
 import AppDatePicker, {
@@ -36,6 +37,7 @@ import {convertToASINUnits, getDaysBetween, showToast} from '../../../../utils/c
 import {CircularProgressBar} from '../../../../components/customs/AppChart';
 import {useNavigation} from '@react-navigation/native';
 import {AppNavigationProp} from '../../../../types/navigation';
+import { useLoginStore } from '../../../../stores/useLoginStore';
 
 export const buildActivationTabItems = (
   labels: string[],
@@ -272,13 +274,15 @@ export const BannerComponent = () => {
 
 export const ActivationPerformanceComponent: React.FC<
   ActivationPerformanceProps
-> = ({data, isLoading, error, onRetry, name, tabs,noTitle=false}) => {
+> = ({data, isLoading, error, onRetry, name, tabs,quarter}) => {
   const {
     mutate,
     data: activationData,
     isPending: isMutationLoading,
     reset,
   } = useDashboardActivationData();
+  const navigation = useNavigation<AppNavigationProp>();
+  const userInfo = useLoginStore(state => state.userInfo);
   const providedTabs = useMemo(
     () => (tabs && tabs.length > 0 ? tabs : [...DEFAULT_ACTIVATION_TABS]),
     [tabs],
@@ -289,8 +293,8 @@ export const ActivationPerformanceComponent: React.FC<
   );
   const [isVisible, setIsVisible] = useState(false);
   const [dateRange, setDateRange] = useState<DatePickerState>({
-    start: moment().startOf('quarter').toDate(),
-    end: moment().toDate(),
+    start: getQuarterDateRange(quarter).startDate,
+    end: getQuarterDateRange(quarter).endDate,
   });
   const maximumDate = useMemo(() => new Date(), []);
   const minimumDate = useMemo(() => moment().subtract(5, 'years').toDate(), []);
@@ -314,6 +318,35 @@ export const ActivationPerformanceComponent: React.FC<
     [mutate, name],
   );
 
+    const onPress = () => {
+      let dataToSend = {
+        masterTab: name,
+        StartDate: moment(dateRange.start).format('YYYY-MM-DD'),
+        EndDate: moment(dateRange.end).format('YYYY-MM-DD'),
+        Product_Category: '',
+      };
+  
+      let validForManagers = [
+        ASUS.ROLE_ID.BSM,
+        ASUS.ROLE_ID.BPM,
+        ASUS.ROLE_ID.CHANNEL_MARKETING,
+        ASUS.ROLE_ID.RSM,
+      ] as number[];
+  
+      if (validForManagers.includes(userInfo.EMP_RoleId)) {
+        dataToSend = {
+          ...dataToSend,
+          masterTab: 'CHANNEL',
+        };
+      } else if (userInfo.EMP_RoleId == ASUS.ROLE_ID.TM) {
+        dataToSend = {
+          ...dataToSend,
+          masterTab: 'CHANNEL',
+        };
+      }
+      navigation.push('ActPerformanceBranchWise', dataToSend);
+    };
+
   if (error) {
     return (
       <View className="px-3 py-3">
@@ -333,7 +366,7 @@ export const ActivationPerformanceComponent: React.FC<
 
   return (
     <View className="py-3">
-      {!noTitle && <View className="flex-row items-center justify-between mb-3">
+      <View className="flex-row items-center justify-between mb-3">
         <View className="mb-3">
           <View className="flex-row items-center mb-1">
             <View className="w-8 h-8 rounded-lg bg-blue-100 items-center justify-center mr-2">
@@ -352,7 +385,7 @@ export const ActivationPerformanceComponent: React.FC<
             Top models performance snapshot (sell-out & activation mix)
           </AppText>
         </View>
-      </View>}
+      </View>
       <DateRangeCard setIsVisible={setIsVisible} dateRange={dateRange} />
       <AppDatePicker
         mode="dateRange"
@@ -368,7 +401,7 @@ export const ActivationPerformanceComponent: React.FC<
           handleActivationDataFetch(startDate, endDate);
         }}
       />
-      <Card className="p-1 " needSeeMore>
+      <Card className="p-1 " needSeeMore seeMoreOnPress={onPress}>
         <View className="pt-3 overflow-hidden">
           <AppTabBar tabs={tabItems} initialTabName={initialActiveId} />
         </View>

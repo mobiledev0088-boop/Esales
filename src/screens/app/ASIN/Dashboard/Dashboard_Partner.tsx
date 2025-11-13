@@ -533,6 +533,7 @@ export default function Dashboard_Partner({noBanner,DifferentEmployeeCode,noPadd
             error={dashboardError}
             onRetry={refetchDashboard}
             name="Total"
+            quarter={selectedQuarter?.value || ''}
           />
           <PartnerAnalytics
             dashboardData={dashboardData}

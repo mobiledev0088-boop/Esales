@@ -32,21 +32,22 @@ export const convertToCapitalized = (text: string): string => {
   return text.split('').map(char => char.toUpperCase()).join('');
 }
 
-export const getPastMonths = (count: number, isForward?: boolean): {label: string, value: string}[] => {
+export const getPastMonths = (count: number, isForward?: boolean, startFrom?: string): {label: string, value: string}[] => {
   const months: {label: string, value: string}[]  = [];
+  const baseDate = startFrom ? moment(startFrom, "YYYYM") : moment();
   if (isForward) {
     for (let i = 0; i < count; i++) {
       months.push({
-      label: moment().subtract(i, 'months').format("MMM-YYYY"),
-      value: moment().subtract(i, 'months').format("YYYYM")
+      label: baseDate.clone().add(i, 'months').format("MMM-YYYY"),
+      value: baseDate.clone().add(i, 'months').format("YYYYM")
       });
     }
     return months;
   }
   for (let i = 0; i < count; i++) {
     months.push({
-      label: moment().subtract(i, 'months').format("MMM-YYYY"),
-      value: moment().subtract(i, 'months').format("YYYYM")
+      label: baseDate.clone().subtract(i, 'months').format("MMM-YYYY"),
+      value: baseDate.clone().subtract(i, 'months').format("YYYYM")
     });
   }
   return months

@@ -195,7 +195,7 @@ const MoreSheet = () => {
 
   const chunkedOptions = useMemo(() => chunkArray(options, 9), [options]);
   const handlePress = (whereTo: keyof AppNavigationParamList) => {
-    navigation.push(whereTo as any);
+    navigation.navigate(whereTo as any);
     SheetManager.hide('MoreSheet');
   };
 

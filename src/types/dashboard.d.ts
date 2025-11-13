@@ -99,7 +99,7 @@ export interface ActivationPerformanceProps {
   onRetry?: () => void;
   name: string;
   tabs?: string[];
-  noTitle?: boolean;
+  quarter: string;
 }
 
 export interface ASEDataProps {
@@ -109,6 +109,7 @@ export interface ASEDataProps {
   isLoading?: boolean;
   error?: Error | null;
   onRetry?: () => void;
+  quarter: string;
 }
 
 export interface PartnerAnalyticsProps {

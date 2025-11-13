@@ -932,6 +932,8 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
           isLoading={isLoading}
           error={dashboardError}
           onRetry={handleRetry}
+          quarter={selectedMonth?.label || ''}
+          tabName={route.name}
         />
 
         <ActivationPerformanceComponent

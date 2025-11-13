@@ -21,6 +21,7 @@ export const queryClient = new QueryClient({
 const subscibe = [
     'dashboardData',
     'dashboardDataAM',
+    'getBannerInfo',
 ]
 persistQueryClient({
   queryClient,

@@ -17,7 +17,7 @@ export interface DemoFilterPayload {
   premiumKiosk?: string | null; // yes/no
   rogKiosk?: string | null; // yes/no
   partnerType?: string | null;
-  agpName?: string | null;
+  compulsory?: string | null;
   // Year Quarter for API call
   yearQtr?: string;
   // data sources (optional override)
@@ -34,6 +34,7 @@ export interface DemoFilterResult {
   rogKiosk: string | null;
   partnerType: string | null;
   agpName: string | null;
+  compulsory?: string | null;
 }
 
 const DEFAULT_PARTNER_TYPES = [
@@ -118,30 +119,34 @@ const DemoFilterSheet: React.FC = () => {
   const agpNames = payload.agpNames || DEFAULT_AGP_NAMES;
 
   const [category, setCategory] = useState<string | null>(payload.category ?? '');
-  const [premiumKiosk, setPremiumKiosk] = useState<string | null>(payload.premiumKiosk ?? '');
-  const [rogKiosk, setRogKiosk] = useState<string | null>(payload.rogKiosk ?? '');
+  const [premiumKiosk, setPremiumKiosk] = useState<string | null>(payload?.premiumKiosk ?? '');
+  const [rogKiosk, setRogKiosk] = useState<string | null>(payload?.rogKiosk ?? '');
   const [partnerType, setPartnerType] = useState<string | null>(payload.partnerType ?? '');
-  // const [agpName, setAgpName] = useState<string | null>(payload.agpName ?? '');
+  const [compulsory, setCompulsory] = useState<string | null>(payload?.compulsory ?? '');
   const [group, setGroup] = useState<string>('category');
-  const [agpSearch, setAgpSearch] = useState('');
 
   const AppTheme = useThemeStore(state => state.AppTheme);
   const isDark = AppTheme === 'dark';
 
   const activeCount = useMemo(() => [category, premiumKiosk, rogKiosk, partnerType].filter(v => v && v !== '').length, [category, premiumKiosk, rogKiosk, partnerType]);
 
-  const groups = useMemo(() => ([
+  const groups = useMemo(() => {
+    let arr = [
     {key: 'category', label: 'Category', hasValue: !!category},
     {key: 'partnerType', label: 'Partner Type', hasValue: !!partnerType},
-    {key: 'premiumKiosk', label: 'Premium Kiosk', hasValue: !!premiumKiosk},
-    {key: 'rogKiosk', label: 'ROG Kiosk', hasValue: !!rogKiosk},
-  ]), [category, partnerType, premiumKiosk, rogKiosk]);
+  ]
+  if(payload?.premiumKiosk){
+    arr.push({key: 'premiumKiosk', label: 'Premium Kiosk', hasValue: !!premiumKiosk});
+  }
+  if(payload?.rogKiosk){
+    arr.push({key: 'rogKiosk', label: 'ROG Kiosk', hasValue: !!rogKiosk});
+  }
+  if(payload?.compulsory){
+    arr.push({key: 'compulsory', label: 'Compulsory', hasValue: !!compulsory});
+  }
+  return arr;
+}, [category, partnerType, premiumKiosk, rogKiosk, compulsory]);
 
-  const filteredAgp = useMemo(() => {
-    const s = agpSearch.trim().toLowerCase();
-    if (!s) return agpNames;
-    return agpNames.filter(a => a.label.toLowerCase().includes(s));
-  }, [agpNames, agpSearch]);
 
   const renderRadio = useCallback(({item}: {item: {label: string; value: string}}) => {
     const isSelected = (group === 'category' ? (category ?? '') : group === 'partnerType' ? (partnerType ?? '') : '') === item.value;
@@ -217,39 +222,6 @@ const DemoFilterSheet: React.FC = () => {
         </View>
       );
     }
-    if (group === 'agpName') {
-      return (
-        <View className="flex-1">
-          <View className="mb-3 flex-row items-center px-3 py-2 rounded-md bg-slate-100 dark:bg-slate-700">
-            <AppIcon name="search" type="feather" size={16} color={isDark ? '#cbd5e1' : '#475569'} />
-            <TextInput
-              value={agpSearch}
-              onChangeText={setAgpSearch}
-              placeholder="Search AGP Name"
-              placeholderTextColor={isDark ? '#94a3b8' : '#64748b'}
-              className="flex-1 ml-2 text-slate-700 dark:text-slate-200 p-0"
-            />
-            {agpSearch.length > 0 && (
-              <TouchableOpacity onPress={() => setAgpSearch('')} hitSlop={8}>
-                <AppIcon name="x" type="feather" size={16} color={isDark ? '#94a3b8' : '#64748b'} />
-              </TouchableOpacity>
-            )}
-          </View>
-          <FlatList
-            data={filteredAgp}
-            keyExtractor={i => i.value || i.label}
-            renderItem={renderRadio}
-            keyboardShouldPersistTaps="handled"
-            style={{flex:1}}
-            contentContainerStyle={{paddingBottom: 40}}
-            initialNumToRender={15}
-            windowSize={10}
-            maxToRenderPerBatch={20}
-            removeClippedSubviews
-          />
-        </View>
-      );
-    }
     // category or partnerType
     if (group === 'category' && isCategoriesLoading) {
       return (
@@ -257,6 +229,31 @@ const DemoFilterSheet: React.FC = () => {
           {Array.from({length: 5}).map((_, idx) => (
             <Skeleton key={idx} width={screenWidth - 80} height={40} />
           ))}
+        </View>
+      );
+    }
+    if (group === 'compulsory') {
+      return (
+        <View className="flex-1">
+          <FlatList
+            data={[
+              {label: 'Bonus', value: 'bonus'},
+              {label: 'Non Penalty', value: 'nopenalty'},
+            ]}
+            keyExtractor={i => i.value || i.label}
+            renderItem={({item}) => {
+              const isSelected = (compulsory ?? '') === item.value;
+              return (
+                <RadioRow
+                  label={item.label}
+                  selected={isSelected}
+                  onPress={() => setCompulsory(item.value)}
+                />
+              );
+            }}
+            style={{flex:1}}
+            contentContainerStyle={{paddingBottom: 40}}
+          />
         </View>
       );
     }

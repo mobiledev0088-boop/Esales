@@ -275,7 +275,7 @@ export const getActivationTabData = (
   return (baseData as any)[key] || [];
 };
 
-export const getQuarterDateRange = (input:string) => {
+export const getQuarterDateRangeFormated = (input:string) => {
   const year = Number(input.slice(0, 4));
   const quarter = Number(input.slice(4));
 
@@ -288,3 +288,21 @@ export const getQuarterDateRange = (input:string) => {
     endDate: moment.min(quarterEnd, today).format('YYYY-MM-DD'),
   };
 };
+
+export const getQuarterDateRange = (quarter: string) => {
+  const year = Number(quarter.slice(0, 4));
+  const quarterNum = Number(quarter.slice(4));
+
+  const startDate = moment()
+    .year(year)
+    .quarter(quarterNum)
+    .startOf('quarter')
+    .toDate();
+  const endDate = moment()
+    .year(year)
+    .quarter(quarterNum)
+    .endOf('quarter')
+    .toDate();
+
+  return {startDate, endDate};
+}

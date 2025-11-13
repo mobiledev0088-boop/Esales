@@ -1,34 +1,104 @@
-import { memo, useMemo, useState } from "react";
-import AppDropdown, { AppDropdownItem } from "../../../../components/customs/AppDropdown";
-import { showDemoFilterSheet } from "./DemoFilterSheet";
-import { Pressable, TouchableOpacity, View } from "react-native";
-import AppText from "../../../../components/customs/AppText";
-import AppIcon from "../../../../components/customs/AppIcon";
-import Card from "../../../../components/Card";
-import Animated, { Easing, interpolate, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
-import { useNavigation } from "@react-navigation/native";
-import { AppNavigationProp } from "../../../../types/navigation";
-import Skeleton from "../../../../components/skeleton/skeleton";
-import { screenWidth } from "../../../../utils/constant";
-import { filterDemoItemsByPartnerType, Filters, METRIC_COLOR, MetricProps, ProgressStatProps, TerritoryItem, TransformedBranch, transformTerritoryData } from "./utils";
-import { useGetBranchWiseDemoData } from "./Demo";
+import {memo, useMemo, useState} from 'react';
+import AppDropdown, {
+  AppDropdownItem,
+} from '../../../../components/customs/AppDropdown';
+import {showDemoFilterSheet} from './DemoFilterSheet';
+import {Pressable, ScrollView, TouchableOpacity, View} from 'react-native';
+import AppText from '../../../../components/customs/AppText';
+import AppIcon from '../../../../components/customs/AppIcon';
+import Card from '../../../../components/Card';
+import Animated, {
+  Easing,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
+import {useNavigation} from '@react-navigation/native';
+import {AppNavigationProp} from '../../../../types/navigation';
+import Skeleton from '../../../../components/skeleton/skeleton';
+import {screenWidth} from '../../../../utils/constant';
+import {
+  filterDemoItemsByPartnerType,
+  Filters,
+  METRIC_COLOR,
+  MetricProps,
+  ProgressStatProps,
+  TerritoryItem,
+  TransformedBranch,
+  transformTerritoryData,
+} from './utils';
+import {useGetBranchWiseDemoData} from '../../../../hooks/queries/demo';
 
+// helper component
+const ProgressStat: React.FC<ProgressStatProps> = ({
+  label,
+  percent,
+  current,
+  total,
+  barTint = 'bg-violet-500',
+  percentTint,
+}) => {
+  const barWidth = Math.min(100, Math.max(0, percent));
+  return (
+    <View className="mb-4 last:mb-0">
+      <View className="flex-row justify-between items-center">
+        <AppText size="sm" className="text-slate-500">
+          {label}
+        </AppText>
+        <AppText size="sm" className={`${percentTint} font-medium`}>
+          {percent}% ({current})
+        </AppText>
+      </View>
+      <View className="w-full h-2 rounded-full bg-slate-100 overflow-hidden mt-1">
+        <View style={{width: `${barWidth}%`}} className={`h-full ${barTint}`} />
+      </View>
+    </View>
+  );
+};
+
+const Metric: React.FC<MetricProps> = memo(({label, value, icon, tint}) => (
+  <View className="w-1/3 mb-4 px-1">
+    <View className="flex-row items-center">
+      <View className="w-7 h-7 rounded-md bg-slate-100 items-center justify-center mr-2">
+        <AppIcon
+          name={icon as any}
+          type="feather"
+          size={14}
+          color={tint === 'slate' ? '#475569' : undefined}
+        />
+      </View>
+      <View className="flex-1">
+        <AppText size="sm" className="text-slate-400" numberOfLines={1}>
+          {label}
+        </AppText>
+        <AppText size="base" weight="medium" className={METRIC_COLOR[tint]}>
+          {value}
+        </AppText>
+      </View>
+    </View>
+  </View>
+));
+
+// component
 export const SummaryCard: React.FC<{
   at_least_single_demo: number;
+  at_80_demo?: number;
   demo_100: number;
   total_partners: number;
-  awp_partners: number;
+  awp_partners?: number;
   quarters: AppDropdownItem[];
   selectedQuarter: AppDropdownItem | null;
   setSelectedQuarter: React.Dispatch<
     React.SetStateAction<AppDropdownItem | null>
   >;
   filters: Filters;
-  setFilters: React.Dispatch<React.SetStateAction<Filters>>;
+  setFilters: any;
   partnerTypes: {label: string; value: string}[];
 }> = memo(
   ({
     at_least_single_demo,
+    at_80_demo,
     demo_100,
     total_partners,
     awp_partners,
@@ -128,43 +198,6 @@ export const SummaryCard: React.FC<{
           <SelectedFilterChips filters={filters} setFilters={setFilters} />
         </View>
 
-        {/* Partner Metrics - Outside Card */}
-        <View className="flex-row gap-3 mb-3">
-          <View className="flex-1 bg-white dark:bg-slate-800 rounded-lg px-4 py-3 border border-slate-200 dark:border-slate-700">
-            <AppText
-              size="xs"
-              weight="medium"
-              className="text-slate-500 dark:text-slate-400 mb-1">
-              {filters.partnerType
-                ? `Total ${filters.partnerType}`
-                : 'Total Partners'}
-            </AppText>
-            <AppText
-              size="xl"
-              weight="bold"
-              className="text-slate-800 dark:text-slate-100">
-              {total_partners}
-            </AppText>
-          </View>
-
-          <View className="flex-1 bg-white dark:bg-slate-800 rounded-lg px-4 py-3 border border-slate-200 dark:border-slate-700">
-            <AppText
-              size="xs"
-              weight="medium"
-              className="text-slate-500 dark:text-slate-400 mb-1">
-              {filters.partnerType
-                ? `AWP ${filters.partnerType}`
-                : 'AWP Partners'}
-            </AppText>
-            <AppText
-              size="xl"
-              weight="bold"
-              className="text-slate-800 dark:text-slate-100">
-              {awp_partners}
-            </AppText>
-          </View>
-        </View>
-
         <Card className="mb-3">
           <View className="pb-3 border-b border-slate-100">
             <View className="flex-row items-center justify-between">
@@ -222,6 +255,36 @@ export const SummaryCard: React.FC<{
             </View>
 
             <View className="w-px bg-slate-100 mx-3" />
+            {at_80_demo != null ? (
+              <View className="flex-1 flex-row">
+                <View className="flex-1 items-center">
+                  <View className="w-12 h-12 rounded-xl bg-sky-500 items-center justify-center mb-2 shadow-sm">
+                    <AppIcon
+                      name="target"
+                      type="feather"
+                      size={20}
+                      color="white"
+                    />
+                  </View>
+                  <AppText
+                    size="xs"
+                    weight="medium"
+                    numberOfLines={2}
+                    className="text-center leading-tight text-sky-600">
+                    80% Demo
+                  </AppText>
+                  <AppText
+                    size="lg"
+                    weight="semibold"
+                    className="mt-1 text-sky-600">
+                    {at_80_demo}
+                  </AppText>
+                </View>
+                <View className="w-px bg-slate-100 mx-3" />
+              </View>
+            ) : (
+              false
+            )}
 
             <View className="flex-1 items-center">
               <View className="w-12 h-12 rounded-xl bg-teal-500 items-center justify-center mb-2 shadow-sm">
@@ -248,6 +311,47 @@ export const SummaryCard: React.FC<{
             </View>
           </View>
         </Card>
+
+        {/* Partner Metrics - Outside Card */}
+        <View className="flex-row gap-3 mb-3">
+          <View className="w-[48%] bg-white dark:bg-slate-800 rounded-lg px-4 py-3 border border-slate-200 dark:border-slate-700">
+            <AppText
+              size="xs"
+              weight="medium"
+              className="text-slate-500 dark:text-slate-400 mb-1 text-center">
+              {filters.partnerType
+                ? `Total ${filters.partnerType}`
+                : 'Total Partners'}
+            </AppText>
+            <AppText
+              size="xl"
+              weight="bold"
+              className="text-slate-800 dark:text-slate-100 text-center">
+              {total_partners}
+            </AppText>
+          </View>
+
+          {awp_partners != null ? (
+            <View className="w-[48%] bg-white dark:bg-slate-800 rounded-lg px-4 py-3 border border-slate-200 dark:border-slate-700">
+              <AppText
+                size="xs"
+                weight="medium"
+                className="text-slate-500 dark:text-slate-400 mb-1 text-center">
+                {filters.partnerType
+                  ? `AWP ${filters.partnerType}`
+                  : 'AWP Partners'}
+              </AppText>
+              <AppText
+                size="xl"
+                weight="bold"
+                className="text-slate-800 dark:text-slate-100 text-center">
+                {awp_partners}
+              </AppText>
+            </View>
+          ) : (
+            false
+          )}
+        </View>
       </View>
     );
   },
@@ -259,17 +363,25 @@ export const BranchCard = memo(
     summaryData,
     yearQtr,
     category,
-    premiumKiosk,
-    rogKiosk,
+    premiumKiosk = '0',
+    rogKiosk = '0',
     partnerType,
+    IsCompulsory,
+    tab
   }: {
     item: TransformedBranch;
-    summaryData: {at_least_single_demo: number; demo_100: number};
+    summaryData: {
+      at_least_single_demo: number;
+      demo_100: number;
+      at_80_demo?: number;
+    };
     yearQtr: string;
     category: string;
-    premiumKiosk: string;
-    rogKiosk: string;
+    premiumKiosk?: string;
+    rogKiosk?: string;
     partnerType: string | null;
+    IsCompulsory?: string;
+    tab: 'LFR' | 'retailer' | 'reseller';
   }) => {
     const [showFront, setShowFront] = useState(true);
     const [frontCardHeight, setFrontCardHeight] = useState(0);
@@ -279,14 +391,15 @@ export const BranchCard = memo(
     const navigation = useNavigation<AppNavigationProp>();
 
     // Fetch territory data only when card is flipped
-    const {data: territoryData, isLoading: isLoadingTerritories} =
-      useGetBranchWiseDemoData(
+    const {data: territoryData, isLoading: isLoadingTerritories} = useGetBranchWiseDemoData(
         yearQtr,
         category,
         premiumKiosk,
         rogKiosk,
         item.state,
+        IsCompulsory || '',
         !showFront,
+        tab
       );
 
     // Transform and filter territory data
@@ -323,6 +436,13 @@ export const BranchCard = memo(
       if (summaryData.demo_100 === 0) return 0;
       return Math.round((item.demo_100 / summaryData.demo_100) * 100);
     }, [item.demo_100, summaryData.demo_100]);
+
+    const demo80Percent = useMemo(() => {
+      if (!summaryData.at_80_demo) return 0;
+      return Math.round(
+        ((item.at_80_demo || 0) / summaryData.at_80_demo) * 100,
+      );
+    }, [item.at_80_demo, summaryData.at_80_demo]);
 
     const flipCard = () => {
       // Determine target height before we toggle state
@@ -419,49 +539,86 @@ export const BranchCard = memo(
                     icon="users"
                     tint="slate"
                   />
-                  <Metric
-                    label="AWP Count"
-                    value={item.awp_Count}
-                    icon="users"
-                    tint="slate"
-                  />
-                  <Metric
-                    label="ROG Kiosk"
-                    value={item.rog_kiosk}
-                    icon="monitor"
-                    tint="teal"
-                  />
-                  <Metric
-                    label="Premium Kiosk"
-                    value={item.pkiosk}
-                    icon="star"
-                    tint="amber"
-                  />
-                  <Metric
-                    label="P+ROG Kiosk"
-                    value={item.pkiosk_rogkiosk}
-                    icon="layers"
-                    tint="violet"
-                  />
+                  {item.awp_Count != null ? (
+                    <Metric
+                      label="AWP Count"
+                      value={item.awp_Count}
+                      icon="users"
+                      tint="slate"
+                    />
+                  ) : (
+                    false
+                  )}
+                  {item.awp_Count != null ? (
+                    <Metric
+                      label="ROG Kiosk"
+                      value={item.rog_kiosk}
+                      icon="monitor"
+                      tint="teal"
+                    />
+                  ) : (
+                    false
+                  )}
+
+                  {item.awp_Count != null ? (
+                    <Metric
+                      label="Premium Kiosk"
+                      value={item.pkiosk}
+                      icon="star"
+                      tint="amber"
+                    />
+                  ) : (
+                    false
+                  )}
+                  {item.awp_Count != null ? (
+                    <Metric
+                      label="P+ROG Kiosk"
+                      value={item.pkiosk_rogkiosk}
+                      icon="layers"
+                      tint="violet"
+                    />
+                  ) : (
+                    false
+                  )}
                 </View>
                 {/* Progress section */}
                 <View className="mt-5 px-3 gap-3">
-                  <ProgressStat
-                    label="At Least Single"
-                    percent={atLeastSinglePercent}
-                    current={item.at_least_single_demo}
-                    total={summaryData.at_least_single_demo}
-                    barTint="bg-violet-500"
-                    percentTint="text-violet-600"
-                  />
-                  <ProgressStat
-                    label="100% Demo"
-                    percent={demo100Percent}
-                    current={item.demo_100}
-                    total={summaryData.demo_100}
-                    barTint="bg-teal-500"
-                    percentTint="text-teal-600"
-                  />
+                  {item.at_least_single_demo != null ? (
+                    <ProgressStat
+                      label="At Least Single"
+                      percent={atLeastSinglePercent}
+                      current={item.at_least_single_demo}
+                      total={summaryData.at_least_single_demo}
+                      barTint="bg-violet-500"
+                      percentTint="text-violet-600"
+                    />
+                  ) : (
+                    false
+                  )}
+                  {item.at_80_demo != null ? (
+                    <ProgressStat
+                      label="80% Demo"
+                      percent={demo80Percent}
+                      current={item.at_80_demo}
+                      total={summaryData.at_80_demo || 0}
+                      barTint="bg-sky-500"
+                      percentTint="text-sky-600"
+                    />
+                  ) : (
+                    false
+                  )}
+                  {item.demo_100 != null ? (
+                    <ProgressStat
+                      label="100% Demo"
+                      percent={demo100Percent}
+                      current={item.demo_100}
+                      total={summaryData.demo_100}
+                      barTint="bg-teal-500"
+                      percentTint="text-teal-600"
+                    />
+                  ) : (
+                    false
+                  )}
                 </View>
                 <Pressable
                   onPress={flipCard}
@@ -662,51 +819,19 @@ export const TerritoryCard: React.FC<{
   );
 });
 
-const ProgressStat: React.FC<ProgressStatProps> = ({
-  label,
-  percent,
-  current,
-  total,
-  barTint = 'bg-violet-500',
-  percentTint,
-}) => {
-  const barWidth = Math.min(100, Math.max(0, percent));
+export const DemoSkeleton: React.FC = () => {
   return (
-    <View className="mb-4 last:mb-0">
-      <View className="flex-row justify-between items-center">
-        <AppText size="sm" className="text-slate-500">
-          {label}
-        </AppText>
-        <AppText size="sm" className={`${percentTint} font-medium`}>
-          {percent}% ({current})
-        </AppText>
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      className="flex-1 pt-5  px-3 bg-lightBg-base">
+      <Skeleton width={screenWidth - 24} height={200} borderRadius={12} />
+      <View className="mt-5 pb-20">
+        <Skeleton width={screenWidth - 24} height={100} borderRadius={6} />
+        <Skeleton width={screenWidth - 24} height={100} borderRadius={6} />
+        <Skeleton width={screenWidth - 24} height={100} borderRadius={6} />
+        <Skeleton width={screenWidth - 24} height={100} borderRadius={6} />
+        <Skeleton width={screenWidth - 24} height={100} borderRadius={6} />
       </View>
-      <View className="w-full h-2 rounded-full bg-slate-100 overflow-hidden mt-1">
-        <View style={{width: `${barWidth}%`}} className={`h-full ${barTint}`} />
-      </View>
-    </View>
+    </ScrollView>
   );
 };
-
-const Metric: React.FC<MetricProps> = memo(({label, value, icon, tint}) => (
-  <View className="w-1/3 mb-4 px-1">
-    <View className="flex-row items-center">
-      <View className="w-7 h-7 rounded-md bg-slate-100 items-center justify-center mr-2">
-        <AppIcon
-          name={icon as any}
-          type="feather"
-          size={14}
-          color={tint === 'slate' ? '#475569' : undefined}
-        />
-      </View>
-      <View className="flex-1">
-        <AppText size="sm" className="text-slate-400" numberOfLines={1}>
-          {label}
-        </AppText>
-        <AppText size="base" weight="medium" className={METRIC_COLOR[tint]}>
-          {value}
-        </AppText>
-      </View>
-    </View>
-  </View>
-));

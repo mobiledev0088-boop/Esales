@@ -1,6 +1,7 @@
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {DrawerNavigationProp as DNP} from '@react-navigation/drawer';
 import {FeedbackItem} from '../screens/app/ASIN/Feedback/component';
+import { AppDropdownItem } from '../components/customs/AppDropdown';
 
 type AuthStackParamList = {
   Login: undefined;
@@ -98,7 +99,8 @@ type AppNavigationParamList = {
     Product_Category: string;
     Territory?: string;
   };
-  DistiTargetSummaryPOD: undefined;
+  TargetSummaryPOD: {masterTab: string; Quarter: string, tab: 'seemore' | 'disti'};
+  VerticalASE_HO: {Year: string; Month: string; AlpType: string};
   // Other Screens
   Banners: {Banner_Group_SeqNum: string};
 };

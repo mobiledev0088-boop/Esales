@@ -51,7 +51,7 @@ import {
   calculatePercentage,
   getPerformanceColor,
   formatDisplayValue,
-  getQuarterDateRange,
+  getQuarterDateRangeFormated,
 } from './dashboardUtils';
 import {useLoginStore} from '../../../../stores/useLoginStore';
 import clsx from 'clsx';
@@ -177,11 +177,19 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
   );
 
   const handleDistributorWisePress = useCallback(() => {
-    navigation.push('DistiTargetSummaryPOD')
+    navigation.push('TargetSummaryPOD', {
+      masterTab: tabName,
+      Quarter: quarter,
+      tab: 'disti',
+    });
   }, []);
 
   const handleSeeMorePress = useCallback(() => {
-    console.log('See More pressed');
+    navigation.push('TargetSummaryPOD', {
+      masterTab: tabName,
+      Quarter: quarter,
+      tab: 'seemore',
+    });
   }, []);
 
   const renderProductCard = useCallback(
@@ -312,14 +320,14 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
     // Block access for ACCY and WEP categories
     if (['ACCY', 'WEP'].includes(item.Product_Category)) return;
 
-    const { startDate, endDate } = getQuarterDateRange(quarter);
+    const {startDate, endDate} = getQuarterDateRangeFormated(quarter);
 
     let dataToSend = {
       masterTab: tabName,
       StartDate: startDate,
       EndDate: endDate,
       Product_Category: item.Product_Category,
-      Territory:  '',
+      Territory: '',
     };
 
     let validForManagers = [
@@ -328,7 +336,7 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
       ASUS.ROLE_ID.CHANNEL_MARKETING,
       ASUS.ROLE_ID.RSM,
     ] as number[];
-    
+
     if (validForManagers.includes(userInfo.EMP_RoleId)) {
       dataToSend = {
         ...dataToSend,
@@ -417,8 +425,10 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
   isLoading = false,
   error,
   onRetry,
+  quarter,
 }) => {
   const userInfo = useLoginStore(state => state.userInfo);
+  const navigation = useNavigation<AppNavigationProp>();
   const renderMetricCard = useCallback(
     ({
       label,
@@ -508,9 +518,22 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
   }, [totalData, renderMetricCard]);
 
   const ASEChannelTab = useCallback(() => {
+    const year = Number(quarter.slice(0, 4));
+    const quarterNum = Number(quarter.slice(4));
+    const currentMonth = moment().month() + 1; // month() is zero-based
+    const lastMonthOfQuarter = quarterNum * 3;
+    const MonthNum =
+      currentMonth < lastMonthOfQuarter ? currentMonth : lastMonthOfQuarter;
+    const onPress = () => {
+      navigation.push('VerticalASE_HO', {
+        Year: year.toString(),
+        Month: MonthNum.toString(),
+        AlpType: 'Channel',
+      });
+    };
     return (
       <View className="flex-row flex-wrap justify-between px-4">
-        {renderHeadCountCard(channelData.Head_Cnt)}
+        {renderHeadCountCard(channelData.Head_Cnt, onPress)}
         {renderMetricCard({
           label: 'TARGET',
           value: convertToASINUnits(Number(channelData.Target)),
@@ -532,11 +555,24 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
 
   const ASELFRTab = useCallback(
     ({needHeader = true}: {needHeader: boolean}) => {
+      const year = Number(quarter.slice(0, 4));
+      const quarterNum = Number(quarter.slice(4));
+      const currentMonth = moment().month() + 1; // month() is zero-based
+      const lastMonthOfQuarter = quarterNum * 3;
+      const MonthNum =
+        currentMonth < lastMonthOfQuarter ? currentMonth : lastMonthOfQuarter;
+      const onPress = () => {
+        navigation.push('VerticalASE_HO', {
+          Year: year.toString(),
+          Month: MonthNum.toString(),
+          AlpType: 'LFR',
+        });
+      };
       return (
         <View>
           <View className="flex-row flex-wrap justify-between px-4">
             {needHeader
-              ? renderHeadCountCard(lfrData.Head_Cnt)
+              ? renderHeadCountCard(lfrData.Head_Cnt, onPress)
               : renderMetricCard({
                   label: 'HEAD COUNT',
                   value: lfrData.Head_Cnt,
@@ -580,7 +616,6 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
   if (isLoading) {
     return <ASEDataSkeleton />;
   }
-  // Build tabs based on role. Previous implementation forgot to assign the array in the else branch.
   let tabs: any[] = [];
   if (userInfo?.EMP_RoleId === ASUS.ROLE_ID.LFR_HO) {
     tabs = [
@@ -1054,6 +1089,7 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
             error={dashboardError}
             onRetry={handleRetry}
             name={route.name}
+            quarter={selectedQuarter?.value || ''}
           />
         </View>
 
@@ -1068,6 +1104,7 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
               isLoading={isLoading}
               error={dashboardError}
               onRetry={handleRetry}
+              quarter={selectedQuarter?.value || ''}
             />
           )}
 

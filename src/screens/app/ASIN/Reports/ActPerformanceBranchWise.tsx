@@ -846,7 +846,7 @@ export default function ActPerformanceBranchWise() {
   }>({
     branches: Territory ? [Territory] : [],
     model: [],
-    type: [Product_Category],
+    type: Product_Category?.length ? [Product_Category] : [],
     alp: [],
     cpu: [],
     gpu: [],
