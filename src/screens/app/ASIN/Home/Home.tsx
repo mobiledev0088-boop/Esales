@@ -16,29 +16,26 @@ import {Pressable, View} from 'react-native';
 import {AppColors} from '../../../../config/theme';
 import AppText from '../../../../components/customs/AppText';
 import {SheetManager} from 'react-native-actions-sheet';
-import AppIcon from '../../../../components/customs/AppIcon';
+import AppIcon, { IconType } from '../../../../components/customs/AppIcon';
 import {useLoginStore} from '../../../../stores/useLoginStore';
 import {ASUS} from '../../../../utils/constant';
 import Dashboard_AM from '../Dashboard/Dashboard_AM';
 import Dashboard_Partner from '../Dashboard/Dashboard_Partner';
 import WOD from '../WOD/WOD';
+import Demo_Partner from '../Demo/Demo_Partner';
+import RollingFunnel from '../Commercial/RollingFunnel/RollingFunnel';
+import PowerCalculator from '../Commercial/PowerCalculator/PowerCalculator';
+import Account from '../User/Account/Account';
 
 interface TabScreens {
   name: string;
   component: ComponentType<any>;
   icon: string;
   // Optional icon type (library). If omitted, defaults to 'ionicons'
-  iconType?:
-    | 'feather'
-    | 'entypo'
-    | 'material-community'
-    | 'antdesign'
-    | 'ionicons'
-    | 'fontAwesome'
-    | 'materialIcons'
-    | 'SimpleLineIcons';
+  iconType?: IconType
   options?: BottomTabNavigationOptions;
   action?: () => void;
+  params?: Record<string, any>;
 }
 
 type MyTabBarProps = BottomTabBarProps & {
@@ -56,6 +53,11 @@ const Home: React.FC = () => {
     const arr: TabScreens[] = [];
     if (userInfo?.EMP_Btype === ASUS.BUSINESS_TYPES.COMMERCIAL) {
       // dashboard for  Rooling Funnel
+          arr.push({
+          name: 'Dashboard',
+          component: RollingFunnel,
+          icon: 'bar-chart',
+        });
     } else {
       if (userInfo?.EMP_RoleId === ASUS.ROLE_ID.AM) {
         arr.push({
@@ -89,11 +91,7 @@ const Home: React.FC = () => {
         // Demo for Area Manager
       } else if (userInfo?.EMP_RoleId === ASUS.ROLE_ID.PARTNERS) {
         // Demo for PARTNERS
-      } else if (
-        userInfo?.EMP_RoleId === ASUS.ROLE_ID.PARTNERS &&
-        userInfo?.EMP_Type === ASUS.PARTNER_TYPE.T2.AWP
-      ) {
-        // Demo for PARTNERS
+        arr.push({name: 'Demo', component: Demo_Partner, icon: 'laptop'});
       } else if (
         userInfo?.EMP_RoleId !== ASUS.ROLE_ID.DISTRIBUTORS &&
         userInfo?.EMP_RoleId !== ASUS.ROLE_ID.DISTI_HO &&
@@ -127,6 +125,7 @@ const Home: React.FC = () => {
       userInfo?.EMP_RoleId === ASUS.ROLE_ID.DISTI_HO ||
       userInfo?.EMP_RoleId === ASUS.ROLE_ID.DISTRIBUTORS
     ) {
+      arr.push({name: 'Account', component: Account, icon: 'person-circle', params: { noHeader: true }});
       // Account
     } else {
       // schemes
@@ -158,6 +157,11 @@ const Home: React.FC = () => {
     }
     if (userInfo?.EMP_Btype === ASUS.BUSINESS_TYPES.COMMERCIAL) {
       // power Calculator
+      arr.push({
+        name: 'Power Calculator',
+        component: PowerCalculator,
+        icon: 'calculator',
+      });
     }
 
     return arr;
@@ -174,6 +178,7 @@ const Home: React.FC = () => {
             key={screen.name}
             name={screen.name}
             component={screen.component}
+            initialParams={screen.params}
           />
         ))}
       </Tab.Navigator>

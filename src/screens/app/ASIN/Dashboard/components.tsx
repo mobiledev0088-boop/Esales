@@ -143,7 +143,8 @@ const TableRow = ({
           size="sm"
           weight={column.key === 'name' ? 'semibold' : 'bold'}
           color={column.colorType}>
-          {item[column.dataKey] || '0'}
+          {/* {item[column.dataKey] || '0'} */}
+          {column.key === 'name'  ? item[column.dataKey] || '---'  : convertToASINUnits(Number(item[column.dataKey]),true) }
         </AppText>
       </View>
     ))}

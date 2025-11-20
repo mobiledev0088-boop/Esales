@@ -212,7 +212,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
       pickerStyle: {
         backgroundColor: theme.bgSurface,
         borderColor: error ? '#EF4444' : theme.border,
-        borderWidth: 1.5,
+        borderWidth: 1,
         borderRadius: 12,
         minHeight: 45,
       },

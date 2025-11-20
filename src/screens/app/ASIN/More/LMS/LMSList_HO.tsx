@@ -1,523 +1,597 @@
-import {View, FlatList, TextInput, TouchableOpacity, LayoutAnimation, Platform, UIManager} from 'react-native';
-import React, {useCallback, useMemo, useState} from 'react';
+import {View, FlatList, TouchableOpacity, RefreshControl} from 'react-native';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import AppLayout from '../../../../../components/layout/AppLayout';
-import AppDropdown, {
-  AppDropdownItem,
-} from '../../../../../components/customs/AppDropdown';
+import AppDropdown, { AppDropdownItem} from '../../../../../components/customs/AppDropdown';
 import {getPastQuarters} from '../../../../../utils/commonFunctions';
 import Card from '../../../../../components/Card';
 import AppText from '../../../../../components/customs/AppText';
 import AppIcon from '../../../../../components/customs/AppIcon';
+import Accordion from '../../../../../components/Accordion';
+import Skeleton from '../../../../../components/skeleton/skeleton';
+import { useLoginStore } from '../../../../../stores/useLoginStore';
+import { handleASINApiCall } from '../../../../../utils/handleApiCall';
+import { useQuery } from '@tanstack/react-query';
+import { screenWidth, screenHeight } from '../../../../../utils/constant';
+import ActionSheet, { SheetManager, useSheetPayload } from 'react-native-actions-sheet';
+import { AppColors } from '../../../../../config/theme';
 
-const TotalCount =  [
-                {
-                    TotalAGPRequest: 46,
-                    TotalQtyRequested: 102
-                }
-            ]
-const BranchWiseDetails = [
-                {
-                    AWPCode: "ASIN012547",
-                    AWPName: "Alpha Computers",
-                    BranchName: "ANDHRA_PRADESH",
-                    AGPRequestCnt: 1,
-                    QtyRequestCnt: 2
-                },
-                {
-                    AWPCode: "ASIN015228",
-                    AWPName: "Ansh Intermediate Services( P )Limited/Sagar Enterprises",
-                    BranchName: "UP_UTTARANCHAL",
-                    AGPRequestCnt: 5,
-                    QtyRequestCnt: 7
-                },
-                {
-                    AWPCode: "ASIN014699",
-                    AWPName: "Arora IT Solution",
-                    BranchName: "DELHI",
-                    AGPRequestCnt: 2,
-                    QtyRequestCnt: 6
-                },
-                {
-                    AWPCode: "ASIN013207",
-                    AWPName: "Compu Electronic",
-                    BranchName: "NAGPUR_RAIPUR",
-                    AGPRequestCnt: 1,
-                    QtyRequestCnt: 1
-                },
-                {
-                    AWPCode: "ASIN017365",
-                    AWPName: "E Computer",
-                    BranchName: "JOB",
-                    AGPRequestCnt: 3,
-                    QtyRequestCnt: 3
-                },
-                {
-                    AWPCode: "ASIN014799",
-                    AWPName: "Emerge Digitech - AWP",
-                    BranchName: "KERALA",
-                    AGPRequestCnt: 1,
-                    QtyRequestCnt: 1
-                },
-                {
-                    AWPCode: "ASIN005512",
-                    AWPName: "Ipex Technologies",
-                    BranchName: "KARNATAKA",
-                    AGPRequestCnt: 1,
-                    QtyRequestCnt: 1
-                },
-                {
-                    AWPCode: "ASIN001522",
-                    AWPName: "Matrimangala Electronics",
-                    BranchName: "NORTH_EAST",
-                    AGPRequestCnt: 3,
-                    QtyRequestCnt: 3
-                },
-                {
-                    AWPCode: "ASIN012576",
-                    AWPName: "Mrig Technologies",
-                    BranchName: "KARNATAKA",
-                    AGPRequestCnt: 1,
-                    QtyRequestCnt: 1
-                },
-                {
-                    AWPCode: "ASIN013258",
-                    AWPName: "MULTI LAPTOPS",
-                    BranchName: "PUNE",
-                    AGPRequestCnt: 1,
-                    QtyRequestCnt: 1
-                },
-                {
-                    AWPCode: "ASIN004080",
-                    AWPName: "NEW TRACK  COMPUTERS PVT LTD",
-                    BranchName: "PUNE",
-                    AGPRequestCnt: 1,
-                    QtyRequestCnt: 1
-                },
-                {
-                    AWPCode: "ASIN004719",
-                    AWPName: "Service Point",
-                    BranchName: "ANDHRA_PRADESH",
-                    AGPRequestCnt: 2,
-                    QtyRequestCnt: 2
-                },
-                {
-                    AWPCode: "ASIN012505",
-                    AWPName: "Shree Balaji Infosolutions",
-                    BranchName: "NAGPUR_RAIPUR",
-                    AGPRequestCnt: 2,
-                    QtyRequestCnt: 6
-                },
-                {
-                    AWPCode: "ASIN016492",
-                    AWPName: "Siddharth InfoSolution ",
-                    BranchName: "NAGPUR_RAIPUR",
-                    AGPRequestCnt: 1,
-                    QtyRequestCnt: 1
-                },
-                {
-                    AWPCode: "ASIN004248",
-                    AWPName: "SILVER CELLULAR",
-                    BranchName: "NAGPUR_RAIPUR",
-                    AGPRequestCnt: 1,
-                    QtyRequestCnt: 1
-                },
-                {
-                    AWPCode: "ASIN016893",
-                    AWPName: "Suntronic Computers - AWP",
-                    BranchName: "RAJASTHAN",
-                    AGPRequestCnt: 2,
-                    QtyRequestCnt: 2
-                },
-                {
-                    AWPCode: "ASIN001139",
-                    AWPName: "Supreme Computers Pvt Ltd",
-                    BranchName: "TAMILNADU",
-                    AGPRequestCnt: 1,
-                    QtyRequestCnt: 1
-                },
-                {
-                    AWPCode: "ASIN015146",
-                    AWPName: "Suyash Computech",
-                    BranchName: "KARNATAKA",
-                    AGPRequestCnt: 2,
-                    QtyRequestCnt: 2
-                },
-                {
-                    AWPCode: "ASIN014081",
-                    AWPName: "Technorama Computers",
-                    BranchName: "NAGPUR_RAIPUR",
-                    AGPRequestCnt: 1,
-                    QtyRequestCnt: 1
-                },
-                {
-                    AWPCode: "ASIN005039",
-                    AWPName: "THE MICROFRAME COMPUTERS MARKETING AND SERVICES",
-                    BranchName: "ANDHRA_PRADESH",
-                    AGPRequestCnt: 1,
-                    QtyRequestCnt: 1
-                },
-                {
-                    AWPCode: "ASIN014671",
-                    AWPName: "UMS Infotech",
-                    BranchName: "TAMILNADU",
-                    AGPRequestCnt: 1,
-                    QtyRequestCnt: 1
-                },
-                {
-                    AWPCode: "ASIN005256",
-                    AWPName: "Unicom services",
-                    BranchName: "KARNATAKA",
-                    AGPRequestCnt: 5,
-                    QtyRequestCnt: 8
-                },
-                {
-                    AWPCode: "ASIN015390",
-                    AWPName: "Universal SystemS",
-                    BranchName: "NORTH_EAST",
-                    AGPRequestCnt: 3,
-                    QtyRequestCnt: 36
-                },
-                {
-                    AWPCode: "ASIN017283",
-                    AWPName: "Venkatesha Systems - AWP SROM",
-                    BranchName: "PUNE",
-                    AGPRequestCnt: 3,
-                    QtyRequestCnt: 12
-                },
-                {
-                    AWPCode: "ASIN017220",
-                    AWPName: "WIDE ANGLE TECHNOLOGIES",
-                    BranchName: "DELHI",
-                    AGPRequestCnt: 1,
-                    QtyRequestCnt: 1
-                }
-            ]
-
-export default function LMSList_HO() {
-
-  const quarters = useMemo(() => getPastQuarters(), []);
-  const [selectedQuarter, setSelectedQuarter]=useState<AppDropdownItem | null>(quarters[0] || null);
-  return (
-    <AppLayout title="LMS List" needBack>
-      <View className="pt-5 pb-3 px-3">
-        <View className="w-36 self-end pb-3">
-          <AppDropdown
-            data={quarters}
-            selectedValue={selectedQuarter?.value || null}
-            onSelect={setSelectedQuarter}
-            mode="dropdown"
-            placeholder="Select Quarter"
-            style={{height: 36}}
-          />
-        </View>
-                        <SummarySection total={TotalCount} branches={BranchWiseDetails} />
-                        <BranchExplorer rawData={BranchWiseDetails} />
-      </View>
-    </AppLayout>
-  );
-}
-
-// ---------------- Derived Utilities ----------------
 type TotalType = {TotalAGPRequest: number; TotalQtyRequested: number};
+
 type BranchDetail = {
+  AWPCode: string;
+  AWPName: string;
+  BranchName: string;
+  AGPRequestCnt: number;
+  QtyRequestCnt: number;
+};
+
+type MergedBranch = {
+  branch: string;
+  totalAGP: number;
+  totalQty: number;
+  awps: BranchDetail[];
+};
+
+type BranchExplorerProps = {
+  rawData: BranchDetail[];
+  isLoading: boolean;
+  refreshing: boolean;
+  onRefresh: () => void;
+  quarters: AppDropdownItem[];
+  selectedQuarter: AppDropdownItem | null;
+  onSelectQuarter: (item: AppDropdownItem | null) => void;
+  error: unknown;
+};
+
+type AGPItem = {
+  AGPCode: string;
+  AGPName: string;
+  RequestedModel: string;
+  RequestedQuantity: number;
+};
+
+type BranchPayload = {
+  awp: {
     AWPCode: string;
     AWPName: string;
     BranchName: string;
-    AGPRequestCnt: number;
-    QtyRequestCnt: number;
+    AGPRequestCnt?: number;
+    QtyRequestCnt?: number;
+  } | null;
+  yearQtr: string;
 };
 
-// Color helper (simple scale based on percentage)
-const getBarColor = (pct: number) => {
-    if (pct >= 70) return 'bg-green-500 dark:bg-green-400';
-    if (pct >= 40) return 'bg-amber-500 dark:bg-amber-400';
-    return 'bg-blue-500 dark:bg-blue-400';
+// API hooks
+const useGetLMSDataList = (YearQTR: string) => {
+  const {EMP_Code: Code = '', EMP_RoleId: RoleId = ''} = useLoginStore(
+    state => state.userInfo,
+  );
+
+  return useQuery<BranchDetail[]>({
+    queryKey: ['getLMSInfoList', Code, RoleId, YearQTR],
+    queryFn: async () => {
+      const response = await handleASINApiCall('/LMS/GetLMS_InfoList', {
+        Code,
+        RoleId,
+        YearQTR,
+      });
+      const result = response?.DashboardData;
+      if (!result?.Status) {
+        throw new Error('Failed to fetch LMS list');
+      }
+      return (result.Datainfo?.BranchWiseDetails || []) as BranchDetail[];
+    },
+    enabled: !!Code && !!RoleId && !!YearQTR,
+  });
 };
 
-// ---------------- Summary Section ----------------
-const SummarySection: React.FC<{total: TotalType[]; branches: BranchDetail[]}> = ({
-    total,
-    branches,
-}) => {
-    const {totalAGP, totalQty, uniqueBranches} = useMemo(() => {
-        const totalAGP = total?.[0]?.TotalAGPRequest || 0;
-        const totalQty = total?.[0]?.TotalQtyRequested || 0;
-        const uniqueBranches = new Set(branches.map(b => b.BranchName)).size;
-        return {totalAGP, totalQty, uniqueBranches};
-    }, [total, branches]);
-
-    return (
-        <View className="flex-row gap-3 mb-4">
-            <Card className="flex-1 p-4 justify-between">
-                <AppText size="sm" weight="medium" className="text-gray-500 dark:text-gray-400">
-                    Total AGP Requests
-                </AppText>
-                <AppText size="3xl" weight="bold" className="mt-1">
-                    {totalAGP}
-                </AppText>
-                <AppText size="xs" className="text-gray-400 mt-1" weight="medium">
-                    Across {uniqueBranches} branches
-                </AppText>
-            </Card>
-            <Card className="flex-1 p-4 justify-between">
-                <AppText size="sm" weight="medium" className="text-gray-500 dark:text-gray-400">
-                    Total Qty Requested
-                </AppText>
-                <AppText size="3xl" weight="bold" className="mt-1">
-                    {totalQty}
-                </AppText>
-                <AppText size="xs" className="text-gray-400 mt-1" weight="medium">
-                    Avg {(totalQty / Math.max(totalAGP, 1)).toFixed(1)} per request
-                </AppText>
-            </Card>
-        </View>
-    );
+const useGetLMSAGPList = (
+  Code: string,
+  YearQTR: string,
+  enabled: boolean,
+) => {
+  return useQuery<AGPItem[]>({
+    queryKey: ['getLMSAGPList', Code, YearQTR],
+    queryFn: async () => {
+      const response = await handleASINApiCall('/LMS/GetLMS_InfoListDetails', {
+        Code,
+        YearQTR,
+      });
+      const result = response?.DashboardData;
+      if (!result?.Status) {
+        throw new Error('Failed to fetch AGP list');
+      }
+      return (result.Datainfo?.AGPList || []) as AGPItem[];
+    },
+    enabled: enabled && !!Code && !!YearQTR,
+  });
 };
 
-// ---------------- Branch Explorer (Merged + Expandable) ----------------
-type MergedBranch = {
-    branch: string;
-    totalAGP: number;
-    totalQty: number;
-    awps: BranchDetail[];
+// Helper Function 
+export const showLMSBranchDetailsSheet = (
+  awp: BranchPayload['awp'],
+  yearQtr: string,
+) => {
+  if (!awp) return;
+  SheetManager.show('LMSBranchDetailsSheet', {
+    payload: {awp, yearQtr},
+  });
 };
 
-// if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-//     UIManager.setLayoutAnimationEnabledExperimental(true);
-// }
+// Components
+const SummarySection: React.FC<{
+  total: TotalType[];
+  branches: BranchDetail[];
+}> = ({total, branches}) => {
+  const stats = useMemo(() => {
+    const totalAGP = total?.[0]?.TotalAGPRequest || 0;
+    const totalQty = total?.[0]?.TotalQtyRequested || 0;
+    return {totalAGP, totalQty};
+  }, [total, branches]);
 
-const BranchExplorer: React.FC<{rawData: BranchDetail[]}> = ({rawData}) => {
-    const [search, setSearch] = useState('');
-    const [sortBy, setSortBy] = useState<'qty' | 'agp' | 'name'>('qty');
-    const [expanded, setExpanded] = useState<Set<string>>(new Set());
-
-    const merged = useMemo<MergedBranch[]>(() => {
-        const map = new Map<string, MergedBranch>();
-        rawData.forEach(item => {
-            const key = item.BranchName;
-            if (!map.has(key)) {
-                map.set(key, {branch: key, totalAGP: 0, totalQty: 0, awps: []});
-            }
-            const ref = map.get(key)!;
-            ref.totalAGP += item.AGPRequestCnt;
-            ref.totalQty += item.QtyRequestCnt;
-            ref.awps.push(item);
-        });
-        let arr = Array.from(map.values());
-        // Filter
-        if (search) {
-            const q = search.toLowerCase();
-            arr = arr.filter(
-                b =>
-                    b.branch.toLowerCase().includes(q) ||
-                    b.awps.some(a => a.AWPName.toLowerCase().includes(q) || a.AWPCode.toLowerCase().includes(q)),
-            );
-        }
-        // Sort
-        arr.sort((a, b) => {
-            switch (sortBy) {
-                case 'agp':
-                    return b.totalAGP - a.totalAGP;
-                case 'name':
-                    return a.branch.localeCompare(b.branch);
-                case 'qty':
-                default:
-                    return b.totalQty - a.totalQty;
-            }
-        });
-        return arr;
-    }, [rawData, search, sortBy]);
-
-    const grandTotals = useMemo(
-        () => merged.reduce((acc, b) => {
-            acc.agp += b.totalAGP;
-            acc.qty += b.totalQty;
-            return acc;
-        }, {agp: 0, qty: 0}),
-        [merged],
-    );
-
-    const toggle = useCallback((branch: string) => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setExpanded(prev => {
-            const next = new Set(prev);
-            next.has(branch) ? next.delete(branch) : next.add(branch);
-            return next;
-        });
-    }, []);
-
-    const renderItem = useCallback(
-        ({item, index}: {item: MergedBranch; index: number}) => {
-            const pct = grandTotals.qty ? (item.totalQty / grandTotals.qty) * 100 : 0;
-            const isOpen = expanded.has(item.branch);
-            return (
-                <MergedBranchCard
-                    data={item}
-                    percentage={pct}
-                    expanded={isOpen}
-                    onToggle={() => toggle(item.branch)}
-                    index={index}
-                />
-            );
-        },
-        [grandTotals.qty, expanded, toggle],
-    );
-
-    return (
-        <View className="flex-1">
-            <View className="mb-3">
-                <Card className="p-3">
-                    <View className="flex-row items-center">
-                        <AppIcon name="search" type="feather" size={16} style={{marginRight: 8}} />
-                        <TextInput
-                            value={search}
-                            onChangeText={setSearch}
-                            placeholder="Search branch or AWP..."
-                            placeholderTextColor={'#9ca3af'}
-                            className="flex-1 text-sm"
-                            style={{padding: 0, margin: 0}}
-                            returnKeyType="search"
-                        />
-                    </View>
-                    <View className="mt-3 flex-row justify-between">
-                        <SortChip label="Qty" active={sortBy === 'qty'} onPress={() => setSortBy('qty')} />
-                        <SortChip label="AGP" active={sortBy === 'agp'} onPress={() => setSortBy('agp')} />
-                        <SortChip label="Name" active={sortBy === 'name'} onPress={() => setSortBy('name')} />
-                    </View>
-                </Card>
+  return (
+    <Card className="mb-3 p-0">
+      <View className="pb-3 border-b border-slate-100 pt-4 px-3">
+        <View className="flex-row items-center gap-2 justify-between">
+          <View className="flex-row items-center gap-2">
+            <View className="w-8 h-8 rounded-full bg-primary/10 items-center justify-center">
+              <AppIcon
+                name="bar-chart-2"
+                type="feather"
+                size={16}
+                color="#0066FF"
+              />
             </View>
-            <FlatList
-                data={merged}
-                keyExtractor={i => i.branch}
-                renderItem={renderItem}
-                contentContainerStyle={{paddingBottom: 140}}
-                ListEmptyComponent={
-                    <Card className="p-6 mt-6 items-center">
-                        <AppText weight="bold">No branches</AppText>
-                        <AppText size="sm" className="text-gray-500 mt-1">
-                            Adjust search or filters.
-                        </AppText>
-                    </Card>
-                }
-                showsVerticalScrollIndicator={false}
-            />
+            <AppText size="base" weight="semibold" className="text-slate-800">
+              AGP Overview
+            </AppText>
+          </View> 
         </View>
-    );
-};
-
-// ---------------- Cards ----------------
-const MergedBranchCard: React.FC<{
-    data: MergedBranch;
-    percentage: number;
-    expanded: boolean;
-    onToggle: () => void;
-    index: number;
-}> = React.memo(({data, percentage, expanded, onToggle}) => {
-    const pctDisplay = percentage.toFixed(1);
-    return (
-        <Card className="mb-3 p-4">
-            <TouchableOpacity
-                onPress={onToggle}
-                activeOpacity={0.7}
-                className="flex-row justify-between items-start">
-                <View className="flex-1 pr-3">
-                    <AppText weight="semibold" size="md">
-                        {data.branch.replace(/_/g, ' ')}
-                    </AppText>
-                    <View className="flex-row items-center mt-1 flex-wrap">
-                        <InfoPill label={`${data.awps.length} AWP`} />
-                        <InfoPill label={`AGP ${data.totalAGP}`} />
-                        <InfoPill label={`Qty ${data.totalQty}`} />
-                        <InfoPill label={`${pctDisplay}%`} variant="soft" />
-                    </View>
-                </View>
-                <View className="items-end">
-                    <AppIcon
-                        name={expanded ? 'chevron-up' : 'chevron-down'}
-                        type="feather"
-                        size={18}
-                        color={expanded ? '#2563eb' : '#64748b'}
-                    />
-                </View>
-            </TouchableOpacity>
-            <View className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mt-3">
-                <View
-                    className={`h-full ${getBarColor(percentage)} rounded-full`}
-                    style={{width: `${Math.min(percentage, 100)}%`}}
-                />
-            </View>
-            {expanded && (
-                <View className="mt-4">
-                    {data.awps.map(a => (
-                        <View
-                            key={a.AWPCode}
-                            className="flex-row justify-between mb-3 last:mb-0">
-                            <View className="flex-1 pr-3">
-                                <AppText size="sm" weight="medium" numberOfLines={1}>
-                                    {a.AWPName}
-                                </AppText>
-                                <AppText size="xs" className="text-gray-500 mt-0.5">
-                                    {a.AWPCode}
-                                </AppText>
-                            </View>
-                            <View className="items-end">
-                                <AppText weight="bold" size="sm">
-                                    {a.QtyRequestCnt}
-                                </AppText>
-                                <AppText size="xs" className="text-gray-400 -mt-0.5">
-                                    Qty
-                                </AppText>
-                                <AppText size="xs" className="text-gray-500 mt-0.5">
-                                    AGP {a.AGPRequestCnt}
-                                </AppText>
-                            </View>
-                        </View>
-                    ))}
-                </View>
-            )}
-        </Card>
-    );
-});
-
-// Removed standalone AWPCard (integrated inside expanded branch)
-
-// Sort Chip
-const SortChip: React.FC<{label: string; active: boolean; onPress: () => void}> = ({
-    label,
-    active,
-    onPress,
-}) => (
-    <TouchableOpacity
-        onPress={onPress}
-        className={`px-4 py-2 rounded-full mr-2 ${
-            active
-                ? 'bg-primary dark:bg-primary-dark'
-                : 'bg-gray-200 dark:bg-gray-700'
-        }`}
-        accessibilityRole="button"
-        accessibilityState={{selected: active}}>
-        <AppText
+        <AppText size="xs" className="text-slate-400 mt-1">
+          Aggregated request metrics
+        </AppText>
+      </View>
+      {/* Metrics */}
+      <View className="flex-row justify-around mt-4 px-3 pb-4">
+        <View className="flex-1 items-center">
+          <View className="w-12 h-12 rounded-xl bg-violet-500 items-center justify-center mb-2 shadow-sm">
+            <AppIcon name="layers" type="feather" size={20} color="white" />
+          </View>
+          <AppText
             size="xs"
-            weight="semibold"
-            className={active ? 'text-white' : 'text-gray-700 dark:text-gray-300'}>
-            {label}
-        </AppText>
-    </TouchableOpacity>
-);
+            weight="medium"
+            numberOfLines={2}
+            className="text-center leading-tight text-violet-600">
+            Total AGP Requests
+          </AppText>
+          <AppText size="lg" weight="bold" className="mt-1 text-violet-600">
+            {stats.totalAGP}
+          </AppText>
+        </View>
+        <View className="w-px bg-slate-100 mx-3" />
+        <View className="flex-1 items-center">
+          <View className="w-12 h-12 rounded-xl bg-teal-500 items-center justify-center mb-2 shadow-sm">
+            <AppIcon name="package" type="feather" size={20} color="white" />
+          </View>
+          <AppText
+            size="xs"
+            weight="medium"
+            numberOfLines={2}
+            className="text-center leading-tight text-teal-600">
+            Total Qty Requested
+          </AppText>
+          <AppText size="lg" weight="bold" className="mt-1 text-teal-600">
+            {stats.totalQty}
+          </AppText>
+        </View>
+      </View>
+    </Card>
+  );
+};
 
-// Info Pill
-const InfoPill: React.FC<{label: string; variant?: 'solid' | 'soft'}> = ({
-    label,
-    variant = 'solid',
-}) => (
-    <View
-        className={`px-2 py-1 rounded-full mr-2 mb-2 ${
-            variant === 'solid'
-                ? 'bg-gray-200 dark:bg-gray-700'
-                : 'bg-blue-100 dark:bg-blue-900/40'
-        }`}>
-        <AppText size="xs" weight="medium" className="text-gray-700 dark:text-gray-200">
-            {label}
+const BranchExplorer: React.FC<BranchExplorerProps> = ({
+  rawData,
+  isLoading,
+  refreshing,
+  onRefresh,
+  quarters,
+  selectedQuarter,
+  onSelectQuarter,
+  error,
+}) => {
+
+  const merged = useMemo<MergedBranch[]>(() => {
+    const map = new Map<string, MergedBranch>();
+    rawData.forEach(item => {
+      const key = item.BranchName;
+      if (!map.has(key)) {
+        map.set(key, {branch: key, totalAGP: 0, totalQty: 0, awps: []});
+      }
+      const ref = map.get(key)!;
+      ref.totalAGP += item.AGPRequestCnt;
+      ref.totalQty += item.QtyRequestCnt;
+      ref.awps.push(item);
+    });
+    const arr = Array.from(map.values());
+    arr.sort((a, b) => a.branch.localeCompare(b.branch));
+    return arr;
+  }, [rawData]);
+
+  const handleSelect = useCallback(
+    (item: BranchDetail) => {
+      showLMSBranchDetailsSheet(item, selectedQuarter?.value || '');
+    },
+    [selectedQuarter?.value],
+  );
+
+  const renderBranch = useCallback(
+    ({item}: {item: MergedBranch}) => (
+      <BranchCardUI item={item} onSelect={handleSelect} />
+    ),
+    [handleSelect],
+  );
+
+  // Total counts derived here for header summary
+  const totalCount: TotalType[] = useMemo(() => {
+    if (!rawData.length) {
+      return [{TotalAGPRequest: 0, TotalQtyRequested: 0}];
+    }
+    const agg = rawData.reduce(
+      (acc, cur) => {
+        acc.TotalAGPRequest += cur.AGPRequestCnt || 0;
+        acc.TotalQtyRequested += cur.QtyRequestCnt || 0;
+        return acc;
+      },
+      {TotalAGPRequest: 0, TotalQtyRequested: 0},
+    );
+    return [agg];
+  }, [rawData]);
+
+  const branchCount = useMemo(() => rawData.reduce((set, cur) => set.add(cur.BranchName), new Set<string>()).size, [rawData]);
+
+  const listHeader = (
+    <View>
+      <View className="w-36 self-end mb-5">
+        <AppDropdown
+          data={quarters}
+          selectedValue={selectedQuarter?.value || null}
+          onSelect={onSelectQuarter}
+          mode="dropdown"
+          placeholder="Select Quarter"
+          style={{height: 36}}
+        />
+      </View>
+      {!!error && (
+        <Card className="p-4 mb-3 bg-red-50">
+          <AppText size="sm" weight="semibold" className="text-red-600">
+            {String((error as any)?.message || 'Failed to load data')}
+          </AppText>
+        </Card>
+      )}
+      <SummarySection total={totalCount} branches={rawData} />
+      {/* Branches list header */}
+      <View className="flex-row items-center justify-between mb-2 mt-2">
+        <AppText size="base" weight="semibold" className="text-slate-800">
+          Branches
         </AppText>
+        <AppText size="xs" weight="medium" className="text-slate-500">
+          {branchCount} total
+        </AppText>
+      </View>
     </View>
-);
+  );
+  const loadingSkeleton = (
+            <View className='px-3'>
+          <View className="mb-5 self-end">
+            <Skeleton width={120} height={35} />
+          </View>
+          <Skeleton width={screenWidth -24} height={150} />
+          <View className='gap-4 mt-5'>
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} width={screenWidth -24} height={80} />
+          ))}
+          </View>
+        </View>
+  )
+
+  return (
+    <View className="flex-1">
+      {isLoading ? loadingSkeleton: (
+        <FlatList
+          data={merged}
+          keyExtractor={i => i.branch}
+          renderItem={renderBranch}
+          ListHeaderComponent={listHeader}
+          contentContainerStyle={{paddingBottom: 140, paddingHorizontal: 12}}
+          ListEmptyComponent={
+            <Card className="p-6 mt-6 items-center">
+              <AppText weight="bold">No branches</AppText>
+              <AppText size="sm" className="text-gray-500 mt-1">
+                Adjust search or filters.
+              </AppText>
+            </Card>
+          }
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#0066FF" />
+          }
+          showsVerticalScrollIndicator={false}
+        />
+      )}
+    </View>
+  );
+};
+
+const BranchCardUI: React.FC<{
+  item: MergedBranch;
+  onSelect: (a: BranchDetail) => void;
+}> = ({item, onSelect}) => {
+  const header = (
+    <View className="flex-1 flex-row items-start gap-2">
+      <AppIcon
+      name='map-marker-radius'
+      type='material-community'
+      size={20}
+      color="#101010"
+      style={{marginTop: 4}}
+      />
+      <View className="pr-3">
+        <AppText weight="semibold" size="md" numberOfLines={1} className="tracking-tight">
+          {item.branch.replace(/_/g, ' ')}
+        </AppText>
+        <AppText size="xs" className="text-slate-400 mt-0.5" numberOfLines={1}>
+          {item.awps.length} AWP Partner{item.awps.length > 1 ? 's' : ''}
+        </AppText>
+      </View>
+    </View>
+  );
+
+  return (
+    <Accordion
+      header={header}
+      containerClassName="bg-white dark:bg-gray-900 rounded-lg px-4 py-3 mb-3 border border-slate-200 dark:border-slate-700 "
+      headerClassName="px-0 "
+      contentClassName="px-0"
+      needBottomBorder={false}
+      arrowSize={20}
+    >
+      {/* Table Header */}
+      <View className="flex-row items-center py-2 px-2 bg-slate-50 dark:bg-slate-800 rounded mb-2 mt-3">
+        <AppText size="xs" weight="medium" className="w-[60%] text-slate-500">AWP Name</AppText>
+        <AppText size="xs" weight="medium" className="w-[15%]  text-slate-500">Qty</AppText>
+        <AppText size="xs" weight="medium" className="w-[15%]  text-slate-500">AGP</AppText>
+        <AppText size="xs" weight="medium" className="w-[10%]  text-slate-500">View</AppText>
+      </View>
+      {item.awps.map((a, idx) => (
+        <View
+          key={a.AWPCode}
+          className={`flex-row items-center py-2 px-2 border-b border-slate-100 dark:border-slate-700 ${idx === item.awps.length - 1 ? 'last:border-b-0' : ''}`}
+        >
+          <View className="w-[60%] pr-3">
+            <AppText size="sm" weight="medium">{a.AWPName}</AppText>
+            <AppText size="xs" className="text-slate-400">{a.AWPCode}</AppText>
+          </View>
+          <View className="w-[30%] flex-row items-center">
+            <View className="w-1/2 ">
+              <AppText size="sm" weight="semibold" className='ml-1'>{a.QtyRequestCnt}</AppText>
+            </View>
+            <View className="w-1/2">
+              <AppText size="sm" weight="semibold" className='ml-1'>{a.AGPRequestCnt}</AppText>
+            </View>
+          </View>
+          <View className="w-[10%] items-end">
+            <TouchableOpacity
+              onPress={() => onSelect(a)}
+              accessibilityLabel="View details"
+              className="w-8 h-8 rounded-md bg-blue-50 dark:bg-blue-900/30 items-center justify-center">
+              <AppIcon name="eye" type="feather" size={16} color="#1d4ed8" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      ))}
+    </Accordion>
+  );
+};
+
+export const LMSBranchDetailsSheet: React.FC = () => {
+  const payload = useSheetPayload('LMSBranchDetailsSheet') as BranchPayload | undefined;
+  const awp = payload?.awp || null;
+  const yearQtr = payload?.yearQtr || '';
+
+  const [isSheetOpen, setIsSheetOpen] = useState(true);
+  useEffect(() => {
+    setIsSheetOpen(true);
+    return () => setIsSheetOpen(false);
+  }, []);
+
+  const {data, isLoading, error} = useGetLMSAGPList(
+    awp?.AWPCode || '',
+    yearQtr,
+    isSheetOpen && !!awp && !!yearQtr,
+  );
+
+  console.log('LMSBranchDetailsSheet data:', data);
+
+  const [selectedModel, setSelectedModel] = useState<AppDropdownItem | null>(null);
+  useEffect(() => {
+    setSelectedModel(null);
+  }, [awp?.AWPCode]);
+
+  const modelItems = useMemo<AppDropdownItem[]>(() => {
+    if (!data || data.length === 0) return [];
+    const unique = Array.from(new Set(data.map(i => i.RequestedModel).filter(Boolean)));
+    return unique.sort().map(m => ({label: m, value: m}));
+  }, [data]);
+
+  const filteredList = useMemo(() => {
+    if (!data) return [];
+    if (!selectedModel?.value) return data;
+    return data.filter(i => i.RequestedModel === selectedModel.value);
+  }, [data, selectedModel]);
+
+  const renderItem = useCallback(
+    ({item}: {item: AGPItem}) => (
+      <Card className="mb-3 p-0">
+        <View className="p-3">
+          <View className="flex-row items-start justify-between mb-2">
+            <View className="flex-1 pr-3">
+              <AppText size="base" weight="bold" numberOfLines={1} className="text-slate-800">
+                {item.AGPName}
+              </AppText>
+              <AppText size="xs" weight="medium" numberOfLines={1} className="text-slate-400 mt-0.5">
+                {item.AGPCode}
+              </AppText>
+            </View>
+            <View className="items-end">
+              <View className="px-2 py-1 rounded-md bg-primary/10">
+                <AppText size="xs" weight="semibold" className="text-primary">
+                  Qty: {item.RequestedQuantity}
+                </AppText>
+              </View>
+            </View>
+          </View>
+          <View className="mt-1 flex-row items-center">
+            <AppIcon name="cpu" type="feather" size={14} color="#64748B" />
+            <AppText size="xs" weight="medium" className="text-slate-500 ml-2">
+              Model:
+            </AppText>
+            <AppText size="xs" weight="semibold" className="text-slate-700 ml-1 flex-1" numberOfLines={1}>
+              {item.RequestedModel || '—'}
+            </AppText>
+          </View>
+        </View>
+      </Card>
+    ),
+    [],
+  );
+
+  if (!awp) return null;
+
+  return (
+    <View>
+      <ActionSheet
+        id="LMSBranchDetailsSheet"
+        useBottomSafeAreaPadding
+        containerStyle={{
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+          backgroundColor: '#ffffff',
+          height: screenHeight * 0.75,
+        }}>
+        <View className="p-4 pb-3 border-b border-slate-200">
+          <AppText size="xl" weight="bold" className="text-slate-800" numberOfLines={1}>
+            {awp.AWPName}
+          </AppText>
+          <View className="flex-row flex-wrap gap-2 mt-2">
+            <View className="bg-primary/10 px-2.5 py-1 rounded-md">
+              <AppText size="xs" weight="semibold" className="text-primary">
+                {awp.AWPCode}
+              </AppText>
+            </View>
+            <View className="bg-slate-100 px-2.5 py-1 rounded-md">
+              <AppText size="xs" weight="medium" className="text-slate-600" numberOfLines={1}>
+                Branch: {awp.BranchName.replace(/_/g, ' ')}
+              </AppText>
+            </View>
+            {!!awp.QtyRequestCnt && (
+              <View className="bg-teal-50 px-2.5 py-1 rounded-md">
+                <AppText size="xs" weight="medium" className="text-teal-600">
+                  Qty Req: {awp.QtyRequestCnt}
+                </AppText>
+              </View>
+            )}
+            {!!awp.AGPRequestCnt && (
+              <View className="bg-violet-50 px-2.5 py-1 rounded-md">
+                <AppText size="xs" weight="medium" className="text-violet-600">
+                  AGP Req: {awp.AGPRequestCnt}
+                </AppText>
+              </View>
+            )}
+          </View>
+        </View>
+        {!isLoading && data && data.length > 0 && (
+          <View className="px-4 pt-3 pb-2">
+            <AppText size="sm" weight="semibold" className="text-slate-700 mb-2">
+              Select the Model
+            </AppText>
+            <AppDropdown
+              data={modelItems}
+              selectedValue={selectedModel?.value}
+              mode="dropdown"
+              placeholder="All Models"
+              onSelect={setSelectedModel}
+              allowClear
+              onClear={() => setSelectedModel(null)}
+            />
+          </View>
+        )}
+        <View className="">
+          {isLoading ? (
+            <View className="py-4">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} width={screenWidth * 0.85} height={100} borderRadius={12} />
+              ))}
+            </View>
+          ) : error ? (
+            <View className="items-center justify-center py-10">
+              <AppIcon name="alert-circle" type="feather" size={48} color={AppColors.error} />
+              <AppText size="base" weight="semibold" className="text-slate-600 mt-3 text-center">
+                {(error as any)?.message || 'Failed to load data'}
+              </AppText>
+            </View>
+          ) : filteredList.length === 0 ? (
+            <View className="items-center justify-center py-10">
+              <AppIcon name="inbox" type="feather" size={48} color="#94A3B8" />
+              <AppText size="base" weight="semibold" className="text-slate-600 mt-3">
+                No AGP Entries
+              </AppText>
+              <AppText size="xs" className="text-slate-500 mt-1">
+                {data && data.length > 0 ? 'Try selecting a different model' : 'No data available'}
+              </AppText>
+            </View>
+          ) : (
+            <FlatList
+              data={filteredList}
+              renderItem={renderItem}
+              keyExtractor={(item, idx) => `${item.AGPCode}-${idx}`}
+              showsVerticalScrollIndicator={false}
+              ListHeaderComponent={
+                <View className="mb-2">
+                  <AppText size="xs" className="text-slate-500">
+                    Showing {filteredList.length} of {data?.length || 0} entries
+                  </AppText>
+                </View>
+              }
+              ListFooterComponent={<View className="h-64" />}
+              contentContainerStyle={{paddingBottom: 140, paddingHorizontal:16}}
+            />
+          )}
+        </View>
+      </ActionSheet>
+    </View>
+  );
+};
+
+// Main Screen Component
+export default function LMSList_HO() {
+  const quarters = useMemo(() => getPastQuarters(), []);
+  const [selectedQuarter, setSelectedQuarter] = useState<AppDropdownItem | null>(quarters[0] || null);
+  const YearQTR = selectedQuarter?.value ?? '';
+  const {data: branchData = [], isLoading, error, refetch, isFetching} = useGetLMSDataList(YearQTR);
+
+  return (
+    <AppLayout title="LMS List" needBack>
+      <View className="flex-1 pt-5 pb-3">
+        <BranchExplorer
+          rawData={branchData}
+          isLoading={isLoading}
+          refreshing={isFetching && !isLoading}
+          onRefresh={refetch}
+          quarters={quarters}
+          selectedQuarter={selectedQuarter}
+          onSelectQuarter={item => setSelectedQuarter(item)}
+          error={error}
+        />
+      </View>
+    </AppLayout>
+  );
+};

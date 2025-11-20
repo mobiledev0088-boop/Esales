@@ -1,7 +1,7 @@
-import {memo, useMemo, useState, useCallback} from 'react';
+import {memo, useMemo, useState, useCallback, useEffect} from 'react';
 import {View, FlatList, ActivityIndicator} from 'react-native';
 import {useQuery} from '@tanstack/react-query';
-import {useRoute} from '@react-navigation/native';
+import {useRoute, RouteProp} from '@react-navigation/native';
 import {BarChart, ruleTypes} from 'react-native-gifted-charts';
 import AppLayout from '../../../../components/layout/AppLayout';
 import Card from '../../../../components/Card';
@@ -16,10 +16,33 @@ import {
   convertToASINUnits,
   getPastMonths,
 } from '../../../../utils/commonFunctions';
-import {screenWidth} from '../../../../utils/constant';
+import {isIOS, screenWidth} from '../../../../utils/constant';
 import Skeleton from '../../../../components/skeleton/skeleton';
 
+// -------------------- Constants --------------------
+const CHART_COLORS = {
+  target: {front: '#3b82f6', gradient: '#60a5fa'},
+  sellOut: {front: '#10b981', gradient: '#34d399'},
+  eActivation: {front: '#f59e0b', gradient: '#fbbf24'},
+  iActivation: {front: '#8b5cf6', gradient: '#a78bfa'},
+} as const;
+
+const PAGINATION_CONFIG = {
+  ITEMS_PER_PAGE: 50,
+  MAX_TO_RENDER_PER_BATCH: 15,
+  INITIAL_NUM_TO_RENDER: 15,
+  WINDOW_SIZE: 5,
+  END_REACHED_THRESHOLD: 0.5,
+  CARD_HEIGHT: 320,
+} as const;
+
 // -------------------- Types --------------------
+type VerticalASE_HOParams = {
+  Year: string;
+  Month: string;
+  AlpType: string;
+};
+
 interface PartnerASEData {
   IchannelID: string;
   ASE_Name: string;
@@ -111,26 +134,26 @@ const QuantityChart = memo(({partner}: {partner: PartnerASEData}) => {
       {
         label: 'Target',
         value: parseNumber(partner.Target_Qty),
-        frontColor: '#3b82f6',
-        gradientColor: '#60a5fa',
+        frontColor: CHART_COLORS.target.front,
+        gradientColor: CHART_COLORS.target.gradient,
       },
       {
         label: 'SellOut',
         value: parseNumber(partner.SellOut_Qty),
-        frontColor: '#10b981',
-        gradientColor: '#34d399',
+        frontColor: CHART_COLORS.sellOut.front,
+        gradientColor: CHART_COLORS.sellOut.gradient,
       },
       {
         label: 'E-Act',
         value: parseNumber(partner.EActivation_Qty),
-        frontColor: '#f59e0b',
-        gradientColor: '#fbbf24',
+        frontColor: CHART_COLORS.eActivation.front,
+        gradientColor: CHART_COLORS.eActivation.gradient,
       },
       {
         label: 'I-Act',
         value: parseNumber(partner.IActivation_Qty),
-        frontColor: '#8b5cf6',
-        gradientColor: '#a78bfa',
+        frontColor: CHART_COLORS.iActivation.front,
+        gradientColor: CHART_COLORS.iActivation.gradient,
       },
     ];
     return data;
@@ -322,24 +345,49 @@ const PartnerCard = memo(({partner}: {partner: PartnerASEData}) => {
   );
 });
 
+// -------------------- Custom Hooks --------------------
+const usePagination = <T,>(data: T[], itemsPerPage: number) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const paginatedData = useMemo(() => {
+    const endIndex = currentPage * itemsPerPage;
+    return data.slice(0, endIndex);
+  }, [data, currentPage, itemsPerPage]);
+
+  const hasMoreData = useMemo(() => {
+    return paginatedData.length < data.length;
+  }, [paginatedData.length, data.length]);
+
+  const loadMore = useCallback(() => {
+    if (hasMoreData && !isLoadingMore) {
+      setIsLoadingMore(true);
+      setCurrentPage(prev => prev + 1);
+      setIsLoadingMore(false);
+    }
+  }, [hasMoreData, isLoadingMore]);
+
+  const reset = useCallback(() => {
+    setCurrentPage(1);
+    setIsLoadingMore(false);
+  }, []);
+
+  return {paginatedData, hasMoreData, loadMore, reset, isLoadingMore};
+};
+
 // -------------------- Main Component --------------------
 export default function VerticalASE_HO() {
-  const {params} = useRoute();
-  const {Year, Month, AlpType} = params as {Year: string; Month: string, AlpType: string};
+  const route = useRoute<RouteProp<{params: VerticalASE_HOParams}, 'params'>>();
+  const {Year, Month, AlpType} = route.params;
   const YearQtr = `${Year}${Month}`;
 
-  // Filter states
-  const [selectedPartner, setSelectedPartner] = useState<string | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState<AppDropdownItem | null>(
-    null,
-  );
-  const [refreshing, setRefreshing] = useState(false);
-
   // Generate month options
-  const monthOptions = useMemo<AppDropdownItem[]>(
-    () => getPastMonths(6, true, YearQtr),
-    [YearQtr],
-  );
+  const monthOptions = useMemo<AppDropdownItem[]>(() => getPastMonths(6, false, YearQtr),[YearQtr]);
+
+  // Filter and pagination states
+  const [selectedPartner, setSelectedPartner] = useState<string | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<AppDropdownItem | null>(monthOptions[0]);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Fetch data
   const {
@@ -348,13 +396,6 @@ export default function VerticalASE_HO() {
     isError,
     refetch,
   } = useGetTrgtVsAchvPartnerTypeWise(selectedMonth?.value || YearQtr, AlpType);
-
-  // Pull to refresh handler
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await refetch();
-    setRefreshing(false);
-  }, [refetch]);
 
   // Generate partner dropdown options
   const partnerOptions = useMemo<AppDropdownItem[]>(() => {
@@ -372,14 +413,31 @@ export default function VerticalASE_HO() {
     ) as AppDropdownItem[];
   }, [partnerASEData]);
 
-  // Filter data based on selected partner
-  const filteredData = useMemo(() => {
+  // Filter data based on selected partner (full dataset)
+  const filteredFullData = useMemo(() => {
     if (!partnerASEData) return [];
     if (!selectedPartner) return partnerASEData;
     return partnerASEData.filter(
       (item: PartnerASEData) => item.Partner_Code === selectedPartner,
     );
   }, [partnerASEData, selectedPartner]);
+
+  // Use custom pagination hook
+  const {paginatedData, hasMoreData, loadMore, reset, isLoadingMore} = 
+    usePagination<PartnerASEData>(filteredFullData, PAGINATION_CONFIG.ITEMS_PER_PAGE);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    reset();
+  }, [selectedPartner, selectedMonth, reset]);
+
+  // Pull to refresh handler - resets pagination
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    reset();
+    await refetch();
+    setRefreshing(false);
+  }, [refetch, reset]);
 
   // Optimized render item with useCallback
   const renderItem = useCallback(
@@ -393,6 +451,19 @@ export default function VerticalASE_HO() {
       `${item.Partner_Code}_${item.IchannelID}_${index}`,
     [],
   );
+
+  // Footer component for loading more indicator
+  const renderFooter = useCallback(() => {
+    if (!isLoadingMore) return null;
+    return (
+      <View className="py-4 items-center">
+        <ActivityIndicator size="small" color="#3b82f6" />
+        <AppText size="xs" color="gray" className="mt-2">
+          Loading more...
+        </AppText>
+      </View>
+    );
+  }, [isLoadingMore]);
 
   // Loading skeleton
   const renderLoadingSkeleton = useCallback(
@@ -429,6 +500,15 @@ export default function VerticalASE_HO() {
     [isError],
   );
 
+  const getItemLayout = useCallback(
+    (_: ArrayLike<PartnerASEData> | null | undefined, index: number) => ({
+      length: PAGINATION_CONFIG.CARD_HEIGHT,
+      offset: PAGINATION_CONFIG.CARD_HEIGHT * index,
+      index,
+    }),
+    []
+  );
+
   // Main render
   return (
     <AppLayout
@@ -460,36 +540,42 @@ export default function VerticalASE_HO() {
                   placeholder="Select Month"
                   selectedValue={selectedMonth?.value}
                   onSelect={setSelectedMonth}
-                  allowClear
-                  onClear={() => setSelectedMonth(null)}
                 />
               </View>
             </View>
-            <View className="mt-2">
+            <View className="mt-2 flex-row justify-between items-center">
               <AppText size="xs" color="gray">
-                Showing {filteredData.length} of {partnerASEData.length}{' '}
-                partners
+                Showing {paginatedData.length} of {filteredFullData.length} partners
+                {selectedPartner && ` (filtered from ${partnerASEData.length} total)`}
               </AppText>
+              {hasMoreData && (
+                <AppText size="xs" className="text-blue-600 dark:text-blue-400">
+                  {filteredFullData.length - paginatedData.length} more
+                </AppText>
+              )}
             </View>
           </View>
         )}
 
-        {/* Partner list with optimized performance */}
+        {/* Partner list with pagination and optimized performance */}
         <FlatList
-          data={filteredData}
+          data={paginatedData}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
           contentContainerStyle={{padding: 12, paddingBottom: 16}}
-          showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             isLoading ? renderLoadingSkeleton() : renderEmptyComponent()
           }
+          ListFooterComponent={renderFooter}
           refreshing={refreshing}
           onRefresh={onRefresh}
+          onEndReached={loadMore}
+          onEndReachedThreshold={PAGINATION_CONFIG.END_REACHED_THRESHOLD}
+          getItemLayout={!isIOS ? getItemLayout : undefined}
           removeClippedSubviews={true}
-          maxToRenderPerBatch={10}
-          initialNumToRender={15}
-          windowSize={10}
+          maxToRenderPerBatch={PAGINATION_CONFIG.MAX_TO_RENDER_PER_BATCH}
+          initialNumToRender={PAGINATION_CONFIG.INITIAL_NUM_TO_RENDER}
+          windowSize={PAGINATION_CONFIG.WINDOW_SIZE}
         />
       </View>
     </AppLayout>

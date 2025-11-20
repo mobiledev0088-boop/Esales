@@ -176,19 +176,22 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
     [],
   );
 
-  const handleDistributorWisePress = useCallback(() => {
-    navigation.push('TargetSummaryPOD', {
+  const handleDistributorWisePress = useCallback((wise:'POD' | 'SELL') => {
+    navigation.push('TargetSummary', {
       masterTab: tabName,
       Quarter: quarter,
-      tab: 'disti',
+      button: 'disti',
+      wise: wise
     });
   }, []);
 
-  const handleSeeMorePress = useCallback(() => {
-    navigation.push('TargetSummaryPOD', {
+  const handleSeeMorePress = useCallback((wise:'POD' | 'SELL') => {
+    navigation.push('TargetSummary', {
       masterTab: tabName,
       Quarter: quarter,
-      tab: 'seemore',
+      button: 'seemore',
+      wise: wise
+
     });
   }, []);
 
@@ -262,7 +265,7 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
   ].includes(userInfo?.EMP_RoleId as any);
 
   const renderActionButtons = useCallback(
-    () => (
+    (wise:'POD' | 'SELL') => (
       <View
         className={clsx(
           'flex-row w-full px-3 mt-4',
@@ -272,7 +275,7 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
           <TouchableOpacity
             className="py-1 flex-row items-center border-b border-blue-600"
             activeOpacity={0.7}
-            onPress={handleDistributorWisePress}>
+            onPress={()=>handleDistributorWisePress(wise)}>
             <AppIcon name="users" type="feather" color="#2563eb" size={16} />
             <AppText size="sm" weight="medium" className="text-blue-600 ml-2">
               Distributor Wise
@@ -283,7 +286,7 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
         <TouchableOpacity
           className="py-1 flex-row items-center border-b border-blue-600"
           activeOpacity={0.7}
-          onPress={handleSeeMorePress}>
+          onPress={()=>handleSeeMorePress(wise)}>
           <AppText size="sm" weight="medium" className="text-blue-600 mr-2">
             See More
           </AppText>
@@ -383,7 +386,7 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
             renderProductCard(item, index, index * 100),
           )}
         </ScrollView>
-        {renderActionButtons()}
+        {renderActionButtons('POD')}
       </View>
 
       {/* Sell Through Section */}
@@ -410,7 +413,7 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
             renderProductCard(item, index, index * 100, onPress),
           )}
         </ScrollView>
-        {renderActionButtons()}
+        {renderActionButtons('SELL')}
       </View>
     </View>
   );
@@ -426,9 +429,11 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
   error,
   onRetry,
   quarter,
+  masterTab,
 }) => {
   const userInfo = useLoginStore(state => state.userInfo);
   const navigation = useNavigation<AppNavigationProp>();
+  const [activeTab, setActiveTab] = useState<string>('ASE Total');
   const renderMetricCard = useCallback(
     ({
       label,
@@ -503,15 +508,6 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
             value: convertToASINUnits(Number(totalData.SellOut)),
             iconName: 'shopping-cart',
           })}
-        </View>
-        <View className="flex-row justify-end mt-3 pb-4 px-4">
-          <TouchableOpacity
-            className="border border-blue-200 px-4 py-2 rounded-lg bg-blue-100"
-            activeOpacity={0.6}>
-            <AppText size="xs" weight="medium" className="text-gray-600">
-              View Details
-            </AppText>
-          </TouchableOpacity>
         </View>
       </View>
     );
@@ -645,14 +641,32 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
       },
     ];
   }
-  const needSeeMore = userInfo?.EMP_RoleId === ASUS.ROLE_ID.LFR_HO;
+  const needSeeMore =
+    activeTab === 'ASE Total' || userInfo?.EMP_RoleId === ASUS.ROLE_ID.LFR_HO;
+  const year = Number(quarter.slice(0, 4));
+  const quarterNum = Number(quarter.slice(4));
+  const currentMonth = moment().month() + 1; // month() is zero-based
+  const MonthNum = currentMonth < (quarterNum * 3) ? currentMonth : (quarterNum * 3);
+  const onPress = () => {
+    navigation.push('TargetSummaryAMBranch', {
+      Year: year.toString(),
+      Month: MonthNum.toString(),
+      masterTab,
+    });
+  };
   return (
     <View className="px-3">
       <AppText size="xl" color="text" weight="bold" className="mb-2">
         ASE Related
       </AppText>
-      <Card className="p-0 pt-3" needSeeMore={needSeeMore}>
-        <CustomTabBar tabs={tabs} />
+      <Card
+        className="p-0 pt-3"
+        needSeeMore={needSeeMore}
+        seeMoreOnPress={onPress}>
+        <CustomTabBar
+          tabs={tabs}
+          onTabChange={item => setActiveTab(item.name)}
+        />
       </Card>
     </View>
   );
@@ -1105,6 +1119,7 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
               error={dashboardError}
               onRetry={handleRetry}
               quarter={selectedQuarter?.value || ''}
+              masterTab={route.name}
             />
           )}
 

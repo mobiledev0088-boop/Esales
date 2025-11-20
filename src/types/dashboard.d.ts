@@ -110,6 +110,7 @@ export interface ASEDataProps {
   error?: Error | null;
   onRetry?: () => void;
   quarter: string;
+  masterTab: string;
 }
 
 export interface PartnerAnalyticsProps {

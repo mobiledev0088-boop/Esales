@@ -39,6 +39,9 @@ export const Watermark: React.FC<WatermarkProps> = ({
     const userInfo = useLoginStore((state) => state.userInfo);
     const name = userInfo?.EMP_Name && `${userInfo.EMP_Name.split('_').join(' ')}`;
 
+    // Ensure rotation value includes 'deg' and use rotateZ for broader iOS compatibility
+    const rotateValue = rotation.includes('deg') ? rotation : `${rotation}deg`;
+
     const mergedContainer = twMerge(
         'absolute inset-0 justify-center items-center pointer-events-none z-0',
         containerClassName
@@ -54,7 +57,7 @@ export const Watermark: React.FC<WatermarkProps> = ({
                             size={textSize}
                             weight={textWeight}
                             className={mergedTextClass}
-                            style={{ transform: [{ rotate: rotation }], margin: 8, opacity: opacity, marginRight: colIndex < cols.length - 1 ? columnGap : 0, }}
+                            style={{ transform: [{ rotateZ: rotateValue }], margin: 8, opacity: opacity, marginRight: colIndex < cols.length - 1 ? columnGap : 0 }}
                         >
                             {text || name}
                         </AppText>

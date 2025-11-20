@@ -1,9 +1,10 @@
-import {FlatList, View} from 'react-native';
+import {FlatList, View, ScrollView} from 'react-native';
 import {useCallback, useMemo, useState} from 'react';
 import MaterialTabBar from '../../../../components/MaterialTabBar';
 import AppText from '../../../../components/customs/AppText';
+import AppIcon from '../../../../components/customs/AppIcon';
+import AppDropdown, {AppDropdownItem} from '../../../../components/customs/AppDropdown';
 import {getPastQuarters} from '../../../../utils/commonFunctions';
-import {AppDropdownItem} from '../../../../components/customs/AppDropdown';
 import {
   DemoItem,
   DemoItemRetailer,
@@ -121,6 +122,40 @@ const Reseller = () => {
   }, [transformedData]);
 
   const keyExtractor = useCallback((it: TransformedBranch) => it.id, []);
+
+  const StatsHeader = useMemo(() => {
+    const stats: {label: string; value: number; icon: string; iconType?: string}[] = [
+      {label: 'At Least 1 Demo', value: summaryData.at_least_single_demo, icon: 'check-circle', iconType: 'feather'},
+      {label: '100% Demo', value: summaryData.demo_100, icon: 'percent', iconType: 'feather'},
+      {label: 'Total Partners', value: summaryData.total_partners, icon: 'users', iconType: 'feather'},
+      {label: 'AWP Partners', value: summaryData.awp_partners, icon: 'award', iconType: 'feather'},
+    ];
+    return (
+      <View className="mb-4">
+        {/* Quarter Selector */}
+        <View className="mb-3">
+          <AppDropdown
+            mode="dropdown"
+            data={quarters}
+            selectedValue={selectedQuarter?.value}
+            onSelect={setSelectedQuarter}
+            placeholder="Select Quarter"
+          />
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{paddingRight:12}}>
+          {stats.map(s => (
+            <View key={s.label} className="mr-3 w-44 p-3 rounded-xl bg-white border border-slate-200">
+              <View className="flex-row items-center mb-2">
+                <AppIcon type={s.iconType as any} name={s.icon} size={18} color={'#1e293b'} />
+                <AppText className="ml-2 text-[11px] font-medium text-slate-600" numberOfLines={2}>{s.label}</AppText>
+              </View>
+              <AppText className="text-xl font-semibold text-slate-900" numberOfLines={1}>{s.value}</AppText>
+            </View>
+          ))}
+        </ScrollView>
+      </View>
+    );
+  }, [quarters, selectedQuarter, summaryData]);
   const renderBranch = useCallback(
     ({item}: {item: TransformedBranch}) => (
       <BranchCard
@@ -148,20 +183,7 @@ const Reseller = () => {
         contentContainerClassName="pt-5 pb-10 px-3"
         showsVerticalScrollIndicator={false}
         maxToRenderPerBatch={16}
-        ListHeaderComponent={() => (
-          <SummaryCard
-            at_least_single_demo={summaryData.at_least_single_demo}
-            demo_100={summaryData.demo_100}
-            total_partners={summaryData.total_partners}
-            awp_partners={summaryData.awp_partners}
-            quarters={quarters}
-            selectedQuarter={selectedQuarter}
-            setSelectedQuarter={setSelectedQuarter}
-            filters={filters}
-            setFilters={setFilters}
-            partnerTypes={partnerTypes}
-          />
-        )}
+        ListHeaderComponent={StatsHeader}
       />
     </View>
   );
@@ -253,6 +275,40 @@ const Retailer = () => {
   }, [transformedData]);
 
   const keyExtractor = useCallback((it: TransformedBranch) => it.id, []);
+
+  const StatsHeader = useMemo(() => {
+    const stats: {label: string; value: number; icon: string; iconType?: string}[] = [
+      {label: 'At Least 1 Demo', value: summaryData.at_least_single_demo, icon: 'check-circle', iconType: 'feather'},
+      {label: '80% Demo', value: summaryData.at_80_demo, icon: 'trending-up', iconType: 'feather'},
+      {label: '100% Demo', value: summaryData.demo_100, icon: 'percent', iconType: 'feather'},
+      {label: 'Total Partners', value: summaryData.total_partners, icon: 'users', iconType: 'feather'},
+    ];
+    return (
+      <View className="mb-4">
+        {/* Quarter Selector */}
+        <View className="mb-3">
+          <AppDropdown
+            mode="dropdown"
+            data={quarters}
+            selectedValue={selectedQuarter?.value}
+            onSelect={setSelectedQuarter}
+            placeholder="Select Quarter"
+          />
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{paddingRight:12}}>
+          {stats.map(s => (
+            <View key={s.label} className="mr-3 w-44 p-3 rounded-xl bg-white border border-slate-200">
+              <View className="flex-row items-center mb-2">
+                <AppIcon type={s.iconType as any} name={s.icon} size={18} color={'#1e293b'} />
+                <AppText className="ml-2 text-[11px] font-medium text-slate-600" numberOfLines={2}>{s.label}</AppText>
+              </View>
+              <AppText className="text-xl font-semibold text-slate-900" numberOfLines={1}>{s.value}</AppText>
+            </View>
+          ))}
+        </ScrollView>
+      </View>
+    );
+  }, [quarters, selectedQuarter, summaryData]);
   const renderBranch = useCallback(
     ({item}: {item: TransformedBranch}) => (
       <BranchCard
@@ -278,24 +334,15 @@ const Retailer = () => {
         contentContainerClassName="pt-5 pb-10 px-3"
         showsVerticalScrollIndicator={false}
         maxToRenderPerBatch={16}
-        ListHeaderComponent={() => (
-          <SummaryCard
-            at_least_single_demo={summaryData.at_least_single_demo}
-            at_80_demo={summaryData.at_80_demo}
-            demo_100={summaryData.demo_100}
-            total_partners={summaryData.total_partners}
-            partnerTypes={partnerTypes}
-            quarters={quarters}
-            selectedQuarter={selectedQuarter}
-            setSelectedQuarter={setSelectedQuarter}
-            filters={filters}
-            setFilters={setFilters}
-          />
-        )}
+        ListHeaderComponent={StatsHeader}
       />
     </View>
   );
 };
+
+const LFR = () => {
+  return <View></View>;
+}
 
 const ROI = () => {
   const quarters = useMemo(() => getPastQuarters(), []);
@@ -409,13 +456,6 @@ const ROI = () => {
 };
 
 export default function Demo() {
-  const PlachHolder = () => (
-    <View className="flex-1 items-center justify-center">
-      <AppText size="base" className="text-slate-500">
-        Select a tab to view data
-      </AppText>
-    </View>
-  );
   return (
     <View className="flex-1 bg-lightBg-base">
       <MaterialTabBar
@@ -433,12 +473,12 @@ export default function Demo() {
           {
             label: 'LFR',
             name: 'lfr',
-            component: <PlachHolder />,
+            component:LFR,
           },
           {
             label: 'ROI',
             name: 'roi',
-            component: <ROI />,
+            component: ROI,
           },
         ]}
         initialRouteName="reseller"

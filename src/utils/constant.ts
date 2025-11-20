@@ -47,26 +47,43 @@ export const ASUS = {
         HO_EMPLOYEES: 2,
         BSM: 3, // branch sales manager
         TM: 4,  // territory  manager
-        SALES_EXE: 5,
+        // SALES_EXE: 5, 
         PARTNERS: 6 ,
         DISTRIBUTORS: 7,
         COUNTRY_HEAD: 9,
-        SALES_REPS: 10,
+        SALES_REPS: 10, // CSE
         LFR_HO: 13,
         ONLINE_HO: 14,
         ESHOP_HO: 16,
         AM: 17, // Area Manager
-        MIS: 18, // Management Information System
         ASE: 24, // Asus Solution Expert
         BPM: 25, // Branch Product Manager
         RSM: 26, // Regional Sales Manager
-        COUNTRY_MANAGER: 27,
         DISTI_HO: 28,
         CHANNEL_MARKETING: 29,
     },
 } as const;
 
 
+// Login Credentials for Testing
 
-// Vishal Srivastava KN1800039 RSM Vishal@123456789
-// Varun Sharma KN2300037 TM Varunasus@123456
+// Arnold_Su           AS1300044   DIR_HOD_MAN       qbaoandadia520!   
+// Ashish_Devasi       KN2500069   HO_EMPLOYEES      @ITSMbpm07072025
+// Vishwanath_Niranjan KN1400081   BSM               Asus@#20241234567
+// Varun_Sharma        KN2300037   TM                Varunasus@123456
+// Darshini_k          KN1300028   SALES_EXE         izb_g2vXL2Z6wro
+// vrp                 KN2400032   DISTRIBUTORS      Vrptlasusindia@1234
+// Test                ASIN000001  PARTNERS          Testing@1234567890   AGP Partner
+// Supreme Computers   ASIN001139  PARTNERS          SupremeAsus@1234!    AWP Partner
+// S. R. Infotech.     ASIN001198  PARTNERS          )PFSSx6AoPGkM%%      AES Partner
+// Eric_Ou             AA2100079   COUNTRY_HEAD      LQ6CqZViTnk3ntu
+// Shanka_n            KN1900027   SALES_REPS        shan#9804519915
+// paresh_kapadia      KN2000003   LFR_HO            odZv77o9YtBDzeK
+// tejaswini_bhomkar   KN2100010   ONLINE_HO         Nq(rVrhe$NW7@09    
+// sagar_bandekar      KN2100034   ESHOP_HO          S@toshiasus161992
+// vishwa_bhagwat      KN2300008   AM                VB2025#8000032as
+// Tulumani_Ahmed      IN1705A0159 ASE               Tulumani@9864585391
+// vishwanath_niranjan KN1400081   BPM               Asus@#20241234567
+// Vishal_Srivastava   KN1800039   RSM               Vishal@123456789
+// rahul_sangani       KN2100022   DISTI_HO          Asus@7977399605
+// pawan_sisodia       KN1500116   CHANNEL_MARKETING #gqUB(impYKN6ni

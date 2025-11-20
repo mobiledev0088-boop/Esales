@@ -151,7 +151,9 @@ const ALPInfo = () => {
 const AGPInfo = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const userInfo = useLoginStore(state => state.userInfo);
-  const [selectedItem, setSelectedItem] = useState<AppDropdownItem | null>(null);
+  const [selectedItem, setSelectedItem] = useState<AppDropdownItem | null>(
+    null,
+  );
 
   const {data: listData, isLoading, error} = useGetAGPList();
   const {
@@ -195,9 +197,8 @@ const AGPInfo = () => {
 
   if (isLoading) return <ListSkeleton />;
 
-  if (error) {
+  if (error)
     return <ErrorState message="Error loading AGP data. Please try again." />;
-  }
 
   const showButton =
     [
@@ -221,15 +222,15 @@ const AGPInfo = () => {
         ) : detailsError ? (
           <ErrorState message="Error loading AGP details. Please try again." />
         ) : agpDetails ? (
-            <ScrollView
-              className="flex-1 pt-4"
-              showsVerticalScrollIndicator={false}>
-              <AppTabBar
-                tabs={tabs}
-                containerStyle={{marginLeft: 0, marginRight: 0}}
-                contentContainerStyle={{paddingTop: 16}}
-              />
-            </ScrollView>
+          <ScrollView
+            className="flex-1 pt-4"
+            showsVerticalScrollIndicator={false}>
+            <AppTabBar
+              tabs={tabs}
+              containerStyle={{marginLeft: 0, marginRight: 0}}
+              contentContainerStyle={{paddingTop: 16}}
+            />
+          </ScrollView>
         ) : (
           <AGPNoDetailsState />
         )
@@ -237,23 +238,32 @@ const AGPInfo = () => {
         <AGPEmptySelectionState />
       )}
       {showButton && selectedItem?.value ? (
-        <View>
-        <AppButton
-          title="Add 3 Finance Map"
-          iconName="plus-circle"
-          className="rounded py-4 mt-2 bg-secondary"
-          onPress={() =>{}}
+        <View className="flex-row justify-between items-center pt-3">
+          <AppButton
+            title="Edit Partner"
+            iconName="edit"
+            className="rounded py-4  bg-secondary"
+            // onPress={()=> navigation.push('ChannelMapEditAGP',{
+            //   AGPpartnerCode: selectedItem.value,
+            //   agpDetailsData: data?.Table1[0],
+            // })}
           />
-          </View>
-      ): 
-       <AppButton
+          <AppButton
+            title="Add Partner"
+            iconName="plus-circle"
+            className="rounded py-4 bg-secondary"
+            onPress={() => navigation.push('ChannelMapAddAGP')}
+          />
+        </View>
+      ) : (
+        <AppButton
           title="Add New Partner"
           iconName="plus-circle"
-          size='lg'
+          size="lg"
           className="rounded py-4 mt-2 bg-secondary"
           onPress={() => navigation.push('ChannelMapAddAGP')}
         />
-      }
+      )}
     </View>
   );
 };
@@ -353,6 +363,7 @@ export default function ChannelMap() {
           },
         ]}
         tabPadding={10}
+        equalWidth
       />
     </AppLayout>
   );

@@ -133,6 +133,7 @@ interface CircularProgressBarProps {
   size?: number;
   strokeWidth?: number;
   duration?: number;
+  value?: string | number; // Optional custom value to display in center
 }
 
 export const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
@@ -141,13 +142,14 @@ export const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
   size = 120,
   strokeWidth = 8,
   duration = 800,
+  value,
 }) => {
   const animatedValue = useRef(new Animated.Value(0)).current;
   const [displayProgress, setDisplayProgress] = useState(0);
   const [strokeDashoffset, setStrokeDashoffset] = useState(0);
   
-  // Clamp progress to ensure it's between 0 and 100
-  const clampedProgress = clampValue(progress, 0, 100);
+  // If value prop is provided, show 100% progress, otherwise use the progress prop
+  const clampedProgress = value !== undefined ? 100 : clampValue(progress, 0, 100);
   
   // Memoized calculations
   const radius = (size - strokeWidth) / 2;
@@ -245,7 +247,7 @@ export const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
       {/* Center Text */}
       <View className="absolute items-center justify-center">
         <AppText size="md" weight="bold" style={{color: progressColor}}>
-          {displayProgress}%
+          {value !== undefined ? value : `${displayProgress}%`}
         </AppText>
       </View>
     </View>

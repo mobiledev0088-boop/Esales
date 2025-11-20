@@ -815,7 +815,7 @@ export default function Claim() {
 
   return (
     <View className="flex-1 bg-slate-50">
-      <MaterialTabBar tabs={Tabs} tabPadding={10} />
+      <MaterialTabBar tabs={Tabs} tabPadding={10} equalWidth />
     </View>
   );
 }

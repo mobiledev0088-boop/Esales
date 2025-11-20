@@ -2,16 +2,17 @@ import moment from 'moment';
 import CryptoJS from 'react-native-crypto-js';
 import Toast from 'react-native-simple-toast';
 import RNFS from 'react-native-fs';
-import React, { useEffect, useRef } from 'react';
-import ReactNativeBlobUtil  from 'react-native-blob-util';
+import ReactNativeBlobUtil from 'react-native-blob-util';
+import {useCallback} from 'react';
+import {AppColors} from '../config/theme';
 
 export const convertToASINUnits = (
   amount: number,
   needFull = false,
-  needCurrencySymbol = false
+  needCurrencySymbol = false,
 ): string => {
   const currencySymbol = needCurrencySymbol ? '\u20B9' : '';
-  
+
   if (needFull) {
     return `${currencySymbol}${amount.toLocaleString('en-IN')}`;
   }
@@ -27,53 +28,62 @@ export const convertToASINUnits = (
   return `${currencySymbol}${formattedValue}`;
 };
 
-
 export const convertToCapitalized = (text: string): string => {
-  return text.split('').map(char => char.toUpperCase()).join('');
-}
+  return text
+    .split('')
+    .map(char => char.toUpperCase())
+    .join('');
+};
 
-export const getPastMonths = (count: number, isForward?: boolean, startFrom?: string): {label: string, value: string}[] => {
-  const months: {label: string, value: string}[]  = [];
-  const baseDate = startFrom ? moment(startFrom, "YYYYM") : moment();
+export const getPastMonths = (
+  count: number,
+  isForward?: boolean,
+  startFrom?: string,
+): {label: string; value: string}[] => {
+  const months: {label: string; value: string}[] = [];
+  const baseDate = startFrom ? moment(startFrom, 'YYYYM') : moment();
   if (isForward) {
     for (let i = 0; i < count; i++) {
       months.push({
-      label: baseDate.clone().add(i, 'months').format("MMM-YYYY"),
-      value: baseDate.clone().add(i, 'months').format("YYYYM")
+        label: baseDate.clone().add(i, 'months').format('MMM-YYYY'),
+        value: baseDate.clone().add(i, 'months').format('YYYYM'),
       });
     }
     return months;
   }
   for (let i = 0; i < count; i++) {
     months.push({
-      label: baseDate.clone().subtract(i, 'months').format("MMM-YYYY"),
-      value: baseDate.clone().subtract(i, 'months').format("YYYYM")
+      label: baseDate.clone().subtract(i, 'months').format('MMM-YYYY'),
+      value: baseDate.clone().subtract(i, 'months').format('YYYYM'),
     });
   }
-  return months
+  return months;
 };
 
-export const getPastQuarters = (count: number = 5, isForward?: boolean): {label: string, value: string}[] => {
-  const quarters: {label: string, value: string}[] = [];
-  const baseDate = moment().subtract(15, "days");
+export const getPastQuarters = (
+  count: number = 5,
+  isForward?: boolean,
+): {label: string; value: string}[] => {
+  const quarters: {label: string; value: string}[] = [];
+  const baseDate = moment().subtract(15, 'days');
   if (isForward) {
     for (let i = 0; i < count; i++) {
-      const date = baseDate.clone().add(i, "quarters");
+      const date = baseDate.clone().add(i, 'quarters');
       quarters.push({
-        label: `Q${date.format("Q")}-${date.format("YYYY")}`,
-        value: `${date.format("YYYY")}${date.format("Q")}`
+        label: `Q${date.format('Q')}-${date.format('YYYY')}`,
+        value: `${date.format('YYYY')}${date.format('Q')}`,
       });
     }
     return quarters; // future quarters stay in order
   }
   for (let i = 0; i < count; i++) {
-    const date = baseDate.clone().subtract(i, "quarters");
+    const date = baseDate.clone().subtract(i, 'quarters');
     quarters.push({
-      label: `Q${date.format("Q")}-${date.format("YYYY")}`,
-      value: `${date.format("YYYY")}${date.format("Q")}`
+      label: `Q${date.format('Q')}-${date.format('YYYY')}`,
+      value: `${date.format('YYYY')}${date.format('Q')}`,
     });
   }
-  return quarters 
+  return quarters;
 };
 
 export const getDaysBetween = (start: string, end: string): number => {
@@ -88,7 +98,6 @@ export const ensureFolderExists = async (path: string) => {
     await RNFS.mkdir(path);
   }
 };
-
 
 export const ecrypt = (text: string) => {
   var secureKey = 'MAKV2SPBNI992122';
@@ -143,10 +152,13 @@ export const convertSnakeCaseToSentence = (text: string): string => {
     .replace(/\b\w/g, char => char.toUpperCase()); // Capitalize first letter of each word
 };
 
-export const convertImageToBase64 = async (imageUri: string, needPrefix=false): Promise<string> => {
+export const convertImageToBase64 = async (
+  imageUri: string,
+  needPrefix = false,
+): Promise<string> => {
   try {
-    if(!imageUri || imageUri.length === 0) return '';
-    
+    if (!imageUri || imageUri.length === 0) return '';
+
     // Normalize URI
     let normalizedUri = imageUri;
     if (imageUri.startsWith('file://')) {
@@ -168,4 +180,21 @@ export const convertImageToBase64 = async (imageUri: string, needPrefix=false): 
     console.error('Error converting image to base64:', error);
     throw new Error('Failed to convert image to base64');
   }
+};
+
+export const getProductConfig = (
+  category: string,
+): {icon: string; color: string} => {
+  const configs: Record<string, {icon: string; color: string}> = {
+    NB: {icon: 'laptop', color: AppColors.utilColor1},
+    NR: {icon: 'monitor', color: AppColors.utilColor2},
+    AIO: {icon: 'monitor-speaker', color: AppColors.utilColor3},
+    DT: {icon: 'desktop-tower-monitor', color: AppColors.utilColor4},
+    GDT: {icon: 'desktop-tower', color: AppColors.utilColor5},
+    NX: {icon: 'cube-outline', color: AppColors.utilColor6},
+    LM: {icon: 'book-open-variant', color: AppColors.utilColor7},
+    WEP: {icon: 'wifi', color: AppColors.utilColor8},
+    ACCY: {icon: 'package-variant', color: AppColors.utilColor9},
+  };
+  return configs[category] || {icon: 'package', color: AppColors.utilColor1};
 };

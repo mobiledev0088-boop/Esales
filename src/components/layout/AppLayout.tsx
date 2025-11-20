@@ -53,8 +53,8 @@ const Header = memo<HeaderProps>(
     empInfo,
     isDashboard = false,
   }) => {
-    const roleName = empInfo?.RoleName || '----';
-
+    const roleName = empInfo?.EMP_Type === 'T3Partner' ? '': empInfo?.RoleName || 'N/A';
+    const empType =  empInfo?.EMP_Type ?  empInfo.EMP_Type + ' ' :  '';
     return (
       <View className="flex-row items-center justify-between px-4 py-4 bg-primary dark:bg-primary-dark rounded-b-md">
         {/* Left */}
@@ -86,7 +86,7 @@ const Header = memo<HeaderProps>(
                   {name}
                 </AppText>{' '}
                 <AppText size="lg" color="white" weight="bold">
-                  ({roleName})
+                  ({`${empType}${roleName}`})
                 </AppText>
                 {empInfo?.IsParentCode && '*'}
               </AppText>

@@ -12,6 +12,7 @@ import {SheetProvider} from 'react-native-actions-sheet';
 import GlobalLoader from '../../components/GlobalLoader';
 import '../../utils/sheets';
 import { useLoaderStore } from '../useLoaderStore';
+import { enableScreens } from 'react-native-screens';
 
 export const AppProviders = ({children}: PropsWithChildren) => {
   const {setColorScheme} = useColorScheme();
@@ -21,7 +22,7 @@ export const AppProviders = ({children}: PropsWithChildren) => {
   useEffect(() => {
     setColorScheme(AppTheme);
   }, [AppTheme, setColorScheme]);
-  
+  // enableScreens();
   
   return (
     <QueryProvider>

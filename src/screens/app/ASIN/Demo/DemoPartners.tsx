@@ -1,4 +1,11 @@
-import {FlatList, TouchableOpacity, View, useColorScheme} from 'react-native';
+import {
+  FlatList,
+  TouchableOpacity,
+  View,
+  useColorScheme,
+  ScrollView,
+} from 'react-native';
+import moment from 'moment';
 import AppLayout from '../../../../components/layout/AppLayout';
 import {useRoute, useNavigation} from '@react-navigation/native';
 import {memo, useCallback, useMemo, useState, useEffect} from 'react';
@@ -13,7 +20,9 @@ import ActionSheet, {
 } from 'react-native-actions-sheet';
 import {useQuery} from '@tanstack/react-query';
 import {handleASINApiCall} from '../../../../utils/handleApiCall';
-import AppDropdown, {AppDropdownItem} from '../../../../components/customs/AppDropdown';
+import AppDropdown, {
+  AppDropdownItem,
+} from '../../../../components/customs/AppDropdown';
 import Skeleton from '../../../../components/skeleton/skeleton';
 import {screenHeight, screenWidth} from '../../../../utils/constant';
 import {useThemeStore} from '../../../../stores/useThemeStore';
@@ -46,7 +55,6 @@ type DemoSummaryItem = {
   DurationDays: number;
 };
 
-// Hook to fetch partner demo summary
 const useGetPartnerDemoSummary = (
   YearQtr: string,
   PartnerCode: string,
@@ -74,7 +82,6 @@ const useGetPartnerDemoSummary = (
   });
 };
 
-// Memoized Partner Card Component for optimal performance
 const PartnerCard = memo<{
   item: PartnerTypes;
   onPressDetails: (partner: PartnerTypes) => void;
@@ -95,13 +102,13 @@ const PartnerCard = memo<{
       <View className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
         <View className="flex-row items-start justify-between">
           <View className="flex-1">
-            <View className="flex-row items-center">
+            <View className="flex-row items-center justify-between">
               <TouchableOpacity
                 onPress={() => onPressDetails(item)}
                 activeOpacity={0.7}
-                className="flex-row items-center flex-shrink">
+                className="flex-row items-center w-10/12 ">
                 <AppText
-                  size="xl"
+                  size="md"
                   weight="bold"
                   className="text-secondary dark:text-secondary-dark mb-1 underline">
                   {item.AGP_Name}
@@ -110,13 +117,14 @@ const PartnerCard = memo<{
               <TouchableOpacity
                 onPress={() => onPressView(item)}
                 activeOpacity={0.7}
-                hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
-                className="ml-2">
+                hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
                 <AppIcon
                   name="eye"
                   type="feather"
                   size={20}
-                  color={isDark ? AppColors.dark.secondary : AppColors.secondary}
+                  color={
+                    isDark ? AppColors.dark.secondary : AppColors.secondary
+                  }
                 />
               </TouchableOpacity>
             </View>
@@ -200,8 +208,8 @@ const PartnerCard = memo<{
                 shortfall > 0
                   ? AppColors.warning
                   : isDark
-                  ? '#6B7280'
-                  : '#9CA3AF'
+                    ? '#6B7280'
+                    : '#9CA3AF'
               }
             />
           </View>
@@ -228,18 +236,29 @@ const PartnerCard = memo<{
   );
 });
 
-// Helper function to show the partner details sheet
 const showPartnerDetailsSheet = (partner: PartnerTypes, yearQtr: string) => {
   SheetManager.show('PartnerDetailsSheet', {
     payload: {partner, yearQtr},
   });
 };
 
-// Partner Details Sheet Component
+const showDemoDetailsSheet = (demo: DemoSummaryItem) => {
+  SheetManager.show('DemoDetailsSheet', {
+    payload: {demo},
+  });
+};
+
+const formatDate = (value: string | null) => {
+  console.log('Formatting date value:', value);
+  if (!value) return '—';
+  const m = moment(value);
+  return m.isValid() ? m.format('YYYY/MM/DD') : value;
+};
+
 export const PartnerDetailsSheet: React.FC = () => {
   const payload = useSheetPayload('PartnerDetailsSheet');
   const {partner, yearQtr} = payload || {};
-  
+
   const AppTheme = useThemeStore(state => state.AppTheme);
   const isDark = AppTheme === 'dark';
 
@@ -256,8 +275,9 @@ export const PartnerDetailsSheet: React.FC = () => {
   // Filter states
   const [selectedCategory, setSelectedCategory] =
     useState<AppDropdownItem | null>(null);
-  const [selectedStatus, setSelectedStatus] =
-    useState<AppDropdownItem | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<AppDropdownItem | null>(
+    null,
+  );
 
   // Reset filters when sheet opens
   useEffect(() => {
@@ -265,7 +285,7 @@ export const PartnerDetailsSheet: React.FC = () => {
     setSelectedCategory(null);
     setSelectedStatus(null);
     setIsSheetOpen(true);
-    
+
     return () => {
       setIsSheetOpen(false);
     };
@@ -287,13 +307,11 @@ export const PartnerDetailsSheet: React.FC = () => {
 
     return {
       categories: [
-        {label: 'All Categories', value: ''},
         ...Array.from(uniqueCategories)
           .sort()
           .map(cat => ({label: cat, value: cat})),
       ],
       statuses: [
-        {label: 'All Statuses', value: ''},
         ...Array.from(uniqueStatuses)
           .sort()
           .map(status => ({label: status, value: status})),
@@ -328,15 +346,18 @@ export const PartnerDetailsSheet: React.FC = () => {
       const isPending = item.DemoExecutionDone === 'Pending';
       return (
         <View className="mb-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+          {/* Header */}
           <View className="flex-row items-start justify-between mb-3">
             <View className="flex-1">
               <AppText
                 size="base"
                 weight="bold"
-                className="text-slate-800 dark:text-slate-100 mb-1">
+                className="text-slate-800 dark:text-slate-100 mb-1"
+                numberOfLines={1}>
                 {item.Series}
               </AppText>
-              <View className="flex-row items-center mt-1">
+              <View className="flex-row items-center flex-wrap mt-1 gap-2">
+                {/* Status Badge */}
                 <View
                   className={`px-2.5 py-1 rounded-md ${
                     isPending
@@ -354,6 +375,16 @@ export const PartnerDetailsSheet: React.FC = () => {
                     {item.DemoExecutionDone}
                   </AppText>
                 </View>
+                {/* Category Badge */}
+                <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-md">
+                  <AppText
+                    size="xs"
+                    weight="medium"
+                    className="text-slate-600 dark:text-slate-300"
+                    numberOfLines={1}>
+                    {item.Category}
+                  </AppText>
+                </View>
               </View>
             </View>
             <AppIcon
@@ -364,50 +395,146 @@ export const PartnerDetailsSheet: React.FC = () => {
             />
           </View>
 
-          <View className="space-y-2">
-            <View className="flex-row items-center">
-              <AppIcon
-                name="tag"
-                type="feather"
-                size={14}
-                color={isDark ? '#94A3B8' : '#64748B'}
-              />
-              <AppText
-                size="xs"
-                weight="medium"
-                className="text-slate-500 dark:text-slate-400 ml-2">
-                Category:
-              </AppText>
-              <AppText
-                size="xs"
-                weight="semibold"
-                className="text-slate-700 dark:text-slate-300 ml-1">
-                {item.Category}
-              </AppText>
+          {/* Minimal view for Pending */}
+          {isPending ? (
+            <View className="space-y-2">
+              <View className="flex-row items-center">
+                <AppIcon
+                  name="box"
+                  type="feather"
+                  size={14}
+                  color={isDark ? '#94A3B8' : '#64748B'}
+                />
+                <AppText
+                  size="xs"
+                  weight="medium"
+                  className="text-slate-500 dark:text-slate-400 ml-2">
+                  Model:
+                </AppText>
+                <AppText
+                  size="xs"
+                  weight="semibold"
+                  className="text-slate-700 dark:text-slate-300 ml-1 flex-1"
+                  numberOfLines={1}>
+                  {item.DemoUnitModel}
+                </AppText>
+              </View>
             </View>
-
-            <View className="flex-row items-center">
-              <AppIcon
-                name="box"
-                type="feather"
-                size={14}
-                color={isDark ? '#94A3B8' : '#64748B'}
-              />
-              <AppText
-                size="xs"
-                weight="medium"
-                className="text-slate-500 dark:text-slate-400 ml-2">
-                Model:
-              </AppText>
-              <AppText
-                size="xs"
-                weight="semibold"
-                className="text-slate-700 dark:text-slate-300 ml-1 flex-1"
-                numberOfLines={1}>
-                {item.DemoUnitModel}
-              </AppText>
+          ) : (
+            /* Detailed grid for completed demos */
+            <View>
+              <View className="flex-row flex-wrap -mx-2">
+                <View className="w-1/2 px-2 mb-3">
+                  <AppText
+                    size="xs"
+                    weight="medium"
+                    className="text-slate-500 dark:text-slate-400">
+                    Model
+                  </AppText>
+                  <AppText
+                    size="xs"
+                    weight="semibold"
+                    className="text-slate-700 dark:text-slate-300"
+                    numberOfLines={1}>
+                    {item.DemoUnitModel || '—'}
+                  </AppText>
+                </View>
+                <View className="w-1/2 px-2 mb-3">
+                  <AppText
+                    size="xs"
+                    weight="medium"
+                    className="text-slate-500 dark:text-slate-400">
+                    Serial No
+                  </AppText>
+                  <AppText
+                    size="xs"
+                    weight="semibold"
+                    className="text-slate-700 dark:text-slate-300"
+                    numberOfLines={1}>
+                    {item.Serial_No || '—'}
+                  </AppText>
+                </View>
+                <View className="w-1/2 px-2 mb-3">
+                  <AppText
+                    size="xs"
+                    weight="medium"
+                    className="text-slate-500 dark:text-slate-400">
+                    Invoice Date
+                  </AppText>
+                  <AppText
+                    size="xs"
+                    weight="semibold"
+                    className="text-slate-700 dark:text-slate-300"
+                    numberOfLines={1}>
+                    {formatDate(item.Invoice_Date)}
+                  </AppText>
+                </View>
+                <View className="w-1/2 px-2 mb-3">
+                  <AppText
+                    size="xs"
+                    weight="medium"
+                    className="text-slate-500 dark:text-slate-400">
+                    Duration (Days)
+                  </AppText>
+                  <AppText
+                    size="xs"
+                    weight="semibold"
+                    className="text-slate-700 dark:text-slate-300"
+                    numberOfLines={1}>
+                    {item.DurationDays ?? '—'}
+                  </AppText>
+                </View>
+                <View className="w-1/2 px-2 mb-3">
+                  <AppText
+                    size="xs"
+                    weight="medium"
+                    className="text-slate-500 dark:text-slate-400">
+                    Last Registered
+                  </AppText>
+                  <AppText
+                    size="xs"
+                    weight="semibold"
+                    className="text-slate-700 dark:text-slate-300"
+                    numberOfLines={1}>
+                    {formatDate(item.LastRegisteredDate)}
+                  </AppText>
+                </View>
+                <View className="w-1/2 px-2 mb-3">
+                  <AppText
+                    size="xs"
+                    weight="medium"
+                    className="text-slate-500 dark:text-slate-400">
+                    Last Unregistered
+                  </AppText>
+                  <AppText
+                    size="xs"
+                    weight="semibold"
+                    className="text-slate-700 dark:text-slate-300"
+                    numberOfLines={1}>
+                    {formatDate(item.LastUnRegisteredDate)}
+                  </AppText>
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={() => showDemoDetailsSheet(item)}
+                activeOpacity={0.7}
+                className="mt-1 self-start flex-row items-center">
+                <AppText
+                  size="xs"
+                  weight="semibold"
+                  className="text-primary dark:text-primary-dark underline">
+                  See Demo Details
+                </AppText>
+                <AppIcon
+                  name="arrow-right"
+                  type="feather"
+                  size={14}
+                  color={isDark ? AppColors.dark.primary : AppColors.primary}
+                  style={{marginLeft: 4}}
+                />
+              </TouchableOpacity>
             </View>
-          </View>
+          )}
         </View>
       );
     },
@@ -417,21 +544,19 @@ export const PartnerDetailsSheet: React.FC = () => {
   if (!partner) {
     return null;
   }
+  // Removed debug log for cleaner production code
 
   return (
     <View>
-    <ActionSheet
-      id="PartnerDetailsSheet"
-      useBottomSafeAreaPadding
-      gestureEnabled={false}
-      containerStyle={{
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
-        backgroundColor: isDark ? '#1f2937' : '#ffffff',
-        height: screenHeight * 0.85,
-      }}>
-      <View>
-        {/* Header with Partner Info */}
+      <ActionSheet
+        id="PartnerDetailsSheet"
+        useBottomSafeAreaPadding={true}
+        containerStyle={{
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+          backgroundColor: isDark ? '#1f2937' : '#ffffff',
+          height: screenHeight * 0.85,
+        }}>
         <View className="p-4 pb-3 border-b border-slate-200 dark:border-slate-700">
           <View className="flex-row items-start justify-between mb-2">
             <View className="flex-1">
@@ -441,180 +566,309 @@ export const PartnerDetailsSheet: React.FC = () => {
                 className="text-slate-800 dark:text-slate-100 mb-1">
                 {partner.AGP_Name}
               </AppText>
-            <View className="flex-row items-center flex-wrap gap-2">
-              <View className="bg-primary/10 dark:bg-primary-dark/20 px-2.5 py-1 rounded-md">
+              <View className="flex-row items-center flex-wrap gap-2">
+                <View className="bg-primary/10 dark:bg-primary-dark/20 px-2.5 py-1 rounded-md">
+                  <AppText
+                    size="xs"
+                    weight="semibold"
+                    className="text-primary dark:text-primary-dark">
+                    {partner.AGP_Or_T3}
+                  </AppText>
+                </View>
+                <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-md">
+                  <AppText
+                    size="xs"
+                    weight="medium"
+                    className="text-slate-600 dark:text-slate-300">
+                    Code: {partner.AGP_Code}
+                  </AppText>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* Summary Stats */}
+          <View className="flex-row gap-2 mt-3">
+            <View className="flex-1 bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2">
+              <AppText
+                size="xs"
+                weight="medium"
+                className="text-teal-600 dark:text-teal-400 mb-0.5">
+                Executed
+              </AppText>
+              <AppText
+                size="lg"
+                weight="bold"
+                className="text-teal-600 dark:text-teal-400">
+                {partner.DemoExecuted}
+              </AppText>
+            </View>
+            <View className="flex-1 bg-amber-50 dark:bg-amber-900/20 rounded-lg p-2">
+              <AppText
+                size="xs"
+                weight="medium"
+                className="text-amber-600 dark:text-amber-400 mb-0.5">
+                Shortfall
+              </AppText>
+              <AppText
+                size="lg"
+                weight="bold"
+                className="text-amber-600 dark:text-amber-400">
+                {shortfall}
+              </AppText>
+            </View>
+            <View className="flex-1 bg-slate-100 dark:bg-slate-700 rounded-lg p-2">
+              <AppText
+                size="xs"
+                weight="medium"
+                className="text-slate-600 dark:text-slate-300 mb-0.5">
+                Total
+              </AppText>
+              <AppText
+                size="lg"
+                weight="bold"
+                className="text-slate-800 dark:text-slate-100">
+                {partner.TotalCompulsoryDemo}
+              </AppText>
+            </View>
+          </View>
+        </View>
+
+        {/* Filters */}
+        {!isLoading && data && data.length > 0 && (
+          <View className="px-4 pt-3 pb-2">
+            <AppText
+              size="sm"
+              weight="semibold"
+              className="text-slate-700 dark:text-slate-300 mb-2">
+              Filter Demo Units
+            </AppText>
+            <View className="flex-row gap-2">
+              <View className="flex-1">
+                <AppDropdown
+                  data={categories}
+                  selectedValue={selectedCategory?.value}
+                  mode="dropdown"
+                  placeholder="Category"
+                  onSelect={setSelectedCategory}
+                  allowClear
+                  onClear={() => setSelectedCategory(null)}
+                />
+              </View>
+              <View className="flex-1">
+                <AppDropdown
+                  data={statuses}
+                  selectedValue={selectedStatus?.value}
+                  mode="dropdown"
+                  placeholder="Status"
+                  onSelect={setSelectedStatus}
+                  allowClear
+                  onClear={() => setSelectedStatus(null)}
+                />
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Content */}
+        <View className="px-4">
+          {isLoading ? (
+            <View className="py-4">
+              <Skeleton
+                width={screenWidth * 0.8}
+                height={100}
+                borderRadius={8}
+              />
+              <Skeleton
+                width={screenWidth * 0.8}
+                height={100}
+                borderRadius={8}
+              />
+              <Skeleton
+                width={screenWidth * 0.8}
+                height={100}
+                borderRadius={8}
+              />
+            </View>
+          ) : error ? (
+            <View className="flex-1 items-center justify-center py-10">
+              <AppIcon
+                name="alert-circle"
+                type="feather"
+                size={48}
+                color={AppColors.error}
+              />
+              <AppText
+                size="base"
+                weight="semibold"
+                className="text-slate-600 dark:text-slate-400 mt-3 text-center">
+                Failed to load demo data
+              </AppText>
+              <AppText
+                size="sm"
+                className="text-slate-500 dark:text-slate-500 mt-1 text-center px-4">
+                Please try again later
+              </AppText>
+            </View>
+          ) : filteredData.length === 0 ? (
+            <View className="items-center justify-center py-10">
+              <AppIcon
+                name="inbox"
+                type="feather"
+                size={48}
+                color={isDark ? '#64748B' : '#94A3B8'}
+              />
+              <AppText
+                size="base"
+                weight="semibold"
+                className="text-slate-600 dark:text-slate-400 mt-3">
+                No Demo Units Found
+              </AppText>
+              <AppText
+                size="sm"
+                className="text-slate-500 dark:text-slate-500 mt-1 text-center px-4">
+                {data && data.length > 0
+                  ? 'Try adjusting your filters'
+                  : 'No demo data available for this partner'}
+              </AppText>
+            </View>
+          ) : (
+            <FlatList
+              data={filteredData}
+              renderItem={renderDemoItem}
+              keyExtractor={(item, index) =>
+                `${item.Category}-${item.Series}-${index}`
+              }
+              contentContainerStyle={{}}
+              showsVerticalScrollIndicator={false}
+              ListHeaderComponent={
+                <View className="mb-2">
+                  <AppText
+                    size="xs"
+                    className="text-slate-500 dark:text-slate-400">
+                    Showing {filteredData.length} of {data?.length || 0} demo
+                    units
+                  </AppText>
+                </View>
+              }
+              ListFooterComponent={() => <View className="w-full h-80" />}
+            />
+          )}
+        </View>
+      </ActionSheet>
+    </View>
+  );
+};
+
+export const DemoDetailsSheet: React.FC = () => {
+  const payload = useSheetPayload('DemoDetailsSheet');
+  const {demo} = payload || {};
+  const AppTheme = useThemeStore(state => state.AppTheme);
+  const isDark = AppTheme === 'dark';
+
+  if (!demo) return null;
+
+  const isPending = demo.DemoExecutionDone === 'Pending';
+
+  return (
+    <View>
+      <ActionSheet
+        id="DemoDetailsSheet"
+        useBottomSafeAreaPadding={true}
+        containerStyle={{
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+          backgroundColor: isDark ? '#1f2937' : '#ffffff',
+          height: screenHeight * 0.75,
+        }}>
+        <ScrollView
+          contentContainerStyle={{padding: 16, paddingBottom: 64}}
+          showsVerticalScrollIndicator={false}>
+          {/* Header */}
+          <View className="mb-4">
+            <AppText
+              size="xl"
+              weight="bold"
+              className="text-slate-800 dark:text-slate-100 mb-1"
+              numberOfLines={1}>
+              {demo.Series}
+            </AppText>
+            <View className="flex-row flex-wrap gap-2 mt-1">
+              <View
+                className={`px-2.5 py-1 rounded-md ${
+                  isPending
+                    ? 'bg-amber-500/10 dark:bg-amber-500/20'
+                    : 'bg-teal-500/10 dark:bg-teal-500/20'
+                }`}>
                 <AppText
                   size="xs"
                   weight="semibold"
-                  className="text-primary dark:text-primary-dark">
-                  {partner.AGP_Or_T3}
+                  className={
+                    isPending
+                      ? 'text-amber-600 dark:text-amber-400'
+                      : 'text-teal-600 dark:text-teal-400'
+                  }>
+                  {demo.DemoExecutionDone}
                 </AppText>
               </View>
               <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-md">
                 <AppText
                   size="xs"
                   weight="medium"
-                  className="text-slate-600 dark:text-slate-300">
-                  Code: {partner.AGP_Code}
+                  className="text-slate-600 dark:text-slate-300"
+                  numberOfLines={1}>
+                  {demo.Category}
                 </AppText>
               </View>
             </View>
           </View>
-        </View>
 
-        {/* Summary Stats */}
-        <View className="flex-row gap-2 mt-3">
-          <View className="flex-1 bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2">
-            <AppText
-              size="xs"
-              weight="medium"
-              className="text-teal-600 dark:text-teal-400 mb-0.5">
-              Executed
-            </AppText>
-            <AppText
-              size="lg"
-              weight="bold"
-              className="text-teal-600 dark:text-teal-400">
-              {partner.DemoExecuted}
-            </AppText>
-          </View>
-          <View className="flex-1 bg-amber-50 dark:bg-amber-900/20 rounded-lg p-2">
-            <AppText
-              size="xs"
-              weight="medium"
-              className="text-amber-600 dark:text-amber-400 mb-0.5">
-              Shortfall
-            </AppText>
-            <AppText
-              size="lg"
-              weight="bold"
-              className="text-amber-600 dark:text-amber-400">
-              {shortfall}
-            </AppText>
-          </View>
-          <View className="flex-1 bg-slate-100 dark:bg-slate-700 rounded-lg p-2">
-            <AppText
-              size="xs"
-              weight="medium"
-              className="text-slate-600 dark:text-slate-300 mb-0.5">
-              Total
-            </AppText>
-            <AppText
-              size="lg"
-              weight="bold"
-              className="text-slate-800 dark:text-slate-100">
-              {partner.TotalCompulsoryDemo}
-            </AppText>
-          </View>
-        </View>
-      </View>
-
-      {/* Filters */}
-      {!isLoading && data && data.length > 0 && (
-        <View className="px-4 pt-3 pb-2">
-          <AppText
-            size="sm"
-            weight="semibold"
-            className="text-slate-700 dark:text-slate-300 mb-2">
-            Filter Demo Units
-          </AppText>
-          <View className="flex-row gap-2">
-            <View className="flex-1">
-              <AppDropdown
-                data={categories}
-                selectedValue={selectedCategory?.value}
-                mode="dropdown"
-                placeholder="Category"
-                onSelect={setSelectedCategory}
-              />
-            </View>
-            <View className="flex-1">
-              <AppDropdown
-                data={statuses}
-                selectedValue={selectedStatus?.value}
-                mode="dropdown"
-                placeholder="Status"
-                onSelect={setSelectedStatus}
-              />
-            </View>
-          </View>
-        </View>
-      )}
-
-      {/* Content */}
-      <View className="px-4">
-        {isLoading ? (
-          <View className="py-4">
-            <Skeleton width={screenWidth * 0.8} height={100} borderRadius={8} />
-            <Skeleton width={screenWidth * 0.8} height={100} borderRadius={8} />
-            <Skeleton width={screenWidth * 0.8} height={100} borderRadius={8} />
-          </View>
-        ) : error ? (
-          <View className="flex-1 items-center justify-center py-10">
-            <AppIcon
-              name="alert-circle"
-              type="feather"
-              size={48}
-              color={AppColors.error}
-            />
-            <AppText
-              size="base"
-              weight="semibold"
-              className="text-slate-600 dark:text-slate-400 mt-3 text-center">
-              Failed to load demo data
-            </AppText>
-            <AppText
-              size="sm"
-              className="text-slate-500 dark:text-slate-500 mt-1 text-center px-4">
-              Please try again later
-            </AppText>
-          </View>
-        ) : filteredData.length === 0 ? (
-          <View className="items-center justify-center py-10">
-            <AppIcon
-              name="inbox"
-              type="feather"
-              size={48}
-              color={isDark ? '#64748B' : '#94A3B8'}
-            />
-            <AppText
-              size="base"
-              weight="semibold"
-              className="text-slate-600 dark:text-slate-400 mt-3">
-              No Demo Units Found
-            </AppText>
-            <AppText
-              size="sm"
-              className="text-slate-500 dark:text-slate-500 mt-1 text-center px-4">
-              {data && data.length > 0
-                ? 'Try adjusting your filters'
-                : 'No demo data available for this partner'}
-            </AppText>
-          </View>
-        ) : (
-          <FlatList
-            data={filteredData}
-            renderItem={renderDemoItem}
-            keyExtractor={(item, index) =>
-              `${item.Category}-${item.Series}-${index}`
-            }
-            contentContainerStyle={{paddingTop: 8, paddingBottom: 16}}
-            showsVerticalScrollIndicator={false}
-            ListHeaderComponent={
-              <View className="mb-2">
+          {/* Info Grid */}
+          <View className="flex-row flex-wrap -mx-2">
+            {[
+              {label: 'Model', value: demo.DemoUnitModel},
+              {label: 'Serial No', value: demo.Serial_No},
+              {label: 'Invoice Date', value: formatDate(demo.Invoice_Date)},
+              {label: 'Duration (Days)', value: demo.DurationDays?.toString()},
+              {label: 'Year Qtr', value: demo.YearQtr},
+              {label: 'Hub ID', value: demo.HubID},
+              {
+                label: 'Last Registered',
+                value: formatDate(demo.LastRegisteredDate),
+              },
+              {
+                label: 'Last Unregistered',
+                value: formatDate(demo.LastUnRegisteredDate),
+              },
+              {label: 'Partner Code', value: demo.AGP_Code},
+              {label: 'Partner Name', value: demo.AGP_Name},
+            ].map((field, idx) => (
+              <View className="w-1/2 px-2 mb-4" key={idx}>
                 <AppText
                   size="xs"
+                  weight="medium"
                   className="text-slate-500 dark:text-slate-400">
-                  Showing {filteredData.length} of {data?.length || 0} demo
-                  units
+                  {field.label}
+                </AppText>
+                <AppText
+                  size="xs"
+                  weight="semibold"
+                  className="text-slate-700 dark:text-slate-300"
+                  numberOfLines={1}>
+                  {field.value || '—'}
                 </AppText>
               </View>
-            }
-          />
-        )}
-      </View>
-      </View>
-    </ActionSheet>
+            ))}
+          </View>
+
+          {/* Footer Note */}
+          <View className="mt-2">
+            <AppText size="xs" className="text-slate-400 dark:text-slate-500">
+              These details reflect the latest recorded demo execution metadata.
+            </AppText>
+          </View>
+        </ScrollView>
+      </ActionSheet>
     </View>
   );
 };
@@ -627,21 +881,44 @@ export default function DemoPartners() {
     yearQtr: string;
   };
 
+  // Partner selection state for filtering
+  const [selectedPartner, setSelectedPartner] =
+    useState<AppDropdownItem | null>(null);
+
+  // Dropdown items derived from partners
+  const partnerDropdownItems = useMemo(
+    () =>
+      (partners || []).map(p => ({
+        label: `${p.AGP_Name} (${p.AGP_Code})`,
+        value: p.AGP_Code,
+      })),
+    [partners],
+  );
+
+  // Filter partners based on selection
+  const filteredPartners = useMemo(
+    () =>
+      selectedPartner?.value
+        ? partners.filter(p => p.AGP_Code === selectedPartner.value)
+        : partners,
+    [partners, selectedPartner],
+  );
+
   // Handle navigation to partner details
   const handlePartnerDetails = useCallback(
     (partner: PartnerTypes) => {
-      // TODO: Navigate to Partner Details screen when it's implemented
-      // For now, you can add navigation logic here
-      console.log('Navigate to details for partner:', partner.AGP_Code);
-      // navigation.push('DemoPartnerDetails', { partner });
+      navigation.push('TargetPartnerDashboard', {partner});
     },
     [navigation],
   );
 
   // Handle view partner details in ActionSheet
-  const handleViewPartner = useCallback((partner: PartnerTypes) => {
-    showPartnerDetailsSheet(partner, yearQtr || '');
-  }, [yearQtr]);
+  const handleViewPartner = useCallback(
+    (partner: PartnerTypes) => {
+      showPartnerDetailsSheet(partner, yearQtr || '');
+    },
+    [yearQtr],
+  );
 
   // Render item with memoization
   const renderPartnerItem = useCallback(
@@ -656,16 +933,13 @@ export default function DemoPartners() {
   );
 
   // Key extractor for FlatList
-  const keyExtractor = useCallback(
-    (item: PartnerTypes) => item.AGP_Code,
-    [],
-  );
+  const keyExtractor = useCallback((item: PartnerTypes) => item.AGP_Code, []);
 
   // Empty state component
   const renderEmptyComponent = useCallback(() => {
     const colorScheme = useColorScheme();
     const isDark = colorScheme === 'dark';
-    
+
     return (
       <View className="flex-1 items-center justify-center py-20">
         <AppIcon
@@ -693,16 +967,18 @@ export default function DemoPartners() {
   // List header with summary
   const renderListHeader = useCallback(() => {
     const totalDemosExecuted =
-      partners?.reduce((sum, partner) => sum + partner.DemoExecuted, 0) || 0;
+      filteredPartners?.reduce(
+        (sum, partner) => sum + partner.DemoExecuted,
+        0,
+      ) || 0;
     const totalShortfall =
-      partners?.reduce((sum, partner) => {
+      filteredPartners?.reduce((sum, partner) => {
         const diff = partner.TotalCompulsoryDemo - partner.DemoExecuted;
         return sum + (diff >= 0 ? diff : 0);
       }, 0) || 0;
 
     return (
       <View className="mb-4">
-
         <Card className="mb-3 mx-0">
           <View className="pb-3 border-b border-slate-100 dark:border-slate-700">
             <View className="flex-row items-center justify-between">
@@ -798,12 +1074,24 @@ export default function DemoPartners() {
         </Card>
       </View>
     );
-  }, [partners]);
+  }, [filteredPartners]);
 
   return (
     <AppLayout title="Demo Partners" needBack>
+      <View className="my-3 px-3">
+        <AppDropdown
+          label="Select Partner"
+          data={partnerDropdownItems}
+          selectedValue={selectedPartner?.value}
+          mode="dropdown"
+          placeholder="All Partners"
+          onSelect={setSelectedPartner}
+          allowClear
+          onClear={() => setSelectedPartner(null)}
+        />
+      </View>
       <FlatList
-        data={partners}
+        data={filteredPartners}
         renderItem={renderPartnerItem}
         keyExtractor={keyExtractor}
         ListHeaderComponent={renderListHeader}
@@ -815,11 +1103,9 @@ export default function DemoPartners() {
         }}
         showsVerticalScrollIndicator={false}
         initialNumToRender={10}
-        maxToRenderPerBatch={10}
-        windowSize={10}
-        removeClippedSubviews={true}
-        updateCellsBatchingPeriod={50}
+        maxToRenderPerBatch={15}
+        windowSize={5}
       />
     </AppLayout>
   );
-}
+};

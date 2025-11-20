@@ -30,10 +30,7 @@ const DOWNLOAD_ROUTES = [
   'MarketingMaterial',
 ];
 
-const CustomDrawerContent: React.FC<DrawerContentComponentProps> = ({
-  state,
-  navigation,
-}) => {
+export default function CustomDrawerContent({ state, navigation }: DrawerContentComponentProps) {
   const userInfo = useLoginStore(state => state.userInfo);
   const AppTheme = useThemeStore(state => state.AppTheme);
 
@@ -77,7 +74,7 @@ const CustomDrawerContent: React.FC<DrawerContentComponentProps> = ({
           {backgroundColor: AppColors[AppTheme].bgBase},
         ]}>
         {/* Header */}
-        <View className="px-5 py-5 bg-lightBg-surface dark:bg-darkBg-surface flex-row  justify-between">
+        <View className="px-5 py-5 bg-lightBg-surface dark:bg-darkBg-surface flex-row  justify-between border-b border-gray-200">
           <View className='w-[80%]'>
             <AppImage
               source={require('../../assets/images/dp.png')}
@@ -93,16 +90,16 @@ const CustomDrawerContent: React.FC<DrawerContentComponentProps> = ({
 
         {/* Navigation Items */}
         <ScrollView
-          className="flex-1 pt-2"
+          className="flex-1 pt-2 bg-lightBg-base"
           contentContainerStyle={{paddingBottom: 20, flexGrow: 1}}
-          showsVerticalScrollIndicator={false}>
+          showsVerticalScrollIndicator={false}
+          >
           {/* First 3 routes */}
           <DrawerSection
             routes={mainRoutes.slice(0, 3)}
             navigation={navigation}
             state={state}
           />
-
           {/* Downloads accordion */}
           <DrawerSection
             routes={downloadRoutes}
@@ -113,14 +110,13 @@ const CustomDrawerContent: React.FC<DrawerContentComponentProps> = ({
             initiallyOpen={isDownloadFocused}
             noIcon
           />
-
           {/* Remaining routes */}
           <DrawerSection
             routes={mainRoutes.slice(3)}
             navigation={navigation}
             state={state}
           />
-
+          {/* Log Out */}
           <DrawerItemWrapper
             icon={'log-out'}
             route={{name: 'Log Out'} as any}
@@ -128,7 +124,6 @@ const CustomDrawerContent: React.FC<DrawerContentComponentProps> = ({
             onPress={() => setIsOpen(true)}
           />
         </ScrollView>
-
         {/* Footer */}
         <TouchableOpacity
           activeOpacity={0.7}
@@ -149,24 +144,11 @@ const CustomDrawerContent: React.FC<DrawerContentComponentProps> = ({
           />
           <AppText size="md">Contact Us</AppText>
         </TouchableOpacity>
-        <TouchableOpacity
-          activeOpacity={0.7}
-          className="border-t py-4 flex-row items-center pl-5 border-gray-300 gap-4">
-          <AppIcon
-            type="ionicons"
-            name="code-working"
-            color={'red'}
-            size={25}
-          />
-          <AppText size="md">Testing Screen</AppText>
-        </TouchableOpacity>
       </DrawerContentScrollView>
       <LogoutModal isVisible={isOpen} onClose={() => setIsOpen(false)} />
     </>
   );
 };
-
-export default CustomDrawerContent;
 
 const styles = StyleSheet.create({
   drawerContentContainer: {

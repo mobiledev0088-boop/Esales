@@ -367,7 +367,7 @@ export const BranchCard = memo(
     rogKiosk = '0',
     partnerType,
     IsCompulsory,
-    tab
+    tab,
   }: {
     item: TransformedBranch;
     summaryData: {
@@ -391,7 +391,8 @@ export const BranchCard = memo(
     const navigation = useNavigation<AppNavigationProp>();
 
     // Fetch territory data only when card is flipped
-    const {data: territoryData, isLoading: isLoadingTerritories} = useGetBranchWiseDemoData(
+    const {data: territoryData, isLoading: isLoadingTerritories} =
+      useGetBranchWiseDemoData(
         yearQtr,
         category,
         premiumKiosk,
@@ -399,7 +400,7 @@ export const BranchCard = memo(
         item.state,
         IsCompulsory || '',
         !showFront,
-        tab
+        tab,
       );
 
     // Transform and filter territory data
@@ -709,6 +710,8 @@ export const BranchCard = memo(
                           key={territory.id}
                           territory={territory}
                           partnerType={partnerType}
+                          navigation={navigation}
+                          yearQtr={yearQtr}
                         />
                       ))}
                     </View>
@@ -726,9 +729,18 @@ export const BranchCard = memo(
 export const TerritoryCard: React.FC<{
   territory: TerritoryItem;
   partnerType: string | null;
-}> = memo(({territory, partnerType}) => {
+  navigation: any;
+  yearQtr: string;
+}> = memo(({territory, partnerType, navigation, yearQtr}) => {
   return (
-    <View className="rounded-xl border border-slate-100 bg-white/50 overflow-hidden">
+    <TouchableOpacity
+      className="rounded-xl border border-slate-100 bg-white/50 overflow-hidden"
+      onPress={() => {
+        navigation.push('DemoPartners', {
+          partners: territory.partners,
+          yearQtr,
+        });
+      }}>
       {/* Territory Header */}
       <View className="flex-row items-center px-3 py-2 bg-slate-50/60 border-b border-slate-100">
         <View className="w-7 h-7 rounded-md bg-slate-100 items-center justify-center mr-2">
@@ -815,7 +827,7 @@ export const TerritoryCard: React.FC<{
           percentTint="text-teal-600"
         />
       </View>
-    </View>
+    </TouchableOpacity>
   );
 });
 

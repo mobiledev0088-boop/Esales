@@ -34,11 +34,14 @@ import StandPOSM from "../screens/app/ASIN/More/StandPOSM/StandPOSM";
 import Banners from "../screens/app/ASIN/Others/Banners";
 import AddNewStandPOSM from "../screens/app/ASIN/More/StandPOSM/AddNewStandPOSM";
 import ActPerformanceBranchWise from "../screens/app/ASIN/Reports/ActPerformanceBranchWise";
-import TargetSummaryPOD from "../screens/app/ASIN/Reports/TargetSummaryPOD";
+import TargetSummary from "../screens/app/ASIN/Reports/TargetSummary";
 import DemoPartners from "../screens/app/ASIN/Demo/DemoPartners";
 import ShopExpansion from "../screens/app/ASIN/More/ShopExpansion/ShopExpansion";
 import StoreDetails from "../screens/app/ASIN/More/ShopExpansion/StoreDetails";
 import VerticalASE_HO from "../screens/app/ASIN/Reports/VerticalASE_HO";
+import TargetSummaryAMBranch from "../screens/app/ASIN/Reports/TargetSummaryAMBranch";
+import TargetPartnerDashboard from "../screens/app/ASIN/Dashboard/TargetPartnerDashboard";
+import UploadDemoData from "../screens/app/ASIN/Demo/UploadDemoData";
 
 type Screen = {
     name: string;
@@ -53,8 +56,10 @@ const screens: Screen[] = [
     { name: "ChangePassword", component:  ChangePassword},
     // Dashboard Screens
     { name: "ScanSN", component: ScanSN },
+    { name: "TargetPartnerDashboard", component: TargetPartnerDashboard },
     // Demo Screens
     { name: "DemoPartners", component: DemoPartners },
+    { name: "UploadDemoData", component: UploadDemoData },
     // Claim Screens
     { name: "ClaimInfo", component: ClaimInfo },
     { name: "ClaimApplicationDetails", component: ClaimApplicationDetails },
@@ -93,8 +98,9 @@ const screens: Screen[] = [
     { name: "FeedbackDetails", component: FeedbackDetails },
     //Reposts Screens
     { name: "ActPerformanceBranchWise", component: ActPerformanceBranchWise },
-    { name: "TargetSummaryPOD", component: TargetSummaryPOD },
+    { name: "TargetSummary", component: TargetSummary },
     { name: "VerticalASE_HO", component: VerticalASE_HO },
+    { name: "TargetSummaryAMBranch", component: TargetSummaryAMBranch },
     //Other screens 
     { name: "Banners", component: Banners }
 ]

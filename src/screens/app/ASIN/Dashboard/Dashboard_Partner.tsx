@@ -368,7 +368,7 @@ const NoDataAvailable = () => (
   </View>
 );
 
-export default function Dashboard_Partner({noBanner,DifferentEmployeeCode,noPadding}: {noBanner?: boolean,DifferentEmployeeCode?:string,noPadding?:boolean}) {
+export default function Dashboard_Partner({noBanner,DifferentEmployeeCode,noPadding,noAnalytics}: {noBanner?: boolean,DifferentEmployeeCode?:string,noPadding?:boolean,noAnalytics?:boolean}) {
   const quarters = useMemo(getPastQuarters, []); // Static quarter list
   const empInfo = useEmpStore(s => s.empInfo);
   const [selectedQuarter, setSelectedQuarter] =
@@ -535,12 +535,12 @@ export default function Dashboard_Partner({noBanner,DifferentEmployeeCode,noPadd
             name="Total"
             quarter={selectedQuarter?.value || ''}
           />
-          <PartnerAnalytics
+          {!noAnalytics && <PartnerAnalytics
             dashboardData={dashboardData}
             isLoading={isLoading}
             partnerType={empInfo?.EMP_Type}
             isSubCodeSelected={!!selectedSubCode?.value}
-          />
+          />}
         </>
       )}
     </ScrollView>

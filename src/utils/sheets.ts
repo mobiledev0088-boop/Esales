@@ -2,14 +2,19 @@ import {registerSheet, SheetDefinition} from 'react-native-actions-sheet';
 import MoreSheet from '../screens/app/ASIN/More/MoreSheet';
 import ConfirmationSheet from '../components/ConfirmationSheet';
 import DatePickerSheet from '../components/DatePickerSheet';
-import { FilterActionSheet } from '../screens/app/ASIN/More/ActivatedDetails/component';
+import {FilterActionSheet} from '../screens/app/ASIN/More/ActivatedDetails/component';
 import DemoFilterSheet from '../screens/app/ASIN/Demo/DemoFilterSheet';
 import ClaimFilterSheet from '../screens/app/ASIN/Claim/ClaimFilterSheet';
 import WODFilterSheet from '../screens/app/ASIN/WOD/WODFilterSheet';
 import SchemeInfoSheet from '../components/SchemeInfoSheet';
 import ActivationFilterSheet from '../screens/app/ASIN/Reports/ActivationFilterSheet';
-import {PartnerDetailsSheet} from '../screens/app/ASIN/Demo/DemoPartners';
- 
+import {
+  DemoDetailsSheet,
+  PartnerDetailsSheet,
+} from '../screens/app/ASIN/Demo/DemoPartners';
+import { LMSBranchDetailsSheet } from '../screens/app/ASIN/More/LMS/LMSList_HO';
+import { PartnerDemoDetailsSheet } from '../screens/app/ASIN/Demo/Demo_Partner';
+
 registerSheet('MoreSheet', MoreSheet);
 registerSheet('ConfirmationSheet', ConfirmationSheet);
 registerSheet('DatePickerSheet', DatePickerSheet);
@@ -20,24 +25,39 @@ registerSheet('WODFilterSheet', WODFilterSheet);
 registerSheet('SchemeInfoSheet', SchemeInfoSheet);
 registerSheet('ActivationFilterSheet', ActivationFilterSheet);
 registerSheet('PartnerDetailsSheet', PartnerDetailsSheet);
- 
+registerSheet('DemoDetailsSheet', DemoDetailsSheet);
+registerSheet('LMSBranchDetailsSheet', LMSBranchDetailsSheet);
+registerSheet('PartnerDemoDetailsSheet', PartnerDemoDetailsSheet);
+
 // We extend some of the types here to give us great intellisense
 // across the app for all registered sheets.
 declare module 'react-native-actions-sheet' {
   interface Sheets {
-    'MoreSheet': SheetDefinition;
-    'ConfirmationSheet': SheetDefinition;
-    'DatePickerSheet': SheetDefinition;
-    'FilterActionSheet': SheetDefinition;
-    'DemoFilterSheet': SheetDefinition;
-    'ClaimFilterSheet': SheetDefinition;
-    'WODFilterSheet': SheetDefinition;
-    'SchemeInfoSheet': SheetDefinition;
-    'ActivationFilterSheet': SheetDefinition;
-    'PartnerDetailsSheet': SheetDefinition<{
+    MoreSheet: SheetDefinition;
+    ConfirmationSheet: SheetDefinition;
+    DatePickerSheet: SheetDefinition;
+    FilterActionSheet: SheetDefinition;
+    DemoFilterSheet: SheetDefinition;
+    ClaimFilterSheet: SheetDefinition;
+    WODFilterSheet: SheetDefinition;
+    SchemeInfoSheet: SheetDefinition;
+    ActivationFilterSheet: SheetDefinition;
+    PartnerDetailsSheet: SheetDefinition<{
       payload: {partner: any; yearQtr: string};
+    }>;
+    LMSBranchDetailsSheet: SheetDefinition<{
+      payload: {
+        awp: {
+          AWPCode: string;
+          AWPName: string;
+          BranchName: string;
+          AGPRequestCnt?: number;
+          QtyRequestCnt?: number;
+        } | null;
+        yearQtr: string;
+      };
     }>;
   }
 }
- 
+
 export {};

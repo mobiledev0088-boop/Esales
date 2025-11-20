@@ -13,8 +13,10 @@ type AppNavigationParamList = {
   // Dashboard Screen
   Home: undefined;
   ScanSN: undefined;
+  TargetPartnerDashboard: {partner: any};
   // Demo Screen
   DemoPartners: {partners: Array<any>; yearQtr: string};
+  UploadDemoData: undefined;
   // Claim Screen
   ClaimInfo: {
     SchemeCategory: string;
@@ -99,8 +101,9 @@ type AppNavigationParamList = {
     Product_Category: string;
     Territory?: string;
   };
-  TargetSummaryPOD: {masterTab: string; Quarter: string, tab: 'seemore' | 'disti'};
+  TargetSummary: {masterTab: string; Quarter: string, button: 'seemore' | 'disti',wise: 'POD' | 'SELL'};
   VerticalASE_HO: {Year: string; Month: string; AlpType: string};
+  TargetSummaryAMBranch: {Year: string; Month: string; masterTab: string};
   // Other Screens
   Banners: {Banner_Group_SeqNum: string};
 };
