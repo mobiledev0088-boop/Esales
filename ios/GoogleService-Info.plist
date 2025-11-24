@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.asus.esales-v2</string>
+	<string>com.asus.esales</string>
 	<key>PROJECT_ID</key>
 	<string>asus-esalesindia</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:865437515684:ios:b4f467100a5d77c16ccb31</string>
+	<string>1:865437515684:ios:32548a6684c05d026ccb31</string>
 </dict>
 </plist>

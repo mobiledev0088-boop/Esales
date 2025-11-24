@@ -82,7 +82,7 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.esales_v2"
+    namespace "com.asus.esales"
     // for react native pdf 
     packagingOptions {
        pickFirst 'lib/x86/libc++_shared.so'
@@ -93,7 +93,7 @@ android {
        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
     }
     defaultConfig {
-        applicationId "com.esales_v2"
+        applicationId "com.asus.esales"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

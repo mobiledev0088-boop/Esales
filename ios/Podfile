@@ -51,7 +51,7 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
-target 'Esales_V2' do
+target 'esales' do
   config = use_native_modules!
 
   use_frameworks! :linkage => :static

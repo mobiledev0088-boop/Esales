@@ -1,5 +1,5 @@
 {
-  "name": "Esales_V2",
+  "name": "esales",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -10,7 +10,7 @@
     "test": "jest",
     "pod-install": "cd ios &&  bundle exec pod install  && cd ..",
     "clean-gradle": "cd android && ./gradlew clean && cd ..",
-    "open-xcode": "cd ios && open Esales_V2.xcworkspace && cd .."
+    "open-xcode": "cd ios && open esales.xcworkspace && cd .."
   },
   "dependencies": {
     "@d11/react-native-fast-image": "^8.10.0",

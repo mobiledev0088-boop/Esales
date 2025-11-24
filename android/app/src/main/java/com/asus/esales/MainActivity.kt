@@ -1,4 +1,4 @@
-package com.esales_v2
+package com.asus.esales
 import android.os.Bundle;
 
 import com.facebook.react.ReactActivity
@@ -19,7 +19,7 @@ class MainActivity : ReactActivity() {
 
   
   
-  override fun getMainComponentName(): String = "Esales_V2"
+  override fun getMainComponentName(): String = "esales"
 
   /**
    * Returns the instance of the [ReactActivityDelegate]. We use [DefaultReactActivityDelegate]
