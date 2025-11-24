@@ -104,6 +104,8 @@ type AppNavigationParamList = {
   TargetSummary: {masterTab: string; Quarter: string, button: 'seemore' | 'disti',wise: 'POD' | 'SELL'};
   VerticalASE_HO: {Year: string; Month: string; AlpType: string};
   TargetSummaryAMBranch: {Year: string; Month: string; masterTab: string};
+  // Commercial Screens
+  AddRollingFunnel: undefined;
   // Other Screens
   Banners: {Banner_Group_SeqNum: string};
 };

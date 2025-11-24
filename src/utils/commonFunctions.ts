@@ -198,3 +198,17 @@ export const getProductConfig = (
   };
   return configs[category] || {icon: 'package', color: AppColors.utilColor1};
 };
+
+
+export const formatUnique = (arr: any[], valueKey: string, labelKey: string = valueKey) => {
+  if (!Array.isArray(arr)) return [];
+
+  return [
+    ...new Map(
+      arr.map(item => [
+        item[valueKey],
+        { label: item[labelKey] ?? item[valueKey], value: item[valueKey] },
+      ])
+    ).values(),
+  ];
+};

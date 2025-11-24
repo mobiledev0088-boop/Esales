@@ -4,7 +4,7 @@ import { useLoginStore } from "../stores/useLoginStore";
 
 export const handleASINApiCall = async <T = any>(
     url: string,
-    data?: any,
+    data: any = {},
     headers?: Record<string, string>,
     showGlobalLoading?: boolean,
     showError: boolean = false

@@ -1,14 +1,3 @@
-/**
- * MaterialTabBar
- * Extended to support three ways of supplying screen content per tab:
- * 1. Simple component type:
- *    { name: 'Home', label: 'Home', component: HomeScreen }
- * 2. Component with injected props via componentProps:
- *    { name: 'Home', label: 'Home', component: HomeScreen, componentProps: { data } }
- * 3. Pre-created element (props already or additionally provided):
- *    { name: 'Home', label: 'Home', component: <HomeScreen data={data} another={x} /> }
- *    (You may still add/override with componentProps which will be merged via cloneElement.)
- */
 import { 
   View, 
   TouchableOpacity, 
@@ -233,11 +222,14 @@ const CustomTabBar = memo(({
 
     if (equalWidth) {
       // Equal width mode: simple calculation
+      // Center the indicator within each tab by accounting for left padding and inner inset
       const singleTabWidth = getTabWidth(0);
+      const indicatorInset = 2; // matches width reduction of 4 (2px each side)
+      const baseOffset = tabPadding + 4 + indicatorInset; // initial horizontal padding + inset
       return animatedValue.interpolate({
         inputRange: state.routes.map((_: any, index: number) => index),
         outputRange: state.routes.map((_: any, index: number) => 
-          6 + index * (singleTabWidth + 8)
+          baseOffset + index * singleTabWidth
         ),
       });
     } else {

@@ -42,6 +42,7 @@ import VerticalASE_HO from "../screens/app/ASIN/Reports/VerticalASE_HO";
 import TargetSummaryAMBranch from "../screens/app/ASIN/Reports/TargetSummaryAMBranch";
 import TargetPartnerDashboard from "../screens/app/ASIN/Dashboard/TargetPartnerDashboard";
 import UploadDemoData from "../screens/app/ASIN/Demo/UploadDemoData";
+import AddRollingFunnel from "../screens/app/ASIN/Commercial/RollingFunnel/AddRollingFunnel";
 
 type Screen = {
     name: string;
@@ -101,6 +102,8 @@ const screens: Screen[] = [
     { name: "TargetSummary", component: TargetSummary },
     { name: "VerticalASE_HO", component: VerticalASE_HO },
     { name: "TargetSummaryAMBranch", component: TargetSummaryAMBranch },
+    // Commercial Screens
+    { name: "AddRollingFunnel", component:  AddRollingFunnel},
     //Other screens 
     { name: "Banners", component: Banners }
 ]

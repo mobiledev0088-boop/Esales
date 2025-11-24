@@ -14,6 +14,7 @@ type CardProps = {
   className?: string;
   needSeeMore?: boolean;
   seeMoreText?: string;
+  noshadow?: boolean;
   seeMoreOnPress?: () => void;
   needSeeMoreIcon?: boolean;
   watermark?: boolean;
@@ -33,6 +34,7 @@ const Card: React.FC<CardProps> = ({
   children,
   className,
   needSeeMore = false,
+  noshadow = false,
   needSeeMoreIcon = false,
   seeMoreText = 'See More',
   seeMoreOnPress = () => {},
@@ -80,10 +82,10 @@ const Card: React.FC<CardProps> = ({
           />
         )}
         {children}
-        <View
+        {!noshadow && <View
           className={twMerge(mergedClassName, 'absolute top-0 ')}
           style={{width: size.width, height: size.height, ...getShadowStyle(1), zIndex: -1,borderWidth:0}}
-        />
+        />}
       </View>
       {needSeeMore && (
         <TouchableOpacity

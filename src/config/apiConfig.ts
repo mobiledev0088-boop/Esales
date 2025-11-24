@@ -9,7 +9,6 @@ const apiClientASIN = axios.create({
   headers: {
     Accept: 'application/json',
     'Content-Type': 'application/json',
-    // 'Expect': '',
   },
 });
 
@@ -18,7 +17,6 @@ const apiClientAPAC = axios.create({
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
-    Expect: '',
   },
 });
 

@@ -14,6 +14,7 @@ interface CustomInputProps extends TextInputProps {
     labelSize?: AppTextSizeType;
     isOptional?: boolean;
     isPassword?: boolean;
+    textSize?: number;
     containerClassName?: string;
     inputContainerClassName?: string;
     inputClassName?: string;
@@ -37,6 +38,7 @@ const AppInput: React.FC<CustomInputProps> = ({
     labelSize = 'md',
     isOptional,
     isPassword = false,
+    textSize,
     containerClassName = '',
     inputContainerClassName = '',
     inputClassName = '',
@@ -68,7 +70,7 @@ const AppInput: React.FC<CustomInputProps> = ({
 
 
     const height = size === 'sm' ? 40 : size === 'lg' ? 54 : 45;
-    const fontSize = size === 'sm' ? 13 : size === 'lg' ? 16 : 14;
+    const fontSize = textSize ||  (size === 'sm' ? 13 : size === 'lg' ? 16 : 14);
     const inputContainerStyle: ViewStyle = useMemo(() => {
         const baseStyle = {
             flexDirection: 'row' as const,
@@ -117,7 +119,7 @@ const AppInput: React.FC<CustomInputProps> = ({
                 </AppText>
             )}
 
-            <View style={inputContainerStyle} className={inputContainerClassName} >
+            <View style={[inputContainerStyle]} >
                 {leftIconTsx ?? (leftIcon && <Icon name={leftIcon} size={20} color={appTheme === 'dark' ? "#fff" : "#000"} style={{ marginLeft: 8, marginRight:8 }} />)}
 
                 <TextInput

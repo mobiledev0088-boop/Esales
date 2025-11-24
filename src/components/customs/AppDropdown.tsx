@@ -210,14 +210,15 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
   const stylesMemo = useMemo(
     () => ({
       pickerStyle: {
-        backgroundColor: theme.bgSurface,
-        borderColor: error ? '#EF4444' : theme.border,
+        backgroundColor: disabled ? '#F3F4F6' : theme.bgSurface,
+        borderColor: error ? '#EF4444' : disabled ? '#D1D5DB' : theme.border,
         borderWidth: 1,
         borderRadius: 12,
         minHeight: 45,
+        opacity: disabled ? 0.7 : 1,
       },
       pickerText: {
-        color: theme.text,
+        color: disabled ? '#9CA3AF' : theme.text,
         fontSize: 16,
         fontWeight: '500' as const,
       },
@@ -246,7 +247,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
         marginBottom: 8,
       },
     }),
-    [theme, listHeight, error],
+    [theme, listHeight, error, disabled],
   );
 
   return (
@@ -522,14 +523,15 @@ export const AppDropdownMultiple: React.FC<AppDropdownMultipleProps> = memo(
     const stylesMemo = useMemo(
       () => ({
         pickerStyle: {
-          backgroundColor: theme.bgSurface,
-          borderColor: error ? '#EF4444' : theme.border,
+          backgroundColor: disabled ? '#F3F4F6' : theme.bgSurface,
+          borderColor: error ? '#EF4444' : disabled ? '#D1D5DB' : theme.border,
           borderWidth: 1.5,
           borderRadius: 12,
           minHeight: 54,
+          opacity: disabled ? 0.7 : 1,
         },
         pickerText: {
-          color: theme.text,
+          color: disabled ? '#9CA3AF' : theme.text,
           fontSize: 16,
           fontWeight: '500' as const,
         },
@@ -558,7 +560,7 @@ export const AppDropdownMultiple: React.FC<AppDropdownMultipleProps> = memo(
           marginBottom: 8,
         },
       }),
-      [theme, listHeight, error],
+      [theme, listHeight, error, disabled],
     );
 
     return (

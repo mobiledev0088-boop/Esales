@@ -509,7 +509,7 @@ export default function PowerCalculator() {
     }
     setShowResults(true);
     setTimeout(() => {
-      scrollRef.current?.scrollToPosition(0, 780, true);
+      scrollRef.current?.scrollToPosition(0, 770, true);
     }, 300);
   }, [isFormValid]);
 
@@ -615,6 +615,7 @@ export default function PowerCalculator() {
                 keyboardType={field.keyboardType}
                 variant="border"
                 size="md"
+                inputClassName='ml-3'
               />
             ))}
 
