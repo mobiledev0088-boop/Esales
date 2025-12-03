@@ -19,12 +19,19 @@ export const DASHBOARD = {
 } as const;
 
 
-
 export const ASUS = {
+    APP_NAME: "Esales",
     BUSINESS_TYPES:{
         COMMERCIAL: 4,
     },
-    APP_NAME: "Esales",
+    COUNTRIES: {
+        ASIN: 'ASIN',
+        ATID: 'ATID',
+        ACMY: 'ACMY',
+        ACSG: 'ACSG',
+        ACJP: 'ACJP',
+        TW: 'TW',
+    },
     PARTNER_TYPE: {
         T2:{
             AWP: 'AWP', // ASUS Wholesale Partner
@@ -37,17 +44,12 @@ export const ASUS = {
         },
         END_CUSTOMER: 'EndCustomer',
     },
-    Country:{
-        ASIN: 'ASIN', // India
-        ACJP: 'ACJP', // Japan
-        TW: 'TW',   // Taiwan
-    },
     ROLE_ID:{
         DIR_HOD_MAN: 1,
         HO_EMPLOYEES: 2,
         BSM: 3, // branch sales manager
         TM: 4,  // territory  manager
-        // SALES_EXE: 5, 
+        // SALES_EXE: 5, // by Defalut New Account gets this Role
         PARTNERS: 6 ,
         DISTRIBUTORS: 7,
         COUNTRY_HEAD: 9,
@@ -56,6 +58,7 @@ export const ASUS = {
         ONLINE_HO: 14,
         ESHOP_HO: 16,
         AM: 17, // Area Manager
+        SA:19, // Sales Admin Team
         ASE: 24, // Asus Solution Expert
         BPM: 25, // Branch Product Manager
         RSM: 26, // Regional Sales Manager
@@ -66,6 +69,8 @@ export const ASUS = {
 
 
 // Login Credentials for Testing
+
+// ASIN
 
 // Arnold_Su           AS1300044   DIR_HOD_MAN       qbaoandadia520!   
 // Ashish_Devasi       KN2500069   HO_EMPLOYEES      @ITSMbpm07072025
@@ -87,3 +92,9 @@ export const ASUS = {
 // Vishal_Srivastava   KN1800039   RSM               Vishal@123456789
 // rahul_sangani       KN2100022   DISTI_HO          Asus@7977399605
 // pawan_sisodia       KN1500116   CHANNEL_MARKETING #gqUB(impYKN6ni
+// Mayur_S             KN2500031   COMMERCIAL(BSM)   Mr8@089949190088
+
+
+// APAC (Singapore)
+
+// Marco_Tim          SG2500001   HO_EMPLOYEES      Asus@12345678

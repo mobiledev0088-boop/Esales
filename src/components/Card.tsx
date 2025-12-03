@@ -83,17 +83,17 @@ const Card: React.FC<CardProps> = ({
         )}
         {children}
         {!noshadow && <View
-          className={twMerge(mergedClassName, 'absolute top-0 ')}
-          style={{width: size.width, height: size.height, ...getShadowStyle(1), zIndex: -1,borderWidth:0}}
+          className={twMerge(mergedClassName, 'absolute')}
+          style={{width: size.width, height: size.height, ...getShadowStyle(1), zIndex: -1, borderWidth:0}}
         />}
       </View>
       {needSeeMore && (
         <TouchableOpacity
           onPress={seeMoreOnPress}
           activeOpacity={0.6}
-          className="bg-secondary dark:bg-secondary-dark py-2.5 flex-row items-center justify-center w-[91%] self-center rounded-xl rounded-t-none -mt-1 -z-10"
+          className="bg-secondary dark:bg-secondary-dark py-2.5 flex-row items-center justify-center w-[91%] self-center rounded-3xl rounded-t-none -mt-1 -z-10"
           style={getShadowStyle(1)}>
-          <AppText size="base" weight="medium" className="mr-1 text-white dark:text-slate-200">
+          <AppText size="base" weight="medium" className="mr-1 text-white dark:text-white">
             {seeMoreText}
           </AppText>
           {needSeeMoreIcon && (

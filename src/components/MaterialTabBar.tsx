@@ -71,10 +71,8 @@ type AppTabBarsProps = {
   onTabPress?: (tabName: string, index: number) => void;
   renderBadge?: (badge: string | number) => React.ReactNode;
   tabBarPosition?: 'top' | 'bottom';
-  equalWidth?: boolean;
   minTabWidth?: number;
   maxTabWidth?: number;
-  scrollEnabled?: boolean;
   bounces?: boolean;
   pressAnimationEnabled?: boolean;
   hapticFeedback?: boolean;
@@ -96,16 +94,15 @@ const CustomTabBar = memo(({
   labelStyle,
   activeTabStyle,
   activeLabelStyle,
-  equalWidth = false, // Changed default to false for dynamic width
   minTabWidth = 80, // Default minimum width
   maxTabWidth,
-  scrollEnabled = true, // Enable scrolling by default
   bounces = true,
   pressAnimationEnabled = true,
   tabs = [],
 }: any) => {
   if(!tabs.length) return null;
-  if(tabs.length === 1) return null; // No need for tab bar if only one tab
+  // Auto mode: <= 4 tabs use equal widths; > 4 becomes scrollable with dynamic widths
+  const isScrollable = state?.routes?.length > 4;
 
   const appTheme = useThemeStore(state => state.AppTheme);
   const isDark = appTheme === 'dark';
@@ -120,25 +117,25 @@ const CustomTabBar = memo(({
   
   // Calculate tab width based on mode (equal or dynamic)
   const getTabWidth = useCallback((index: number) => {
-    if (equalWidth) {
+    if (!isScrollable) {
       // Equal width mode: calculate based on screen width
       const availableWidth = screenWidth - tabSpacing * 2 - tabPadding * 2;
       const calculatedWidth = availableWidth / state.routes.length;
       
       let finalWidth = calculatedWidth;
       if (maxTabWidth && calculatedWidth > maxTabWidth) finalWidth = maxTabWidth;
-      if (minTabWidth && calculatedWidth < minTabWidth) finalWidth = minTabWidth;
+      // In equal-width mode, prefer uniform widths across the container
       
       return finalWidth;
     } else {
       // Dynamic width mode: use measured widths or fallback to minTabWidth
       return tabWidths[index] || minTabWidth;
     }
-  }, [equalWidth, screenWidth, state.routes.length, tabSpacing, tabPadding, maxTabWidth, minTabWidth, tabWidths]);
+  }, [isScrollable, screenWidth, state.routes.length, tabSpacing, tabPadding, maxTabWidth, minTabWidth, tabWidths]);
 
   // Handle tab layout measurement for dynamic widths
   const handleTabLayout = useCallback((event: LayoutChangeEvent, index: number) => {
-    if (!equalWidth) {
+    if (isScrollable) {
       const { width } = event.nativeEvent.layout;
       measurementsRef.current[index] = Math.max(width, minTabWidth);
       
@@ -157,12 +154,12 @@ const CustomTabBar = memo(({
         setTabPositions(positions);
       }
     }
-  }, [equalWidth, minTabWidth, state.routes.length, tabPadding]);
+  }, [isScrollable, minTabWidth, state.routes.length, tabPadding]);
 
   const animationConfig = useMemo(() => ({
     type: 'spring',
     tension: 150,
-    friction: 8,
+    friction: 12,
     useNativeDriver: true,
     ...animation,
   }), [animation]);
@@ -173,7 +170,7 @@ const CustomTabBar = memo(({
     return {
       backgroundColor: palette.bgSurface,
       activeIndicatorColor: palette.tabSelected,
-      activeTintColor: palette.bgBase,
+      activeTintColor: isDark ? 'white' : palette.bgBase,
       inactiveTintColor: palette.heading,
       shadowColor: palette.primary,
       borderRadius: 8,
@@ -200,7 +197,7 @@ const CustomTabBar = memo(({
 
   // Scroll to active tab when it changes
   useEffect(() => {
-    if (scrollViewRef.current && scrollEnabled && tabPositions.length > 0) {
+    if (scrollViewRef.current && isScrollable && tabPositions.length > 0) {
       const activeTabPosition = tabPositions[state.index];
       const activeTabWidth = getTabWidth(state.index);
       const centerOffset = screenWidth / 2 - activeTabWidth / 2;
@@ -211,7 +208,7 @@ const CustomTabBar = memo(({
         animated: true,
       });
     }
-  }, [state.index, scrollEnabled, tabPositions, screenWidth, getTabWidth]);
+  }, [state.index, isScrollable, tabPositions, screenWidth, getTabWidth]);
 
   // Calculate translateX for the indicator
   const translateX = useMemo(() => {
@@ -220,7 +217,7 @@ const CustomTabBar = memo(({
       return 6; // Return static value for single tab
     }
 
-    if (equalWidth) {
+    if (!isScrollable) {
       // Equal width mode: simple calculation
       // Center the indicator within each tab by accounting for left padding and inner inset
       const singleTabWidth = getTabWidth(0);
@@ -247,7 +244,7 @@ const CustomTabBar = memo(({
       inputRange: [0, 1],
       outputRange: [6, 6 + minTabWidth + 8],
     });
-  }, [animatedValue, state.routes, equalWidth, tabPositions, getTabWidth, minTabWidth]);
+  }, [animatedValue, state.routes, isScrollable, tabPositions, getTabWidth, minTabWidth]);
 
   const handleTabPress = useCallback((route: any, index: number) => {
     const isFocused = state.index === index;
@@ -285,12 +282,12 @@ const CustomTabBar = memo(({
         ref={scrollViewRef}
         horizontal
         showsHorizontalScrollIndicator={false}
-        scrollEnabled={scrollEnabled}
+        scrollEnabled={isScrollable}
         bounces={bounces}
         contentContainerStyle={{
           paddingHorizontal: tabPadding + 4,
           paddingVertical: tabPadding,
-          minWidth: equalWidth ? screenWidth - tabSpacing * 2 : undefined,
+          minWidth: !isScrollable ? screenWidth - tabSpacing * 2 : undefined,
         }}
         style={{ flexGrow: 0 }}>
         
@@ -327,9 +324,9 @@ const CustomTabBar = memo(({
               disabled={disabled}
               className={`justify-center items-center py-1.5 rounded-xl h-8 relative ${isFocused ? '' : ''}`}
               style={[
-                equalWidth 
-                  ? { width: getTabWidth(index) }
-                  : { 
+                  !isScrollable 
+                    ? { width: getTabWidth(index) }
+                    : { 
                       minWidth: minTabWidth,
                       paddingHorizontal: 16,
                       marginRight: index < state.routes.length - 1 ? 8 : 0,
@@ -405,10 +402,8 @@ const MaterialTabBar: React.FC<AppTabBarsProps> = ({
   onTabPress,
   renderBadge,
   tabBarPosition = 'top',
-  equalWidth = false,
   minTabWidth = 80,
   maxTabWidth,
-  scrollEnabled = true,
   bounces = true,
   pressAnimationEnabled = true,
 }) => {
@@ -455,10 +450,8 @@ const MaterialTabBar: React.FC<AppTabBarsProps> = ({
             labelStyle={labelStyle}
             activeTabStyle={activeTabStyle}
             activeLabelStyle={activeLabelStyle}
-            equalWidth={equalWidth}
             minTabWidth={minTabWidth}
             maxTabWidth={maxTabWidth}
-            scrollEnabled={scrollEnabled}
             bounces={bounces}
             pressAnimationEnabled={pressAnimationEnabled}
             tabs={validTabs}

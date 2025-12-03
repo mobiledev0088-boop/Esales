@@ -2,6 +2,8 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {DrawerNavigationProp as DNP} from '@react-navigation/drawer';
 import {FeedbackItem} from '../screens/app/ASIN/Feedback/component';
 import { AppDropdownItem } from '../components/customs/AppDropdown';
+import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { NavigationHelpers, ParamListBase, TabNavigationState } from '@react-navigation/native';
 
 type AuthStackParamList = {
   Login: undefined;
@@ -92,7 +94,6 @@ type AppNavigationParamList = {
   Feedback: undefined;
   AddFeedback: undefined;
   FeedbackDetails: {data: FeedbackItem};
-
   // Reports Screens
   ActPerformanceBranchWise: {
     masterTab: string;
@@ -104,10 +105,22 @@ type AppNavigationParamList = {
   TargetSummary: {masterTab: string; Quarter: string, button: 'seemore' | 'disti',wise: 'POD' | 'SELL'};
   VerticalASE_HO: {Year: string; Month: string; AlpType: string};
   TargetSummaryAMBranch: {Year: string; Month: string; masterTab: string};
-  // Commercial Screens
-  AddRollingFunnel: undefined;
   // Other Screens
   Banners: {Banner_Group_SeqNum: string};
+  
+  // Commercial Screens
+  AddRollingFunnel: undefined;
+  
+  //APAC Screens
+  Promoter: undefined;
+  PromoterUpload: {type: string};
+  SelloutInfo: {
+    type: string;
+    PartnerCode: string;
+    Year_Qtr: string;
+    StartDate: string;
+    EndDate: string;
+  };
 };
 
 export type AuthNavigationProp = NativeStackNavigationProp<AuthStackParamList>;
@@ -129,6 +142,23 @@ type DrawerStackParamList = {
 };
 
 export type DrawerNavigationProp = DNP<DrawerStackParamList>;
+
+export interface TabScreens {
+  name: string;
+  component: ComponentType<any>;
+  icon: string;
+  // Optional icon type (library). If omitted, defaults to 'ionicons'
+  iconType?: IconType
+  options?: BottomTabNavigationOptions;
+  action?: () => void;
+  params?: Record<string, any>;
+}
+
+export type MyTabBarProps = BottomTabBarProps & {
+  state: TabNavigationState<ParamListBase>;
+  navigation: NavigationHelpers<ParamListBase>;
+  TabScreens: TabScreens[]
+};
 
 export interface APIResponse<T> {
   DashboardData: {

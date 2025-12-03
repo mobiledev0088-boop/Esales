@@ -96,16 +96,19 @@ const TabBar = React.memo(({
   return (
     <View
     key={tabs.length}
-      className="flex-row rounded-md p-1 py-2 mx-4 mb-0"
-      style={[{ backgroundColor: isDarkTheme ? AppColors.dark.bgBase : '#f3f4f6' }, containerStyle]}
+      className="flex-row rounded-lg p-1 py-2 mx-4 mb-0 items-center"
+      style={[{ backgroundColor: isDarkTheme ? '#121212' : '#f3f4f6', }]}
     >
       <Animated.View
         pointerEvents="none"
-        className="absolute top-1.5 bottom-1.5  rounded"
+        className="absolute"
         style={{
-          backgroundColor: isDarkTheme ? AppColors.dark.bgSurface : AppColors.tabSelectedBg,
+          backgroundColor: isDarkTheme ? '#007BE5' : AppColors.tabSelectedBg,
+          opacity: 0.75,
           transform: [{ translateX: Animated.add(translateX, 0) }],
           width: indicatorWidth,
+          height: 32,
+          borderRadius: 11
         }}
       />
       {tabs.map((tab, index) => {

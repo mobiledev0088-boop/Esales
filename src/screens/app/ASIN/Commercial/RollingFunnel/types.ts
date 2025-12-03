@@ -11,6 +11,7 @@ export interface RollingFunnelData {
   Stage: string;
   Opportunity_Number: string;
   Last_Update_Opportunity_Date: string;
+  IsEditable_Id: number;
 }
 
 export interface RollingFunnelFilter {
@@ -23,4 +24,32 @@ export interface RollingFunnelFilter {
   selectedAMname?: string;
   selectedCradStartDate?: string;
   selectedCradEndDate?: string;
+}
+
+export interface FormData {
+  // Page 1
+  ownerDivision: string;
+  accountName: string;
+  indirectAccount: string;
+  newIndirectPartnerName: string;
+  newIndirectPartnerGST: string;
+  endCustomer: string;
+  newEndCustomerName: string;
+  endCustomerTam: string;
+  category: string;
+  mainIndustry: string;
+  standardIndustry: string;
+  stage: string;
+  winRate: string;
+  // Page 2
+  productLine: string;
+  quotedProduct: string;
+  product: string;
+  newProduct: string;
+  qty: string;
+  description: string;
+  CRADDate: Date | undefined;
+}
+export interface ValidationErrors {
+  [key: string]: string;
 }

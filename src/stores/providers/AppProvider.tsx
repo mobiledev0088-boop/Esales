@@ -10,19 +10,22 @@ import {AppColors} from '../../config/theme';
 import CustomStatusBar from '../../components/CustomStatusBar';
 import {SheetProvider} from 'react-native-actions-sheet';
 import GlobalLoader from '../../components/GlobalLoader';
-import '../../utils/sheets';
 import { useLoaderStore } from '../useLoaderStore';
+
+import '../../utils/sheets';
 import { enableScreens } from 'react-native-screens';
 
 export const AppProviders = ({children}: PropsWithChildren) => {
   const {setColorScheme} = useColorScheme();
+
   const AppTheme = useThemeStore(state => state.AppTheme);
   const globalLoading = useLoaderStore(state => state.globalLoading);
   
   useEffect(() => {
     setColorScheme(AppTheme);
   }, [AppTheme, setColorScheme]);
-  // enableScreens();
+  
+  enableScreens();
   
   return (
     <QueryProvider>

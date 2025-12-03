@@ -1,3 +1,7 @@
+// Edit mode support imports
+import {useRoute} from '@react-navigation/native';
+// Declare edit hook to avoid path-specific import errors
+declare function useEditRollingFunnel(arg: any): { mutate: (v: any, opts?: any) => void; isPending?: boolean };
 import {View, TouchableOpacity, BackHandler} from 'react-native';
 import AppLayout, {
   AppLayoutRef,
@@ -10,46 +14,36 @@ import AppDropdown from '../../../../../components/customs/AppDropdown';
 import {DatePickerInput} from '../../../../../components/customs/AppDatePicker';
 import AppButton from '../../../../../components/customs/AppButton';
 import AppIcon from '../../../../../components/customs/AppIcon';
-import {useQuery} from '@tanstack/react-query';
-import {handleASINApiCall} from '../../../../../utils/handleApiCall';
 import {
-  convertCamelCaseToSentence,
   convertToCapitalized,
-  formatUnique,
+  showToast,
 } from '../../../../../utils/commonFunctions';
 import {useLoginStore} from '../../../../../stores/useLoginStore';
+import {queryClient} from '../../../../../stores/providers/QueryProvider';
+import {useNavigation} from '@react-navigation/native';
+import {AppNavigationProp} from '../../../../../types/navigation';
+import {showConfirmationSheet} from '../../../../../components/ConfirmationSheet';
+import {FormData, ValidationErrors} from './types';
+import {
+  useAddNewRoolingFunnel,
+  useEditRoolingFunnel,
+  useGetAccountDropdownList,
+  useGetDependentDropdownList,
+  useGetDropdownData,
+  useGetIndirectAccountList,
+} from '../../../../../hooks/queries/rollingFunnel';
 
-interface FormData {
-  // Page 1
-  ownerDivision: string;
-  accountName: string;
-  indirectAccount: string;
-  endCustomer: string;
-  endCustomerTam: string;
-  category: string;
-  mainIndustry: string;
-  standardIndustry: string;
-  stage: string;
-  winRate: string;
-  // Page 2
-  productLine: string;
-  quotedProduct: string;
-  product: string;
-  qty: string;
-  description: string;
-  CRADDate: Date | undefined;
-}
-
-interface ValidationErrors {
-  [key: string]: string;
-}
+const OTHERS = 'OTHERS';
 
 const initialFormData: FormData = {
   // Page 1
   ownerDivision: '',
   accountName: '',
   indirectAccount: '',
+  newIndirectPartnerName: '',
+  newIndirectPartnerGST: '',
   endCustomer: '',
+  newEndCustomerName: '',
   endCustomerTam: '',
   category: '',
   mainIndustry: '',
@@ -60,149 +54,26 @@ const initialFormData: FormData = {
   productLine: '',
   quotedProduct: '',
   product: '',
+  newProduct: '',
   qty: '',
   description: '',
   CRADDate: undefined,
 };
 
-const useGetDropdownData = () => {
-  const {EMP_Code: EmpCode = ''} = useLoginStore(state => state.userInfo);
-  return useQuery({
-    queryKey: ['rollingFunnelDropdownData', EmpCode],
-    enabled: !!EmpCode,
-    queryFn: async () => {
-      const response = await handleASINApiCall(
-        '/RollingFunnel/GetRollingFunnel_DropdownList_New',
-        {EmpCode},
-      );
-      const result = response?.DashboardData;
-      if (!result?.Status) {
-        throw new Error('Failed to fetch activation data');
-      }
-      return result?.Datainfo;
-    },
-    select: (data: any) => {
-      const {
-        OwnerDivisionList,
-        CategoryList,
-        StageList,
-        WinRateList,
-        ProductLine,
-        MainIndustryList,
-        ProductSeriesNameList,
-        EndCustomerList,
-      } = data;
-      return {
-        OwnerDivisionList: formatUnique(
-          OwnerDivisionList,
-          'Id',
-          'Opportunity_Owner_Division',
-        ),
-        CategoryList: formatUnique(CategoryList, 'Id', 'Sector'),
-        StageList: formatUnique(StageList, 'Id', 'Stage'),
-        WinRateList: formatUnique(WinRateList, 'Id', 'WinRate_Display'),
-        ProductLine: formatUnique(ProductLine, 'PD_HQName'),
-        MainIndustryList: formatUnique(MainIndustryList, 'Main_Industry'),
-        ProductSeriesNameList: formatUnique(
-          ProductSeriesNameList,
-          'Series_Name',
-        ),
-        EndCustomerList: formatUnique(
-          EndCustomerList,
-          'End_Customer_CompanyID',
-          'EndCustomer_Name',
-        ),
-      };
-    },
-  });
-};
-
-const useGetDependentDropdownList = (MainIndustry: string,ProductSeriesName: string) => {
-  return useQuery({
-    queryKey: ['standardIndustryList', MainIndustry,ProductSeriesName],
-    enabled: !!MainIndustry || !!ProductSeriesName,
-    queryFn: async () => {
-      const response = await handleASINApiCall(
-        '/RollingFunnel/GetRollingFunnel_DependentDropdownList',
-        {MainIndustry,ProductSeriesName},
-      );
-      const result = response?.DashboardData;
-      if (!result?.Status) {
-        throw new Error('Failed to fetch standard industry data');
-      }
-      return result?.Datainfo;
-    },
-    select: (data: any) => {
-      return {
-        StandardIndustryList: formatUnique(
-          data.IndustryList,
-          'Id',
-          'Standard_Industry',
-        ),
-        ProductSeriesNameList: formatUnique(
-          data.ProductSeriesList,
-          'Model_Name',
-        ),
-      };
-    },
-  });
-};
-
-const useGetAccountDropdownList = (BranchName: string) => {
-  return useQuery({
-    queryKey: ['rollingFunnelDropdownData', BranchName],
-    enabled: !!BranchName,
-    queryFn: async () => {
-      const response = await handleASINApiCall(
-        '/RollingFunnel/GetRollingFunnel_DirectAccount_List',
-        {BranchName},
-      );
-      const result = response?.DashboardData;
-      if (!result?.Status) {
-        throw new Error('Failed to fetch activation data');
-      }
-      const data = formatUnique(
-        result?.Datainfo?.DirectAccountList,
-        'Id',
-        'Partner_Name',
-      );
-      return data;
-    },
-  });
-};
-
-const useGetIndirectAccountList = (BranchName: string) => {
-  return useQuery({
-    queryKey: ['rollingFunnelDropdownData', BranchName],
-    enabled: !!BranchName,
-    queryFn: async () => {
-      const response = await handleASINApiCall(
-        '/RollingFunnel/GetRollingFunnel_IndirectAccount_List',
-        {BranchName},
-      );
-      const result = response?.DashboardData;
-      if (!result?.Status) {
-        throw new Error('Failed to fetch activation data');
-      }
-      const data = formatUnique(
-        result?.Datainfo?.IndirectAccount_List,
-        'IndirectAccountCode',
-        'IndirectAccountName',
-      );
-      return data;
-    },
-  });
-};
-
 export default function AddRollingFunnel() {
   const {EMP_Name: ownerName} = useLoginStore(state => state.userInfo);
+  const navigation = useNavigation<AppNavigationProp>();
+  const route = useRoute() as any; // Access navigation route params
+  const editData = route?.params?.editData ?? null; // Existing item if editing
+  const isEditMode = Boolean(editData); // Flag to toggle add/edit
 
   const [formData, setFormData] = useState(initialFormData);
   const [currentPage, setCurrentPage] = useState(1);
   const [errors, setErrors] = useState<ValidationErrors>({});
-  const [showAddNewModal, setShowAddNewModal] = useState(false);
-  const [newIndirectAccount, setNewIndirectAccount] = useState('');
+  const [isAddingNewIndirect, setIsAddingNewIndirect] = useState(false);
+  const [isAddingNewEndCustomer, setIsAddingNewEndCustomer] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [isAddingNewModel, setIsAddingNewModel] = useState(false);
 
   const layoutRef = useRef<AppLayoutRef | null>(null);
 
@@ -213,7 +84,47 @@ export default function AddRollingFunnel() {
     data: indirectAccountDropdownData,
     isLoading: isIndirectAccountLoading,
   } = useGetIndirectAccountList(formData.ownerDivision);
-  const {data: dependentDropdownData, isLoading: isDependentDropdownLoading} = useGetDependentDropdownList(formData.mainIndustry, formData.quotedProduct);
+  const {data: dependentDropdownData, isLoading: isDependentDropdownLoading} =
+    useGetDependentDropdownList(formData.mainIndustry, formData.quotedProduct);
+
+  const {mutate, isPending} = useAddNewRoolingFunnel(formData); // Add API hook
+  const {mutate: editMutate, isPending: isEditPending} = useEditRoolingFunnel(formData,editData?.Opportunity_Number ?? editData?.id,); // Edit API hook
+
+  // Prefill form when editing
+  useEffect(() => {
+    if (!isEditMode || !editData) return;
+    console.log('Edit mode detected, pre-filling form with:', editData);
+    setFormData(prev => ({
+      ...prev,
+      // Page 1
+      ownerDivision: editData.Opportunity_Owner_Division || prev.ownerDivision,
+      accountName: editData.Direct_Account || prev.accountName,
+      indirectAccount: editData.Indirect_Account || prev.indirectAccount,
+      newIndirectPartnerName: '', // Reset for edit mode
+      newIndirectPartnerGST: '', // Reset for edit mode
+      endCustomer: editData.End_Customer_CompanyID || prev.endCustomer,
+      newEndCustomerName: '', // Reset for edit mode
+      endCustomerTam:
+        editData.End_Customer_TAM?.toString?.() || prev.endCustomerTam,
+      category: editData.Category_Id || prev.category,
+      mainIndustry: editData.Main_Industry_Id || prev.mainIndustry,
+      standardIndustry: editData.Standard_Industry_Id || prev.standardIndustry,
+      stage: editData.Stage_Id || prev.stage,
+      winRate: editData.Win_Rate_Id  || prev.winRate,
+      // Page 2
+      productLine: editData.Product_Line || prev.productLine,
+      quotedProduct: editData.Quoted_Product || prev.quotedProduct,
+      product: editData.Product || prev.product,
+      newProduct: '', // Reset for edit mode
+      qty: editData.Qty?.toString?.() || prev.qty,
+      description: editData.Description || prev.description,
+      CRADDate: editData.CRAD_Date ? new Date(editData.CRAD_Date) : prev.CRADDate,
+    }));
+    // Ensure dependent UI states are consistent in edit mode
+    setIsAddingNewIndirect(false);
+    setIsAddingNewEndCustomer(false);
+    setIsAddingNewModel(editData.Product === OTHERS);
+  }, [isEditMode, editData]);
 
   const updateField = useCallback((field: keyof FormData, value: any) => {
     setFormData(prev => {
@@ -222,20 +133,34 @@ export default function AddRollingFunnel() {
       // Reset dependent fields when parent changes
       if (field === 'ownerDivision') {
         updated.accountName = '';
+        updated.indirectAccount = '';
+        updated.newIndirectPartnerName = '';
+        updated.newIndirectPartnerGST = '';
       }
       if (field === 'mainIndustry') {
         updated.standardIndustry = '';
       }
       if (field === 'quotedProduct') {
         updated.product = '';
+        updated.newProduct = '';
+      }
+      if (field === 'product') {
+        updated.newProduct = '';
       }
 
       return updated;
     });
-    if(field==='winRate'){
-      setIsOpen(prev=>!prev);
+    if (field === 'winRate') {
+      setIsOpen(prev => !prev);
     }
-    
+    if (field === 'product') {
+      const selectedProduct =
+        dependentDropdownData?.ProductSeriesNameList?.find(
+          (item: any) => item.value === value,
+        );
+      setIsAddingNewModel(selectedProduct?.label === OTHERS);
+    }
+
     // Clear error for this field and its dependents
     setErrors(prev => {
       const newErrors = {...prev};
@@ -244,12 +169,23 @@ export default function AddRollingFunnel() {
       // Also clear dependent field errors
       if (field === 'ownerDivision') {
         delete newErrors.accountName;
+        delete newErrors.indirectAccount;
+        delete newErrors.newIndirectPartnerName;
+        delete newErrors.newIndirectPartnerGST;
       }
       if (field === 'mainIndustry') {
         delete newErrors.standardIndustry;
       }
       if (field === 'quotedProduct') {
         delete newErrors.product;
+        delete newErrors.newProduct;
+      }
+      if (field === 'product') {
+        delete newErrors.newProduct;
+      }
+      if (field === 'endCustomer' || field === 'newEndCustomerName') {
+        delete newErrors.endCustomer;
+        delete newErrors.newEndCustomerName;
       }
 
       return newErrors;
@@ -262,8 +198,6 @@ export default function AddRollingFunnel() {
     const page1Fields: (keyof FormData)[] = [
       'ownerDivision',
       'accountName',
-      'indirectAccount',
-      'endCustomer',
       'endCustomerTam',
       'category',
       'mainIndustry',
@@ -278,6 +212,37 @@ export default function AddRollingFunnel() {
       }
     });
 
+    // Validate indirect account based on mode
+    if (isAddingNewIndirect) {
+      if (
+        !formData.newIndirectPartnerName ||
+        formData.newIndirectPartnerName === ''
+      ) {
+        newErrors.newIndirectPartnerName = 'Partner name is required';
+      }
+      if (
+        !formData.newIndirectPartnerGST ||
+        formData.newIndirectPartnerGST === ''
+      ) {
+        newErrors.newIndirectPartnerGST = 'GST number is required';
+      }
+    } else {
+      if (!formData.indirectAccount || formData.indirectAccount === '') {
+        newErrors.indirectAccount = 'This field is required';
+      }
+    }
+
+    // Validate end customer based on mode
+    if (isAddingNewEndCustomer) {
+      if (!formData.newEndCustomerName || formData.newEndCustomerName === '') {
+        newErrors.newEndCustomerName = 'End customer name is required';
+      }
+    } else {
+      if (!formData.endCustomer || formData.endCustomer === '') {
+        newErrors.endCustomer = 'This field is required';
+      }
+    }
+
     // Additional validation for numeric field
     if (formData.endCustomerTam && isNaN(Number(formData.endCustomerTam))) {
       newErrors.endCustomerTam = 'Please enter a valid number';
@@ -285,7 +250,7 @@ export default function AddRollingFunnel() {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [formData]);
+  }, [formData, isAddingNewIndirect, isAddingNewEndCustomer]);
 
   const validatePage2 = useCallback((): boolean => {
     const newErrors: ValidationErrors = {};
@@ -303,6 +268,13 @@ export default function AddRollingFunnel() {
       }
     });
 
+    // Validate newProduct if product is OTHERS
+    if (isAddingNewModel) {
+      if (!formData.newProduct || formData.newProduct === '') {
+        newErrors.newProduct = 'New model name is required';
+      }
+    }
+
     // Additional validation for qty
     if (formData.qty && isNaN(Number(formData.qty))) {
       newErrors.qty = 'Please enter a valid number';
@@ -315,15 +287,13 @@ export default function AddRollingFunnel() {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [formData]);
+  }, [formData, isAddingNewModel]);
 
   // Check if page 1 is valid
   const isPage1Valid = useMemo(() => {
     const page1Fields: (keyof FormData)[] = [
       'ownerDivision',
       'accountName',
-      'indirectAccount',
-      'endCustomer',
       'endCustomerTam',
       'category',
       'mainIndustry',
@@ -331,16 +301,52 @@ export default function AddRollingFunnel() {
       'stage',
       'winRate',
     ];
-    return (
+
+    const basicFieldsValid =
       page1Fields.every(field => formData[field] && formData[field] !== '') &&
-      !isNaN(Number(formData.endCustomerTam))
-    );
-  }, [formData]);
+      !isNaN(Number(formData.endCustomerTam));
+
+    // Check indirect account fields based on mode
+    const indirectAccountValid = isAddingNewIndirect
+      ? formData.newIndirectPartnerName !== '' &&
+        formData.newIndirectPartnerGST !== ''
+      : formData.indirectAccount !== '';
+
+    // Check end customer fields based on mode
+    const endCustomerValid = isAddingNewEndCustomer
+      ? formData.newEndCustomerName !== ''
+      : formData.endCustomer !== '';
+
+    return basicFieldsValid && indirectAccountValid && endCustomerValid;
+  }, [formData, isAddingNewIndirect, isAddingNewEndCustomer]);
+
+  // Check if page 2 fields are filled without validation
+  const isPage2Filled = useMemo(() => {
+    const page2Fields: (keyof FormData)[] = [
+      'productLine',
+      'quotedProduct',
+      'product',
+      'qty',
+      'description',
+    ];
+
+    const basicFieldsFilled =
+      page2Fields.every(field => formData[field] && formData[field] !== '') &&
+      !isNaN(Number(formData.qty)) &&
+      formData.CRADDate !== undefined;
+
+    // Check if newProduct is filled when product is OTHERS
+    const newProductValid = isAddingNewModel
+      ? formData.newProduct !== ''
+      : true;
+
+    return basicFieldsFilled && newProductValid;
+  }, [formData, isAddingNewModel]);
 
   // Check if all fields are valid for submission
   const isFormValid = useMemo(() => {
-    return isPage1Valid && validatePage2();
-  }, [isPage1Valid, validatePage2]);
+    return isPage1Valid && isPage2Filled;
+  }, [isPage1Valid, isPage2Filled]);
 
   // Handle next page
   const handleNext = useCallback(() => {
@@ -360,35 +366,90 @@ export default function AddRollingFunnel() {
 
   // Handle form submission
   const handleSubmit = useCallback(() => {
-    if (validatePage2()) {
-      console.log('Form submitted:', formData);
-      // TODO: Implement API submission
-    }
-  }, [formData, validatePage2]);
+    if (!validatePage2()) return;
+
+    // Configure confirmation dialog dynamically for add/edit
+    const title = isEditMode ? 'Update Rolling Funnel' : 'Add Rolling Funnel';
+    const confirmText = isEditMode ? 'Update' : 'Add';
+    const message = isEditMode
+      ? 'Are you sure you want to update this rolling funnel?'
+      : 'Are you sure you want to add this rolling funnel?';
+
+    showConfirmationSheet({
+      title,
+      confirmText,
+      message,
+      onConfirm: () => {
+        if (isEditMode) {
+          // Edit flow
+          editMutate(undefined as any, {
+            onSuccess: (data: any) => {
+              console.log('Form updated:', data);
+              queryClient.invalidateQueries({queryKey: ['rollingFunnelData']});
+              showToast('Rolling Funnel updated successfully');
+              navigation.goBack();
+            },
+            onError: (error: any) => {
+              showToast('Failed to update Rolling Funnel: ' + error.message);
+            },
+          });
+        } else {
+          // Add flow
+          mutate(undefined, {
+            onSuccess: (data: any) => {
+              console.log('Form submitted:', data);
+              queryClient.invalidateQueries({queryKey: ['rollingFunnelData']});
+              showToast('Rolling Funnel added successfully');
+              navigation.goBack();
+            },
+            onError: (error: any) => {
+              showToast('Failed to add Rolling Funnel: ' + error.message);
+            },
+          });
+        }
+      },
+    });
+  }, [validatePage2, isEditMode, editMutate, mutate, navigation]);
 
   // Reset form
   const handleReset = useCallback(() => {
     setFormData(initialFormData);
     setCurrentPage(1);
     setErrors({});
+    setIsAddingNewIndirect(false);
+    setIsAddingNewEndCustomer(false);
     setIsOpen(false);
+    setIsAddingNewModel(false);
   }, []);
 
-  // Handle Add New Indirect Account
-  const handleAddNewIndirectAccount = useCallback(() => {
-    if (newIndirectAccount.trim()) {
-      // TODO: Implement API call to add new indirect account
-      console.log('Add new indirect account:', newIndirectAccount);
-      updateField('indirectAccount', newIndirectAccount.trim());
-      setNewIndirectAccount('');
-      setShowAddNewModal(false);
-    }
-  }, [newIndirectAccount, updateField]);
+  // Handle toggle add new indirect account
+  const handleToggleAddNew = useCallback(() => {
+    setIsAddingNewIndirect(prev => {
+      const newValue = !prev;
+      // Clear fields when toggling
+      if (newValue) {
+        updateField('indirectAccount', '');
+      } else {
+        updateField('newIndirectPartnerName', '');
+        updateField('newIndirectPartnerGST', '');
+      }
+      return newValue;
+    });
+  }, [updateField]);
 
-  const handleCancelAddNew = useCallback(() => {
-    setNewIndirectAccount('');
-    setShowAddNewModal(false);
-  }, []);
+  // Handle toggle add new end customer
+  const handleToggleAddNewEndCustomer = useCallback(() => {
+    setIsAddingNewEndCustomer(prev => {
+      const newValue = !prev;
+      // Clear fields when toggling
+      if (newValue) {
+        updateField('endCustomer', '');
+      } else {
+        updateField('newEndCustomerName', '');
+      }
+      return newValue;
+    });
+  }, [updateField]);
 
   // Handle Android back button
   useEffect(() => {
@@ -409,17 +470,27 @@ export default function AddRollingFunnel() {
   return (
     <AppLayout
       ref={layoutRef}
-      title="Add Rolling Funnel"
+      title={isEditMode ? "Edit Rolling Funnel" : "Add Rolling Funnel"}
       needBack
       needPadding
       needScroll>
       {/* Page Title */}
       <View className="px-4 pt-4 mb-6">
         <AppText size="xl" weight="bold" className="text-gray-800">
-          {currentPage === 1 ? 'Basic Information' : 'Product Details'}
+          {isEditMode
+            ? currentPage === 1
+              ? 'Edit: Basic Information'
+              : 'Edit: Product Details'
+            : currentPage === 1
+            ? 'Basic Information'
+            : 'Product Details'}
         </AppText>
         <AppText size="sm" className="text-gray-500 mt-1">
-          {currentPage === 1
+          {isEditMode
+            ? currentPage === 1
+              ? 'Update the basic details of the rolling funnel'
+              : 'Update product and description information'
+            : currentPage === 1
             ? 'Please fill in the basic details of the rolling funnel'
             : 'Please provide product and description information'}
         </AppText>
@@ -493,7 +564,7 @@ export default function AddRollingFunnel() {
                   onSelect={item =>
                     updateField('accountName', item?.value || '')
                   }
-                  mode="dropdown"
+                  mode="autocomplete"
                   required
                   error={errors.accountName}
                   disabled={
@@ -517,74 +588,191 @@ export default function AddRollingFunnel() {
               </View>
 
               <View>
-                <AppDropdown
-                  label="Indirect Account"
-                  placeholder={
-                    isIndirectAccountLoading
-                      ? 'Loading...'
-                      : 'Select or Add Indirect Account'
-                  }
-                  data={indirectAccountDropdownData || []}
-                  selectedValue={formData.indirectAccount}
-                  onSelect={item =>
-                    updateField('indirectAccount', item?.value || '')
-                  }
-                  mode="autocomplete"
-                  required
-                  error={errors.indirectAccount}
-                  disabled={
-                    !formData.ownerDivision ||
-                    isIndirectAccountLoading ||
-                    isLoading
-                  }
-                  zIndex={2800}
-                />
-                {formData.ownerDivision ? (
-                  <TouchableOpacity
-                    onPress={() => setShowAddNewModal(true)}
-                    className="mt-2 flex-row items-center"
-                    activeOpacity={0.7}>
-                    <AppIcon
-                      type="feather"
-                      name="plus-circle"
-                      size={16}
-                      color="#3B82F6"
+                {!isAddingNewIndirect ? (
+                  <>
+                    <AppDropdown
+                      label="Indirect Account"
+                      placeholder={
+                        isIndirectAccountLoading
+                          ? 'Loading...'
+                          : 'Select Indirect Account'
+                      }
+                      data={indirectAccountDropdownData || []}
+                      selectedValue={formData.indirectAccount}
+                      onSelect={item =>
+                        updateField('indirectAccount', item?.value || '')
+                      }
+                      mode="autocomplete"
+                      required
+                      error={errors.indirectAccount}
+                      disabled={
+                        !formData.ownerDivision ||
+                        isIndirectAccountLoading ||
+                        isLoading
+                      }
+                      zIndex={2800}
                     />
-                    <AppText
-                      size="sm"
-                      className="text-blue-500 ml-1 font-medium">
-                      Add New Indirect Account
-                    </AppText>
-                  </TouchableOpacity>
+                    {formData.ownerDivision ? (
+                      <TouchableOpacity
+                        onPress={handleToggleAddNew}
+                        className="mt-2 flex-row items-center"
+                        activeOpacity={0.7}>
+                        <AppIcon
+                          type="feather"
+                          name="plus-circle"
+                          size={16}
+                          color="#3B82F6"
+                        />
+                        <AppText
+                          size="sm"
+                          className="text-blue-500 ml-1 font-medium">
+                          Add New Indirect Account
+                        </AppText>
+                      </TouchableOpacity>
+                    ) : (
+                      <View className="flex-row items-center mt-1">
+                        <AppIcon
+                          type="feather"
+                          name="lock"
+                          size={12}
+                          color="#9CA3AF"
+                        />
+                        <AppText size="xs" className="text-gray-400 ml-1">
+                          Please select Owner Division first
+                        </AppText>
+                      </View>
+                    )}
+                  </>
                 ) : (
-                  <View className="flex-row items-center mt-1">
-                    <AppIcon
-                      type="feather"
-                      name="lock"
-                      size={12}
-                      color="#9CA3AF"
+                  <View className="border-2 border-blue-200 bg-blue-50 rounded-lg p-4">
+                    <View className="flex-row items-center justify-between mb-4">
+                      <AppText
+                        size="sm"
+                        weight="semibold"
+                        className="text-blue-700">
+                        Add New Indirect Account
+                      </AppText>
+                      <TouchableOpacity
+                        onPress={handleToggleAddNew}
+                        className="flex-row items-center"
+                        activeOpacity={0.7}>
+                        <AppIcon
+                          type="feather"
+                          name="x-circle"
+                          size={16}
+                          color="#EF4444"
+                        />
+                        <AppText
+                          size="sm"
+                          className="text-red-500 ml-1 font-medium">
+                          Cancel
+                        </AppText>
+                      </TouchableOpacity>
+                    </View>
+
+                    <AppInput
+                      label="New Indirect Partner Name"
+                      placeholder="Enter partner name"
+                      value={formData.newIndirectPartnerName}
+                      setValue={value =>
+                        updateField('newIndirectPartnerName', value)
+                      }
+                      error={errors.newIndirectPartnerName}
+                      inputClassName="ml-1"
                     />
-                    <AppText size="xs" className="text-gray-400 ml-1">
-                      Please select Owner Division first
-                    </AppText>
+
+                    <View className="mt-4">
+                      <AppInput
+                        label="GST Number"
+                        placeholder="Enter GST number"
+                        value={formData.newIndirectPartnerGST}
+                        setValue={value =>
+                          updateField('newIndirectPartnerGST', value)
+                        }
+                        error={errors.newIndirectPartnerGST}
+                        inputClassName="ml-1"
+                      />
+                    </View>
                   </View>
                 )}
               </View>
 
-              <AppDropdown
-                label="End Customer"
-                placeholder={
-                  isLoading ? 'Loading...' : 'Select or Add End Customer'
-                }
-                data={dropdownData?.EndCustomerList || []}
-                selectedValue={formData.endCustomer}
-                onSelect={item => updateField('endCustomer', item?.value || '')}
-                mode="autocomplete"
-                required
-                error={errors.endCustomer}
-                disabled={isLoading}
-                zIndex={2700}
-              />
+              <View>
+                {!isAddingNewEndCustomer ? (
+                  <>
+                    <AppDropdown
+                      label="End Customer"
+                      placeholder={
+                        isLoading ? 'Loading...' : 'Select End Customer'
+                      }
+                      data={dropdownData?.EndCustomerList || []}
+                      selectedValue={formData.endCustomer}
+                      onSelect={item =>
+                        updateField('endCustomer', item?.value || '')
+                      }
+                      mode="autocomplete"
+                      required
+                      error={errors.endCustomer}
+                      disabled={isLoading}
+                      zIndex={2700}
+                    />
+                    <TouchableOpacity
+                      onPress={handleToggleAddNewEndCustomer}
+                      className="mt-2 flex-row items-center"
+                      activeOpacity={0.7}>
+                      <AppIcon
+                        type="feather"
+                        name="plus-circle"
+                        size={16}
+                        color="#3B82F6"
+                      />
+                      <AppText
+                        size="sm"
+                        className="text-blue-500 ml-1 font-medium">
+                        Add New End Customer
+                      </AppText>
+                    </TouchableOpacity>
+                  </>
+                ) : (
+                  <View className="border-2 border-blue-200 bg-blue-50 rounded-lg p-4">
+                    <View className="flex-row items-center justify-between mb-4">
+                      <AppText
+                        size="sm"
+                        weight="semibold"
+                        className="text-blue-700">
+                        Add New End Customer
+                      </AppText>
+                      <TouchableOpacity
+                        onPress={handleToggleAddNewEndCustomer}
+                        className="flex-row items-center"
+                        activeOpacity={0.7}>
+                        <AppIcon
+                          type="feather"
+                          name="x-circle"
+                          size={16}
+                          color="#EF4444"
+                        />
+                        <AppText
+                          size="sm"
+                          className="text-red-500 ml-1 font-medium">
+                          Cancel
+                        </AppText>
+                      </TouchableOpacity>
+                    </View>
+
+                    <AppInput
+                      label="End Customer Name"
+                      placeholder="Enter end customer name"
+                      value={formData.newEndCustomerName}
+                      setValue={value =>
+                        updateField('newEndCustomerName', value)
+                      }
+                      error={errors.newEndCustomerName}
+                      inputClassName="ml-1"
+                    />
+                  </View>
+                )}
+              </View>
 
               <AppInput
                 label="End Customer TAM"
@@ -593,7 +781,7 @@ export default function AddRollingFunnel() {
                 setValue={value => updateField('endCustomerTam', value)}
                 keyboardType="numeric"
                 error={errors.endCustomerTam}
-                inputClassName='ml-1'
+                inputClassName="ml-1"
               />
 
               <AppDropdown
@@ -628,7 +816,9 @@ export default function AddRollingFunnel() {
                 <AppDropdown
                   label="Standard Industry"
                   placeholder={
-                    isDependentDropdownLoading ? 'Loading...' : 'Select Standard Industry'
+                    isDependentDropdownLoading
+                      ? 'Loading...'
+                      : 'Select Standard Industry'
                   }
                   data={dependentDropdownData?.StandardIndustryList || []}
                   selectedValue={formData.standardIndustry}
@@ -638,7 +828,11 @@ export default function AddRollingFunnel() {
                   mode="dropdown"
                   required
                   error={errors.standardIndustry}
-                  disabled={!formData.mainIndustry || isDependentDropdownLoading || isLoading}
+                  disabled={
+                    !formData.mainIndustry ||
+                    isDependentDropdownLoading ||
+                    isLoading
+                  }
                   zIndex={2400}
                 />
                 {!formData.mainIndustry && (
@@ -679,7 +873,7 @@ export default function AddRollingFunnel() {
                 required
                 error={errors.winRate}
                 disabled={isLoading}
-                onOpenChange={()=>setIsOpen(prev=>!prev)}
+                onOpenChange={() => setIsOpen(prev => !prev)}
                 zIndex={2200}
               />
             </View>
@@ -718,14 +912,20 @@ export default function AddRollingFunnel() {
               <View>
                 <AppDropdown
                   label="Product: Sales Model Name"
-                  placeholder={isDependentDropdownLoading ? 'Loading...' : 'Select Product'}
+                  placeholder={
+                    isDependentDropdownLoading ? 'Loading...' : 'Select Product'
+                  }
                   data={dependentDropdownData?.ProductSeriesNameList || []}
                   selectedValue={formData.product}
                   onSelect={item => updateField('product', item?.value || '')}
                   mode="dropdown"
                   required
                   error={errors.product}
-                  disabled={!formData.quotedProduct || isDependentDropdownLoading || isLoading}
+                  disabled={
+                    !formData.quotedProduct ||
+                    isDependentDropdownLoading ||
+                    isLoading
+                  }
                   zIndex={2800}
                 />
                 {!formData.quotedProduct && (
@@ -743,6 +943,25 @@ export default function AddRollingFunnel() {
                 )}
               </View>
 
+              {formData.product === OTHERS && (
+                <View className="border-2 border-blue-200 bg-blue-50 rounded-lg p-4">
+                  <AppText
+                    size="sm"
+                    weight="semibold"
+                    className="text-blue-700 mb-3">
+                    Add New Model
+                  </AppText>
+                  <AppInput
+                    label="New Model Name"
+                    placeholder="Enter new model name"
+                    value={formData.newProduct}
+                    setValue={value => updateField('newProduct', value)}
+                    error={errors.newProduct}
+                    inputClassName="ml-1"
+                  />
+                </View>
+              )}
+
               <AppInput
                 label="Quantity"
                 placeholder="Enter quantity"
@@ -750,7 +969,7 @@ export default function AddRollingFunnel() {
                 setValue={value => updateField('qty', value)}
                 keyboardType="numeric"
                 error={errors.qty}
-                inputClassName='ml-1'
+                inputClassName="ml-1"
               />
 
               <AppInput
@@ -761,7 +980,7 @@ export default function AddRollingFunnel() {
                 multiline
                 numberOfLines={4}
                 error={errors.description}
-                inputClassName='ml-1'
+                inputClassName="ml-1"
               />
 
               <DatePickerInput
@@ -808,9 +1027,9 @@ export default function AddRollingFunnel() {
                 </View>
                 <View className="flex-1">
                   <AppButton
-                    title="Submit"
+                    title={isEditMode ? 'Update' : 'Submit'}
                     onPress={handleSubmit}
-                    disabled={!isFormValid}
+                    disabled={!isFormValid || isPending || isEditPending}
                     iconName="check"
                     className="bg-green-600"
                   />
@@ -835,60 +1054,18 @@ export default function AddRollingFunnel() {
               Helpful Tips
             </AppText>
             <AppText size="xs" className="text-gray-600 ">
-              {currentPage === 1
+              {isEditMode
+                ? currentPage === 1
+                  ? 'All fields marked with * are required. Please ensure updated information is accurate before proceeding.'
+                  : 'Review all product details carefully. Once updated, the rolling funnel entry will reflect changes in the list view.'
+                : currentPage === 1
                 ? 'All fields marked with * are required. Please ensure all information is accurate before proceeding to the next step.'
                 : 'Review all product details carefully. Once submitted, the rolling funnel entry will be created and can be reviewed in the list view.'}
             </AppText>
           </View>
         </View>
       </Card>
-      {isOpen && <View className='h-20'/>}
-
-      {showAddNewModal && (
-        <View
-          className="absolute inset-0 bg-black/50 items-center justify-center"
-          style={{zIndex: 9999}}>
-          <Card className="w-11/12 max-w-md">
-            <View className="p-5">
-              <View className="flex-row items-center justify-between mb-4">
-                <AppText size="lg" weight="bold" className="text-gray-800">
-                  Add New Indirect Account
-                </AppText>
-                <TouchableOpacity onPress={handleCancelAddNew}>
-                  <AppIcon type="feather" name="x" size={24} color="#6B7280" />
-                </TouchableOpacity>
-              </View>
-
-              <AppInput
-                label="Account Name"
-                placeholder="Enter indirect account name"
-                value={newIndirectAccount}
-                setValue={setNewIndirectAccount}
-                autoFocus
-                inputClassName='ml-1'
-              />
-
-              <View className="flex-row gap-3 mt-5">
-                <View className="flex-1">
-                  <AppButton
-                    title="Cancel"
-                    onPress={handleCancelAddNew}
-                    className="bg-gray-400"
-                  />
-                </View>
-                <View className="flex-1">
-                  <AppButton
-                    title="Add"
-                    onPress={handleAddNewIndirectAccount}
-                    disabled={!newIndirectAccount.trim()}
-                    iconName="plus"
-                  />
-                </View>
-              </View>
-            </View>
-          </Card>
-        </View>
-      )}
+      {isOpen && <View className="h-20" />}
     </AppLayout>
   );
 }

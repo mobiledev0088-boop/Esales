@@ -90,7 +90,7 @@ export default function CustomDrawerContent({ state, navigation }: DrawerContent
 
         {/* Navigation Items */}
         <ScrollView
-          className="flex-1 pt-2 bg-lightBg-base"
+          className="flex-1 pt-2 bg-lightBg-base dark:bg-darkBg-base"
           contentContainerStyle={{paddingBottom: 20, flexGrow: 1}}
           showsVerticalScrollIndicator={false}
           >

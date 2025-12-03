@@ -10,7 +10,7 @@ export const AppColors = {
     warning: '#FBBF24',
     error: '#EF4444',
 
-    bgBase: '#f2f2f2',
+    bgBase: '#f8fafc',
     bgSurface: '#ffffff',
 
     heading: '#2D3B44',
@@ -19,22 +19,21 @@ export const AppColors = {
     tabSelected: '#3b82f6',
   },
   dark: {
-    // primary: '#2c334d',
-    primary: '#1D4559',
-    secondary: '#78CBFF',
+    primary: '#004480',
+    secondary: '#007BE5',
     text: '#f3f6f4',
     border: '#ccc',
     success: '#34D399',
     warning: '#FBBF24',
     error: '#EF4444',
 
-    bgBase: '#030612',
-    bgSurface: '#252838',
+    bgBase: '#0E161A',
+    bgSurface: '#212A30',
 
     heading: '#f3f6f4',
     subheading: '#e1e1e1',
 
-    tabSelected: '#0076ff',
+    tabSelected: '#007BE5',
   },
   // Brand colors
   primary: '#00539B',
@@ -45,7 +44,7 @@ export const AppColors = {
   warning: '#FBBF24',
   error: '#EF4444',
 
-  bgBase: '#f2f2f2',
+  bgBase: '#f8fafc',
   bgSurface: '#ffffff',
 
   heading: '#2D3B44',
@@ -66,8 +65,10 @@ export const AppColors = {
   gridHeader: 'rgba(148, 154, 159, 0.44)',
 
   // Utility
-  utilColor1: '#3ebc5c',
-  utilColor2: '#2d7abc', //'#ffe169',//'#ffec78',//'rgb(123, 91, 199)',//
+  // utilColor1: '#3ebc5c',
+  utilColor1: '#0EA473',
+  // utilColor2: '#2d7abc', //'#ffe169',//'#ffec78',//'rgb(123, 91, 199)',//
+  utilColor2: '#0076ff', //'#ffe169',//'#ffec78',//'rgb(123, 91, 199)',//
   utilColor3: '#ee4949',
   utilColor4: '#f3c12a',
   utilColor5: '#5bc0de',
@@ -77,7 +78,7 @@ export const AppColors = {
   utilColor9: '#a5a662',
   utilColor10: '#f78c1e',
   utilGrayTransparent: 'rgba(222,226,230,0.5)',
-};
+} as const;
 
 export const AppFonts = {
   regular: 'Manrope-Regular',

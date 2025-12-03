@@ -155,7 +155,7 @@ const getASINOptions = (
 
 const getAPEXOptions = (countryId?: string): Option[] => {
   const opts: Option[] = [
-    {label: 'EDM Info', iconName: 'laptop', iconType: 'antdesign'},
+    {label: 'EDM Info', iconName: 'laptop', iconType: 'antdesign', navigateTo: 'EDMInfo'},
   ];
 
   if (countryId === 'ATID') {
@@ -163,6 +163,7 @@ const getAPEXOptions = (countryId?: string): Option[] => {
       label: 'SN Upload',
       iconName: 'barcode-scan',
       iconType: 'material-community',
+      navigateTo: 'Promoter',
     });
   }
   if (countryId === 'ACMY') {
@@ -179,6 +180,7 @@ const getAPEXOptions = (countryId?: string): Option[] => {
 const MoreSheet = () => {
   const empInfo = useEmpStore(state => state.empInfo);
   const userInfo = useLoginStore(state => state.userInfo);
+  const AppTheme = useThemeStore(state => state.AppTheme);
   const navigation = useNavigation<AppNavigationProp>();
 
   const roleId = userInfo.EMP_RoleId;
@@ -204,14 +206,12 @@ const MoreSheet = () => {
       <ActionSheet
         zIndex={100}
         gestureEnabled
-        indicatorStyle={
-          {
-            // backgroundColor: '#'
-          }
-        }>
+        containerStyle={{
+          backgroundColor:AppColors[AppTheme].bgBase
+        }}
+        >
         {/* Create Indicator */}
-        {/*  */}
-        <View style={{height: screenHeight / 2, zIndex: 100}}>
+        <View style={{height: screenHeight / 2}} className='bg-lightBg-base dark:bg-darkBg-base'>
           <Watermark />
           <Swiper
             loop={false}
@@ -219,7 +219,7 @@ const MoreSheet = () => {
             height={300}
             dotColor={AppColors.formLabel}>
             {chunkedOptions.map((chunk, pageIndex) => (
-              <View key={pageIndex} className="mt-5 mx-5 flex-row flex-wrap">
+              <View key={pageIndex} className="mt-5 flex-row flex-wrap">
                 {chunk.map((item, index) => (
                   <View key={index} className="w-1/3 mb-5">
                     <EachMoreOption
@@ -258,16 +258,15 @@ const EachMoreOption = ({
 }) => {
   const isDarkMode = useThemeStore(state => state.AppTheme === 'dark');
   return (
-    <TouchableOpacity activeOpacity={0.7} onPress={onPress}>
-      <View className="items-center">
+    <TouchableOpacity activeOpacity={0.7} onPress={onPress} className='items-center'>
         <View
-          className="bg-[#f5f5f5] dark:bg-util-blue justify-center items-center p-2 rounded border border-util-blue dark:border-util-cyan"
+          className="bg-lightBg-surface dark:bg-darkBg-surface justify-center items-center p-2 rounded-xl border border-util-blue dark:border-util-cyan"
           style={getShadowStyle(3)}>
           <AppIcon
             type={iconType}
             name={iconName}
             size={43}
-            color={isDarkMode ? '#fff' : AppColors.utilColor2}
+            color={isDarkMode ? '#fff' : AppColors.primary}
           />
         </View>
         <View className="mt-2 items-center">
@@ -279,7 +278,6 @@ const EachMoreOption = ({
             {label}
           </AppText>
         </View>
-      </View>
     </TouchableOpacity>
   );
 };

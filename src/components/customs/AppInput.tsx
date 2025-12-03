@@ -2,7 +2,7 @@
 import AppText from './AppText';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, forwardRef } from 'react';
 import { View, TextInput, TextInputProps, Pressable, ViewStyle, StyleSheet } from 'react-native';
 import { twMerge } from 'tailwind-merge';
 import { useThemeStore } from '../../stores/useThemeStore';
@@ -33,7 +33,7 @@ interface CustomInputProps extends TextInputProps {
     inputWapperStyle?: ViewStyle;
 }
 
-const AppInput: React.FC<CustomInputProps> = ({
+const AppInput = forwardRef<TextInput, CustomInputProps>(({
     label,
     labelSize = 'md',
     isOptional,
@@ -57,7 +57,7 @@ const AppInput: React.FC<CustomInputProps> = ({
     size = 'md',
     inputWapperStyle,
     ...props
-}) => {
+}, ref) => {
      const appTheme = useThemeStore(state => state.AppTheme);
     const [hidePassword, setHidePassword] = useState(secureTextEntry ?? isPassword);
     const [isFocused, setIsFocused] = useState(false);
@@ -123,6 +123,7 @@ const AppInput: React.FC<CustomInputProps> = ({
                 {leftIconTsx ?? (leftIcon && <Icon name={leftIcon} size={20} color={appTheme === 'dark' ? "#fff" : "#000"} style={{ marginLeft: 8, marginRight:8 }} />)}
 
                 <TextInput
+                    ref={ref}
                     value={value}
                     onChangeText={setValue}
                     placeholderTextColor="#9CA3AF"
@@ -159,8 +160,6 @@ const AppInput: React.FC<CustomInputProps> = ({
             ) : null}
         </View>
     );
-};
+});
 
 export default AppInput;
-
-

@@ -178,8 +178,8 @@ const ClaimCodeWise = () => {
   const isApiEmpty = claimData.length === 0;
 
   return (
-    <View className="flex-1 bg-slate-50 px-3 pt-2">
-      {isLoading ? (<ClaimListSkeleton />) : isError ? (
+    <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base px-3 pt-2">
+      {!isLoading ? (<ClaimListSkeleton />) : isError ? (
         <View className="flex-1 items-center justify-center">
           <AppText>Failed to load claim data.</AppText>
         </View>
@@ -397,7 +397,7 @@ const PartnerWise = () => {
   const isFilteredEmpty = claimData.length > 0 && groupedData.length === 0;
 
   return (
-    <View className="flex-1 bg-slate-50 px-3 pt-2">
+    <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base px-3 pt-2">
       {!isPartnerUser && (
         <View className="mb-3">
           {partnerListLoading ? (
@@ -814,8 +814,8 @@ export default function Claim() {
   }, [isPartnerUser,isDistiUser]);
 
   return (
-    <View className="flex-1 bg-slate-50">
-      <MaterialTabBar tabs={Tabs} tabPadding={10} equalWidth />
+    <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
+      <MaterialTabBar tabs={Tabs} tabPadding={10} />
     </View>
   );
 }

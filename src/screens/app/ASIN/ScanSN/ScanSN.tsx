@@ -107,12 +107,12 @@ const ScanSN = () => {
       {error && <NoResultsMessage />}
 
       {/* Barcode Scanner Modal */}
-      <BarcodeScanner
+      {isScannerOpen && <BarcodeScanner
         onCodeScanned={handleBarcodeScanned}
         scanType="barcode"
         isScannerOpen={isScannerOpen}
         closeScanner={closeScanner}
-      />
+      />}
     </AppLayout>
   );
 };

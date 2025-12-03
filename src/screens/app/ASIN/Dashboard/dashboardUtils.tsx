@@ -34,16 +34,17 @@ export const calculatePercentage = (
 
 export const getPerformanceColor = (
   percentage: number,
+  isDarkMode: boolean,
 ): {
   bgColor: string;
-  textColor: 'success' | 'warning' | 'error';
+  textColor: 'success' | 'warning' | 'error' | 'white';
 } => {
   if (percentage >= 90) {
-    return {bgColor: 'bg-green-100', textColor: 'success'};
+    return {bgColor: isDarkMode ? 'bg-[#0EA473]' : 'bg-green-100', textColor:  isDarkMode? 'white' :'success'};
   } else if (percentage >= 70) {
-    return {bgColor: 'bg-orange-100', textColor: 'warning'};
+    return {bgColor: isDarkMode ? 'bg-[#FBBF24]' : 'bg-orange-100', textColor:  isDarkMode? 'white' :'warning'};
   } else {
-    return {bgColor: 'bg-red-100', textColor: 'error'};
+    return {bgColor: isDarkMode ? 'bg-[#EF4444]' : 'bg-red-100', textColor:  isDarkMode? 'white' :'error'};
   }
 };
 
@@ -86,6 +87,7 @@ const NAME_COLUMN: TableColumn[] = [
     colorType: 'text',
   },
 ];
+
 const COMMON_COLUMNS: TableColumn[] = [
   {
     key: 'act',
@@ -103,7 +105,25 @@ const COMMON_COLUMNS: TableColumn[] = [
   },
 ];
 
-export const TAB_CONFIGS: TabConfig[] = [
+const COMMON_COLUMNS_APAC: TableColumn[] = [
+  {
+    key: 'act',
+    label: 'ACT',
+    width: 'w-16',
+    dataKey: 'Act_Cnt',
+    colorType: 'success',
+  },
+  {
+    key: 'nAct',
+    label: 'Inv',
+    width: 'w-20',
+    dataKey: 'NonAct_Cnt',
+    colorType: 'error',
+  },
+];
+
+
+export const TAB_CONFIGS: TabConfig[] =  [
   {
     id: 'branch',
     label: 'Branch',
@@ -121,7 +141,7 @@ export const TAB_CONFIGS: TabConfig[] = [
         label: 'ST',
         width: 'w-16',
         dataKey: 'ST_Cnt',
-        colorType: 'primary',
+        colorType: 'secondary',
       },
       ...COMMON_COLUMNS,
     ],
@@ -224,8 +244,137 @@ export const TAB_CONFIGS: TabConfig[] = [
   },
 ];
 
-export const getCurrentTabConfig = (tabId: string): TabConfig => {
-  return TAB_CONFIGS.find(config => config.id === tabId) || TAB_CONFIGS[0];
+
+export const TAB_CONFIGS_APAC: TabConfig[] = [
+  {
+    id: 'branch',
+    label: 'Branch',
+    columns: [
+      ...NAME_COLUMN,
+      {
+        key: 'st',
+        label: 'BI',
+        width: 'w-16',
+        dataKey: 'ST_Cnt',
+        colorType: 'secondary',
+      },
+      ...COMMON_COLUMNS_APAC,
+      {
+        key: 'h-rate',
+        label: 'H-Rate',
+        width: 'w-16',
+        dataKey: 'Hit_Rate',
+        colorType: 'text',
+      },
+    ],
+  },
+  {
+    id: 'alp',
+    label: 'ALP',
+    columns: [
+      ...NAME_COLUMN,
+      {
+        key: 'st',
+        label: 'BI',
+        width: 'w-16',
+        dataKey: 'ST_Cnt',
+        colorType: 'primary',
+      },
+      {
+        key: 'so',
+        label: 'SO',
+        width: 'w-16',
+        dataKey: 'SO_Cnt',
+        colorType: 'secondary',
+      },
+      ...COMMON_COLUMNS,
+            {
+        key: 'h-rate',
+        label: 'H-Rate',
+        width: 'w-16',
+        dataKey: 'Hit_Rate',
+        colorType: 'text',
+      },
+    ],
+  },
+  {
+    id: 'model',
+    label: 'Model',
+    columns: [
+      ...NAME_COLUMN,
+      {
+        key: 'st',
+        label: 'BI',
+        width: 'w-16',
+        dataKey: 'ST_Cnt',
+        colorType: 'primary',
+      },
+      {
+        key: 'so',
+        label: 'SO',
+        width: 'w-16',
+        dataKey: 'SO_Cnt',
+        colorType: 'secondary',
+      },
+      ...COMMON_COLUMNS,
+    ],
+  },
+  {
+    id: 'agp',
+    label: 'AGP',
+    columns: [
+      ...NAME_COLUMN,
+      {
+        key: 'so',
+        label: 'SO',
+        width: 'w-16',
+        dataKey: 'SO_Cnt',
+        colorType: 'secondary',
+      },
+      ...COMMON_COLUMNS,
+    ],
+  },
+  {
+    id: 'asp',
+    label: 'ASP',
+    columns: [
+      ...NAME_COLUMN,
+      {
+        key: 'so',
+        label: 'SO',
+        width: 'w-16',
+        dataKey: 'SO_Cnt',
+        colorType: 'secondary',
+      },
+      ...COMMON_COLUMNS,
+    ],
+  },
+  {
+    id: 'disti',
+    label: 'Disti',
+    columns: [
+      ...NAME_COLUMN,
+      {
+        key: 'pod',
+        label: 'POD',
+        width: 'w-16',
+        dataKey: 'POD_Cnt',
+        colorType: 'text',
+      },
+      {
+        key: 'st',
+        label: 'ST',
+        width: 'w-16',
+        dataKey: 'ST_Cnt',
+        colorType: 'primary',
+      },
+      ...COMMON_COLUMNS,
+    ],
+  },
+];
+
+export const getCurrentTabConfig = (tabId: string, isAPAC: boolean): TabConfig => {
+  return (isAPAC ? TAB_CONFIGS_APAC : TAB_CONFIGS).find(config => config.id === tabId) || TAB_CONFIGS[0];
 };
 
 // ---------------------------------------------
@@ -258,10 +407,10 @@ export const ACTIVATION_ID_TO_DATA_KEY: Record<string, string> = {
   disti: 'Top5Disti',
 };
 
-export const deriveInitialActiveId = (labels: string[]): string => {
-  if (!labels || labels.length === 0) return TAB_CONFIGS[0].id;
+export const deriveInitialActiveId = (labels: string[],isAPAC: boolean): string => {
+  if (!labels || labels.length === 0) return isAPAC ? TAB_CONFIGS_APAC[0].id : TAB_CONFIGS[0].id;
   const first = labels[0];
-  return TAB_LABEL_TO_ID[first] || TAB_CONFIGS[0].id;
+  return TAB_LABEL_TO_ID[first] || (isAPAC ? TAB_CONFIGS_APAC[0].id : TAB_CONFIGS[0].id);
 };
 
 export const getActivationTabData = (

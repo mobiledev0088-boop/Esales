@@ -9,8 +9,9 @@ import {useNavigation} from '@react-navigation/native';
 import {AppNavigationProp, DrawerNavigationProp} from '../../types/navigation';
 import {useLoginStore} from '../../stores/useLoginStore';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
-import {memo, useRef, useImperativeHandle, forwardRef} from 'react';
+import {memo, useRef, useImperativeHandle, forwardRef, useState} from 'react';
 import {EmpInfo} from '../../types/user';
+import LogoutModal from '../LogoutModal';
 
 type ScrollToOptions = {
   x?: number;
@@ -53,8 +54,9 @@ const Header = memo<HeaderProps>(
     empInfo,
     isDashboard = false,
   }) => {
-    const roleName = empInfo?.EMP_Type === 'T3Partner' ? '': empInfo?.RoleName || 'N/A';
+    const roleName = empInfo?.EMP_Type === 'T3Partner' ? '': empInfo?.RoleName || 'N/AA';
     const empType =  empInfo?.EMP_Type ?  empInfo.EMP_Type + ' ' :  '';
+    const [isOpen, setIsOpen] = useState(false);
     return (
       <View className="flex-row items-center justify-between px-4 py-4 bg-primary dark:bg-primary-dark rounded-b-md">
         {/* Left */}
@@ -99,7 +101,7 @@ const Header = memo<HeaderProps>(
           <View className="flex-row items-center">
             <Pressable hitSlop={20} className="relative" onPress={()=>stackNavigation.push('Notification')}>
               <Icon name="notifications" size={25} color="#fff" />
-              <View className="absolute top-0 right-0 w-3 h-3 bg-success rounded-full" />
+              <View className="absolute top-0 right-0 w-3 h-3 bg-[#ee4949] rounded-full" />
             </Pressable>
             <Pressable onPress={() => stackNavigation.push('ScanSN')}>
               <MCIcons
@@ -109,14 +111,17 @@ const Header = memo<HeaderProps>(
                 style={{marginLeft: 10}}
               />
             </Pressable>
+            <Pressable onPress={() => setIsOpen(true)}>
             <Icon
               name="logout"
               size={25}
               color="#fff"
               style={{marginLeft: 10}}
             />
+            </Pressable>
           </View>
         )}
+        <LogoutModal isVisible={isOpen} onClose={() => setIsOpen(false)} />
       </View>
     );
   },

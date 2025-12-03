@@ -5,10 +5,10 @@ import Animated, {
     useAnimatedStyle,
     withSpring,
     interpolateColor,
-    runOnJS,
 } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useThemeStore } from '../../stores/useThemeStore';
+import { scheduleOnRN } from 'react-native-worklets';
 
 interface ThemeToggleProps {
     size?: number;
@@ -47,7 +47,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
             iconScale.value = withSpring(1, ANIMATION_CONFIG.iconPress);
         });
 
-        runOnJS(toggleTheme)();
+        scheduleOnRN(toggleTheme);
     };
 
     const containerAnimatedStyle = useAnimatedStyle(() => {

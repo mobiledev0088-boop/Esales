@@ -1,5 +1,5 @@
 import {useQuery, useMutation, UseQueryResult} from '@tanstack/react-query';
-import {handleASINApiCall} from '../../utils/handleApiCall';
+import {handleAPACApiCall, handleASINApiCall} from '../../utils/handleApiCall';
 import {useLoginStore} from '../../stores/useLoginStore';
 import useEmpStore from '../../stores/useEmpStore';
 import {ActivationPerformanceData} from '../../types/dashboard';
@@ -127,17 +127,20 @@ export const useDashboardActivationData = () => {
   return useMutation<
     ActivationPerformanceData,
     Error,
-    {startDate: string; endDate: string; masterTab: string}
+    {startDate: string; endDate: string; masterTab: string, isAPAC?: boolean}
   >({
     mutationFn: async (variables: {
       startDate: string;
       endDate: string;
       masterTab: string;
+      isAPAC?: boolean;
     }): Promise<ActivationPerformanceData> => {
-      const {startDate, endDate, masterTab} = variables;
+      const {startDate, endDate, masterTab, isAPAC} = variables;
 
-      const res = await handleASINApiCall(
-        '/Dashboard/GetDashboardActivationData_New',
+      const handleApi = isAPAC ? handleAPACApiCall : handleASINApiCall;
+      const endPoint = isAPAC ? '/Dashboard/GetDashboardActivationData' : '/Dashboard/GetDashboardActivationData_New';
+      const res = await handleApi(
+        endPoint,
         {
           employeeCode,
           masterTab: masterTab || 'Total',
@@ -228,5 +231,66 @@ export const useGetSubCodeData = (): UseQueryResult<
       return uniqueList as {label: string; value: string}[];
     },
     enabled: !!IsParentCode,
+  });
+};
+
+export const useDashboardDataAPAC = (
+  YearQtr: string | null,
+  masterTab: string | null,
+  subCode?: string | null,
+  DifferentEmployeeCode?: string | null,
+) => {
+  let {employeeCode, yearQtr} = getUserCredentials();
+  const effectiveYearQtr = YearQtr || yearQtr;
+  const effectiveMasterTab = masterTab || 'Total';
+  if(subCode) employeeCode = subCode; // Override employee code if subCode is provided (for partner view)
+  return useQuery({
+    queryKey: [
+      'dashboardData',
+      employeeCode,
+      effectiveMasterTab,
+      effectiveYearQtr,
+      DifferentEmployeeCode
+    ],
+    queryFn: async () => {
+      const res = await handleAPACApiCall('/Dashboard/GetDashboardData', {
+        employeeCode:DifferentEmployeeCode || employeeCode,
+        masterTab: effectiveMasterTab,
+        YearQtr: effectiveYearQtr,
+      });
+
+      const result = res.DashboardData;
+      return result?.Status ? result.Datainfo : null;
+    },
+    enabled: !!(employeeCode && masterTab),
+    ...DASHBOARD_CACHE_CONFIG,
+  });
+};
+
+export const useDashboardBannerAPAC = () => {
+  const {employeeCode, employeeRole} = getUserCredentials();
+
+  return useQuery({
+    queryKey: ['getBannerInfo', employeeCode, employeeRole],
+    queryFn: async () => {
+      const res = await handleAPACApiCall('/Information/GetBannerInfo', {
+        employeeCode,
+        RoleId: employeeRole,
+      });
+
+      const result = res.DashboardData;
+      if (!result?.Status) return [];
+
+      // Use optional chaining and provide fallback
+      return (
+        result.Datainfo?.BannerInfo?.map((item: any) => ({
+          BannerURL_Link: item.BannerURL_Link,
+          image: item.Banner_Link,
+          Group_Sequence_No: item.Group_Sequence_No,
+        })) || []
+      );
+    },
+    enabled: !!employeeCode, // Only run if we have employee code
+    ...DASHBOARD_CACHE_CONFIG,
   });
 };

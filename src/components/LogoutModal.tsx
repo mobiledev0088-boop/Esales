@@ -29,7 +29,7 @@ const LogoutModal = ({
             })  
             const result  = res.login;
             if(result?.Status){
-                removeAuthData()
+                removeAuthData();
                 onClose();
                 showToast('Logged out successfully');
             }else{
@@ -39,7 +39,7 @@ const LogoutModal = ({
     })
     const handleLogout = () => mutate();
   return (
-    <AppModal isOpen={isVisible} onClose={onClose} modalWidth={'80%'} >
+    <AppModal isOpen={isVisible} onClose={onClose} modalWidth={'80%'}  >
       <View className="items-center justify-center  space-y-5">
         <View className="bg-primary rounded-full p-4 mb-5">
           <AppIcon
@@ -62,6 +62,7 @@ const LogoutModal = ({
             className="py-3 bg-error"
             weight="bold"
             title="Log out"
+            noLoading
           />
           <TouchableOpacity
             activeOpacity={0.7}

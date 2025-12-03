@@ -1,33 +1,43 @@
-import { useLoginStore } from "../stores/useLoginStore";
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { AuthNavigator } from "./AuthNavigator";
-import { ASINNavigator } from "./ASINNavigator";
+// src/navigation/RootNavigator.tsx
+
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {useLoginStore} from '../stores/useLoginStore';
+import {AuthNavigator} from './AuthNavigator';
+import {ASINNavigator} from './ASINNavigator';
+import {ATIDNavigator} from './ATIDNavigator';
+import {ACMYNavigator} from './ACMYNavigator';
+import {ACSGNavigator} from './ACSGNavigator';
+import {ACJPNavigator} from './ACJPNavigator';
+import {TWNavigator} from './TWNavigator';
+
+import {ASUS} from '../utils/constant';
 
 const Stack = createNativeStackNavigator();
 
-const RootNavigator = () => {
-    const isAutoLogin = useLoginStore((state) => state.isAutoLogin);
-    return (
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-            {!isAutoLogin ? (
-                <Stack.Screen name="Auth" component={AuthNavigator} />
-            ) : (
-                <Stack.Screen name="IndiaApp" component={ASINNavigator} />
-            )}
-        </Stack.Navigator>
-    );
+const countryRoutes: Record<string, {name: string; component: any}> = {
+  [ASUS.COUNTRIES.ASIN]: {name: 'IndiaApp', component: ASINNavigator},
+  [ASUS.COUNTRIES.ATID]: {name: 'IndonesiaApp', component: ATIDNavigator},
+  [ASUS.COUNTRIES.ACMY]: {name: 'MalaysiaApp', component: ACMYNavigator},
+  [ASUS.COUNTRIES.ACSG]: {name: 'SingaporeApp', component: ACSGNavigator},
+  [ASUS.COUNTRIES.ACJP]: {name: 'JapanApp', component: ACJPNavigator},
+  [ASUS.COUNTRIES.TW]:   {name: 'TaiwanApp', component: TWNavigator},
 };
 
-export default RootNavigator;
+export default function RootNavigator() {
+  const {isAutoLogin, userInfo} = useLoginStore();
+  const country = userInfo?.EMP_CountryID;
+  const selectedRoute = countryRoutes[country];
 
-{/* <Stack.Navigator screenOptions={{ headerShown: false }}>
-    {!isLoggedIn ? (
+  return (
+    <Stack.Navigator screenOptions={{headerShown: false}}>
+      {!isAutoLogin ? (
         <Stack.Screen name="Auth" component={AuthNavigator} />
-    ) : !region ? (
-        <Stack.Screen name="RegionSelector" component={RegionSelector} />
-    ) : region === 'india' ? (
-        <Stack.Screen name="IndiaApp" component={IndiaNavigator} />
-    ) : (
-        <Stack.Screen name="JapanApp" component={JapanNavigator} />
-    )} */}
-// </Stack.Navigator>
+      ) : selectedRoute ? (
+        <Stack.Screen
+          name={selectedRoute.name}
+          component={selectedRoute.component}
+        />
+      ) : null}
+    </Stack.Navigator>
+  );
+}

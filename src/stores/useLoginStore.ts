@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { createMMKVStorage } from '../utils/mmkvStorage';
+import { createMMKVStorage, getMMKV } from '../utils/mmkvStorage';
 import { UserInfo } from '../types/user';
+import { queryClient } from './providers/QueryProvider';
 
 interface LoginState {
     isAutoLogin: boolean;
@@ -57,13 +58,15 @@ export const useLoginStore = create<LoginState>()(
             setAuthData: (token: string, userInfo: UserInfo) => {
                 set({ token, isAutoLogin: true, userInfo });
             },
-            removeAuthData: () => {
+            removeAuthData: async() => {
                 set({ token: null, isAutoLogin: false, userInfo: initialUserInfo });
+                getMMKV().clearAll();
+                queryClient.clear();
             },
         }),
         {
             name: 'auth-store',
-            storage: createMMKVStorage<LoginState>('auth'),
+            storage: createMMKVStorage<LoginState>(),
             onRehydrateStorage: () => () => {
                 console.log('✅ Zustand rehydrated from MMKV:');
             },

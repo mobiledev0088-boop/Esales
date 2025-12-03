@@ -524,7 +524,7 @@ const buildTabItems = (
 ): TabItem[] => {
   return labels.map(label => {
     const id = TAB_LABEL_TO_ID[label];
-    const config = getCurrentTabConfig(id);
+    const config = getCurrentTabConfig(id,false);
     const tabData = getActivationTabData(data, id);
     const visibleCount = visibleCounts[id] || ITEMS_PER_BATCH;
     const searchQuery = searchQueries[id] || '';
@@ -607,7 +607,7 @@ const ActivationPerformanceView = ({
   );
 
   const initialActiveId = useMemo(
-    () => deriveInitialActiveId(providedTabs),
+    () => deriveInitialActiveId(providedTabs,false),
     [providedTabs],
   );
 
@@ -702,7 +702,7 @@ const ActivationPerformanceView = ({
 
     // Apply search filter if query exists
     const searchQuery = searchQueries[activeTabId] || '';
-    const config = getCurrentTabConfig(activeTabId);
+    const config = getCurrentTabConfig(activeTabId,false);
 
     let filteredData = rawData;
     if (searchQuery) {

@@ -28,14 +28,16 @@ interface ProductInfoItem {
   [k: string]: any;
 }
 
-const Disclaimer = () => (
-  <View className="bg-red-100 rounded-lg p-3 border border-red-600 ">
+const Disclaimer = () => {
+  const isDarkTheme = useThemeStore(state => state.AppTheme) === 'dark';
+  return(
+  <View className="bg-red-100 dark:bg-[#EF4444] rounded-lg p-3 border border-red-600 dark:border-0 ">
     <View className="flex-row items-center gap-2">
       <AppIcon
         type="ionicons"
         name="information-circle-outline"
         size={20}
-        color="#DC2626"
+        color={isDarkTheme ? "#fff" : "#DC2626"}
       />
       <AppText size="base" weight="semibold" className="text-error mb-1">
         Disclaimer
@@ -48,6 +50,7 @@ const Disclaimer = () => (
     </AppText>
   </View>
 );
+}
 
 const InitialState = () => (
   <View className="items-center justify-center mt-20 px-6">
@@ -506,7 +509,7 @@ export default function ProductInfo() {
 
   return (
     <AppLayout needBack title="Product Info">
-      <View className="flex-1 bg-slate-50">
+      <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base ">
         <FlatList
           ref={listRef}
           data={showInitialState ? [] : displayedData}
@@ -629,14 +632,14 @@ export default function ProductInfo() {
                     placeholder="Search Product"
                     value={searchQuery}
                     setValue={setSearchQuery}
-                    inputWapperStyle={{backgroundColor: 'white'}}
+                    inputWapperStyle={{backgroundColor: AppColors[AppTheme].bgSurface}}
                     onSubmitEditing={getProductsList}
                     returnKeyType="search"
                   />
                 </View>
                 {searchQuery.length > 0 && (
                   <TouchableOpacity
-                    className="bg-primary p-3.5 rounded-xl items-center justify-center"
+                    className="bg-primary dark:bg-secondary-dark p-3.5 rounded-xl items-center justify-center"
                     style={getShadowStyle(2)}
                     activeOpacity={0.8}
                     onPress={getProductsList}>

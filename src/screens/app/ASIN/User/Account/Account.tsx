@@ -26,6 +26,7 @@ const Account = (props: AccountProps) => {
   const noHeader = props.noHeader ?? (route.params && (route.params as any).noHeader);
   const currentUser = useLoginStore(state => state.userInfo);
   const employeeDetails = useEmpStore(state => state.empInfo);
+  console.log('Account Screen - noHeader:', currentUser);
 
   // Determine special access permissions for the user
   const specialAccessPermissions = useMemo(() => {

@@ -80,12 +80,11 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
   error,
 }) => {
   const {AppTheme} = useThemeStore();
-  const deviceColorScheme = useColorScheme();
 
   const theme = useMemo(() => {
-    const activeTheme = AppTheme || deviceColorScheme || 'light';
+    const activeTheme = AppTheme || 'light';
     return AppColors[activeTheme];
-  }, [AppTheme, deviceColorScheme]);
+  }, [AppTheme]);
 
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState<string | null>(selectedValue);
@@ -349,10 +348,11 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
             paddingBottom: 2,
           }}
           selectedItemLabelStyle={{
-            color: theme.primary,
+            color: AppTheme === 'dark' ? theme.secondary : theme.primary,
             fontWeight: 'bold',
           }}
           disabledItemLabelStyle={{color: theme.text + '40'}}
+          theme={AppTheme === 'dark' ? 'DARK' : 'LIGHT'}
         />
       </View>
       {error && (

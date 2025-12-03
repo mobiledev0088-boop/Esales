@@ -10,7 +10,7 @@ import AppIcon, {IconType} from '../../../../../components/customs/AppIcon';
 import {EmpInfo, UserInfo} from '../../../../../types/user';
 import AppInput from '../../../../../components/customs/AppInput';
 import AppButton from '../../../../../components/customs/AppButton';
-import {useState} from 'react';
+import {useMemo, useState} from 'react';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import {getDeviceId} from 'react-native-device-info';
 import {handleASINApiCall} from '../../../../../utils/handleApiCall';
@@ -24,7 +24,9 @@ import Accordion from '../../../../../components/Accordion';
 import clsx from 'clsx';
 import {useThemeStore} from '../../../../../stores/useThemeStore';
 import {AppColors} from '../../../../../config/theme';
-import AppDropdown, { AppDropdownItem } from '../../../../../components/customs/AppDropdown';
+import AppDropdown, {
+  AppDropdownItem,
+} from '../../../../../components/customs/AppDropdown';
 
 // --- return components ---
 const renderCardRow = (
@@ -99,7 +101,9 @@ const TabSelector = () => {
             key={index}
             className="flex-1 rounded-md py-3 items-center justify-center mx-1"
             style={{
-              backgroundColor: isSelected ? '#007AFF' :  AppColors[isDarkTheme ? 'dark' : 'light'].bgSurface,
+              backgroundColor: isSelected
+                ? '#007AFF'
+                : AppColors[isDarkTheme ? 'dark' : 'light'].bgSurface,
             }}
             onPress={() => setSelectedIndex(index)}
             activeOpacity={0.8}>
@@ -186,6 +190,49 @@ export const SyncedDate = ({
   empInfo: EmpInfo | null;
 }) => {
   const AppTheme = useThemeStore(state => state.AppTheme);
+
+  const data = useMemo(() => {
+    const arr = [];
+    arr.push(
+      {
+        last_Updated: 'Activaion',
+        date: empInfo?.Activation_Update?.split('T')[0] || 'N/A',
+      },
+      {
+        last_Updated: 'Sellout',
+        date: empInfo?.Sellout_Update?.split('T')[0] || 'N/A',
+      },
+      {
+        last_Updated: 'ispsellout',
+        date: empInfo?.ISPSellout_Update?.split('T')[0] || 'N/A',
+      },
+    );
+    if (userInfo?.EMP_CountryID === 'ASIN') {
+      arr.push(
+        {
+          last_Updated: 'SellThru',
+          date: empInfo?.Sellthru_Update?.split('T')[0] || 'N/A',
+        },
+        {
+          last_Updated: 'POD',
+          date: empInfo?.POD_Update?.split('T')[0] || 'N/A',
+        },
+        {
+          last_Updated: 'DemoHub',
+          date: empInfo?.DemoHub_Update?.split('T')[0] || 'N/A',
+        },
+      );
+    }
+    if (userInfo?.EMP_CountryID === 'ACJP') {
+      arr.push({
+        last_Updated: 'Inventory_Sync_Date',
+        date: empInfo?.Inventory_Sync_Date?.split('T')[0] || 'N/A',
+      });
+    }
+
+    return arr;
+  }, []);
+
   return (
     <Card className="mt-8 rounded-md">
       <Accordion
@@ -203,40 +250,7 @@ export const SyncedDate = ({
           </View>
         }>
         <AppTable
-          data={[
-            {
-              last_Updated: 'Activaion',
-              date: empInfo?.Activation_Update.split('T')[0] || 'N/A',
-            },
-            {
-              last_Updated: 'Sellout',
-              date: empInfo?.Sellout_Update.split('T')[0] || 'N/A',
-            },
-            {
-              last_Updated: 'ispsellout',
-              date: empInfo?.ISPSellout_Update.split('T')[0] || 'N/A',
-            },
-            {
-              last_Updated: 'SellThru',
-              date: empInfo?.Sellthru_Update.split('T')[0] || 'N/A',
-            },
-            {
-              last_Updated: 'POD',
-              date: empInfo?.POD_Update.split('T')[0] || 'N/A',
-            },
-            {
-              last_Updated: 'DemoHub',
-              date: empInfo?.DemoHub_Update.split('T')[0] || 'N/A',
-            },
-            ...(userInfo?.EMP_CountryID === 'ACJP'
-              ? [
-                  {
-                    last_Updated: 'Inventory_Sync_Date',
-                    date: empInfo?.Inventory_Sync_Date?.split('T')[0] || 'N/A',
-                  },
-                ]
-              : []),
-          ]}
+          data={data}
           columns={[
             {
               key: 'last_Updated',

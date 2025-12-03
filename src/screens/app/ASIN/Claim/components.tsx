@@ -66,13 +66,13 @@ type GroupedAccordionProps = {
 const variantStyles = {
   emerald: {
     container:
-      'px-3 py-2 rounded-md bg-emerald-50 border border-emerald-200 flex-1',
-    text: 'text-emerald-700 text-center',
+      'px-3 py-2 rounded-md bg-emerald-50 dark:bg-emerald-900 border border-emerald-200 dark:border-emerald-700 flex-1',
+    text: 'text-emerald-700 dark:text-emerald-300 text-center',
   },
   orange: {
     container:
-      'px-3 py-2 rounded-md bg-orange-50 border border-orange-200 flex-1',
-    text: 'text-orange-700 text-center',
+      'px-3 py-2 rounded-md bg-orange-50 dark:bg-orange-900 border border-orange-200 dark:border-orange-700 flex-1',
+    text: 'text-orange-700 dark:text-orange-300 text-center',
   },
 };
 
@@ -189,7 +189,7 @@ export const MonthRangeCard: React.FC<{
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.85}
-      className="flex-row items-center flex-1 rounded border border-gray-300 bg-white px-4 py-3 shadow-sm h-[55px]">
+      className="flex-row items-center flex-1 rounded border border-[#d1d5db] dark:border-[#374151] bg-lightBg-surface dark:bg-darkBg-surface px-4 py-3 shadow-sm h-[55px]">
       <View className="w-10 h-10 bg-blue-100 rounded-full items-center justify-center mr-3">
         <AppIcon name="calendar" type="ionicons" size={20} color="#2563eb" />
       </View>
@@ -207,7 +207,7 @@ export const MonthRangeCard: React.FC<{
       </View>
       {hasRange && (
         <View className="items-center ml-3">
-          <View className="bg-green-100 px-2 py-1 rounded-full">
+          <View className="bg-green-100 dark:bg-[#0EA473] px-2 py-1 rounded-full">
             <AppText
               size="xs"
               weight="semibold"
@@ -227,7 +227,7 @@ export const FilterButton: React.FC<{onPress: () => void}> = ({onPress}) => {
       <TouchableOpacity
         onPress={onPress}
         activeOpacity={0.4}
-        className="flex-row items-center justify-center rounded border border-gray-300 bg-white px-4 shadow-sm ml-2 h-[56px] w-[55px]">
+        className="flex-row items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 bg-lightBg-surface dark:bg-darkBg-surface px-4 shadow-sm ml-2 h-[56px] w-[55px]">
         <AppIcon
           type="material-community"
           name="tune-variant"
@@ -251,7 +251,7 @@ export const MonthProductRow: React.FC<MonthProductRowProps> = memo(
   }) => {
     if (processed + underProcess === 0) return null;
     return (
-      <View className="flex-row items-center py-2 px-3 rounded-md bg-white mb-1 border border-gray-100 shadow-sm">
+      <View className="flex-row items-center py-2 px-3 rounded-md bg-lightBg-surface dark:bg-darkBg-surface mb-1 border border-gray-100 dark:border-[#374151] shadow-sm">
         <View className="w-1/4 pr-2">
           <AppText size="sm" weight="semibold" className="text-gray-800">
             {displayMonth}
@@ -334,7 +334,7 @@ export const GroupAccordion: React.FC<GroupedAccordionProps> = memo(
           </View>
         }
         headerClassName="py-2"
-        containerClassName="bg-white rounded border border-gray-200"
+        containerClassName="bg-lightBg-surface dark:bg-darkBg-surface rounded border border-gray-200 dark:border-[#374151] "
         contentClassName="px-0"
         needBottomBorder={false}>
         <View className="px-1 pb-3 pt-1">

@@ -1,5 +1,4 @@
 import {View} from 'react-native';
-import React from 'react';
 import ActionSheet, {
   SheetManager,
   useSheetPayload,
@@ -57,7 +56,7 @@ const ConfirmationSheet: React.FC<ConfirmationSheetProps> = () => {
           borderRadius: 2,
           marginTop: 8,
         }}>
-        <View className="px-6 py-2">
+        <View className="px-6 py-2 pb-5">
           <View className="items-center ">
             <View className="w-20 h-20 rounded-full items-center justify-center mb-6 bg-blue-200">
               <AppIcon
@@ -92,7 +91,6 @@ const ConfirmationSheet: React.FC<ConfirmationSheetProps> = () => {
             />
           </View>
         </View>
-        {/* Content Container */}
       </ActionSheet>
     </View>
   );

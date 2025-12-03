@@ -6,17 +6,14 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Primary brand palette
         primary: {
           DEFAULT: "#00539B",
-          // dark: "#2c334d"
-          // dark: "#1D4559"
-          dark: "#3399FF"
+          // dark: "#6BBAFF"
+          dark: "#004480"
         },
         secondary: {
           DEFAULT: "#0077b6",
-          // dark: "#38bdf8"
-          dark: "#66CCFF"
+          dark: "#007BE5"
         },
 
         // UI States
@@ -36,7 +33,6 @@ module.exports = {
         // Text
         text: {
           DEFAULT: "#1F2937",
-          // dark: "#374151"
           dark: "#E5E7EB"
         },
 
@@ -47,8 +43,8 @@ module.exports = {
           dark: "#C7C8C7"
         },
         darkBg: {
-          base: "#121212",
-          surface: "#1F1F1F"
+          base: "#0E161A", 
+          surface: "#212A30"
         },
         lightBg: {
           base: "#f8fafc",
@@ -112,17 +108,6 @@ module.exports = {
         '3xl': 30,
         '4xl': 36,
         '5xl': 48
-      },
-
-      borderRadius: {
-        none: 0,
-        sm: 4,
-        DEFAULT: 8,
-        md: 12,
-        lg: 16,
-        xl: 24,
-        '2xl': 32,
-        full: 9999
       },
 
       fontFamily: {

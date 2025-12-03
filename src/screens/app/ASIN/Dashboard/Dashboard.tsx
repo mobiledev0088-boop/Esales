@@ -59,6 +59,7 @@ import {useNavigation} from '@react-navigation/native';
 import {AppNavigationProp} from '../../../../types/navigation';
 import moment from 'moment';
 import useEmpStore from '../../../../stores/useEmpStore';
+import { useThemeStore } from '../../../../stores/useThemeStore';
 
 // Static fallback tabs to prevent recreation
 const STATIC_DASHBOARD_TABS = [
@@ -82,12 +83,13 @@ const DashboardHeader: React.FC<HeaderProps> = ({
   error,
   onRetry,
 }) => {
+  const AppTheme = useThemeStore(state => state.AppTheme);
   const percentage =
     salesData && salesData.Qty_Target
       ? calculatePercentage(salesData.Qty_Achieved, salesData.Qty_Target)
       : 0;
 
-  const {bgColor, textColor} = getPerformanceColor(percentage);
+  const {bgColor, textColor} = getPerformanceColor(percentage, AppTheme==='dark');
 
   const displayTitle = tabName
     ? `${DASHBOARD.TABS.LFR === tabName ? tabName : convertToTitleCase(tabName)} Sales`
@@ -105,7 +107,6 @@ const DashboardHeader: React.FC<HeaderProps> = ({
       </View>
     );
   }
-
   return (
     <View className="flex-row justify-between px-3 py-4 border-b border-gray-300">
       {isLoading ? (
@@ -116,14 +117,15 @@ const DashboardHeader: React.FC<HeaderProps> = ({
             {displayTitle}
           </AppText>
           <View className="flex-row items-center">
-            <AppText size="lg" weight="bold" color="primary" className="mr-1">
+            <AppText size="lg" weight="bold" className="mr-1 text-[#007BE5]" >
               {formatDisplayValue(salesData?.Qty_Achieved)}
             </AppText>
             <AppText size="sm" color="gray" className="mr-2">
               / {formatDisplayValue(salesData?.Qty_Target)}
             </AppText>
+            {/* Green Base 0EA473.  Red BAse  EF4444.  */}
             <View className={`px-2 py-1 rounded-full ${bgColor}`}>
-              <AppText size="xs" weight="semibold" color={textColor}>
+              <AppText size="xs" weight="semibold" color={textColor} >
                 {percentage}%
               </AppText>
             </View>
@@ -157,6 +159,8 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
   const userInfo = useLoginStore(state => state.userInfo);
   const empInfo = useEmpStore(state => state.empInfo);
   const navigation = useNavigation<AppNavigationProp>();
+  const AppTheme = useThemeStore(state => state.AppTheme);
+  const darkMode = AppTheme === 'dark';
   const getProductConfig = useCallback(
     (category: string): {icon: string; color: string} => {
       const configs: Record<string, {icon: string; color: string}> = {
@@ -210,7 +214,7 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
           activeOpacity={0.7}
           onPress={() => onPress?.(item)}>
           <Card
-            className="min-w-40 rounded-md"
+            className="min-w-40 rounded-xl"
             watermark
             key={`${item.Product_Category}-${index}`}>
             <View className="items-center">
@@ -263,6 +267,7 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
     ASUS.ROLE_ID.DISTI_HO,
     ASUS.ROLE_ID.LFR_HO,
   ].includes(userInfo?.EMP_RoleId as any);
+  
 
   const renderActionButtons = useCallback(
     (wise:'POD' | 'SELL') => (
@@ -273,27 +278,27 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
         )}>
         {needDistributorAccess && (
           <TouchableOpacity
-            className="py-1 flex-row items-center border-b border-blue-600"
+            className="py-1 flex-row items-center border-b border-blue-600 dark:border-secondary-dark"
             activeOpacity={0.7}
             onPress={()=>handleDistributorWisePress(wise)}>
-            <AppIcon name="users" type="feather" color="#2563eb" size={16} />
-            <AppText size="sm" weight="medium" className="text-blue-600 ml-2">
+            <AppIcon name="users" type="feather" color={darkMode ? "#ffffff" : "#2563eb"} size={16} />
+            <AppText size="sm" weight="medium" className="text-secondary dark:text-white ml-2">
               Distributor Wise
             </AppText>
           </TouchableOpacity>
         )}
 
         <TouchableOpacity
-          className="py-1 flex-row items-center border-b border-blue-600"
+          className="py-1 flex-row items-center border-b border-blue-600 dark:border-secondary-dark"
           activeOpacity={0.7}
           onPress={()=>handleSeeMorePress(wise)}>
-          <AppText size="sm" weight="medium" className="text-blue-600 mr-2">
+          <AppText size="sm" weight="medium" className="text-blue-600 dark:text-white mr-2">
             See More
           </AppText>
           <AppIcon
             name="arrow-right"
             type="feather"
-            color="#2563eb"
+            color={darkMode ? "#ffffff" : "#2563eb"}
             size={16}
           />
         </TouchableOpacity>
@@ -357,8 +362,9 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
 
   return (
     <View className="">
-      <AppText size="xl" color="gray" weight="bold" className="pl-3">
-        Target / Achievement
+      {/* F2F2F3 */}
+      <AppText size='xl' weight='bold'  className="pl-3">
+        Target / Achievement 
       </AppText>
 
       {/* POD Wise Section */}
@@ -1060,7 +1066,7 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
   }, [refetchDashboard]);
 
   return (
-    <View className="flex-1 bg-slate-50">
+    <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
       <ScrollView
         contentContainerClassName="flex-grow pb-10 gap-5"
         showsVerticalScrollIndicator={false}
@@ -1208,7 +1214,7 @@ export default function Dashboard() {
   }
 
   return (
-    <View className="flex-1 bg-slate-50">
+    <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
       <MaterialTabBar
         tabs={dashboardTabs}
         initialRouteName={dashboardTabs[0]?.name || 'Total'}

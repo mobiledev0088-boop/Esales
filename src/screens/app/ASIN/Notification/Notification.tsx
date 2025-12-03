@@ -314,6 +314,7 @@ const NotificationList: React.FC<NotificationListProps> = ({
       data={notifications}
       renderItem={renderItem}
       keyExtractor={(_,index)=>index.toString()}
+      className='bg-lightBg-base dark:bg-darkBg-base'
       contentContainerStyle={{
         paddingHorizontal: 12,
         paddingTop: 16,

@@ -47,13 +47,13 @@ export const buildActivationTabItems = (
   const source = overrideData || baseData;
   return labels.map(label => {
     const id = TAB_LABEL_TO_ID[label];
-    const cfg = getCurrentTabConfig(id);
+    const cfg = getCurrentTabConfig(id,true);
     const tabData = getActivationTabData(source, id);
     return {
       label,
       name: id,
       component: (
-        <View>
+        <View >
           <TableHeader columns={cfg.columns} />
           <DataTable data={tabData} activeTab={id} columns={cfg.columns} />
         </View>
@@ -62,7 +62,7 @@ export const buildActivationTabItems = (
   });
 };
 
-const DateRangeCard = ({
+export const DateRangeCard = ({
   setIsVisible,
   dateRange,
 }: {
@@ -71,7 +71,7 @@ const DateRangeCard = ({
 }) => (
   <Card className="mb-3 rounded-2xl p-0">
     <TouchableOpacity className="p-4" onPress={() => setIsVisible(true)}>
-      <View className="flex-row items-center justify-between">
+      <View className="flex-row items-center justify-between flex-wrap">
         <View className="flex-row items-center">
           <View className="w-8 h-8 bg-blue-100 rounded-full items-center justify-center mr-3">
             <AppIcon
@@ -92,8 +92,8 @@ const DateRangeCard = ({
             </AppText>
           </View>
         </View>
-        <View className="bg-green-100 px-3 py-1.5 rounded-full">
-          <AppText size="xs" weight="semibold" color="success">
+        <View className="bg-green-100 dark:bg-[#0EA473] px-3 py-1.5 rounded-full">
+          <AppText size="xs" weight="semibold" className={'dark:text-white text-green-600'}>
             {dateRange.start && dateRange.end
               ? getDaysBetween(
                   moment(dateRange.start).format('YYYY-MM-DD'),
@@ -109,7 +109,7 @@ const DateRangeCard = ({
 );
 
 const TableHeader = ({columns}: {columns: TableColumn[]}) => (
-  <View className="bg-white border-b border-gray-200">
+  <View className="bg-lightBg-base dark:bg-darkBg-surface border-b border-gray-200">
     <View className="flex-row items-center px-4 py-3">
       {columns.map(column => (
         <View
@@ -142,9 +142,10 @@ const TableRow = ({
         <AppText
           size="sm"
           weight={column.key === 'name' ? 'semibold' : 'bold'}
-          color={column.colorType}>
+          color={column.colorType}
+          >
           {/* {item[column.dataKey] || '0'} */}
-          {column.key === 'name'  ? item[column.dataKey] || '---'  : convertToASINUnits(Number(item[column.dataKey]),true) }
+          {column.key === 'name'  ? item[column.dataKey] || '---' : column.key === 'h-rate' ? `${item[column.dataKey]} %` : convertToASINUnits(Number(item[column.dataKey]),true) }
         </AppText>
       </View>
     ))}
@@ -160,7 +161,7 @@ const DataTable = ({
   activeTab: string;
   columns: TableColumn[];
 }) => (
-  <View className="bg-white rounded-b-xl overflow-hidden">
+  <View className="bg-lightBg-surface dark:bg-darkBg-surface rounded-b-xl overflow-hidden">
     {data.map((item, index) => (
       <TableRow
         key={`${activeTab}-${item.name}-${index}`}
@@ -266,7 +267,7 @@ export const BannerComponent = () => {
         autoplay={true}
         autoplayTimeout={4}
         dotColor="#E5E7EB"
-        activeDotColor="#3B82F6"
+        activeDotColor={true ? "#007BE5" : "#3B82F6"}
         resizeMode="cover"
       />
     </View>
@@ -289,13 +290,13 @@ export const ActivationPerformanceComponent: React.FC<
     [tabs],
   );
   const initialActiveId = useMemo(
-    () => deriveInitialActiveId(providedTabs),
+    () => deriveInitialActiveId(providedTabs,false),
     [providedTabs],
   );
   const [isVisible, setIsVisible] = useState(false);
   const [dateRange, setDateRange] = useState<DatePickerState>({
     start: getQuarterDateRange(quarter).startDate,
-    end: getQuarterDateRange(quarter).endDate,
+    end: moment().toDate(),
   });
   const maximumDate = useMemo(() => new Date(), []);
   const minimumDate = useMemo(() => moment().subtract(5, 'years').toDate(), []);
@@ -313,10 +314,11 @@ export const ActivationPerformanceComponent: React.FC<
           startDate: formattedStartDate,
           endDate: formattedEndDate,
           masterTab: name,
+          isAPAC: userInfo?.EMP_CountryID !== ASUS.COUNTRIES.ASIN  
         });
       }
     },
-    [mutate, name],
+    [mutate, name, userInfo],
   );
 
     const onPress = () => {

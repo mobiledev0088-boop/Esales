@@ -23,14 +23,18 @@ const subscibe = [
     'dashboardDataAM',
     'getBannerInfo',
 ]
-persistQueryClient({
+const [, hydrationPromise] = persistQueryClient({
   queryClient,
   persister: createRQMMKVPersister(),
-  maxAge: 24 * 60 * 60 * 1000, // keep data max 1 day
+  maxAge: 24 * 60 * 60 * 1000,
   dehydrateOptions: {
     shouldDehydrateQuery: (query) =>
       subscibe.includes(query.queryKey[0] as string) && query.state.status === "success",
   },
+});
+
+hydrationPromise.then(() => {
+  console.log('✅ React Query rehydrated from MMKV:');
 });
 
 export const QueryProvider = ({ children }: { children: React.ReactNode }) => (

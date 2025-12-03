@@ -1,41 +1,67 @@
 // DynamicSplash.tsx
-import { useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import {useEffect, useState} from 'react';
+import {View, StyleSheet} from 'react-native';
+import {useGetSplashImage} from '../hooks/useGetSplashImage';
+
 import AppImage from './customs/AppImage';
-import { initializeMMKV } from '../utils/mmkvStorage';
+import {initializeMMKV} from '../utils/mmkvStorage';
+import { useLoginStore } from '../stores/useLoginStore';
 
-const DynamicSplash = ({ onFinish }: { onFinish: () => void }) => {
-    useEffect(() => {
-        setTimeout(initialize, 1000);
-    }, []);
-    const initialize = async () => {
-        await initializeMMKV();
+export default function DynamicSplash({onFinish}: {onFinish: () => void}) {
+  const [startAPICall, setStartAPICall] = useState(false);
+  const [employeeCode, setEmployeeCode] = useState('');
+
+  const {imageUrl: splashImageUrl, isLoading} = useGetSplashImage(startAPICall, employeeCode);
+  const initialize = async () => await initializeMMKV();
+
+  useEffect(() => {
+    initialize().then(() => {
+      const userInfo = useLoginStore.getState().userInfo;
+      const empCode = userInfo?.EMP_Code || '';
+      setEmployeeCode(empCode);
+      setStartAPICall(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading) {
+      const timeout = setTimeout(() => {
         onFinish();
-    };
+      }, 1000);
 
-    return (
-        <View style={styles.container}>
-            {/* <AppImage source={require('../assets/images/new.gif')} style={styles.image} resizeMode="cover" /> */}
-            <AppImage
-                source={require('../assets/images/logo.png')}
-                style={{ width: 270, height: 270 }}
-                // resizeMode="cover"
-            />
-        </View>
-    );
-};
+      return () => clearTimeout(timeout);
+    }
+  }, [isLoading]);
 
-export default DynamicSplash;
+  return (
+    <View style={styles.container}>
+      {splashImageUrl ? (
+        <AppImage
+          source={{uri: splashImageUrl}}
+          style={styles.image}
+          resizeMode="cover"
+          showSkeleton={false}
+        />
+      ) : (
+        <AppImage
+          source={require('../assets/images/logo.png')}
+          style={{width: 270, height: 270}}
+          showSkeleton={false}
+        />
+      )}
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#00539B',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    image: {
-        width: '100%',
-        height: '100%',
-    },
+  container: {
+    flex: 1,
+    backgroundColor: '#00539B',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
 });

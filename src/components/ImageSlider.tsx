@@ -48,7 +48,7 @@ const ImageSlider: React.FC<CustomSwiperProps> = ({
     return (
         <View
             className={twMerge(
-                'rounded-lg overflow-hidden relative',
+                'rounded-2xl overflow-hidden relative',
                 expandImage && 'z-50'
             )}
             style={{ width, height }}
@@ -77,7 +77,7 @@ const ImageSlider: React.FC<CustomSwiperProps> = ({
                         key={index}
                         activeOpacity={0.85}
                         onPress={() => onPress(item)}
-                        className="relative"
+                        className="relative "
                     >
                         <AppImage
                             source={{ uri: item.image }}

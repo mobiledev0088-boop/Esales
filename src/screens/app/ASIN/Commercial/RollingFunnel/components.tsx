@@ -1,16 +1,25 @@
-import React, {memo} from 'react';
+import {memo} from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import moment from 'moment';
 import Accordion from '../../../../../components/Accordion';
 import AppText from '../../../../../components/customs/AppText';
-import AppIcon from '../../../../../components/customs/AppIcon';
+import AppIcon, {IconType} from '../../../../../components/customs/AppIcon';
 import {AppColors} from '../../../../../config/theme';
-import Swipeable from '../../../../../components/Swipeable';
-import { RollingFunnelData } from './types';
+import {RollingFunnelData} from './types';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
+
+const ACTIONS_WIDTH = 160; // Total width for both action buttons
+const SWIPE_THRESHOLD = 50; // Minimum swipe distance to show actions
 
 interface RowType {
   icon: string;
-  iconType: 'material-community' | 'feather';
+  iconType: IconType;
   label: string;
   value: string;
   color?: string;
@@ -21,7 +30,7 @@ interface RollingFunnelItemProps {
   item: RollingFunnelData;
   index: number;
   onEdit?: (item: RollingFunnelData) => void;
-  onDelete?: (item: RollingFunnelData) => void;
+  onClose?: (item: RollingFunnelData) => void;
 }
 
 const InfoGrid = ({data}: {data: RowType[]}) => {
@@ -58,12 +67,7 @@ const InfoRow = ({icon, iconType, label, value, color, copy}: RowType) => {
   return (
     <View className="flex-row items-center py-2">
       <View className="w-8 items-center mr-3">
-        <AppIcon
-          type={iconType}
-          name={icon}
-          size={18}
-          color="#6B7280"
-        />
+        <AppIcon type={iconType} name={icon} size={18} color="#6B7280" />
       </View>
       <View className="flex-1">
         <View className="flex-row items-center mb-1">
@@ -71,9 +75,7 @@ const InfoRow = ({icon, iconType, label, value, color, copy}: RowType) => {
             {label}
           </AppText>
           {copy && (
-            <View
-              onTouchEnd={handleCopy}
-              className="ml-2">
+            <View onTouchEnd={handleCopy} className="ml-2">
               <AppIcon
                 type="material-community"
                 name="content-copy"
@@ -95,21 +97,7 @@ const InfoRow = ({icon, iconType, label, value, color, copy}: RowType) => {
   );
 };
 
-const RollingFunnelItemContent = ({
-  item,
-  onEdit,
-}: {
-  item: RollingFunnelData;
-  onEdit?: (item: RollingFunnelData) => void;
-}) => {
-  const isRollingFunnel = item.Funnel_Type === 'Rolling_Funnel';
-
-  const handleEdit = () => {
-    if (onEdit) {
-      onEdit(item);
-    }
-  };
-
+const RollingFunnelItemContent = ({item}: {item: RollingFunnelData}) => {
   return (
     <Accordion
       header={
@@ -132,19 +120,6 @@ const RollingFunnelItemContent = ({
                 {item.End_Customer}
               </AppText>
             </View>
-            {isRollingFunnel && (
-              <TouchableOpacity
-                onPress={handleEdit}
-                activeOpacity={0.7}
-                className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/30 items-center justify-center">
-                <AppIcon
-                  type="material-community"
-                  name="pencil"
-                  size={18}
-                  color={AppColors.primary}
-                />
-              </TouchableOpacity>
-            )}
           </View>
 
           {/* Info Grid */}
@@ -227,7 +202,7 @@ const RollingFunnelItemContent = ({
           </View>
         </View>
       }
-      containerClassName="mb-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-darkBg-surface shadow-sm"
+      containerClassName="border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-darkBg-surface shadow-sm"
       headerClassName="py-3 "
       needBottomBorder={false}>
       <View className="border-t border-gray-200 mt-3">
@@ -283,7 +258,7 @@ const RollingFunnelItemContent = ({
               iconType: 'material-community',
               label: 'Stage',
               value: item.Stage,
-              color: '#059669',
+              color: item.Stage === 'REJECTED' ? '#B45309' : '#059669',
               copy: true,
             },
             {
@@ -302,35 +277,145 @@ const RollingFunnelItemContent = ({
   );
 };
 
-const RollingFunnelItem = memo<RollingFunnelItemProps>(
-  ({item, index, onEdit, onDelete}) => {
-    const isRollingFunnel = item.Funnel_Type === 'Rolling_Funnel';
+const SwipeableWrapper = ({
+  children,
+  onEdit,
+  onClose,
+}: {
+  children: React.ReactNode;
+  onEdit?: () => void;
+  onClose?: () => void;
+}) => {
+  const translateX = useSharedValue(0);
+  const startX = useSharedValue(0);
 
-    const handleDismiss = () => {
-      if (onDelete) {
-        onDelete(item);
+  const panGesture = Gesture.Pan()
+    .activeOffsetX([-10, 10])
+    .failOffsetY([-15, 15])
+    .onStart(() => {
+      // Store the starting position
+      startX.value = translateX.value;
+    })
+    .onUpdate(event => {
+      // Add translation to starting position, allowing swipe back
+      const newValue = startX.value + event.translationX;
+      translateX.value = Math.max(Math.min(newValue, 0), -ACTIONS_WIDTH);
+    })
+    .onEnd(() => {
+      // Snap to actions or back to center based on threshold
+      if (translateX.value < -SWIPE_THRESHOLD) {
+        translateX.value = withSpring(-ACTIONS_WIDTH, {
+          damping: 20,
+          stiffness: 150,
+        });
+      } else {
+        translateX.value = withSpring(0, {
+          damping: 20,
+          stiffness: 150,
+        });
+      }
+    });
+
+  const contentStyle = useAnimatedStyle(() => ({
+    transform: [{translateX: translateX.value}],
+  }));
+
+  const handleEdit = () => {
+    translateX.value = withSpring(0, {damping: 15, stiffness: 150});
+    if (onEdit) {
+      scheduleOnRN(onEdit);
+    }
+  };
+
+  const handleDelete = () => {
+    translateX.value = withSpring(0, {damping: 15, stiffness: 150});
+    if (onClose) {
+      scheduleOnRN(onClose);
+    }
+  };
+
+  const tapGesture = Gesture.Tap()
+    .maxDuration(250)
+    .onEnd(() => {
+      // Close the swipe if buttons are visible
+      if (translateX.value < 0) {
+        translateX.value = withSpring(0, {damping: 15, stiffness: 150});
+      }
+    });
+
+  const composedGesture = Gesture.Race(panGesture, tapGesture);
+
+  return (
+    <View className="relative mb-3 overflow-hidden rounded-lg">
+      {/* Action Buttons Background */}
+      <View className="absolute right-0 top-0 bottom-0 flex-row">
+        {/* Edit Button */}
+        <TouchableOpacity
+          onPress={handleEdit}
+          activeOpacity={0.7}
+          className="w-20 bg-blue-500 items-center justify-center">
+          <View className="items-center">
+            <AppIcon
+              type="material-community"
+              name="pencil-outline"
+              size={24}
+              color="#fff"
+            />
+            <AppText weight="semibold" size="xs" className="text-white mt-1">
+              Edit
+            </AppText>
+          </View>
+        </TouchableOpacity>
+
+        {/* Delete Button (Close/X style) */}
+        <TouchableOpacity
+          onPress={handleDelete}
+          activeOpacity={0.7}
+          className="w-20 bg-red-500 items-center justify-center">
+          <View className="w-12 h-12 rounded-full bg-white/20 items-center justify-center">
+            <AppIcon
+              type="material-community"
+              name="close"
+              size={28}
+              color="#fff"
+            />
+          </View>
+        </TouchableOpacity>
+      </View>
+
+      {/* Swipeable Content */}
+      <GestureDetector gesture={composedGesture}>
+        <Animated.View style={contentStyle}>{children}</Animated.View>
+      </GestureDetector>
+    </View>
+  );
+};
+
+export const RollingFunnelItem = memo(
+  ({item, index, onEdit, onClose}: RollingFunnelItemProps) => {
+    const isRollingFunnel = item.IsEditable_Id === 1
+
+    const handleClose = () => {
+      if (onClose) {
+        onClose(item);
       }
     };
 
-    // If it's a Rolling_Funnel, wrap with Swipeable
+    const handleEdit = () => {
+      if (onEdit) {
+        onEdit(item);
+      }
+    };
+
+    const content = <RollingFunnelItemContent item={item} />;
+
     if (isRollingFunnel) {
       return (
-        <Swipeable
-          id={item.Opportunity_Number || `item-${index}`}
-          onDismiss={handleDismiss}
-          borderRadius={12}
-          threshold={0.3}
-          backgroundColor="#ef4444"
-          icon="close-outline"
-          iconColor="white">
-          <RollingFunnelItemContent item={item} onEdit={onEdit} />
-        </Swipeable>
+        <SwipeableWrapper onEdit={handleEdit} onClose={handleClose}>
+          {content}
+        </SwipeableWrapper>
       );
     }
-
-    // Otherwise, render without swipe actions
-    return <RollingFunnelItemContent item={item} onEdit={onEdit} />;
+    return <View className="mb-3">{content}</View>;
   },
 );
-
-export default RollingFunnelItem;

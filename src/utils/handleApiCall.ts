@@ -1,95 +1,121 @@
-import {apiClientAPAC,apiClientASIN} from "../config/apiConfig";
-import { useLoaderStore } from "../stores/useLoaderStore";
-import { useLoginStore } from "../stores/useLoginStore";
+import {apiClientAPAC, apiClientASIN} from '../config/apiConfig';
+import {useLoaderStore} from '../stores/useLoaderStore';
+import {useLoginStore} from '../stores/useLoginStore';
 
 export const handleASINApiCall = async <T = any>(
-    url: string,
-    data: any = {},
-    headers?: Record<string, string>,
-    showGlobalLoading?: boolean,
-    showError: boolean = false
+  url: string,
+  data: any = {},
+  headers?: Record<string, string>,
+  showGlobalLoading?: boolean,
+  showError: boolean = false,
 ): Promise<T> => {
-    const { token, userInfo } = useLoginStore.getState();
-    const setLoading = useLoaderStore.getState().setLoading;
-    const setGlobalLoading = useLoaderStore.getState().setGlobalLoading;
+  const {token, userInfo} = useLoginStore.getState();
+  const setLoading = useLoaderStore.getState().setLoading;
+  const setGlobalLoading = useLoaderStore.getState().setGlobalLoading;
 
-    try {
-        setLoading(true);
-        if (showGlobalLoading) {
-            setGlobalLoading(true);
-        }
-        const timerName = `API Call Timing - ${url} - ${Date.now()}`;
-        console.time(timerName);
-        const response = await apiClientASIN.request<T>({
-            method: 'POST',
-            url,
-            data,
-            headers: {
-                ...headers,
-            },
-        });
-        console.timeEnd(timerName);
-        return response.data;
-    } catch (error: any) {
-        if (showError) {
-            console.error('Custom API Error:', error?.response?.data || error.message);
-        }
-        throw error;
-    } finally {
-        setGlobalLoading(false);
-        setLoading(false);
-        if (token && userInfo?.EMP_Code) {
-            void saveApiLog(url, token, userInfo.EMP_Code);
-        } else {
-            console.log('Token or EMP_Code is missing, skipping API log save');
-        }
+  try {
+    setLoading(true);
+    if (showGlobalLoading) {
+      setGlobalLoading(true);
     }
+    const timeLog = `${Math.random().toFixed(3)} API Call Timing for ${url}`;
+    if (__DEV__) {
+      console.time(timeLog);
+    }
+    const response = await apiClientASIN.request<T>({
+      method: 'POST',
+      url,
+      data,
+      headers: {
+        ...headers,
+      },
+    });
+    if (__DEV__) {
+      console.timeEnd(timeLog);
+    }
+    return response.data;
+  } catch (error: any) {
+    if (showError) {
+      console.error(
+        'Custom API Error:',
+        error?.response?.data || error.message,
+      );
+    }
+    throw error;
+  } finally {
+    setGlobalLoading(false);
+    setLoading(false);
+    if (token && userInfo?.EMP_Code) {
+      void saveApiLog(url, token, userInfo.EMP_Code);
+    } else {
+      console.log('Token or EMP_Code is missing, skipping API log save');
+    }
+  }
 };
 
-
 export const handleAPACApiCall = async <T = any>(
-    url: string,
-    data?: any,
-    headers?: Record<string, string>,
-    showError: boolean = false
+  url: string,
+  data: any = {},
+  headers?: Record<string, string>,
+  showGlobalLoading?: boolean,
+  showError: boolean = false,
 ): Promise<T> => {
-    const setLoading = useLoaderStore.getState().setLoading;
-    try {
-        console.log('Making API call to:', apiClientAPAC.getUri());
-        setLoading(true);
-        console.time('API Call Timing');
-        const response = await apiClientAPAC.request<T>({
-            method: 'POST',
-            url,
-            data,
-            headers: {
-                ...headers,
-            },
-        });
-        console.timeEnd('API Call Timing');
-        return response.data;
-    } catch (error: any) {
-        if (showError) {
-            console.error('Custom API Error:', error?.response?.data || error.message);
-        }
-        throw error;
-    } finally {
-        setLoading(false);
+  const {token, userInfo} = useLoginStore.getState();
+  const setLoading = useLoaderStore.getState().setLoading;
+  const setGlobalLoading = useLoaderStore.getState().setGlobalLoading;
+
+  try {
+    setLoading(true);
+    if (showGlobalLoading) {
+      setGlobalLoading(true);
     }
+    const timeLog = `${Math.random().toFixed(3)} API Call Timing for ${url}`;
+    if (__DEV__) {
+      console.time(timeLog);
+    }
+    const response = await apiClientAPAC.request<T>({
+      method: 'POST',
+      url,
+      data,
+      headers: {
+        ...headers,
+      },
+    });
+    if (__DEV__) {
+      console.timeEnd(timeLog);
+    }
+    return response.data;
+  } catch (error: any) {
+    if (showError) {
+      console.error(
+        'Custom API Error:',
+        error?.response?.data || error.message,
+      );
+    }
+    throw error;
+  } finally {
+    setGlobalLoading(false);
+    setLoading(false);
+    if (token && userInfo?.EMP_Code) {
+      void saveApiLog(url, token, userInfo.EMP_Code);
+    } else {
+      console.log('Token or EMP_Code is missing, skipping API log save');
+    }
+  }
 };
 
 const saveApiLog = async (
-    url: string,
-    token: string,
-    empCode: string,
+  url: string,
+  token: string,
+  empCode: string,
 ): Promise<void> => {
-    try {
-        await apiClientASIN.post('/Information/SaveAPIRequestInfo', {
-            Employee_Code: empCode,
-            API_Name: url,
-            Token_ID: token,
-        });
-    } catch {
-        console.log('Failed to save API log');
-    }
+  try {
+    await apiClientASIN.post('/Information/SaveAPIRequestInfo', {
+      Employee_Code: empCode,
+      API_Name: url,
+      Token_ID: token,
+    });
+  } catch {
+    console.log('Failed to save API log');
+  }
 };

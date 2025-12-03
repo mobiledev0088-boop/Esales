@@ -23,7 +23,7 @@ export const useScanSNStore = create<ScanSNState>()(
         }),
         {
             name: 'ScanSN-store',
-            storage: createMMKVStorage<ScanSNState>('ScanSN'),
+            storage: createMMKVStorage<ScanSNState>(),
             onRehydrateStorage: () => () => {
                 console.log('✅ Zustand rehydrated from MMKV:');
             },

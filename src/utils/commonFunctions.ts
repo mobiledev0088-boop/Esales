@@ -28,6 +28,35 @@ export const convertToASINUnits = (
   return `${currencySymbol}${formattedValue}`;
 };
 
+export const convertToAPACUnits = (
+  amount: number,
+  needFull = false,
+  needCurrencySymbol = false,
+): string => {
+  const currencySymbol = needCurrencySymbol ? '\u20B9' : '';
+
+  if (needFull) {
+    return `${currencySymbol}${amount.toLocaleString('en-US')}`;
+  }
+
+  let formattedValue: string;
+
+  if (amount >= 1e9) {
+    // Billion
+    formattedValue = `${(amount / 1e9).toFixed(2).replace(/\.00$/, '')}B`;
+  } else if (amount >= 1e6) {
+    // Million
+    formattedValue = `${(amount / 1e6).toFixed(2).replace(/\.00$/, '')}M`;
+  } else if (amount >= 1e3) {
+    // Thousand
+    formattedValue = `${(amount / 1e3).toFixed(2).replace(/\.00$/, '')}K`;
+  } else {
+    formattedValue = amount.toString();
+  }
+
+  return `${currencySymbol}${formattedValue}`;
+};
+
 export const convertToCapitalized = (text: string): string => {
   return text
     .split('')

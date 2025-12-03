@@ -51,6 +51,8 @@ const Home: React.FC = () => {
 
   const getScreens = () => {
     const arr: TabScreens[] = [];
+
+    // Dashboard
     if (userInfo?.EMP_Btype === ASUS.BUSINESS_TYPES.COMMERCIAL) {
       // dashboard for  Rooling Funnel
           arr.push({
@@ -78,6 +80,7 @@ const Home: React.FC = () => {
         arr.push({name: 'Dashboard', component: Dashboard, icon: 'bar-chart'});
       }
     }
+    
     // Demo
     if (userInfo?.EMP_Btype !== ASUS.BUSINESS_TYPES.COMMERCIAL) {
       if (
@@ -98,9 +101,10 @@ const Home: React.FC = () => {
         userInfo?.EMP_RoleId !== ASUS.ROLE_ID.ESHOP_HO
       ) {
         // Demo for DISTRIBUTORS and Disti HO and ESHOP HO
-        arr.push({name: 'Demo', component: Demo, icon: 'laptop'});
+        arr.push({name: 'Demo', component: Demo, icon: 'laptop', iconType:'materialIcons'});
       }
     }
+
     // Claim
     if (userInfo?.EMP_Btype !== ASUS.BUSINESS_TYPES.COMMERCIAL) {
       if (
@@ -119,6 +123,7 @@ const Home: React.FC = () => {
         });
       }
     }
+
     // schemes
     if (
       userInfo?.EMP_Btype == ASUS.BUSINESS_TYPES.COMMERCIAL ||
@@ -131,6 +136,7 @@ const Home: React.FC = () => {
       // schemes
       arr.push({name: 'Schemes', component: Schemes, icon: 'calendar'});
     }
+
     // P.Status
     if (
       (userInfo?.EMP_Btype !== ASUS.BUSINESS_TYPES.COMMERCIAL &&
@@ -155,8 +161,9 @@ const Home: React.FC = () => {
         action: () => SheetManager.show('MoreSheet'),
       });
     }
+
+    // power Calculator
     if (userInfo?.EMP_Btype === ASUS.BUSINESS_TYPES.COMMERCIAL) {
-      // power Calculator
       arr.push({
         name: 'Power Calculator',
         component: PowerCalculator,
@@ -192,7 +199,7 @@ const CustomTabBar: React.FC<MyTabBarProps> = ({
   TabScreens,
 }) => {
   return (
-    <View className="flex-row justify-around items-center bg-white dark:bg-[#2c334d] border-t border-gray-200 py-3">
+    <View className="flex-row justify-around items-center bg-lightBg-base dark:bg-darkBg-base border-t border-gray-200 py-3">
       {state.routes.map((route, index) => {
         const isFocused = state.index === index;
         const screen = TabScreens.find(s => s.name === route.name);
@@ -223,7 +230,7 @@ const CustomTabBar: React.FC<MyTabBarProps> = ({
           : (iconType === 'ionicons' || iconType === 'material-community')
             ? `${icon}-outline`
             : icon;
-        const iconColor = isFocused ? AppColors.primary : '#95a5a6';
+        const iconColor = isFocused ? AppColors.tabSelected : '#95a5a6';
 
         return (
           <Pressable

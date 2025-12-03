@@ -1,9 +1,9 @@
 import AppLayout from '../../../../../components/layout/AppLayout';
 import {useQuery} from '@tanstack/react-query';
 import AppDropdown from '../../../../../components/customs/AppDropdown';
-import {handleASINApiCall} from '../../../../../utils/handleApiCall';
+import {handleAPACApiCall, handleASINApiCall} from '../../../../../utils/handleApiCall';
 import AppText from '../../../../../components/customs/AppText';
-import {useMemo, useRef, useState} from 'react';
+import {useMemo, useState} from 'react';
 import AppImage from '../../../../../components/customs/AppImage';
 import Card from '../../../../../components/Card';
 import AppButton from '../../../../../components/customs/AppButton';
@@ -14,9 +14,10 @@ import {
   showToast,
 } from '../../../../../utils/commonFunctions';
 import {useLoaderStore} from '../../../../../stores/useLoaderStore';
-import { Button, Platform, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { Platform, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import AppIcon from '../../../../../components/customs/AppIcon';
 import AppModal from '../../../../../components/customs/AppModal';
+import { useLoginStore } from '../../../../../stores/useLoginStore';
 
 interface EDMModel {
   label: string;
@@ -24,42 +25,76 @@ interface EDMModel {
   path: string;
 }
 
-// API fetch function
-const fetchEDMModels = async (): Promise<EDMModel[]> => {
-  const res = await handleASINApiCall('/Information/GetEDMModelList');
-  const result = res?.DashboardData;
-  if (!result?.Status) throw new Error('Failed to fetch EDM model list');
+const useGetEDMModels = (isAPAC: boolean,Country: string) => {
+  const handleFunction = isAPAC ? handleAPACApiCall : handleASINApiCall;
+  const dataToSend = isAPAC ? { Country: Country } : {};
+  return useQuery({
+    queryKey: ['edminfo'],
+    queryFn: async (): Promise<EDMModel[]> => {
+      const res = await handleFunction('/Information/GetEDMModelList',dataToSend);
+      const result = res?.DashboardData;
+      console.log('EDM Model List Response:', result);
+      if (!result?.Status) throw new Error('Failed to fetch EDM model list');
 
-  const EDMmodelList = result?.Datainfo?.EDM_Model_List || [];
+      const EDMmodelList = result?.Datainfo?.EDM_Model_List || [];
 
-  // Deduplicate by Model_Name
-  return Array.from(
-    new Map(
-      EDMmodelList.map((item: {Model_Name: string; FilePath: string}) => [
-        item.Model_Name,
-        {
-          label: item.Model_Name.trim(),
-          value: item.Model_Name.trim(),
-          path: item.FilePath.trim(),
-        },
-      ]),
-    ).values(),
-  ) as any;
+      // Deduplicate by Model_Name
+      return Array.from(
+        new Map(
+          EDMmodelList.map((item: {Model_Name: string; FilePath: string}) => [
+            item.Model_Name,
+            {
+              label: item.Model_Name.trim(),
+              value: item.Model_Name.trim(),
+              path: item.FilePath.trim(),
+            },
+          ]),
+        ).values(),
+      ) as any;
+    },
+  });
 };
 
-const EDMInfo = () => {
+const ImageModal = ({isOpen,onClose,selectedModel}:{isOpen:boolean,onClose:()=>void,selectedModel:EDMModel|null}) => {
+  return (
+    <AppModal isOpen={isOpen} onClose={onClose} animationType="slide" noCard >
+      <View style={{width:screenWidth,height:screenHeight,justifyContent:'center',alignItems:'center'}}>
+        <TouchableWithoutFeedback onPress={onClose}>
+          <View style={{position: 'absolute', top: 50, right: 20, padding:5,borderRadius:50, backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 9999}}>
+            <AppIcon type="feather" name="x" size={24} color="#fff" />
+          </View>
+        </TouchableWithoutFeedback>
+      {selectedModel && (
+        <AppImage
+        source={{ uri: selectedModel.path }}
+        style={{ width: screenWidth * 0.95, height: screenHeight * 0.6 }}
+        resizeMode="contain"
+        zoomable
+        />
+      )}
+      <View className="absolute bottom-8 self-center bg-black/60 px-4 py-3 rounded-md">
+          <AppText className="text-white text-base">
+              Double tap to zoom in/out
+          </AppText>
+        </View>
+      </View>
+    </AppModal>
+  );
+};
+
+export default function EDMInfo() {
   const [selectedModel, setSelectedModel] = useState<EDMModel | null>(null);
   const setLoading = useLoaderStore(state => state.setLoading);
+  const {EMP_CountryID:Country=""} = useLoginStore(state => state.userInfo);
+  const isAPAC =  Country !== ASUS.COUNTRIES.ASIN
+  console.log('EDMInfo Country:', Country, 'isAPAC:', isAPAC);
   const [isOpen,setIsOpen] = useState(false);
 
   const {
     data: edmModels = [],
     isLoading,
     isError,
-  } = useQuery({
-    queryKey: ['edminfo'],
-    queryFn: fetchEDMModels,
-  });
+  } = useGetEDMModels(isAPAC,Country);
 
   const dropdownPlaceholder = useMemo(() => {
     if (isLoading) return 'Loading...';
@@ -144,32 +179,3 @@ const EDMInfo = () => {
     </AppLayout>
   );
 };
-
-const ImageModal = ({isOpen,onClose,selectedModel}:{isOpen:boolean,onClose:()=>void,selectedModel:EDMModel|null}) => {
-  return (
-    <AppModal isOpen={isOpen} onClose={onClose} animationType="slide" noCard >
-      <View style={{width:screenWidth,height:screenHeight,justifyContent:'center',alignItems:'center'}}>
-        <TouchableWithoutFeedback onPress={onClose}>
-          <View style={{position: 'absolute', top: 50, right: 20, padding:5,borderRadius:50, backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 9999}}>
-            <AppIcon type="feather" name="x" size={24} color="#fff" />
-          </View>
-        </TouchableWithoutFeedback>
-      {selectedModel && (
-        <AppImage
-        source={{ uri: selectedModel.path }}
-        style={{ width: screenWidth * 0.95, height: screenHeight * 0.6 }}
-        resizeMode="contain"
-        zoomable
-        />
-      )}
-      <View className="absolute bottom-8 self-center bg-black/60 px-4 py-3 rounded-md">
-          <AppText className="text-white text-base">
-              Double tap to zoom in/out
-          </AppText>
-        </View>
-      </View>
-    </AppModal>
-  );
-};
-
-export default EDMInfo;

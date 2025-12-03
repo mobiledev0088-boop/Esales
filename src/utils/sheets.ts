@@ -14,6 +14,10 @@ import {
 } from '../screens/app/ASIN/Demo/DemoPartners';
 import { LMSBranchDetailsSheet } from '../screens/app/ASIN/More/LMS/LMSList_HO';
 import { PartnerDemoDetailsSheet } from '../screens/app/ASIN/Demo/Demo_Partner';
+import ClosingDetailsSheet from '../screens/app/ASIN/Commercial/RollingFunnel/ClosingDetailsSheet';
+import { RollingFunnelData } from '../screens/app/ASIN/Commercial/RollingFunnel/types';
+import RollingFilterSheet from '../screens/app/ASIN/Commercial/RollingFunnel/RollingFilterSheet';
+import PromoterFilterSheet from '../screens/app/APAC/ATID/Promoter/PromoterFilterSheet';
 
 registerSheet('MoreSheet', MoreSheet);
 registerSheet('ConfirmationSheet', ConfirmationSheet);
@@ -28,6 +32,9 @@ registerSheet('PartnerDetailsSheet', PartnerDetailsSheet);
 registerSheet('DemoDetailsSheet', DemoDetailsSheet);
 registerSheet('LMSBranchDetailsSheet', LMSBranchDetailsSheet);
 registerSheet('PartnerDemoDetailsSheet', PartnerDemoDetailsSheet);
+registerSheet('ClosingDetailsSheet', ClosingDetailsSheet);
+registerSheet('RollingFilterSheet', RollingFilterSheet);
+registerSheet('PromoterFilterSheet', PromoterFilterSheet);
 
 // We extend some of the types here to give us great intellisense
 // across the app for all registered sheets.
@@ -56,7 +63,19 @@ declare module 'react-native-actions-sheet' {
         } | null;
         yearQtr: string;
       };
+    }>;    
+    ClosingDetailsSheet: SheetDefinition<{
+      payload: {
+        item: RollingFunnelData;
+        onSubmit: () => void;
+      };
     }>;
+    RollingFilterSheet: SheetDefinition<{
+      payload: {
+        // Define any payload properties if needed
+      };
+    }>;
+    PromoterFilterSheet: SheetDefinition;
   }
 }
 

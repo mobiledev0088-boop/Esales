@@ -14,7 +14,7 @@ const apiClientASIN = axios.create({
 
 const apiClientAPAC = axios.create({
   baseURL: 'https://esales.asus.com/app/api/',
-  timeout: 10000,
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },

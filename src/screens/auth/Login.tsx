@@ -3,14 +3,17 @@ import AppInput from '../../components/customs/AppInput';
 import AppButton from '../../components/customs/AppButton';
 import AuthLayout from '../../components/layout/AuthLayout';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
+import { TextInput } from 'react-native';
 import { getDeviceId } from 'react-native-device-info';
 import { useLoginMutation } from '../../hooks/queries/auth';
 
 const Login = () => {
     // const [formData, setFormData] = useState({ username: 'Ashish_Devasi', password: '@ITSMbpm07072025' });
-    const [formData, setFormData] = useState({ username: 'Mayur_S', password: 'Mr8@089949190088' });
+    const [formData, setFormData] = useState({ username: 'meet_solanki', password: 'Native@28082000' });
     const [errorMessage, setErrorMessage] = useState<{ [key: string]: string }>({});
+    
+    const passwordInputRef = useRef<TextInput>(null);
 
     const { mutate: login } = useLoginMutation();
 
@@ -44,12 +47,14 @@ const Login = () => {
         }
     };
 
+
     return (
-        <AuthLayout>
-            <Card className='p-6 px-10'>
+        <AuthLayout >
+            <Card className='p-6 rounded-3xl bg-white'>
                 <AppInput
                     value={formData.username}
                     setValue={value => handleChange('username', value)}
+                    size='lg'
                     variant='underline'
                     label='Username'
                     placeholder='Enter your username'
@@ -57,10 +62,16 @@ const Login = () => {
                     containerClassName='mb-6'
                     error={errorMessage.username}
                     isOptional
+                    returnKeyType='next'
+                    onSubmitEditing={() => passwordInputRef.current?.focus()}
+                    submitBehavior='submit'
+                    
                 />
                 <AppInput
+                    ref={passwordInputRef}
                     value={formData.password}
                     setValue={value => handleChange('password', value)}
+                    size='lg'
                     variant='underline'
                     label='Password'
                     placeholder='Enter your password'
@@ -69,11 +80,13 @@ const Login = () => {
                     isPassword
                     error={errorMessage.password}
                     isOptional
+                    returnKeyType='done'
+                    // onSubmitEditing={handleSubmit}
                 />
                 <AppButton
                     title='Login'
                     onPress={handleSubmit}
-                    className='mt-8 w-4/6 self-center'
+                    className='mt-8 w-4/6 self-center rounded-md'
                 />
             </Card>
         </AuthLayout>
