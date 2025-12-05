@@ -112,6 +112,7 @@ type AppNavigationParamList = {
   AddRollingFunnel: undefined;
   
   //APAC Screens
+  ChannelMapDealerInfo: {Dealer_Data: any};
   Promoter: undefined;
   PromoterUpload: {type: string};
   SelloutInfo: {

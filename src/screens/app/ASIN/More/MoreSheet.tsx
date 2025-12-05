@@ -154,9 +154,15 @@ const getASINOptions = (
 };
 
 const getAPEXOptions = (countryId?: string): Option[] => {
-  const opts: Option[] = [
-    {label: 'EDM Info', iconName: 'laptop', iconType: 'antdesign', navigateTo: 'EDMInfo'},
-  ];
+  const opts: Option[] = [];
+  if (countryId === 'ACMY') {
+    opts.push({
+      label: 'EDM Info',
+      iconName: 'laptop',
+      iconType: 'antdesign',
+      navigateTo: 'EDMInfo',
+    });
+  }
 
   if (countryId === 'ATID') {
     opts.push({
@@ -166,13 +172,14 @@ const getAPEXOptions = (countryId?: string): Option[] => {
       navigateTo: 'Promoter',
     });
   }
-  if (countryId === 'ACMY') {
-    opts.push({
-      label: 'Product Info',
-      iconName: 'laptop',
-      iconType: 'material-community',
-    });
-  }
+  // if (countryId === 'ACMY') {
+  opts.push({
+    label: 'Product Info',
+    iconName: 'laptop',
+    iconType: 'material-community',
+    navigateTo: 'ProductInfo',
+  });
+  // }
 
   return opts;
 };
@@ -207,11 +214,12 @@ const MoreSheet = () => {
         zIndex={100}
         gestureEnabled
         containerStyle={{
-          backgroundColor:AppColors[AppTheme].bgBase
-        }}
-        >
+          backgroundColor: AppColors[AppTheme].bgBase,
+        }}>
         {/* Create Indicator */}
-        <View style={{height: screenHeight / 2}} className='bg-lightBg-base dark:bg-darkBg-base'>
+        <View
+          style={{height: screenHeight / 2}}
+          className="bg-lightBg-base dark:bg-darkBg-base">
           <Watermark />
           <Swiper
             loop={false}
@@ -258,26 +266,29 @@ const EachMoreOption = ({
 }) => {
   const isDarkMode = useThemeStore(state => state.AppTheme === 'dark');
   return (
-    <TouchableOpacity activeOpacity={0.7} onPress={onPress} className='items-center'>
-        <View
-          className="bg-lightBg-surface dark:bg-darkBg-surface justify-center items-center p-2 rounded-xl border border-util-blue dark:border-util-cyan"
-          style={getShadowStyle(3)}>
-          <AppIcon
-            type={iconType}
-            name={iconName}
-            size={43}
-            color={isDarkMode ? '#fff' : AppColors.primary}
-          />
-        </View>
-        <View className="mt-2 items-center">
-          <AppText
-            size="sm"
-            weight="semibold"
-            className="text-heading-light dark:text-heading-dark text-center w-16"
-            numberOfLines={2}>
-            {label}
-          </AppText>
-        </View>
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={onPress}
+      className="items-center">
+      <View
+        className="bg-lightBg-surface dark:bg-darkBg-surface justify-center items-center p-2 rounded-xl border border-util-blue dark:border-util-cyan"
+        style={getShadowStyle(3)}>
+        <AppIcon
+          type={iconType}
+          name={iconName}
+          size={43}
+          color={isDarkMode ? '#fff' : AppColors.primary}
+        />
+      </View>
+      <View className="mt-2 items-center">
+        <AppText
+          size="sm"
+          weight="semibold"
+          className="text-heading-light dark:text-heading-dark text-center w-16"
+          numberOfLines={2}>
+          {label}
+        </AppText>
+      </View>
     </TouchableOpacity>
   );
 };

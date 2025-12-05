@@ -44,6 +44,7 @@ import {
   convertToASINUnits,
   convertToTitleCase,
   getPastQuarters,
+  getProductConfig,
 } from '../../../../utils/commonFunctions';
 import {ASUS, DASHBOARD} from '../../../../utils/constant';
 import {AppColors} from '../../../../config/theme';
@@ -161,24 +162,6 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
   const navigation = useNavigation<AppNavigationProp>();
   const AppTheme = useThemeStore(state => state.AppTheme);
   const darkMode = AppTheme === 'dark';
-  const getProductConfig = useCallback(
-    (category: string): {icon: string; color: string} => {
-      const configs: Record<string, {icon: string; color: string}> = {
-        NB: {icon: 'laptop', color: AppColors.utilColor1}, // Notebook/Laptop
-        NR: {icon: 'monitor', color: AppColors.utilColor2}, // Network Router or Desktop Monitor
-        AIO: {icon: 'monitor-speaker', color: AppColors.utilColor3}, // All-in-One PC
-        DT: {icon: 'desktop-tower-monitor', color: AppColors.utilColor4}, // Desktop
-        GDT: {icon: 'desktop-tower', color: AppColors.utilColor5}, // Gaming Desktop
-        Creator: {icon: 'account-group', color: AppColors.utilColor6}, // Creator Laptops/Workstations
-        ACCY: {icon: 'package-variant', color: AppColors.utilColor7}, // Accessories
-        WEP: {icon: 'wifi', color: AppColors.utilColor8}, // Wireless/Network Equipment
-      };
-      return (
-        configs[category] || {icon: 'package', color: AppColors.utilColor1}
-      );
-    },
-    [],
-  );
 
   const handleDistributorWisePress = useCallback((wise:'POD' | 'SELL') => {
     navigation.push('TargetSummary', {
@@ -206,7 +189,7 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
       animationDelay: number = 0,
       onPress?: (item: ProductCategoryData) => void,
     ) => {
-      const config = getProductConfig(item.Product_Category);
+      const config = getProductConfig(index);
       return (
         <TouchableOpacity
           disabled={!onPress}
@@ -259,7 +242,7 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
         </TouchableOpacity>
       );
     },
-    [getProductConfig],
+    [],
   );
   // Determine if Distributor Wise button should be shown
   const needDistributorAccess = ![

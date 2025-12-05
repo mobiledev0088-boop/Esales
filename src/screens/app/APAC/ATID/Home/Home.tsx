@@ -1,45 +1,48 @@
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import { useLoginStore } from '../../../../../stores/useLoginStore';
-import { MyTabBarProps, TabScreens } from '../../../../../types/navigation';
-import { useMemo } from 'react';
+import {useLoginStore} from '../../../../../stores/useLoginStore';
+import {MyTabBarProps, TabScreens} from '../../../../../types/navigation';
+import {useMemo} from 'react';
 import AppLayout from '../../../../../components/layout/AppLayout';
-import { Pressable, View } from 'react-native';
-import { AppColors } from '../../../../../config/theme';
+import {Pressable, View} from 'react-native';
+import {AppColors} from '../../../../../config/theme';
 import AppIcon from '../../../../../components/customs/AppIcon';
 import AppText from '../../../../../components/customs/AppText';
 import Dashboard from '../Dashboard/Dashboard';
-import { SheetManager } from 'react-native-actions-sheet';
+import {SheetManager} from 'react-native-actions-sheet';
+import ChannelMap from '../ChannelMap/ChannelMap';
 
 const Tab = createBottomTabNavigator();
 
 const Home: React.FC = () => {
   const userInfo = useLoginStore(state => state.userInfo);
 
-    const getScreens = () => {
-        const arr: TabScreens[] = [];
-        arr.push(
-          {
-            name: 'Dashboard',
-            component: Dashboard,
-            icon: 'bar-chart',
-          }
-        )
-        arr.push({
-                name: 'More',
-                component: Dashboard, // Placeholder component
-                icon: 'ellipsis-horizontal',
-                action: () => SheetManager.show('MoreSheet'),
-              });
-        return arr;
-    };
-    const TabScreens: TabScreens[] = useMemo(() => getScreens(), [userInfo]);
+  const getScreens = () => {
+    const arr: TabScreens[] = [];
+    arr.push({
+      name: 'Dashboard',
+      component: Dashboard,
+      icon: 'bar-chart',
+    });
+    arr.push({
+      name: 'Channel Map',
+      component: ChannelMap, 
+      icon: 'map',
+    });
+    arr.push({
+      name: 'More',
+      component: Dashboard, // Placeholder component
+      icon: 'ellipsis-horizontal',
+      action: () => SheetManager.show('MoreSheet'),
+    });
+    return arr;
+  };
+  const TabScreens: TabScreens[] = useMemo(() => getScreens(), [userInfo]);
 
   return (
     <AppLayout isDashboard>
       <Tab.Navigator
-        screenOptions={{headerShown: false, tabBarHideOnKeyboard: true, }}
-        tabBar={props => <CustomTabBar  {...props} TabScreens={TabScreens}  />}
-        >
+        screenOptions={{headerShown: false, tabBarHideOnKeyboard: true}}
+        tabBar={props => <CustomTabBar {...props} TabScreens={TabScreens} />}>
         {TabScreens.map(screen => (
           <Tab.Screen
             key={screen.name}
@@ -87,7 +90,7 @@ const CustomTabBar: React.FC<MyTabBarProps> = ({
         // Only append -outline for ionicons set; otherwise keep the same icon name
         const iconName = isFocused
           ? icon
-          : (iconType === 'ionicons' || iconType === 'material-community')
+          : iconType === 'ionicons' || iconType === 'material-community'
             ? `${icon}-outline`
             : icon;
         const iconColor = isFocused ? AppColors.tabSelected : '#95a5a6';

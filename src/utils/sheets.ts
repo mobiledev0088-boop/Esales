@@ -17,7 +17,8 @@ import { PartnerDemoDetailsSheet } from '../screens/app/ASIN/Demo/Demo_Partner';
 import ClosingDetailsSheet from '../screens/app/ASIN/Commercial/RollingFunnel/ClosingDetailsSheet';
 import { RollingFunnelData } from '../screens/app/ASIN/Commercial/RollingFunnel/types';
 import RollingFilterSheet from '../screens/app/ASIN/Commercial/RollingFunnel/RollingFilterSheet';
-import PromoterFilterSheet from '../screens/app/APAC/ATID/Promoter/PromoterFilterSheet';
+import PromoterFilterSheet from '../screens/app/APAC/ATID/More/Promoter/PromoterFilterSheet';
+import ChannelMapFilterSheet from '../screens/app/APAC/ATID/ChannelMap/ChannelMapFilterSheet';
 
 registerSheet('MoreSheet', MoreSheet);
 registerSheet('ConfirmationSheet', ConfirmationSheet);
@@ -35,6 +36,7 @@ registerSheet('PartnerDemoDetailsSheet', PartnerDemoDetailsSheet);
 registerSheet('ClosingDetailsSheet', ClosingDetailsSheet);
 registerSheet('RollingFilterSheet', RollingFilterSheet);
 registerSheet('PromoterFilterSheet', PromoterFilterSheet);
+registerSheet('ChannelMapFilterSheet', ChannelMapFilterSheet);
 
 // We extend some of the types here to give us great intellisense
 // across the app for all registered sheets.
@@ -76,6 +78,7 @@ declare module 'react-native-actions-sheet' {
       };
     }>;
     PromoterFilterSheet: SheetDefinition;
+    ChannelMapFilterSheet: SheetDefinition;
   }
 }
 

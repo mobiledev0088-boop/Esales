@@ -8,6 +8,7 @@ import {useState} from 'react';
 import AppText from './customs/AppText';
 import AppIcon from './customs/AppIcon';
 import { AppColors } from '../config/theme';
+import { useThemeStore } from '../stores/useThemeStore';
 
 type CardProps = {
   children?: React.ReactNode;
@@ -51,6 +52,7 @@ const Card: React.FC<CardProps> = ({
   watermarkColumnGap = 0,
   ...rest
 }) => {
+  const isDarkTheme = useThemeStore.getState().AppTheme === 'dark';
   const [size, setSize] = useState({width: 0, height: 0});
   const mergedClassName = twMerge(
     'bg-lightBg-surface dark:bg-darkBg-surface p-4 rounded-xl',
@@ -84,7 +86,7 @@ const Card: React.FC<CardProps> = ({
         {children}
         {!noshadow && <View
           className={twMerge(mergedClassName, 'absolute')}
-          style={{width: size.width, height: size.height, ...getShadowStyle(1), zIndex: -1, borderWidth:0}}
+          style={{width: size.width, height: size.height, ...getShadowStyle(1, isDarkTheme? "#fff":"#000"), zIndex: -1, borderWidth:0}}
         />}
       </View>
       {needSeeMore && (

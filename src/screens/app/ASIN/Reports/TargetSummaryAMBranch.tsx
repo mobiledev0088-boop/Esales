@@ -197,7 +197,7 @@ export default function TargetSummaryAMBranch() {
 
   const renderProductCard = useCallback(
     (item: ProductCategory, index: number) => {
-      const config = getProductConfig(item.Product_Category);
+      const config = getProductConfig(index);
       const achievedQty = item.Achieved_Qty || 0;
       return (
         <View className="items-center p-2" key={index}>

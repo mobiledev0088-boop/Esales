@@ -97,7 +97,7 @@ const TabBar = React.memo(({
     <View
     key={tabs.length}
       className="flex-row rounded-lg p-1 py-2 mx-4 mb-0 items-center"
-      style={[{ backgroundColor: isDarkTheme ? '#121212' : '#f3f4f6', }]}
+      style={[{ backgroundColor: isDarkTheme ? AppColors.dark.bgBase : '#f3f4f6', }]}
     >
       <Animated.View
         pointerEvents="none"

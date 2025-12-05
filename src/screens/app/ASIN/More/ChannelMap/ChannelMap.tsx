@@ -209,7 +209,7 @@ const AGPInfo = () => {
     ].includes(userInfo.EMP_RoleId as any) ||
     ['KN2200052', 'KN1800037', 'KN2500069'].includes(userInfo?.EMP_Code || '');
   return (
-    <View className="flex-1 bg-lightBg-base px-1">
+    <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base px-1">
       <SearchableDropdown
         data={listData || []}
         placeholder="Select AGP Channel Map Data"
@@ -363,7 +363,6 @@ export default function ChannelMap() {
           },
         ]}
         tabPadding={10}
-        equalWidth
       />
     </AppLayout>
   );

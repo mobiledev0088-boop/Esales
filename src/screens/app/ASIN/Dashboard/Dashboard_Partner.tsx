@@ -429,7 +429,7 @@ export default function Dashboard_Partner({noBanner,DifferentEmployeeCode,noPadd
   const isDataEmpty = !isLoading && !dashboardData;
   return (
     <ScrollView
-      className={clsx("flex-1 bg-lightBg-base", noPadding ? '' : 'px-3')}
+      className={clsx("flex-1 bg-lightBg-base dark:bg-darkBg-base", noPadding ? '' : 'px-3')}
       contentContainerClassName="flex-grow pb-10 gap-5 pt-3"
       showsVerticalScrollIndicator={false}
       refreshControl={

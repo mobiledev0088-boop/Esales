@@ -212,22 +212,21 @@ export const convertImageToBase64 = async (
 };
 
 export const getProductConfig = (
-  category: string,
+  index: number,
 ): {icon: string; color: string} => {
-  const configs: Record<string, {icon: string; color: string}> = {
-    NB: {icon: 'laptop', color: AppColors.utilColor1},
-    NR: {icon: 'monitor', color: AppColors.utilColor2},
-    AIO: {icon: 'monitor-speaker', color: AppColors.utilColor3},
-    DT: {icon: 'desktop-tower-monitor', color: AppColors.utilColor4},
-    GDT: {icon: 'desktop-tower', color: AppColors.utilColor5},
-    NX: {icon: 'cube-outline', color: AppColors.utilColor6},
-    LM: {icon: 'book-open-variant', color: AppColors.utilColor7},
-    WEP: {icon: 'wifi', color: AppColors.utilColor8},
-    ACCY: {icon: 'package-variant', color: AppColors.utilColor9},
-  };
-  return configs[category] || {icon: 'package', color: AppColors.utilColor1};
+  const configs: {icon: string; color: string}[] = [
+    {icon: 'laptop', color: AppColors.utilColor1},
+    {icon: 'monitor', color: AppColors.utilColor2},
+    {icon: 'monitor-speaker', color: AppColors.utilColor3},
+    {icon: 'desktop-tower-monitor', color: AppColors.utilColor4},
+    {icon: 'desktop-tower', color: AppColors.utilColor5},
+    {icon: 'cube-outline', color: AppColors.utilColor6},
+    {icon: 'book-open-variant', color: AppColors.utilColor7},
+    {icon: 'wifi', color: AppColors.utilColor8},
+    {icon: 'package-variant', color: AppColors.utilColor9},
+  ];
+  return configs[index] || {icon: 'package', color: AppColors.utilColor1};
 };
-
 
 export const formatUnique = (arr: any[], valueKey: string, labelKey: string = valueKey) => {
   if (!Array.isArray(arr)) return [];
@@ -240,4 +239,13 @@ export const formatUnique = (arr: any[], valueKey: string, labelKey: string = va
       ])
     ).values(),
   ];
+};
+
+export const applyOpacityHex = (hex: string, opacity: number) => {
+  const base = hex.replace("#", "");
+  const alpha = Math.round(opacity * 255)
+    .toString(16)
+    .padStart(2, "0");
+
+  return `#${base}${alpha}`;
 };

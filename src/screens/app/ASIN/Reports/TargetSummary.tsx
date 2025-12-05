@@ -12,6 +12,7 @@ import {CircularProgressBar} from '../../../../components/customs/AppChart';
 import {
   getPastQuarters,
   convertToASINUnits,
+  getProductConfig,
 } from '../../../../utils/commonFunctions';
 import {AppColors} from '../../../../config/theme';
 import {useQuery} from '@tanstack/react-query';
@@ -283,23 +284,9 @@ const groupDemoData = (
 
 const getGroupKey = (viewMode: ViewMode, item: GroupedData) => `${viewMode}-${item.territoryName || item.branchName}`;
 
-const getProductConfig = (category: string): {icon: string; color: string} => {
-  const configs: Record<string, {icon: string; color: string}> = {
-    NB: {icon: 'laptop', color: AppColors.utilColor1},
-    NR: {icon: 'monitor', color: AppColors.utilColor2},
-    AIO: {icon: 'monitor-speaker', color: AppColors.utilColor3},
-    DT: {icon: 'desktop-tower-monitor', color: AppColors.utilColor4},
-    GDT: {icon: 'desktop-tower', color: AppColors.utilColor5},
-    NX: {icon: 'cube-outline', color: AppColors.utilColor6},
-    LM: {icon: 'book-open-variant', color: AppColors.utilColor7},
-    WEP: {icon: 'wifi', color: AppColors.utilColor8},
-    ACCY: {icon: 'package-variant', color: AppColors.utilColor9},
-  };
-  return configs[category] || {icon: 'package', color: AppColors.utilColor1};
-};
 
-const ProductCard = memo(({product}: {product: ProductCategoryData}) => {
-  const config = getProductConfig(product.Product_Category);
+const ProductCard = memo(({product, index}: {product: ProductCategoryData, index: number}) => {
+  const config = getProductConfig(index);
   return (
     <TouchableOpacity disabled activeOpacity={0.7}>
       <Card className="min-w-40 rounded-md" watermark>
@@ -440,8 +427,8 @@ const GroupAccordionItem = memo(
               paddingBottom: 16,
               paddingHorizontal: 14,
             }}>
-            {group.products.map(product => (
-              <ProductCard key={product.Sequence_No} product={product} />
+            {group.products.map((product, index) => (
+              <ProductCard key={product.Sequence_No} product={product} index={index} />
             ))}
           </ScrollView>
           {button === 'seemore' && viewMode === 'branch' && (

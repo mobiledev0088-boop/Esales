@@ -25,6 +25,7 @@ import {
   convertToTitleCase,
   getPastMonths,
   getPastQuarters,
+  getProductConfig,
 } from '../../../../utils/commonFunctions';
 import {
   ActivationPerformanceSkeleton,
@@ -404,25 +405,6 @@ const DashboardHeader: React.FC<HeaderProps> = ({
 const TargetVsAchievementComponent: React.FC<
   Omit<TargetVsAchievementProps, 'data'> & {data: ProductCategoryData[]}
 > = ({data = [], isLoading, error, onRetry}) => {
-  const getProductConfig = useCallback(
-    (category: string): {icon: string; color: string} => {
-      const configs: Record<string, {icon: string; color: string}> = {
-        NB: {icon: 'laptop', color: AppColors.utilColor1},
-        NR: {icon: 'monitor', color: AppColors.utilColor2},
-        AIO: {icon: 'monitor-speaker', color: AppColors.utilColor3},
-        DT: {icon: 'desktop-tower-monitor', color: AppColors.utilColor4},
-        GDT: {icon: 'desktop-tower', color: AppColors.utilColor5},
-        Creator: {icon: 'account-group', color: AppColors.utilColor6},
-        ACCY: {icon: 'package-variant', color: AppColors.utilColor7},
-        WEP: {icon: 'wifi', color: AppColors.utilColor8},
-        NV: {icon: 'cellphone', color: AppColors.utilColor10},
-      };
-      return (
-        configs[category] || {icon: 'package', color: AppColors.utilColor1}
-      );
-    },
-    [],
-  );
 
   const handleSeeMorePress = useCallback(() => {
     console.log('See More pressed');
@@ -430,7 +412,7 @@ const TargetVsAchievementComponent: React.FC<
 
   const renderProductCard = useCallback(
     (item: ProductCategoryData, index: number) => {
-      const config = getProductConfig(item.Product_Category);
+      const config = getProductConfig(index);
       const achieved = Number(item.Achieved_Qty) || 0;
       return (
         <Card
@@ -469,7 +451,7 @@ const TargetVsAchievementComponent: React.FC<
         </Card>
       );
     },
-    [getProductConfig],
+    [],
   );
 
   if (error)

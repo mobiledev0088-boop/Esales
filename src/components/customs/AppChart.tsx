@@ -1,7 +1,7 @@
 import React, { useMemo, useCallback, useRef, useState, useEffect } from 'react';
 import { PieChart, BarChart } from 'react-native-gifted-charts';
 import AppText from './AppText';
-import { Animated, TouchableOpacity, View, Easing } from 'react-native';
+import { Animated, TouchableOpacity, View, Easing, DimensionValue } from 'react-native';
 
 // Constants for better maintainability
 const CHART_DEFAULTS = {
@@ -68,6 +68,23 @@ interface BarChartProps {
     showMaxValue?: boolean;
 }
 
+interface CircularProgressBarProps {
+  progress: number; // 0-100
+  progressColor: string;
+  size?: number;
+  strokeWidth?: number;
+  duration?: number;
+  value?: string | number; // Optional custom value to display in center
+}
+interface LinearProgressBarProps {
+  progress: number; // 0–100
+  progressColor: string;
+  height?: number;
+  width: DimensionValue;
+  duration?: number;
+  value?: number; // Fixed value instead of progress %
+}
+
 type AppChartProps = CompletionPieChartProps | FilledPieChartProps | BarChartProps;
 
 // Helper functions
@@ -127,14 +144,7 @@ const CompletionChart: React.FC<CompletionPieChartProps> = ({
 
 import Svg, {Circle} from 'react-native-svg';
 
-interface CircularProgressBarProps {
-  progress: number; // 0-100
-  progressColor: string;
-  size?: number;
-  strokeWidth?: number;
-  duration?: number;
-  value?: string | number; // Optional custom value to display in center
-}
+
 
 export const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
   progress,
@@ -253,6 +263,130 @@ export const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
     </View>
   );
 };
+
+export const LinearProgressBar: React.FC<LinearProgressBarProps> = ({
+  progress,
+  progressColor,
+  height = 14,
+  width = '100%',
+  duration = 800,
+  value,
+}) => {
+  const animatedValue = useRef(new Animated.Value(0)).current;
+  const [displayProgress, setDisplayProgress] = useState(0);
+
+  // If `value` provided → show 100% bar and display `value`
+  const clampedProgress =
+    value !== undefined ? 100 : Math.max(0, Math.min(progress, 100));
+
+  // Same lighter bg color logic
+  const lighterColor = useMemo(() => {
+    if (progressColor.startsWith('#')) {
+      const hex = progressColor.slice(1);
+      const num = parseInt(hex, 16);
+      const r = (num >> 16) & 255;
+      const g = (num >> 8) & 255;
+      const b = num & 255;
+
+      const newR = Math.min(255, Math.round(r + (255 - r) * 0.7));
+      const newG = Math.min(255, Math.round(g + (255 - g) * 0.7));
+      const newB = Math.min(255, Math.round(b + (255 - b) * 0.7));
+
+      return `rgb(${newR}, ${newG}, ${newB})`;
+    }
+
+    const colorMap: Record<string, string> = {
+      green: '#E6F7FF',
+      blue: '#E3F2FD',
+      red: '#FFEBEE',
+      orange: '#FFF3E0',
+      purple: '#F3E5F5',
+    };
+
+    return colorMap[progressColor] || '#F5F5F5';
+  }, [progressColor]);
+
+  // Animate width
+  useEffect(() => {
+    animatedValue.setValue(0);
+    setDisplayProgress(0);
+
+    const animation = Animated.timing(animatedValue, {
+      toValue: clampedProgress,
+      duration,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    });
+
+    let lastUpdate = 0;
+    const throttleTime = 16;
+
+    const listener = animatedValue.addListener(({value}) => {
+      const now = Date.now();
+      if (now - lastUpdate >= throttleTime) {
+        const actual =
+          clampedProgress > 0 ? (value / clampedProgress) * progress : 0;
+
+        setDisplayProgress(Math.round(actual));
+        lastUpdate = now;
+      }
+    });
+
+    animation.start();
+
+    return () => {
+      animatedValue.removeListener(listener);
+    };
+  }, [clampedProgress, duration, progress]);
+
+  const animatedWidth = animatedValue.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['0%', '100%'],
+  });
+
+  return (
+    <View style={{width: width}}>
+      {/* Background Track */}
+      <View
+        style={{
+          width: '100%',
+          height,
+          backgroundColor: lighterColor,
+          borderRadius: height / 2.5,
+          overflow: 'hidden',
+        }}
+      >
+        {/* Animated Progress Bar */}
+        <Animated.View
+          style={{
+            height: '100%',
+            width: animatedWidth,
+            backgroundColor: progressColor,
+            borderRadius: height / 2.5,
+          }}
+        />
+      </View>
+
+      {/* Text */}
+      <View
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          top: 0,
+          bottom: 0,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <AppText size="sm" weight="bold" style={{color: 'white'}}>
+          {value !== undefined ? value : `${displayProgress}%`}
+        </AppText>
+      </View>
+    </View>
+  );
+};
+
 
 const FilledChart: React.FC<FilledPieChartProps> = ({
     data,
