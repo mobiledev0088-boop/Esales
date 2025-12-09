@@ -382,14 +382,12 @@ export const useClaimMasterDataViewMore = ({
   YearQtr,
   ClaimCode,
   ClaimStatus,
-  enabled = false,
 }: {
   masterTab: string;
   BranchName: string;
   YearQtr: string;
   ClaimCode: string;
   ClaimStatus: string;
-  enabled?: boolean;
 }) => {
   const {
     EMP_Code: employeeCode = '',
@@ -398,7 +396,7 @@ export const useClaimMasterDataViewMore = ({
   } = useLoginStore(state => state.userInfo);
   return useQuery({
     queryKey: ['claimMasterDataViewMore', ClaimCode, employeeCode],
-    enabled: Boolean(enabled && ClaimCode && employeeCode),
+    enabled: Boolean(ClaimCode && employeeCode),
     queryFn: async () => {
       const payload = {
         employeeCode,

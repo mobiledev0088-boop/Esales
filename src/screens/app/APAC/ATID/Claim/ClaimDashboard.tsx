@@ -1,23 +1,12 @@
-import {
-  FlatList,
-  TouchableOpacity,
-  ListRenderItem,
-  View,
-  ActivityIndicator,
-} from 'react-native';
+import {FlatList, TouchableOpacity, ListRenderItem, View} from 'react-native';
 import {useMemo, useState, memo, useCallback} from 'react';
 import MaterialTabBar from '../../../../../components/MaterialTabBar';
-import {
-  useClaimDashboardDataAPAC,
-  useClaimMasterDataViewMore,
-} from '../../../../../hooks/queries/claim';
+import {useClaimDashboardDataAPAC} from '../../../../../hooks/queries/claim';
 import useQuarterHook from '../../../../../hooks/useQuarterHook';
 import Skeleton from '../../../../../components/skeleton/skeleton';
 import AppText from '../../../../../components/customs/AppText';
 import AppDropdown from '../../../../../components/customs/AppDropdown';
-import AppModal from '../../../../../components/customs/AppModal';
 import {useThemeStore} from '../../../../../stores/useThemeStore';
-import {ClaimDataSkeleton} from '../../../ASIN/Claim/components';
 import {getPerformanceColor} from '../../../ASIN/Dashboard/dashboardUtils';
 import Card from '../../../../../components/Card';
 import Accordion from '../../../../../components/Accordion';
@@ -35,6 +24,8 @@ import {
   SummaryMetricsProps,
 } from './claim';
 import {showClaimFilterSheet, ClaimFilterResult} from './ClaimFilterSheet';
+import {showClaimViewMoreSheet} from './ClaimViewMoreSheet';
+import {screenWidth} from '../../../../../utils/constant';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -141,10 +132,7 @@ const ClaimHeader = memo<ClaimHeaderProps>(
 );
 
 const ClaimItemCard = memo<ClaimItemCardProps>(
-  ({item, isDarkTheme}) => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [shouldFetch, setShouldFetch] = useState(false);
-
+  ({item, isDarkTheme, handleOpenViewMoreSheet}) => {
     const statusInfo = useMemo(
       () => getStatusColor(item.India_Status, isDarkTheme),
       [item.India_Status, isDarkTheme],
@@ -155,188 +143,95 @@ const ClaimItemCard = memo<ClaimItemCardProps>(
       [item.ClaimAmount],
     );
 
-    const {data: claimDetails, isLoading: isLoadingDetails} =
-      useClaimMasterDataViewMore({
-        ClaimCode: item.Claim_Code,
-        BranchName: item.BranchName,
-        ClaimStatus: item.India_Status,
-        masterTab: 'Closed',
-        YearQtr: '',
-        enabled: shouldFetch,
-      });
-
     const handleViewDetails = useCallback(() => {
-      setShouldFetch(true);
-      setIsModalOpen(true);
+      handleOpenViewMoreSheet(item);
     }, []);
 
-    const handleCloseModal = useCallback(() => {
-      setIsModalOpen(false);
-    }, []);
-
-    const renderModalContent = () => {
-      if (isLoadingDetails) {
-        return (
-          <View className="py-12 items-center justify-center">
-            <ActivityIndicator size="large" color={AppColors.primary} />
-            <AppText size="sm" color="gray" className="mt-4">
-              Loading claim details...
-            </AppText>
-          </View>
-        );
-      }
-
-      if (!claimDetails) {
-        return (
-          <View className="py-8 items-center">
-            <AppIcon
-              type="feather"
-              name="alert-circle"
-              size={48}
-              color={isDarkTheme ? '#9ca3af' : '#6b7280'}
-            />
-            <AppText size="base" color="gray" className="mt-4">
-              No details available
-            </AppText>
-          </View>
-        );
-      }
-
-      return (
-        <View className="py-2">
-          <AppText size="lg" weight="bold" color="text" className="mb-4">
-            Claim Details
-          </AppText>
-
-          {/* Claim Code */}
-          <View className="mb-4">
+    return (
+      <Card
+        className="mb-3 border border-slate-300 dark:border-slate-700"
+        noshadow>
+        {/* Claim Code and Amount */}
+        <View className="flex-row justify-between items-center mb-3">
+          <View className="flex-1">
             <AppText size="xs" color="gray" className="mb-1">
               Claim Code
             </AppText>
-            <AppText size="base" weight="semibold" color="text">
+            <AppText size="base" weight="bold" color="text">
               {item.Claim_Code}
             </AppText>
           </View>
-
-          {/* Display all fields from claimDetails */}
-          {Object.entries(claimDetails).map(([key, value]) => {
-            if (typeof value === 'object' || value === null) return null;
-            return (
-              <View key={key} className="mb-4">
-                <AppText size="xs" color="gray" className="mb-1">
-                  {key.replace(/_/g, ' ')}
-                </AppText>
-                <AppText size="base" weight="semibold" color="text">
-                  {String(value)}
-                </AppText>
-              </View>
-            );
-          })}
+          <View className="items-end">
+            <AppText size="xs" color="gray" className="mb-1">
+              Amount
+            </AppText>
+            <AppText size="lg" weight="bold" className="text-[#007BE5]">
+              {formattedAmount}
+            </AppText>
+          </View>
         </View>
-      );
-    };
 
-    return (
-      <>
-        <Card
-          className="mb-3 border border-slate-300 dark:border-slate-700"
-          noshadow>
-          {/* Claim Code and Amount */}
-          <View className="flex-row justify-between items-center mb-3">
+        {/* Divider */}
+        <View className="border-t border-gray-200 dark:border-gray-700 my-3" />
+
+        {/* Scheme Category and Product ID */}
+        <View className="flex-row justify-between mb-3">
+          <View className="flex-1 mr-3">
+            <AppText size="xs" color="gray" className="mb-1">
+              Scheme Category
+            </AppText>
+            <AppText size="sm" weight="semibold" color="text">
+              {item.Scheme_Category}
+            </AppText>
+          </View>
+
+          {item.Product_ID && (
             <View className="flex-1">
               <AppText size="xs" color="gray" className="mb-1">
-                Claim Code
-              </AppText>
-              <AppText size="base" weight="bold" color="text">
-                {item.Claim_Code}
-              </AppText>
-            </View>
-            <View className="items-end">
-              <AppText size="xs" color="gray" className="mb-1">
-                Amount
-              </AppText>
-              <AppText size="lg" weight="bold" className="text-[#007BE5]">
-                {formattedAmount}
-              </AppText>
-            </View>
-          </View>
-
-          {/* Divider */}
-          <View className="border-t border-gray-200 dark:border-gray-700 my-3" />
-
-          {/* Scheme Category and Product ID */}
-          <View className="flex-row justify-between mb-3">
-            <View className="flex-1 mr-3">
-              <AppText size="xs" color="gray" className="mb-1">
-                Scheme Category
+                Product ID
               </AppText>
               <AppText size="sm" weight="semibold" color="text">
-                {item.Scheme_Category}
+                {item.Product_ID}
               </AppText>
             </View>
+          )}
+        </View>
 
-            {item.Product_ID && (
-              <View className="flex-1">
-                <AppText size="xs" color="gray" className="mb-1">
-                  Product ID
-                </AppText>
-                <AppText size="sm" weight="semibold" color="text">
-                  {item.Product_ID}
-                </AppText>
-              </View>
-            )}
+        {/* Status */}
+        <View className="flex-row justify-between items-center">
+          {/* View Details Button */}
+          <TouchableOpacity onPress={handleViewDetails} activeOpacity={0.7}>
+            <AppText
+              size="sm"
+              weight="extraBold"
+              color="secondary"
+              className="underline">
+              View Details
+            </AppText>
+          </TouchableOpacity>
+          <View
+            className={`px-3 py-1.5 rounded-lg ${statusInfo.bg} flex-row items-center`}>
+            <AppIcon
+              type="feather"
+              name={statusInfo.icon}
+              size={14}
+              color={statusInfo.iconColor}
+            />
+            <AppText
+              size="sm"
+              weight="semibold"
+              className={`ml-1.5 ${statusInfo.text}`}>
+              {item.India_Status}
+            </AppText>
           </View>
-
-          {/* Status */}
-          <View className="flex-row justify-between items-center">
-            {/* View Details Button */}
-            <TouchableOpacity onPress={handleViewDetails} activeOpacity={0.7}>
-              <AppText
-                size="sm"
-                weight="extraBold"
-                color="secondary"
-                className="underline">
-                View Details
-              </AppText>
-            </TouchableOpacity>
-            <View
-              className={`px-3 py-1.5 rounded-lg ${statusInfo.bg} flex-row items-center`}>
-              <AppIcon
-                type="feather"
-                name={statusInfo.icon}
-                size={14}
-                color={statusInfo.iconColor}
-              />
-              <AppText
-                size="sm"
-                weight="semibold"
-                className={`ml-1.5 ${statusInfo.text}`}>
-                {item.India_Status}
-              </AppText>
-            </View>
-          </View>
-        </Card>
-
-        {/* Modal */}
-        <AppModal
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          modalWidth="90%"
-          scrollEnabled={true}
-          showCloseButton={true}
-          animationType="slide">
-          {renderModalContent()}
-        </AppModal>
-      </>
+        </View>
+      </Card>
     );
   },
-  (prevProps, nextProps) =>
-    prevProps.item.Claim_Code === nextProps.item.Claim_Code &&
-    prevProps.isDarkTheme === nextProps.isDarkTheme,
 );
 
 const BranchClaimSection = memo<BranchClaimSectionProps>(
-  ({branchName, claims, isDarkTheme}) => {
+  ({branchName, claims, isDarkTheme, handleOpenViewMoreSheet}) => {
     const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
     const claimsByStatus = useMemo(() => {
       const groups = {
@@ -375,8 +270,14 @@ const BranchClaimSection = memo<BranchClaimSectionProps>(
     }, []);
 
     const renderItem: ListRenderItem<ClaimInfoBranchWise> = useCallback(
-      ({item}) => <ClaimItemCard item={item} isDarkTheme={isDarkTheme} />,
-      [isDarkTheme],
+      ({item}) => (
+        <ClaimItemCard
+          item={item}
+          isDarkTheme={isDarkTheme}
+          handleOpenViewMoreSheet={handleOpenViewMoreSheet}
+        />
+      ),
+      [isDarkTheme, handleOpenViewMoreSheet],
     );
 
     const keyExtractor = useCallback(
@@ -622,7 +523,30 @@ const SummaryMetrics = memo<SummaryMetricsProps>(
   },
 );
 
-const ClaimInfoList = memo<ClaimInfoListProps>(({tabName}) => {
+const SkeletonLoader = () => (
+  <View className="px-3 mt-3">
+     <Skeleton width={screenWidth-24} height={40} borderRadius={4} />
+    <View className="flex-row items-center justify-between mb-4">
+      <View className="">
+        <Skeleton width={80} height={20} borderRadius={4} />
+        <Skeleton width={80} height={20} borderRadius={4} />
+      </View>
+      <Skeleton width={140} height={40} borderRadius={8} />
+    </View>
+    <View className="self-end mb-2">
+      <Skeleton width={screenWidth * 0.6} height={40} borderRadius={12} />
+    </View>
+    <Skeleton width={screenWidth - 24} height={150} borderRadius={12} />
+    <View className="gap-3">
+      <Skeleton width={screenWidth - 24} height={80} borderRadius={12} />
+      <Skeleton width={screenWidth - 24} height={80} borderRadius={12} />
+      <Skeleton width={screenWidth - 24} height={80} borderRadius={12} />
+      <Skeleton width={screenWidth - 24} height={80} borderRadius={12} />
+    </View>
+  </View>
+);
+
+const ClaimContainer = memo<ClaimInfoListProps>(({tabName}) => {
   const {quarters, selectedQuarter, setSelectedQuarter} = useQuarterHook();
   const isDarkTheme = useThemeStore(state => state.AppTheme === 'dark');
 
@@ -630,6 +554,7 @@ const ClaimInfoList = memo<ClaimInfoListProps>(({tabName}) => {
     productLine: '',
     claimCode: '',
     schemeCategory: '',
+    status: '',
     sortBy: null,
   });
 
@@ -650,6 +575,7 @@ const ClaimInfoList = memo<ClaimInfoListProps>(({tabName}) => {
         productLines: [],
         claimCodes: [],
         schemeCategories: [],
+        statuses: [],
       };
     }
 
@@ -660,18 +586,21 @@ const ClaimInfoList = memo<ClaimInfoListProps>(({tabName}) => {
     const productLinesSet = new Set<string>();
     const claimCodesSet = new Set<string>();
     const schemeCategoriesSet = new Set<string>();
+    const statusesSet = new Set<string>();
 
     allClaims.forEach(claim => {
       if (claim.Product_ID) productLinesSet.add(claim.Product_ID);
       if (claim.Claim_Code) claimCodesSet.add(claim.Claim_Code);
       if (claim.scheme_category_dropdown)
         schemeCategoriesSet.add(claim.scheme_category_dropdown);
+      if (claim.India_Status) statusesSet.add(claim.India_Status);
     });
 
     return {
       productLines: Array.from(productLinesSet).sort(),
       claimCodes: Array.from(claimCodesSet).sort(),
       schemeCategories: Array.from(schemeCategoriesSet).sort(),
+      statuses: Array.from(statusesSet).sort(),
     };
   }, [data?.ClaimInfoBranchWise]);
 
@@ -697,6 +626,11 @@ const ClaimInfoList = memo<ClaimInfoListProps>(({tabName}) => {
         if (filters.schemeCategory) {
           filteredClaims = filteredClaims.filter(
             claim => claim.scheme_category_dropdown === filters.schemeCategory,
+          );
+        }
+        if (filters.status) {
+          filteredClaims = filteredClaims.filter(
+            claim => claim.India_Status === filters.status,
           );
         }
 
@@ -728,9 +662,52 @@ const ClaimInfoList = memo<ClaimInfoListProps>(({tabName}) => {
     if (filters.productLine) count++;
     if (filters.claimCode) count++;
     if (filters.schemeCategory) count++;
+    if (filters.status) count++;
     if (filters.sortBy) count++;
     return count;
   }, [filters]);
+
+  const handleOpenFilterSheet = useCallback(() => {
+    showClaimFilterSheet({
+      productLine: filters.productLine,
+      claimCode: filters.claimCode,
+      schemeCategory: filters.schemeCategory,
+      status: filters.status,
+      sortBy: filters.sortBy,
+      allProductLines: filterOptions.productLines,
+      allClaimCodes: filterOptions.claimCodes,
+      allSchemeCategories: filterOptions.schemeCategories,
+      allStatuses: filterOptions.statuses,
+      onApply: result => {
+        setFilters(result);
+      },
+      onReset: () => {
+        setFilters({
+          productLine: '',
+          claimCode: '',
+          schemeCategory: '',
+          status: '',
+          sortBy: null,
+        });
+      },
+    });
+  }, [filters, filterOptions]);
+
+  const handleOpenViewMoreSheet = useCallback((item: ClaimInfoBranchWise) => {
+    showClaimViewMoreSheet({
+      BranchName: item.BranchName,
+      ClaimCode: item.Claim_Code,
+      ClaimStatus: item.Claim_Status,
+      YearQtr: selectedQuarter?.value || '',
+      masterTab: tabName,
+    });
+  }, []);
+
+  const branchKeyExtractor = useCallback(
+    (item: BranchItemProps['item'], index: number) =>
+      `${item.branchName}_${index}`,
+    [],
+  );
 
   const renderEmptyState = useCallback(
     () => (
@@ -756,6 +733,7 @@ const ClaimInfoList = memo<ClaimInfoListProps>(({tabName}) => {
                 productLine: '',
                 claimCode: '',
                 schemeCategory: '',
+                status: '',
                 sortBy: null,
               })
             }
@@ -775,42 +753,14 @@ const ClaimInfoList = memo<ClaimInfoListProps>(({tabName}) => {
       <BranchClaimSection
         branchName={item.branchName}
         claims={item.claims}
+        handleOpenViewMoreSheet={handleOpenViewMoreSheet}
         isDarkTheme={isDarkTheme}
       />
     ),
-    [isDarkTheme],
+    [isDarkTheme, handleOpenViewMoreSheet],
   );
 
-  const branchKeyExtractor = useCallback(
-    (item: BranchItemProps['item'], index: number) =>
-      `${item.branchName}_${index}`,
-    [],
-  );
-
-  const handleOpenFilterSheet = useCallback(() => {
-    showClaimFilterSheet({
-      productLine: filters.productLine,
-      claimCode: filters.claimCode,
-      schemeCategory: filters.schemeCategory,
-      sortBy: filters.sortBy,
-      allProductLines: filterOptions.productLines,
-      allClaimCodes: filterOptions.claimCodes,
-      allSchemeCategories: filterOptions.schemeCategories,
-      onApply: result => {
-        setFilters(result);
-      },
-      onReset: () => {
-        setFilters({
-          productLine: '',
-          claimCode: '',
-          schemeCategory: '',
-          sortBy: null,
-        });
-      },
-    });
-  }, [filters, filterOptions]);
-
-  const ListHeaderComponent = useCallback(
+  const renderHeaderComponent = useCallback(
     () =>
       branchData.length > 0 || activeFilterCount > 0 ? (
         <>
@@ -819,7 +769,7 @@ const ClaimInfoList = memo<ClaimInfoListProps>(({tabName}) => {
             <TouchableOpacity
               // onPress={handleDownload}
               activeOpacity={0.7}
-              className="w-[40%] flex-row items-center justify-center bg-primary dark:bg-darkBg-surface border border-gray-200 dark:border-gray-700 px-3 py-2 rounded-lg">
+              className="w-[45%] flex-row items-center justify-center bg-secondary dark:bg-darkBg-surface border border-gray-200 dark:border-gray-700 px-3 py-2 rounded-lg">
               <AppIcon
                 type="feather"
                 name="download"
@@ -847,11 +797,7 @@ const ClaimInfoList = memo<ClaimInfoListProps>(({tabName}) => {
                 color={AppColors.primary}
               />
               {activeFilterCount > 0 && (
-                <View className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full items-center justify-center">
-                  <AppText size="xs" weight="bold" className="text-white">
-                    {activeFilterCount}
-                  </AppText>
-                </View>
+                <View className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full items-center justify-center"></View>
               )}
             </TouchableOpacity>
           </View>
@@ -884,21 +830,6 @@ const ClaimInfoList = memo<ClaimInfoListProps>(({tabName}) => {
     [branchData, isDarkTheme, activeFilterCount, handleOpenFilterSheet],
   );
 
-  const renderLoadingSkeleton = useCallback(
-    () => (
-      <View className="px-3 mt-3">
-        <View className="mb-3">
-          <Skeleton width={350} height={120} borderRadius={12} />
-        </View>
-        <View className="mb-3">
-          <Skeleton width={350} height={120} borderRadius={12} />
-        </View>
-        <Skeleton width={350} height={120} borderRadius={12} />
-      </View>
-    ),
-    [],
-  );
-
   return (
     <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
       <ClaimHeader
@@ -911,7 +842,7 @@ const ClaimInfoList = memo<ClaimInfoListProps>(({tabName}) => {
         setSelectedQuarter={setSelectedQuarter}
       />
       {isLoading ? (
-        renderLoadingSkeleton()
+        <SkeletonLoader />
       ) : branchData.length === 0 ? (
         renderEmptyState()
       ) : (
@@ -919,7 +850,7 @@ const ClaimInfoList = memo<ClaimInfoListProps>(({tabName}) => {
           data={branchData}
           renderItem={renderBranchItem}
           keyExtractor={branchKeyExtractor}
-          ListHeaderComponent={ListHeaderComponent}
+          ListHeaderComponent={renderHeaderComponent}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{paddingVertical: 12, paddingHorizontal: 12}}
           maxToRenderPerBatch={5}
@@ -945,13 +876,13 @@ export default function ClaimDashboard() {
     return data.MasterTab.map(tab => ({
       label: tab.Header_Type,
       name: tab.Header_Type,
-      component: <ClaimInfoList tabName={tab.Header_Type} />,
+      component: <ClaimContainer tabName={tab.Header_Type} />,
     }));
   }, [data?.MasterTab]);
 
   return (
     <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
-      {isLoading ? <ClaimDataSkeleton /> : <MaterialTabBar tabs={tabs} />}
+      {isLoading ? <SkeletonLoader /> : <MaterialTabBar tabs={tabs} />}
     </View>
   );
 }

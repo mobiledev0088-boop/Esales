@@ -13,12 +13,14 @@ export interface ClaimFilterPayload {
   productLine?: string;
   claimCode?: string;
   schemeCategory?: string;
+  status?: string;
   sortBy?: 'high-to-low' | 'low-to-high' | null;
 
   // Dynamic data sources
   allProductLines?: string[];
   allClaimCodes?: string[];
   allSchemeCategories?: string[];
+  allStatuses?: string[];
 
   // Callbacks
   onApply?: (res: ClaimFilterResult) => void;
@@ -29,10 +31,11 @@ export interface ClaimFilterResult {
   productLine: string;
   claimCode: string;
   schemeCategory: string;
+  status: string;
   sortBy: 'high-to-low' | 'low-to-high' | null;
 }
 
-type Group = 'productLine' | 'claimCode' | 'schemeCategory' | 'sortBy';
+type Group = 'productLine' | 'claimCode' | 'schemeCategory' | 'status' | 'sortBy';
 
 const RadioRow = memo(
   ({
@@ -98,6 +101,7 @@ export default function ClaimFilterSheet(){
   const [schemeCategory, setSchemeCategory] = useState(
     payload.schemeCategory ?? '',
   );
+  const [status, setStatus] = useState(payload.status ?? '');
   const [sortBy, setSortBy] = useState<'high-to-low' | 'low-to-high' | null>(
     payload.sortBy ?? null,
   );
@@ -125,6 +129,10 @@ export default function ClaimFilterSheet(){
   const schemeCategories = useMemo(
     () => payload.allSchemeCategories || [],
     [payload.allSchemeCategories],
+  );
+  const statuses = useMemo(
+    () => payload.allStatuses || [],
+    [payload.allStatuses],
   );
 
   const sortOptions = useMemo(
@@ -160,9 +168,10 @@ export default function ClaimFilterSheet(){
     if (productLine) c++;
     if (claimCode) c++;
     if (schemeCategory) c++;
+    if (status) c++;
     if (sortBy) c++;
     return c;
-  }, [productLine, claimCode, schemeCategory, sortBy]);
+  }, [productLine, claimCode, schemeCategory, status, sortBy]);
 
   // Define filter groups
   const groups = useMemo(
@@ -179,8 +188,13 @@ export default function ClaimFilterSheet(){
       },
       {
         key: 'schemeCategory' as Group,
-        label: 'Scheme Category',
+        label: 'Category',
         hasValue: !!schemeCategory,
+      },
+      {
+        key: 'status' as Group,
+        label: 'Status',
+        hasValue: !!status,
       },
       {
         key: 'sortBy' as Group,
@@ -188,7 +202,7 @@ export default function ClaimFilterSheet(){
         hasValue: !!sortBy,
       },
     ],
-    [productLine, claimCode, schemeCategory, sortBy],
+    [productLine, claimCode, schemeCategory, status, sortBy],
   );
 
   // Render radio buttons
@@ -196,7 +210,6 @@ export default function ClaimFilterSheet(){
     ({item}: {item: string | {value: string; label: string}}) => {
       const label = typeof item === 'string' ? item : item.label;
       const value = typeof item === 'string' ? item : item.value;
-
       let selected = false;
       if (group === 'productLine') {
         selected = productLine === value;
@@ -204,10 +217,11 @@ export default function ClaimFilterSheet(){
         selected = claimCode === value;
       } else if (group === 'schemeCategory') {
         selected = schemeCategory === value;
+      } else if (group === 'status') {
+        selected = status === value;
       } else if (group === 'sortBy') {
         selected = sortBy === value;
       }
-
       return (
         <RadioRow
           label={label || '—'}
@@ -216,13 +230,14 @@ export default function ClaimFilterSheet(){
             if (group === 'productLine') setProductLine(value);
             else if (group === 'claimCode') setClaimCode(value);
             else if (group === 'schemeCategory') setSchemeCategory(value);
+            else if (group === 'status') setStatus(value);
             else if (group === 'sortBy')
               setSortBy(value as 'high-to-low' | 'low-to-high');
           }}
         />
       );
     },
-    [group, productLine, claimCode, schemeCategory, sortBy],
+    [group, productLine, claimCode, schemeCategory, status, sortBy],
   );
 
   // Right panel content based on selected group
@@ -302,6 +317,25 @@ export default function ClaimFilterSheet(){
       );
     }
 
+    if (group === 'status') {
+      return (
+        <View className="flex-1">
+          <FlatList
+            data={statuses}
+            keyExtractor={i => i}
+            renderItem={renderRadio}
+            keyboardShouldPersistTaps="handled"
+            style={{flex: 1}}
+            initialNumToRender={20}
+            maxToRenderPerBatch={25}
+            windowSize={10}
+            removeClippedSubviews
+            contentContainerStyle={{paddingBottom: 40}}
+          />
+        </View>
+      );
+    }
+
     if (group === 'sortBy') {
       return (
         <FlatList
@@ -324,6 +358,7 @@ export default function ClaimFilterSheet(){
     filteredProducts,
     filteredClaimCodes,
     filteredSchemeCategories,
+    statuses,
     sortOptions,
     renderRadio,
   ]);
@@ -332,6 +367,7 @@ export default function ClaimFilterSheet(){
     setProductLine('');
     setClaimCode('');
     setSchemeCategory('');
+    setStatus('');
     setSortBy(null);
     setProductSearch('');
     setClaimCodeSearch('');
@@ -344,6 +380,7 @@ export default function ClaimFilterSheet(){
       productLine,
       claimCode,
       schemeCategory,
+      status,
       sortBy,
     });
     hideClaimFilterSheet();
@@ -381,6 +418,8 @@ export default function ClaimFilterSheet(){
             } else if (group === 'schemeCategory') {
               setSchemeCategory('');
               setSchemeCategorySearch('');
+            } else if (group === 'status') {
+              setStatus('');
             } else if (group === 'sortBy') {
               setSortBy(null);
             }

@@ -12,14 +12,15 @@ import {
   DemoDetailsSheet,
   PartnerDetailsSheet,
 } from '../screens/app/ASIN/Demo/DemoPartners';
-import { LMSBranchDetailsSheet } from '../screens/app/ASIN/More/LMS/LMSList_HO';
-import { PartnerDemoDetailsSheet } from '../screens/app/ASIN/Demo/Demo_Partner';
+import {LMSBranchDetailsSheet} from '../screens/app/ASIN/More/LMS/LMSList_HO';
+import {PartnerDemoDetailsSheet} from '../screens/app/ASIN/Demo/Demo_Partner';
 import ClosingDetailsSheet from '../screens/app/ASIN/Commercial/RollingFunnel/ClosingDetailsSheet';
-import { RollingFunnelData } from '../screens/app/ASIN/Commercial/RollingFunnel/types';
+import {RollingFunnelData} from '../screens/app/ASIN/Commercial/RollingFunnel/types';
 import RollingFilterSheet from '../screens/app/ASIN/Commercial/RollingFunnel/RollingFilterSheet';
 import PromoterFilterSheet from '../screens/app/APAC/ATID/More/Promoter/PromoterFilterSheet';
 import ChannelMapFilterSheet from '../screens/app/APAC/ATID/ChannelMap/ChannelMapFilterSheet';
 import ClaimFilterSheetAPAC from '../screens/app/APAC/ATID/Claim/ClaimFilterSheet';
+import ClaimViewMoreSheet from '../screens/app/APAC/ATID/Claim/ClaimViewMoreSheet';
 
 registerSheet('MoreSheet', MoreSheet);
 registerSheet('ConfirmationSheet', ConfirmationSheet);
@@ -39,6 +40,7 @@ registerSheet('RollingFilterSheet', RollingFilterSheet);
 registerSheet('PromoterFilterSheet', PromoterFilterSheet);
 registerSheet('ChannelMapFilterSheet', ChannelMapFilterSheet);
 registerSheet('ClaimFilterSheetAPAC', ClaimFilterSheetAPAC);
+registerSheet('ClaimViewMoreSheet', ClaimViewMoreSheet);
 
 // We extend some of the types here to give us great intellisense
 // across the app for all registered sheets.
@@ -67,7 +69,7 @@ declare module 'react-native-actions-sheet' {
         } | null;
         yearQtr: string;
       };
-    }>;    
+    }>;
     ClosingDetailsSheet: SheetDefinition<{
       payload: {
         item: RollingFunnelData;

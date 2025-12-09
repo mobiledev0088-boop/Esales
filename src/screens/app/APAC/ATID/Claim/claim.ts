@@ -49,11 +49,13 @@ export interface SummaryMetricsProps {
 export interface ClaimItemCardProps {
   item: ClaimInfoBranchWise;
   isDarkTheme: boolean;
+  handleOpenViewMoreSheet: (item: ClaimInfoBranchWise) => void;
 }
 export interface BranchClaimSectionProps {
   branchName: string;
   claims: ClaimInfoBranchWise[];
   isDarkTheme: boolean;
+  handleOpenViewMoreSheet: (item: ClaimInfoBranchWise) => void;
 }
 
 export interface BranchItemProps {
