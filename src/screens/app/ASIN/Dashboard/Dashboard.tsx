@@ -47,7 +47,6 @@ import {
   getProductConfig,
 } from '../../../../utils/commonFunctions';
 import {ASUS, DASHBOARD} from '../../../../utils/constant';
-import {AppColors} from '../../../../config/theme';
 import {
   calculatePercentage,
   getPerformanceColor,

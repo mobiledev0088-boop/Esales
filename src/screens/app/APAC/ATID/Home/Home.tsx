@@ -10,10 +10,12 @@ import AppText from '../../../../../components/customs/AppText';
 import Dashboard from '../Dashboard/Dashboard';
 import {SheetManager} from 'react-native-actions-sheet';
 import ChannelMap from '../ChannelMap/ChannelMap';
+import Program from '../Program/Program';
+import ClaimDashboard from '../Claim/ClaimDashboard';
 
 const Tab = createBottomTabNavigator();
 
-const Home: React.FC = () => {
+export default function Home() {
   const userInfo = useLoginStore(state => state.userInfo);
 
   const getScreens = () => {
@@ -24,8 +26,19 @@ const Home: React.FC = () => {
       icon: 'bar-chart',
     });
     arr.push({
+      name: 'Claim',
+      component: ClaimDashboard,
+      icon: 'dollar',
+      iconType:'fontAwesome',
+    });
+    arr.push({
+      name: 'Program',
+      component: Program,
+      icon: 'calendar',
+    });
+    arr.push({
       name: 'Channel Map',
-      component: ChannelMap, 
+      component: ChannelMap,
       icon: 'map',
     });
     arr.push({
@@ -117,5 +130,3 @@ const CustomTabBar: React.FC<MyTabBarProps> = ({
     </View>
   );
 };
-
-export default Home;

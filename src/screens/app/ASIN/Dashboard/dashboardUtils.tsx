@@ -6,6 +6,77 @@ import {
 } from '../../../../types/dashboard';
 import moment from 'moment';
 
+// types
+type PerformanceColor ={
+  bgColor: string;
+  textColor: 'success' | 'warning' | 'error' | 'white';
+}
+type PerformanceLevel = {
+  min: number;
+  dark: PerformanceColor;
+  light: PerformanceColor;
+};
+
+// Constants
+const PERFORMANCE_LEVELS: PerformanceLevel[] = [
+  {
+    min: 90,
+    dark: { bgColor: 'bg-[#0EA473]', textColor: 'white' },
+    light: { bgColor: 'bg-green-100', textColor: 'success' },
+  },
+  {
+    min: 70,
+    dark: { bgColor: 'bg-[#FBBF24]', textColor: 'white' },
+    light: { bgColor: 'bg-orange-100', textColor: 'warning' },
+  },
+  {
+    min: 0,
+    dark: { bgColor: 'bg-[#EF4444]', textColor: 'white' },
+    light: { bgColor: 'bg-red-100', textColor: 'error' },
+  },
+];
+const NAME_COLUMN: TableColumn[] = [
+  {
+    key: 'name',
+    label: 'Name',
+    width: 'flex-1',
+    dataKey: 'name',
+    colorType: 'text',
+  },
+];
+const COMMON_COLUMNS: TableColumn[] = [
+  {
+    key: 'act',
+    label: 'ACT',
+    width: 'w-16',
+    dataKey: 'Act_Cnt',
+    colorType: 'success',
+  },
+  {
+    key: 'nAct',
+    label: 'N-ACT',
+    width: 'w-20',
+    dataKey: 'NonAct_Cnt',
+    colorType: 'error',
+  },
+];
+const COMMON_COLUMNS_APAC: TableColumn[] = [
+  {
+    key: 'act',
+    label: 'ACT',
+    width: 'w-16',
+    dataKey: 'Act_Cnt',
+    colorType: 'success',
+  },
+  {
+    key: 'nAct',
+    label: 'Inv',
+    width: 'w-20',
+    dataKey: 'NonAct_Cnt',
+    colorType: 'error',
+  },
+];
+
 // Error handling utilities for Dashboard
 export const handleApiError = (
   error: Error | null,
@@ -35,17 +106,9 @@ export const calculatePercentage = (
 export const getPerformanceColor = (
   percentage: number,
   isDarkMode: boolean,
-): {
-  bgColor: string;
-  textColor: 'success' | 'warning' | 'error' | 'white';
-} => {
-  if (percentage >= 90) {
-    return {bgColor: isDarkMode ? 'bg-[#0EA473]' : 'bg-green-100', textColor:  isDarkMode? 'white' :'success'};
-  } else if (percentage >= 70) {
-    return {bgColor: isDarkMode ? 'bg-[#FBBF24]' : 'bg-orange-100', textColor:  isDarkMode? 'white' :'warning'};
-  } else {
-    return {bgColor: isDarkMode ? 'bg-[#EF4444]' : 'bg-red-100', textColor:  isDarkMode? 'white' :'error'};
-  }
+): PerformanceColor => {
+  const level = PERFORMANCE_LEVELS.find(l => percentage >= l.min)!;
+  return isDarkMode ? level.dark : level.light;
 };
 
 export const formatDisplayValue = (
@@ -77,51 +140,6 @@ export const showErrorAlert = (
       : []),
   ]);
 };
-
-const NAME_COLUMN: TableColumn[] = [
-  {
-    key: 'name',
-    label: 'Name',
-    width: 'flex-1',
-    dataKey: 'name',
-    colorType: 'text',
-  },
-];
-
-const COMMON_COLUMNS: TableColumn[] = [
-  {
-    key: 'act',
-    label: 'ACT',
-    width: 'w-16',
-    dataKey: 'Act_Cnt',
-    colorType: 'success',
-  },
-  {
-    key: 'nAct',
-    label: 'N-ACT',
-    width: 'w-20',
-    dataKey: 'NonAct_Cnt',
-    colorType: 'error',
-  },
-];
-
-const COMMON_COLUMNS_APAC: TableColumn[] = [
-  {
-    key: 'act',
-    label: 'ACT',
-    width: 'w-16',
-    dataKey: 'Act_Cnt',
-    colorType: 'success',
-  },
-  {
-    key: 'nAct',
-    label: 'Inv',
-    width: 'w-20',
-    dataKey: 'NonAct_Cnt',
-    colorType: 'error',
-  },
-];
-
 
 export const TAB_CONFIGS: TabConfig[] =  [
   {
@@ -243,7 +261,6 @@ export const TAB_CONFIGS: TabConfig[] =  [
     ],
   },
 ];
-
 
 export const TAB_CONFIGS_APAC: TabConfig[] = [
   {

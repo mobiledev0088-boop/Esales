@@ -3,7 +3,6 @@ import CryptoJS from 'react-native-crypto-js';
 import Toast from 'react-native-simple-toast';
 import RNFS from 'react-native-fs';
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import {useCallback} from 'react';
 import {AppColors} from '../config/theme';
 
 export const convertToASINUnits = (
@@ -33,12 +32,10 @@ export const convertToAPACUnits = (
   needFull = false,
   needCurrencySymbol = false,
 ): string => {
-  const currencySymbol = needCurrencySymbol ? '\u20B9' : '';
-
+  const currencySymbol = needCurrencySymbol ? '\u0024' : '';
   if (needFull) {
     return `${currencySymbol}${amount.toLocaleString('en-US')}`;
   }
-
   let formattedValue: string;
 
   if (amount >= 1e9) {
@@ -53,7 +50,6 @@ export const convertToAPACUnits = (
   } else {
     formattedValue = amount.toString();
   }
-
   return `${currencySymbol}${formattedValue}`;
 };
 

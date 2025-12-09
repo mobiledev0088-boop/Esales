@@ -223,7 +223,6 @@ export const MonthRangeCard: React.FC<{
 
 export const FilterButton: React.FC<{onPress: () => void}> = ({onPress}) => {
   return (
-    <View className="">
       <TouchableOpacity
         onPress={onPress}
         activeOpacity={0.4}
@@ -235,7 +234,6 @@ export const FilterButton: React.FC<{onPress: () => void}> = ({onPress}) => {
           color={AppColors.primary}
         />
       </TouchableOpacity>
-    </View>
   );
 };
 

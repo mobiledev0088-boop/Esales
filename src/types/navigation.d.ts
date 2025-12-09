@@ -4,6 +4,7 @@ import {FeedbackItem} from '../screens/app/ASIN/Feedback/component';
 import { AppDropdownItem } from '../components/customs/AppDropdown';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { NavigationHelpers, ParamListBase, TabNavigationState } from '@react-navigation/native';
+import { IconType } from '../components/customs/AppIcon';
 
 type AuthStackParamList = {
   Login: undefined;

@@ -131,7 +131,7 @@ const DashboardHeader: React.FC<HeaderProps> = ({
   return (
     <View className="flex-row justify-between px-3 py-4 border-b border-gray-300">
       {isLoading ? (
-        <DashboardSalesData />
+          <DashboardSalesData />
       ) : (
         <View>
           <AppText size="lg" weight="bold" color="text" className="capitalize">
