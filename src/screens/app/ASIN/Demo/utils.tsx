@@ -61,7 +61,7 @@ export type MetricProps = {
   label: string;
   value: number;
   icon: string;
-  tint: 'slate' | 'violet' | 'teal' | 'amber';
+  tint: 'slate' | 'violet' | 'teal' | 'amber' | 'blue';
 };
 
 export type Filters = {
@@ -74,10 +74,27 @@ export type Filters = {
 };
 
 export const METRIC_COLOR: Record<MetricProps['tint'], string> = {
-  slate: 'text-slate-600',
-  violet: 'text-violet-600',
-  teal: 'text-teal-600',
-  amber: 'text-amber-600',
+  slate: 'text-slate-600 dark:text-slate-400',
+  violet: 'text-violet-600 dark:text-violet-400',
+  teal: 'text-teal-600 dark:text-teal-400',
+  amber: 'text-amber-600 dark:text-amber-400',
+  blue: 'text-blue-600 dark:text-blue-400',
+};
+
+export const METRIC_BG_COLOR: Record<MetricProps['tint'], string> = {
+  slate: 'bg-slate-100 dark:bg-slate-800',
+  violet: 'bg-violet-100 dark:bg-violet-900',
+  teal: 'bg-teal-100 dark:bg-teal-900',
+  amber: 'bg-amber-100 dark:bg-amber-900',
+  blue: 'bg-blue-100 dark:bg-blue-900',
+};
+
+export const METRIC_ICON_COLOR: Record<MetricProps['tint'], string> = {
+  slate: '#64748b',
+  violet: '#8b5cf6',
+  teal: '#14b8a6',
+  amber: '#f59e0b',
+  blue: '#3b82f6',
 };
 
 export const filterDemoItemsByPartnerType = (

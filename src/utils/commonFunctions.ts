@@ -4,6 +4,30 @@ import Toast from 'react-native-simple-toast';
 import RNFS from 'react-native-fs';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {AppColors} from '../config/theme';
+import {useLoginStore} from '../stores/useLoginStore';
+import {ASUS} from './constant';
+
+const getAPACcurrencySymbol = () => {
+  const {EMP_RoleId, EMP_CountryID} = useLoginStore.getState().userInfo;
+  if (EMP_RoleId === ASUS.ROLE_ID.PARTNERS) {
+    switch (EMP_CountryID) {
+      case ASUS.COUNTRIES.ATID:
+        return 'Rp'; // Indonesia Rupiah
+      case ASUS.COUNTRIES.ACMY:
+        return 'RM'; // Malaysian Ringgit
+      case ASUS.COUNTRIES.ACSG:
+        return 'S$'; // Singapore Dollar
+      case ASUS.COUNTRIES.ACJP:
+        return '\u00A5'; // Japanese Yen
+      case ASUS.COUNTRIES.TW:
+        return 'NT$'; // New Taiwan Dollar
+      default:
+        return '\u0024'; // USD
+    }
+  } else {
+    return '\u0024'; // USD
+  }
+};
 
 export const convertToASINUnits = (
   amount: number,
@@ -32,7 +56,7 @@ export const convertToAPACUnits = (
   needFull = false,
   needCurrencySymbol = false,
 ): string => {
-  const currencySymbol = needCurrencySymbol ? '\u0024' : '';
+  const currencySymbol = needCurrencySymbol ? getAPACcurrencySymbol() : '';
   if (needFull) {
     return `${currencySymbol}${amount.toLocaleString('en-US')}`;
   }
@@ -224,24 +248,28 @@ export const getProductConfig = (
   return configs[index] || {icon: 'package', color: AppColors.utilColor1};
 };
 
-export const formatUnique = (arr: any[], valueKey: string, labelKey: string = valueKey) => {
+export const formatUnique = (
+  arr: any[],
+  valueKey: string,
+  labelKey: string = valueKey,
+) => {
   if (!Array.isArray(arr)) return [];
 
   return [
     ...new Map(
       arr.map(item => [
         item[valueKey],
-        { label: item[labelKey] ?? item[valueKey], value: item[valueKey] },
-      ])
+        {label: item[labelKey] ?? item[valueKey], value: item[valueKey]},
+      ]),
     ).values(),
   ];
 };
 
 export const applyOpacityHex = (hex: string, opacity: number) => {
-  const base = hex.replace("#", "");
+  const base = hex.replace('#', '');
   const alpha = Math.round(opacity * 255)
     .toString(16)
-    .padStart(2, "0");
+    .padStart(2, '0');
 
   return `#${base}${alpha}`;
 };

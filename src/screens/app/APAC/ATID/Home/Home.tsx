@@ -12,62 +12,9 @@ import {SheetManager} from 'react-native-actions-sheet';
 import ChannelMap from '../ChannelMap/ChannelMap';
 import Program from '../Program/Program';
 import ClaimDashboard from '../Claim/ClaimDashboard';
+import Demo from '../Demo/Demo';
 
 const Tab = createBottomTabNavigator();
-
-export default function Home() {
-  const userInfo = useLoginStore(state => state.userInfo);
-
-  const getScreens = () => {
-    const arr: TabScreens[] = [];
-    arr.push({
-      name: 'Dashboard',
-      component: Dashboard,
-      icon: 'bar-chart',
-    });
-    arr.push({
-      name: 'Claim',
-      component: ClaimDashboard,
-      icon: 'dollar',
-      iconType:'fontAwesome',
-    });
-    arr.push({
-      name: 'Program',
-      component: Program,
-      icon: 'calendar',
-    });
-    arr.push({
-      name: 'Channel Map',
-      component: ChannelMap,
-      icon: 'map',
-    });
-    arr.push({
-      name: 'More',
-      component: Dashboard, // Placeholder component
-      icon: 'ellipsis-horizontal',
-      action: () => SheetManager.show('MoreSheet'),
-    });
-    return arr;
-  };
-  const TabScreens: TabScreens[] = useMemo(() => getScreens(), [userInfo]);
-
-  return (
-    <AppLayout isDashboard>
-      <Tab.Navigator
-        screenOptions={{headerShown: false, tabBarHideOnKeyboard: true}}
-        tabBar={props => <CustomTabBar {...props} TabScreens={TabScreens} />}>
-        {TabScreens.map(screen => (
-          <Tab.Screen
-            key={screen.name}
-            name={screen.name}
-            component={screen.component}
-            initialParams={screen.params}
-          />
-        ))}
-      </Tab.Navigator>
-    </AppLayout>
-  );
-};
 
 const CustomTabBar: React.FC<MyTabBarProps> = ({
   state,
@@ -121,7 +68,9 @@ const CustomTabBar: React.FC<MyTabBarProps> = ({
             />
             <AppText
               size="sm"
-              className={`${isFocused ? 'text-primary font-bold' : 'text-gray-400'}`}>
+              className={`${isFocused ? 'text-primary font-bold' : 'text-gray-400'}`}
+              numberOfLines={1}
+              >
               {route.name}
             </AppText>
           </Pressable>
@@ -130,3 +79,64 @@ const CustomTabBar: React.FC<MyTabBarProps> = ({
     </View>
   );
 };
+
+export default function Home() {
+  const userInfo = useLoginStore(state => state.userInfo);
+
+  const getScreens = () => {
+    const arr: TabScreens[] = [];
+    arr.push({
+      name: 'Dashboard',
+      component: Dashboard,
+      icon: 'bar-chart',
+    });
+    arr.push({
+      name: 'Demo',
+      component: Demo,
+      icon: 'laptop',
+      iconType: 'materialIcons',
+    });
+    arr.push({
+      name: 'Claim',
+      component: ClaimDashboard,
+      icon: 'dollar',
+      iconType: 'fontAwesome',
+    });
+    arr.push({
+      name: 'Program',
+      component: Program,
+      icon: 'calendar',
+    });
+    arr.push({
+      name: 'Channel Map',
+      component: ChannelMap,
+      icon: 'map',
+    });
+    arr.push({
+      name: 'More',
+      component: Dashboard, // Placeholder component
+      icon: 'ellipsis-horizontal',
+      action: () => SheetManager.show('MoreSheet'),
+    });
+    return arr;
+  };
+
+  const TabScreens: TabScreens[] = useMemo(() => getScreens(), [userInfo]);
+
+  return (
+    <AppLayout isDashboard>
+      <Tab.Navigator
+        screenOptions={{headerShown: false, tabBarHideOnKeyboard: true}}
+        tabBar={props => <CustomTabBar {...props} TabScreens={TabScreens} />}>
+        {TabScreens.map(screen => (
+          <Tab.Screen
+            key={screen.name}
+            name={screen.name}
+            component={screen.component}
+            initialParams={screen.params}
+          />
+        ))}
+      </Tab.Navigator>
+    </AppLayout>
+  );
+}

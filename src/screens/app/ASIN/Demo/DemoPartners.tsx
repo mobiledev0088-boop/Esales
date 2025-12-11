@@ -271,13 +271,10 @@ export const PartnerDetailsSheet: React.FC = () => {
     partner?.AGP_Code || '',
     isSheetOpen && !!partner && !!yearQtr,
   );
-
+  
   // Filter states
-  const [selectedCategory, setSelectedCategory] =
-    useState<AppDropdownItem | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<AppDropdownItem | null>(
-    null,
-  );
+  const [selectedCategory, setSelectedCategory] = useState<AppDropdownItem | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<AppDropdownItem | null>(null);
 
   // Reset filters when sheet opens
   useEffect(() => {
@@ -545,7 +542,6 @@ export const PartnerDetailsSheet: React.FC = () => {
     return null;
   }
   // Removed debug log for cleaner production code
-
   return (
     <View>
       <ActionSheet

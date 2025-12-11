@@ -34,6 +34,7 @@ export default function AppButton ({
   noLoading = false,
 }: AppButtonProps) {
   const isLoading = useLoaderStore(state => state.isLoading);
+const isDisabled = disabled || (!noLoading && isLoading);
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -41,8 +42,8 @@ export default function AppButton ({
       onPressOut={onPressOut}
       className={twMerge(`bg-primary p-3 rounded-sm items-center ${className}`)}
       activeOpacity={0.7}
-      disabled={isLoading || disabled}
-      style={{opacity: isLoading || disabled ? 0.7 : 1}}>
+      disabled={isDisabled}
+      style={{opacity: isDisabled ? 0.7 : 1}}>
       {isLoading && !noLoading ? (
         <ActivityIndicator size="small" color="#fff" />
       ) : (

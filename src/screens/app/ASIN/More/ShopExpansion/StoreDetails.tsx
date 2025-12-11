@@ -734,7 +734,6 @@ export default function StoreDetails() {
   return (
     <AppLayout title="Store Details" needBack needPadding>
       <MaterialTabBar
-        equalWidth
         tabs={[
           {
             name: 'Shop Expansion',

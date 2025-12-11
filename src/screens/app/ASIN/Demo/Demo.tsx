@@ -482,7 +482,6 @@ export default function Demo() {
           },
         ]}
         initialRouteName="reseller"
-        equalWidth
       />
     </View>
   );
