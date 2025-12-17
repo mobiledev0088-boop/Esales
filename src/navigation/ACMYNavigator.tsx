@@ -7,21 +7,29 @@ import SelloutInfo from '../screens/app/APAC/ATID/More/Promoter/SelloutInfo';
 import ProductInfo from '../screens/app/APAC/ATID/More/ProductInfo/ProductInfo';
 import ProductDescription from '../screens/app/APAC/ATID/More/ProductInfo/ProductDescription';
 import ChannelMapDealerInfo from '../screens/app/APAC/ATID/ChannelMap/ChannelMapDealerInfo';
+import TargetSummaryAPAC from '../screens/app/ASIN/Reports/APAC/TargetSummaryAPAC';
+import DealerHitRate from '../screens/app/ASIN/Reports/APAC/DealerHitRate';
+import TargetPartnerDashboard from '../screens/app/ASIN/Reports/APAC/TargetPartnerDashboard';
 
 const Stack = createNativeStackNavigator();
 
 const screens = [
-  {name: 'Index', component: Index},
-  // Channel Map
-  {name: 'ChannelMapDealerInfo', component: ChannelMapDealerInfo},
-  //More
-  {name: 'EDMInfo', component: EDMInfo},
-  {name: 'Promoter', component: Promoter},
-  {name: 'PromoterUpload', component: PromoterUpload},
-  {name: 'SelloutInfo', component: SelloutInfo},
-  {name: 'ProductInfo', component: ProductInfo},
-  {name: 'ProductDescription', component: ProductDescription},
-];
+    { name: "Index", component: Index },
+    // dashbaord Screens
+    { name: "TargetSummaryAPAC", component: TargetSummaryAPAC },
+    { name: "DealerHitRate", component: DealerHitRate },
+    { name: "TargetPartnerDashboard", component: TargetPartnerDashboard },
+    // Channel Map
+    { name: "ChannelMapDealerInfo", component: ChannelMapDealerInfo },
+    
+    //More Screens
+    { name: "EDMInfo", component: EDMInfo },
+    { name: "Promoter", component: Promoter },
+    { name: "PromoterUpload", component: PromoterUpload },
+    { name: "SelloutInfo", component: SelloutInfo },
+    { name: "ProductInfo", component: ProductInfo },
+    { name: "ProductDescription", component: ProductDescription },
+]
 
 export const ACMYNavigator = () => (
   <Stack.Navigator screenOptions={{headerShown: false}}>

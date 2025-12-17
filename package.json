@@ -9,6 +9,8 @@
     "start": "react-native start",
     "test": "jest",
     "pod-install": "cd ios &&  bundle exec pod install  && cd ..",
+    "build-apk":  "cd android && ./gradlew assembleRelease && cd ..",
+    "build-aab":  "cd android && ./gradlew bundleRelease && cd ..",
     "clean-gradle": "cd android && ./gradlew clean && cd ..",
     "open-xcode": "cd ios && open esales.xcworkspace && cd .."
   },

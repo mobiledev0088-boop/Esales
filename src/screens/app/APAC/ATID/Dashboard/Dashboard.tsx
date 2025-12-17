@@ -52,7 +52,6 @@ import {AppNavigationProp} from '../../../../../types/navigation';
 import {AppColors} from '../../../../../config/theme';
 import Card from '../../../../../components/Card';
 import AppIcon from '../../../../../components/customs/AppIcon';
-import {CircularProgressBar} from '../../../../../components/customs/AppChart';
 import clsx from 'clsx';
 import ImageSlider from '../../../../../components/ImageSlider';
 import moment from 'moment';
@@ -131,7 +130,7 @@ const DashboardHeader: React.FC<HeaderProps> = ({
   return (
     <View className="flex-row justify-between px-3 py-4 border-b border-gray-300">
       {isLoading ? (
-          <DashboardSalesData />
+        <DashboardSalesData />
       ) : (
         <View>
           <AppText size="lg" weight="bold" color="text" className="capitalize">
@@ -246,21 +245,21 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
     [],
   );
 
-  const handleDistributorWisePress = useCallback((wise: 'POD' | 'SELL') => {
-    navigation.push('TargetSummary', {
+  const handleDistributorWisePress = useCallback((buttonType: 'POD_Qty' | 'AGP_SellIn') => {
+    navigation.push('TargetSummaryAPAC', {
       masterTab: tabName,
-      Quarter: quarter,
-      button: 'disti',
-      wise: wise,
+      YearQtr: quarter,
+      buttonType: buttonType,
+      navigationFrom: 'disti',
     });
   }, []);
 
-  const handleSeeMorePress = useCallback((wise: 'POD' | 'SELL') => {
-    navigation.push('TargetSummary', {
+  const handleSeeMorePress = useCallback((buttonType: 'AGP_SellIn' | 'AGP_SellOut') => {
+    navigation.push('TargetSummaryAPAC', {
       masterTab: tabName,
-      Quarter: quarter,
-      button: 'seemore',
-      wise: wise,
+      YearQtr: quarter,
+      buttonType: buttonType,
+      navigationFrom: 'seemore',
     });
   }, []);
 
@@ -268,7 +267,6 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
     (
       item: ProductCategoryData,
       index: number,
-      animationDelay: number = 0,
       onPress?: (item: ProductCategoryData) => void,
     ) => {
       const config = getProductConfig(index);
@@ -291,13 +289,11 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
                   {item.Product_Category}
                 </AppText>
               </View>
-              <CircularProgressBar
-                progress={item.Percent || 0}
-                progressColor={config.color}
-                size={70}
-                strokeWidth={6}
-                duration={1000 + animationDelay}
-              />
+              <View className="py-2">
+                <AppText size="lg" weight="bold" style={{color: config.color}}>
+                  {`${item.Percent}%`}
+                </AppText>
+              </View>
               <View className="mt-3 flex-row items-center justify-between ">
                 <View className="flex-1 items-start">
                   <AppText size="sm" className="text-gray-400 ">
@@ -352,19 +348,19 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
   ].includes(userInfo?.EMP_RoleId as any);
 
   const renderActionButtons = useCallback(
-    (wise: 'QTY' | 'SELLIN' | 'SELLOUT') => (
+    (buttonType: 'POD_Qty' | 'AGP_SellIn' | 'AGP_SellOut') => (
       <View
         className={clsx(
           'flex-row w-full px-3 mt-4',
-          needDistributorAccess && wise !== 'SELLOUT'
+          needDistributorAccess && buttonType !== 'AGP_SellOut'
             ? 'justify-between'
             : 'justify-end',
         )}>
-        {needDistributorAccess && wise !== 'SELLOUT' && (
+        {needDistributorAccess && buttonType !== 'AGP_SellOut' && (
           <TouchableOpacity
             className="py-1 flex-row items-center border-b border-blue-600 dark:border-secondary-dark"
             activeOpacity={0.7}
-            // onPress={()=>handleDistributorWisePress(wise)}
+            onPress={()=>handleDistributorWisePress(buttonType)}
           >
             <AppIcon
               name="users"
@@ -381,11 +377,11 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
           </TouchableOpacity>
         )}
 
-        {wise !== 'QTY' && (
+        {buttonType !== 'POD_Qty' && (
           <TouchableOpacity
             className="py-1 flex-row items-center border-b border-blue-600 dark:border-secondary-dark"
             activeOpacity={0.7}
-            //   onPress={()=>handleSeeMorePress(wise)}
+              onPress={()=>handleSeeMorePress(buttonType)}
           >
             <AppText
               size="sm"
@@ -449,11 +445,9 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
             contentContainerClassName="gap-3 py-2 px-3"
             className="mt-2"
             showsHorizontalScrollIndicator={false}>
-            {data.PODQty.map((item, index) =>
-              renderProductCard(item, index, index * 100),
-            )}
+            {data.PODQty.map((item, index) => renderProductCard(item, index))}
           </ScrollView>
-          {renderActionButtons('QTY')}
+          {renderActionButtons('POD_Qty')}
         </View>
       )}
 
@@ -479,7 +473,7 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
             className="mt-2"
             showsHorizontalScrollIndicator={false}>
             {data.PODRevenue.map((item, index) =>
-              renderProductCard(item, index, index * 100),
+              renderProductCard(item, index),
             )}
           </ScrollView>
         </View>
@@ -507,10 +501,10 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
             className="mt-2"
             showsHorizontalScrollIndicator={false}>
             {data.AGPSellIn.map((item, index) =>
-              renderProductCard(item, index, index * 100),
+              renderProductCard(item, index),
             )}
           </ScrollView>
-          {renderActionButtons('SELLIN')}
+          {renderActionButtons('AGP_SellIn')}
         </View>
       )}
 
@@ -536,10 +530,10 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
             className="mt-2"
             showsHorizontalScrollIndicator={false}>
             {data.AGPSellOut.map((item, index) =>
-              renderProductCard(item, index, index * 100),
+              renderProductCard(item, index),
             )}
           </ScrollView>
-          {renderActionButtons('SELLOUT')}
+          {renderActionButtons('AGP_SellOut')}
         </View>
       )}
     </View>
@@ -1108,23 +1102,27 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
           />
         </View>
 
-        {isMalaysia && <ASEDataComponent
-          totalData={aseData.total}
-          retail_assistanceData={aseData.retail_assistance}
-          promoterData={aseData.promoter}
-          isLoading={isLoading}
-          error={dashboardError}
-          onRetry={handleRetry}
-          quarter={selectedQuarter?.value || ''}
-          masterTab={route.name}
-        />}
+        {isMalaysia && (
+          <ASEDataComponent
+            totalData={aseData.total}
+            retail_assistanceData={aseData.retail_assistance}
+            promoterData={aseData.promoter}
+            isLoading={isLoading}
+            error={dashboardError}
+            onRetry={handleRetry}
+            quarter={selectedQuarter?.value || ''}
+            masterTab={route.name}
+          />
+        )}
 
-        {isMalaysia && <PartnerAnalyticsComponent
-          data={partnerData}
-          isLoading={isLoading}
-          error={dashboardError}
-          onRetry={handleRetry}
-        />}
+        {isMalaysia && (
+          <PartnerAnalyticsComponent
+            data={partnerData}
+            isLoading={isLoading}
+            error={dashboardError}
+            onRetry={handleRetry}
+          />
+        )}
       </ScrollView>
     </View>
   );

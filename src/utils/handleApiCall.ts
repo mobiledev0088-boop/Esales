@@ -18,10 +18,10 @@ export const handleASINApiCall = async <T = any>(
     if (showGlobalLoading) {
       setGlobalLoading(true);
     }
-    const timeLog = `${Math.random().toFixed(3)} API Call Timing for ${url}`;
-    if (__DEV__) {
-      console.time(timeLog);
-    }
+    // const timeLog = `${Math.random().toFixed(3)} API Call Timing for ${url}`;
+    // if (__DEV__) {
+    //   console.time(timeLog);
+    // }
     const response = await apiClientASIN.request<T>({
       method: 'POST',
       url,
@@ -30,9 +30,9 @@ export const handleASINApiCall = async <T = any>(
         ...headers,
       },
     });
-    if (__DEV__) {
-      console.timeEnd(timeLog);
-    }
+    // if (__DEV__) {
+    //   console.timeEnd(timeLog);
+    // }
     return response.data;
   } catch (error: any) {
     if (showError) {

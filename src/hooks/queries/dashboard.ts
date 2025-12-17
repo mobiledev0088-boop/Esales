@@ -244,9 +244,10 @@ export const useDashboardDataAPAC = (
   const effectiveYearQtr = YearQtr || yearQtr;
   const effectiveMasterTab = masterTab || 'Total';
   if(subCode) employeeCode = subCode; // Override employee code if subCode is provided (for partner view)
+  let querKey = DifferentEmployeeCode ? 'NoCachedashboardData' :'dashboardData'
   return useQuery({
     queryKey: [
-      'dashboardData',
+      querKey,
       employeeCode,
       effectiveMasterTab,
       effectiveYearQtr,

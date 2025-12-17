@@ -21,6 +21,7 @@ import PromoterFilterSheet from '../screens/app/APAC/ATID/More/Promoter/Promoter
 import ChannelMapFilterSheet from '../screens/app/APAC/ATID/ChannelMap/ChannelMapFilterSheet';
 import ClaimFilterSheetAPAC from '../screens/app/APAC/ATID/Claim/ClaimFilterSheet';
 import ClaimViewMoreSheet from '../screens/app/APAC/ATID/Claim/ClaimViewMoreSheet';
+import DemoFilterSheetAPAC from '../screens/app/APAC/ATID/Demo/DemoFilterSheetAPAC';
 
 registerSheet('MoreSheet', MoreSheet);
 registerSheet('ConfirmationSheet', ConfirmationSheet);
@@ -41,6 +42,7 @@ registerSheet('PromoterFilterSheet', PromoterFilterSheet);
 registerSheet('ChannelMapFilterSheet', ChannelMapFilterSheet);
 registerSheet('ClaimFilterSheetAPAC', ClaimFilterSheetAPAC);
 registerSheet('ClaimViewMoreSheet', ClaimViewMoreSheet);
+registerSheet('DemoFilterSheetAPAC', DemoFilterSheetAPAC);
 
 // We extend some of the types here to give us great intellisense
 // across the app for all registered sheets.
@@ -84,6 +86,7 @@ declare module 'react-native-actions-sheet' {
     PromoterFilterSheet: SheetDefinition;
     ChannelMapFilterSheet: SheetDefinition;
     ClaimFilterSheetAPAC: SheetDefinition;
+    DemoFilterSheetAPAC: SheetDefinition;
   }
 }
 

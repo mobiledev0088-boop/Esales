@@ -113,6 +113,13 @@ type AppNavigationParamList = {
   AddRollingFunnel: undefined;
   
   //APAC Screens
+  TargetSummaryAPAC : {
+    navigationFrom: 'seemore' | 'disti';
+    buttonType: 'POD_Qty' | 'AGP_SellIn' | 'AGP_SellOut';
+    YearQtr: string;
+    masterTab: string;
+  }
+  DealerHitRate : {BranchName : string};
   ChannelMapDealerInfo: {Dealer_Data: any};
   Promoter: undefined;
   PromoterUpload: {type: string};

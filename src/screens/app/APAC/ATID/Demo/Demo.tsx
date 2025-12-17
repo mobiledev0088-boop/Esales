@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 import {FlatList, TouchableOpacity, View} from 'react-native';
 import MaterialTabBar from '../../../../../components/MaterialTabBar';
 import {useMemo, useState, useCallback, memo} from 'react';
@@ -6,7 +8,6 @@ import {
   useGetDemoDataPartner,
   useGetDemoDataROI,
 } from '../../../../../hooks/queries/demo';
-import moment from 'moment';
 import Accordion from '../../../../../components/Accordion';
 import Card from '../../../../../components/Card';
 import AppText from '../../../../../components/customs/AppText';
@@ -18,7 +19,10 @@ import {screenWidth} from '../../../../../utils/constant';
 import AppButton from '../../../../../components/customs/AppButton';
 import {SheetManager} from 'react-native-actions-sheet';
 import useQuarterHook from '../../../../../hooks/useQuarterHook';
-import {METRIC_COLOR, METRIC_BG_COLOR, METRIC_ICON_COLOR, MetricProps} from '../../../ASIN/Demo/utils';
+import {MetricProps} from '../../../ASIN/Demo/utils';
+import FilterButton from '../../../../../components/FilterButton';
+import { showDemoFilterSheet } from './DemoFilterSheetAPAC';
+
 
 interface DemoData {
   BranchName: string | null;
@@ -43,9 +47,9 @@ interface ROIData {
 }
 
 const initialFilter = {
-  Month: moment().format('YYYYM'),
+  Month: moment().subtract(1, 'months').format('YYYYM'),
   Program_Name: '',
-  Category: 'All',
+  Category: '',
   PartnerCode: '',
   StoreCode: '',
 };
@@ -180,12 +184,37 @@ const PartnerCard = ({
 };
 
 const ByProgram = () => {
-  const [filter] = useState(initialFilter);
+  const [filter, setFilter] = useState(initialFilter);
   const [expandedBranches, setExpandedBranches] = useState<Set<string>>(
     new Set(),
   );
   const isDarkMode = useThemeStore(state => state.AppTheme === 'dark');
   const {data, isLoading, error, refetch} = useGetDemoDataProgram(filter);
+
+  // Handle filter apply from filter sheet
+  const handleFilterApply = useCallback(
+    (result: {
+      Month: string;
+      ProgramName: string;
+      Category: string;
+      AGP: string;
+      Store: string;
+    }) => {
+      setFilter({
+        Month: result.Month || moment().format('YYYYM'),
+        Program_Name: result.ProgramName,
+        Category: result.Category || 'All',
+        PartnerCode: result.AGP,
+        StoreCode: result.Store,
+      });
+    },
+    [],
+  );
+
+  // Handle filter reset
+  const handleFilterReset = useCallback(() => {
+    setFilter(initialFilter);
+  }, []);
 
   const groupedByBranch = useMemo(() => {
     const list = Array.isArray(data) ? data : [];
@@ -279,7 +308,25 @@ const ByProgram = () => {
   const renderListHeader = useCallback(() => {
     return (
       <View className="mb-3">
+        <View className='items-end'>
+          <FilterButton
+            onPress={() => {
+              showDemoFilterSheet({
+                Month: filter.Month,
+                ProgramName: filter.Program_Name,
+                Category: filter.Category,
+                AGP: filter.PartnerCode,
+                Store: filter.StoreCode,
+                onApply: handleFilterApply,
+                onReset: handleFilterReset,
+              });
+            }}
+          />
+        </View>
         <Card className="mx-0 p-4">
+          <AppText size="md" weight="bold" className="mb-3">
+            Program Summary
+          </AppText>
           <View className="flex-row items-center justify-between">
             <View className="flex-1">
               <View className="flex-row items-center mb-1">
@@ -333,7 +380,14 @@ const ByProgram = () => {
         </Card>
       </View>
     );
-  }, [groupedByBranch.length, totalPartners, isDarkMode]);
+  }, [
+    groupedByBranch.length,
+    totalPartners,
+    isDarkMode,
+    filter,
+    handleFilterApply,
+    handleFilterReset,
+  ]);
 
   if (isLoading) {
     return (

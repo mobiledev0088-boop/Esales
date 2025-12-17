@@ -73,6 +73,13 @@ interface TargetAchievementProps {
   isLoading: boolean;
 }
 
+interface MonthlyPerformanceItem {
+  Month_Name: string; // e.g. "July 2025" or "Jul 2025"
+  Qty_Target: number; // Target
+  Achieved_Qty: number; // ST (Sell Through)
+  Percent_Contri: number; // % Contribution
+}
+
 const mapTopFive = (
   items: any[] | undefined,
   limit: number,
@@ -81,6 +88,7 @@ const mapTopFive = (
   items?.length
     ? items.slice(0, limit).map(item => ({...item, name: item[nameKey]}))
     : [];
+
 const NoDataAvailable = () => (
   <View className="items-center justify-center p-8 bg-slate-100">
     <View className="w-24 h-24 rounded-full bg-gray-200 items-center justify-center mb-4">
@@ -380,14 +388,6 @@ const PartnerAnalytics = ({
     </Card>
   );
 };
-
-interface MonthlyPerformanceItem {
-  Month_Name: string; // e.g. "July 2025" or "Jul 2025"
-  Qty_Target: number; // Target
-  Achieved_Qty: number; // ST (Sell Through)
-  Percent_Contri: number; // % Contribution
-}
-
 const getProgressColor = (p: number) =>
   p >= 100
     ? '#10B981' // Emerald
@@ -406,13 +406,15 @@ const getProgressBgColor = (p: number) =>
         ? '#FEF3C7' // Amber light
         : '#FEE2E2'; // Rose light
 
-
 const formatMonthYear = (monthStr: string) => {
   try {
     // Parse various date formats
     const date = new Date(monthStr);
     if (!isNaN(date.getTime())) {
-      return date.toLocaleDateString('en-US', {month: 'short', year: 'numeric'});
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        year: 'numeric',
+      });
     }
     // Fallback: return original if parsing fails
     return monthStr;
@@ -423,7 +425,7 @@ const formatMonthYear = (monthStr: string) => {
 
 const MonthlyDataTiles = ({data}: {data: MonthlyPerformanceItem[]}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  
+
   const processed = useMemo(
     () =>
       (data || []).map(m => {
@@ -470,12 +472,18 @@ const MonthlyDataTiles = ({data}: {data: MonthlyPerformanceItem[]}) => {
           <View className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 items-center justify-center mr-2">
             <AppIcon name="calendar" type="feather" size={16} color="#6366F1" />
           </View>
-          <AppText size="md" weight="bold" className="text-slate-800 dark:text-slate-100">
+          <AppText
+            size="md"
+            weight="bold"
+            className="text-slate-800 dark:text-slate-100">
             Monthly Performance
           </AppText>
         </View>
         <View className="bg-slate-100 dark:bg-slate-700 rounded-full px-2.5 py-1">
-          <AppText size="xs" weight="semibold" className="text-slate-600 dark:text-slate-300">
+          <AppText
+            size="xs"
+            weight="semibold"
+            className="text-slate-600 dark:text-slate-300">
             {currentIndex + 1}/{processed.length}
           </AppText>
         </View>
@@ -495,94 +503,123 @@ const MonthlyDataTiles = ({data}: {data: MonthlyPerformanceItem[]}) => {
           setCurrentIndex(Math.max(0, Math.min(index, processed.length - 1)));
         }}
         scrollEventThrottle={16}>
-        {processed.map((item, idx) => {
-          return (
-            <View
-              key={`${item.month}-${idx}`}
-              className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-lg mr-3"
-              style={{width: cardWidth}}>
-              
-              {/* Card Header */}
-              <View className="px-5 pt-4 pb-3 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-slate-700 dark:to-slate-600">
-                <View className="flex-row items-center justify-between mb-2">
-                  <View className="flex-row items-center">
-                    <View className="w-10 h-10 rounded-xl bg-white dark:bg-slate-600 items-center justify-center mr-3 shadow-sm">
-                      <AppText size="lg" weight="bold" className="text-indigo-600 dark:text-indigo-400">
-                        {item.month.split(' ')[0].substring(0, 3)}
-                      </AppText>
-                    </View>
-                    <View>
-                      <AppText weight="bold" className="text-slate-800 dark:text-slate-100" size="md">
-                        {item.month}
-                      </AppText>
-                      <AppText size="xs" className="text-slate-500 dark:text-slate-400">
-                        Performance Report
-                      </AppText>
+        {processed
+          .map((item, idx) => {
+            return (
+              <View
+                key={`${item.month}-${idx}`}
+                className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-lg mr-3"
+                style={{width: cardWidth}}>
+                {/* Card Header */}
+                <View className="px-5 pt-4 pb-3 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-slate-700 dark:to-slate-600">
+                  <View className="flex-row items-center justify-between mb-2">
+                    <View className="flex-row items-center">
+                      <View className="w-10 h-10 rounded-xl bg-white dark:bg-slate-600 items-center justify-center mr-3 shadow-sm">
+                        <AppText
+                          size="lg"
+                          weight="bold"
+                          className="text-indigo-600 dark:text-indigo-400">
+                          {item.month.split(' ')[0].substring(0, 3)}
+                        </AppText>
+                      </View>
+                      <View>
+                        <AppText
+                          weight="bold"
+                          className="text-slate-800 dark:text-slate-100"
+                          size="md">
+                          {item.month}
+                        </AppText>
+                        <AppText
+                          size="xs"
+                          className="text-slate-500 dark:text-slate-400">
+                          Performance Report
+                        </AppText>
+                      </View>
                     </View>
                   </View>
                 </View>
-              </View>
 
-              {/* Target Badge */}
-              <View className="px-5 py-3 bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-600">
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-row items-center">
-                    <AppIcon name="target" type="feather" size={14} color="#64748B" />
-                    <AppText size="xs" className="text-slate-600 dark:text-slate-300 ml-2 uppercase tracking-wide">
-                      Target
+                {/* Target Badge */}
+                <View className="px-5 py-3 bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-600">
+                  <View className="flex-row items-center justify-between">
+                    <View className="flex-row items-center">
+                      <AppIcon
+                        name="target"
+                        type="feather"
+                        size={14}
+                        color="#64748B"
+                      />
+                      <AppText
+                        size="xs"
+                        className="text-slate-600 dark:text-slate-300 ml-2 uppercase tracking-wide">
+                        Target
+                      </AppText>
+                    </View>
+                    <AppText
+                      size="md"
+                      weight="bold"
+                      className="text-slate-800 dark:text-slate-100">
+                      {convertToAPACUnits(item.tgt)}
                     </AppText>
                   </View>
-                  <AppText size="md" weight="bold" className="text-slate-800 dark:text-slate-100">
-                    {convertToAPACUnits(item.tgt)}
-                  </AppText>
                 </View>
-              </View>
 
-              {/* Progress Sections */}
-              <View className="px-5 py-4 gap-4">
-                <View>
-                  <View className="flex-row items-center justify-between mb-2">
-                    <View className="flex-row items-center flex-1">
-                      <View 
-                        className="w-2 h-2 rounded-full mr-2"
-                        style={{backgroundColor: getProgressColor(item.stPct)}}
-                      />
-                      <AppText size="sm" weight="semibold" className="text-slate-700 dark:text-slate-200">
-                        Sell Through (ST)
-                      </AppText>
-                    </View>
-                    <View 
-                      className="rounded-full px-2.5 py-1"
-                      style={{backgroundColor: getProgressBgColor(item.stPct)}}>
-                      <AppText 
-                        size="xs" 
-                        weight="bold"
-                        style={{color: getProgressColor(item.stPct)}}>
-                        {item.stPct}%
-                      </AppText>
-                    </View>
-                  </View>
-                  
-                  <View className="mb-2">
-                    <View className="h-3 rounded-full bg-slate-200 dark:bg-slate-600 overflow-hidden">
+                {/* Progress Sections */}
+                <View className="px-5 py-4 gap-4">
+                  <View>
+                    <View className="flex-row items-center justify-between mb-2">
+                      <View className="flex-row items-center flex-1">
+                        <View
+                          className="w-2 h-2 rounded-full mr-2"
+                          style={{
+                            backgroundColor: getProgressColor(item.stPct),
+                          }}
+                        />
+                        <AppText
+                          size="sm"
+                          weight="semibold"
+                          className="text-slate-700 dark:text-slate-200">
+                          Sell Through (ST)
+                        </AppText>
+                      </View>
                       <View
-                        className="h-full rounded-full"
+                        className="rounded-full px-2.5 py-1"
                         style={{
-                          width: `${Math.min(item.stPct, 100)}%`,
-                          backgroundColor: getProgressColor(item.stPct),
-                        }}
-                      />
+                          backgroundColor: getProgressBgColor(item.stPct),
+                        }}>
+                        <AppText
+                          size="xs"
+                          weight="bold"
+                          style={{color: getProgressColor(item.stPct)}}>
+                          {item.stPct}%
+                        </AppText>
+                      </View>
                     </View>
+
+                    <View className="mb-2">
+                      <View className="h-3 rounded-full bg-slate-200 dark:bg-slate-600 overflow-hidden">
+                        <View
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${Math.min(item.stPct, 100)}%`,
+                            backgroundColor: getProgressColor(item.stPct),
+                          }}
+                        />
+                      </View>
+                    </View>
+
+                    <AppText
+                      size="xs"
+                      className="text-slate-500 dark:text-slate-400">
+                      {convertToAPACUnits(item.st)} of{' '}
+                      {convertToAPACUnits(item.tgt)} units
+                    </AppText>
                   </View>
-                  
-                  <AppText size="xs" className="text-slate-500 dark:text-slate-400">
-                    {convertToAPACUnits(item.st)} of {convertToAPACUnits(item.tgt)} units
-                  </AppText>
                 </View>
               </View>
-            </View>
-          );
-        }).reverse()}
+            );
+          })
+          .reverse()}
       </ScrollView>
 
       {/* Pagination Dots */}
@@ -611,12 +648,10 @@ export const TargetAchievementCard = ({
   isLoading = false,
 }: TargetAchievementProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  
-  if (isLoading) return <TargetAchievementSkeleton />;
-  
   const cardWidth = screenWidth - 56;
   const cardGap = 12;
-  
+
+  if (isLoading) return <TargetAchievementSkeleton />;
   return (
     <View className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
       {/* Header with Gradient Background */}
@@ -648,14 +683,14 @@ export const TargetAchievementCard = ({
               </AppText>
             </View>
           </View>
-          <View className="bg-white dark:bg-slate-700 rounded-full px-3 py-1.5 shadow-sm">
+          {/* <View className="bg-white dark:bg-slate-700 rounded-full px-3 py-1.5 shadow-sm">
             <AppText
               size="xs"
               weight="semibold"
               className="text-emerald-600 dark:text-emerald-400">
-              {currentIndex + 1}/{data?.length || 0}
+              {currentIndex?.value + 1}/{data?.length || 0}
             </AppText>
-          </View>
+          </View> */}
         </View>
       </View>
 
@@ -667,8 +702,8 @@ export const TargetAchievementCard = ({
         snapToInterval={cardWidth + cardGap}
         decelerationRate="fast"
         pagingEnabled={false}
-        onScroll={event => {
-          const offsetX = event.nativeEvent.contentOffset.x;
+        onScroll={e => {
+          const offsetX = e.nativeEvent.contentOffset.x;
           const index = Math.round(offsetX / (cardWidth + cardGap));
           setCurrentIndex(Math.max(0, Math.min(index, (data?.length || 1) - 1)));
         }}
@@ -771,11 +806,11 @@ export const TargetAchievementCard = ({
 
       {/* Pagination Dots */}
       {data && data.length > 1 && (
-        <View className="flex-row justify-center pb-4 gap-1.5">
-          {data.map((_: any, idx: number) => (
+        <View className="flex-row justify-center py-4 gap-1.5">
+          {data.map((_:any, idx:number) => (
             <View
               key={idx}
-              className="rounded-full transition-all"
+              className="rounded-full"
               style={{
                 width: currentIndex === idx ? 20 : 6,
                 height: 6,
@@ -793,9 +828,11 @@ export const TargetAchievementCard = ({
 
 export default function Dashboard_Partner({
   DifferentEmployeeCode,
+  DifferntEmployeeName,
   noAnalytics,
 }: {
   DifferentEmployeeCode?: string;
+  DifferntEmployeeName?: string;
   noAnalytics?: boolean;
 }) {
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -844,7 +881,6 @@ export default function Dashboard_Partner({
   }, [refetchDashboard]);
 
   const isDataEmpty = !isLoading && !dashboardData;
-  console.log('Dashboard Data:', dashboardData);
   return (
     <ScrollView
       className="flex-1 bg-lightBg-base dark:bg-darkBg-base"
@@ -880,6 +916,14 @@ export default function Dashboard_Partner({
           />
         </View>
       </View>
+      {DifferentEmployeeCode && (
+        <Card className="p-4 bg-yellow-50 border-yellow-200">
+          <AppText className="text-yellow-800 text-sm">
+            Viewing dashboard for Partner:{' '}
+            {DifferntEmployeeName || DifferentEmployeeCode}
+          </AppText>
+        </Card>
+      )}
 
       {isDataEmpty ? (
         <NoDataAvailable />

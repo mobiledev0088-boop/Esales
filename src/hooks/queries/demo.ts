@@ -2,6 +2,7 @@ import {useQuery} from '@tanstack/react-query';
 import useEmpStore from '../../stores/useEmpStore';
 import {useLoginStore} from '../../stores/useLoginStore';
 import {handleAPACApiCall, handleASINApiCall} from '../../utils/handleApiCall';
+import {formatUnique} from '../../utils/commonFunctions';
 
 export const useGetDemoDataReseller = (
   YearQtr: string,
@@ -191,7 +192,7 @@ export const useGetDemoDataProgram = ({
 
   const queryPayload = {
     employeeCode,
-    Category,
+    Category: Category || 'All',
     Month,
     Program_Name,
     PartnerCode,
@@ -223,7 +224,11 @@ export const useGetDemoDataPartner = ({
   IsCompulsory: string;
   Category: string;
 }) => {
-  const {EMP_Code: employeeCode = '',EMP_RoleId: RoleId = '',EMP_CountryID: Country = ''} = useLoginStore(state => state.userInfo);
+  const {
+    EMP_Code: employeeCode = '',
+    EMP_RoleId: RoleId = '',
+    EMP_CountryID: Country = '',
+  } = useLoginStore(state => state.userInfo);
 
   const queryPayload = {
     employeeCode,
@@ -251,15 +256,17 @@ export const useGetDemoDataPartner = ({
 };
 
 export const useGetDemoDataROI = (YearQtr: string, Category: string) => {
-  const {EMP_Code: employeeCode = '', EMP_RoleId: RoleId = '', EMP_CountryID: Country = ''} = useLoginStore(
-    state => state.userInfo,
-  );
+  const {
+    EMP_Code: employeeCode = '',
+    EMP_RoleId: RoleId = '',
+    EMP_CountryID: Country = '',
+  } = useLoginStore(state => state.userInfo);
   const queryPayload = {
     YearQtr,
     RoleId,
     employeeCode,
     Category,
-    Country
+    Country,
   };
   return useQuery({
     queryKey: ['roiDemoData', ...Object.values(queryPayload)],
@@ -275,4 +282,39 @@ export const useGetDemoDataROI = (YearQtr: string, Category: string) => {
       return result.Datainfo?.ROI_Details || [];
     },
   });
-}
+};
+
+export const useGetDemoFilterOptionsAPAC = (
+  Month: string,
+  PartnerCode: string,
+) => {
+  const {EMP_Code: employeeCode = ''} = useLoginStore(state => state.userInfo);
+  const queryPayload = {employeeCode, Month, PartnerCode};
+  return useQuery({
+    queryKey: ['demoFilterOptionsAPAC', ...Object.values(queryPayload)],
+    queryFn: async () => {
+      const response = await handleAPACApiCall(
+        '/DemoForm/GetDemoByProgramFilters',
+        queryPayload,
+      );
+      const result = response?.demoFormData;
+      if (!result?.Status) {
+        throw new Error('Failed to fetch filter options');
+      }
+      return result.Datainfo || {};
+    },
+    select: data => {
+      
+      const Category = formatUnique(data?.CategoryFilter, 'Demo_Category');
+      const AGP_Filter = formatUnique(data?.AGP_Filter,'PM_Code','PM_Name');
+      const Store_filter = formatUnique(data?.Store_filter,'Store_id','Store_name');
+      const ProgramName_Filter = formatUnique(data?.ProgramName_Filter,'CM_CPORID','CM_SchemeCategory');
+      return {
+        Category,
+        AGP_Filter,
+        Store_filter,
+        ProgramName_Filter,
+      };
+    },
+  });
+};
