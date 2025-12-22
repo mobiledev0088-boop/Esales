@@ -34,6 +34,7 @@ interface SearchProps {
   handleSearch: () => void;
   recentSearches?: string[]; // Add this prop for recent searches
   appTheme?: 'light' | 'dark';
+  pickImage?: (source: 'camera' | 'gallery') => void;
 }
 
 const InfoRow = ({icon, iconType, label, value}: RowType) => {
@@ -351,6 +352,7 @@ export const SearchCard = ({
   handleSearch,
   recentSearches = [],
   appTheme,
+  pickImage
 }: SearchProps) => {
   const currentTheme = useThemeStore(state => state.AppTheme);
   const isDarkTheme = (appTheme || currentTheme) === 'dark';
@@ -404,6 +406,7 @@ export const SearchCard = ({
           rightIconTsx={
             <TouchableOpacity
               onPress={openScanner}
+              // onPress={() => pickImage && pickImage('camera')}
               className="mr-3 p-2 rounded-lg"
               style={{
                 backgroundColor: isDarkTheme ? AppColors.dark.primary : '#EBF4FF'
