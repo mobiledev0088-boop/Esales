@@ -10,7 +10,7 @@ import AppIcon, {IconType} from '../../../../../components/customs/AppIcon';
 import {EmpInfo, UserInfo} from '../../../../../types/user';
 import AppInput from '../../../../../components/customs/AppInput';
 import AppButton from '../../../../../components/customs/AppButton';
-import {useMemo, useState} from 'react';
+import {use, useMemo, useState} from 'react';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import {getDeviceId} from 'react-native-device-info';
 import {handleASINApiCall} from '../../../../../utils/handleApiCall';
@@ -19,7 +19,7 @@ import {AppNavigationProp} from '../../../../../types/navigation';
 import {useLoginStore} from '../../../../../stores/useLoginStore';
 import {TouchableOpacity} from 'react-native';
 import {AppTable} from '../../../../../components/customs/AppTable';
-import {screenWidth} from '../../../../../utils/constant';
+import {ASUS, screenWidth} from '../../../../../utils/constant';
 import Accordion from '../../../../../components/Accordion';
 import clsx from 'clsx';
 import {useThemeStore} from '../../../../../stores/useThemeStore';
@@ -234,7 +234,7 @@ export const SyncedDate = ({
   }, []);
 
   return (
-    <Card className="mt-8 rounded-md">
+    <Card className="mt-8 rounded-md mb-4">
       <Accordion
         duration={250}
         initialOpening
@@ -434,16 +434,32 @@ export const SpecialAccessUI = ({
 
 export const AccountSettings = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const {EMP_RoleId} = useLoginStore(state => state.userInfo);
   const AppTheme = useThemeStore(state => state.AppTheme);
+  const isASE = EMP_RoleId === ASUS.ROLE_ID.ASE;
   return (
     <>
       <AppText className="ml-2 mt-8 mb-2 underline">Account Settings</AppText>
       <Card className="rounded-md gap-5 mb-5">
         {renderCardRow(
-          'materialIcons',
-          'lock',
+          'ionicons',
+          'lock-closed-outline',
           'Change Password',
           () => navigation.push('ChangePassword'),
+          AppTheme,
+        )}
+        {isASE && renderCardRow(
+          'ionicons',
+          'checkmark-done-circle-outline',
+          'Attendance',
+          () => navigation.push('Attendance'),
+          AppTheme,
+        )}
+        {renderCardRow(
+          'ionicons',
+          'settings-outline',
+          'App Permissions',
+          () => navigation.push('AppPermissions'),
           AppTheme,
         )}
         <AppText size="sm" weight="bold" className="text-center underline">

@@ -7,7 +7,10 @@ import AppDropdown, {
   AppDropdownItem,
 } from '../../../../components/customs/AppDropdown';
 import {getPastQuarters} from '../../../../utils/commonFunctions';
-import {useDashboardData, useGetSubCodeData} from '../../../../hooks/queries/dashboard';
+import {
+  useDashboardData,
+  useGetSubCodeData,
+} from '../../../../hooks/queries/dashboard';
 import {
   ActivationPerformanceComponent,
   BannerComponent,
@@ -18,7 +21,6 @@ import AppTabBar from '../../../../components/CustomTabBar';
 import useEmpStore from '../../../../stores/useEmpStore';
 import {ASUS} from '../../../../utils/constant';
 import clsx from 'clsx';
-
 
 // Map an array to a standardized top-N shape
 const mapTopFive = (
@@ -278,7 +280,7 @@ const PartnerAnalytics = ({
   dashboardData,
   isLoading,
   partnerType,
-  isSubCodeSelected
+  isSubCodeSelected,
 }: {
   dashboardData: any;
   isLoading: boolean;
@@ -287,51 +289,51 @@ const PartnerAnalytics = ({
 }) => {
   if (isLoading) return <PartnerAnalyticsSkeleton />; // Skeleton while loading
   const isAWP = partnerType === ASUS.PARTNER_TYPE.T2.AWP;
-const tabs = useMemo(() => {
-  if (isAWP) {
-    return [
+  const tabs = useMemo(() => {
+    if (isAWP) {
+      return [
+        {
+          name: 'Partners Billing',
+          label: 'Partners Billing',
+          component: () => (
+            <PartnersBillingComponent data={dashboardData?.UniqueBilled} />
+          ),
+        },
+        {
+          name: 'SO Quantity',
+          label: 'SO Quantity',
+          component: () => (
+            <SelloutQuantityComponent data={dashboardData?.SelloutQty} />
+          ),
+        },
+        {
+          name: 'Achievements',
+          label: 'Achievements',
+          component: () => (
+            <Achievements data={dashboardData?.TargetAndAchievement} />
+          ),
+        },
+      ];
+    }
+
+    const nonAwpTabs = [
       {
-        name: 'Partners Billing',
-        label: 'Partners Billing',
-        component: () => (
-          <PartnersBillingComponent data={dashboardData?.UniqueBilled} />
-        ),
-      },
-      {
-        name: 'SO Quantity',
-        label: 'SO Quantity',
-        component: () => (
-          <SelloutQuantityComponent data={dashboardData?.SelloutQty} />
-        ),
-      },
-      {
-        name: 'Achievements',
-        label: 'Achievements',
-        component: () => (
-          <Achievements data={dashboardData?.TargetAndAchievement} />
-        ),
+        name: 'Sellout',
+        label: 'Sellout',
+        component: () => <SelloutComponent data={dashboardData?.Sellout} />,
       },
     ];
-  }
 
-  const nonAwpTabs= [
-    {
-      name: 'Sellout',
-      label: 'Sellout',
-      component: () => <SelloutComponent data={dashboardData?.Sellout} />,
-    },
-  ];
+    if (!isSubCodeSelected) {
+      nonAwpTabs.push({
+        name: 'Inventory',
+        label: 'Inventory',
+        component: () => <InventoryComponent data={dashboardData?.Inventory} />,
+      });
+    }
 
-  if (!isSubCodeSelected) {
-    nonAwpTabs.push({
-      name: 'Inventory',
-      label: 'Inventory',
-      component: () => <InventoryComponent data={dashboardData?.Inventory} />,
-    });
-  }
-
-  return nonAwpTabs;
-}, [dashboardData, isAWP, isSubCodeSelected]);
+    return nonAwpTabs;
+  }, [dashboardData, isAWP, isSubCodeSelected]);
 
   return (
     <Card className="p-0">
@@ -368,11 +370,22 @@ const NoDataAvailable = () => (
   </View>
 );
 
-export default function Dashboard_Partner({noBanner,DifferentEmployeeCode,noPadding,noAnalytics}: {noBanner?: boolean,DifferentEmployeeCode?:string,noPadding?:boolean,noAnalytics?:boolean}) {
+export default function Dashboard_Partner({
+  noBanner,
+  DifferentEmployeeCode,
+  noPadding,
+  noAnalytics,
+}: {
+  noBanner?: boolean;
+  DifferentEmployeeCode?: string;
+  noPadding?: boolean;
+  noAnalytics?: boolean;
+}) {
+  
   const quarters = useMemo(getPastQuarters, []); // Static quarter list
   const empInfo = useEmpStore(s => s.empInfo);
-  const [selectedQuarter, setSelectedQuarter] =
-    useState<AppDropdownItem | null>(quarters[0] || null);
+
+  const [selectedQuarter, setSelectedQuarter] = useState<AppDropdownItem | null>(quarters[0] || null);
   const [selectedSubCode, setSelectedSubCode] = useState<AppDropdownItem | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -382,8 +395,13 @@ export default function Dashboard_Partner({noBanner,DifferentEmployeeCode,noPadd
     isLoading,
     error: dashboardError,
     refetch: refetchDashboard,
-  } = useDashboardData(selectedQuarter?.value || '', 'Total', selectedSubCode?.value || '',DifferentEmployeeCode);
-  const {data: subCodeData,isLoading: isLoadingSubCode} = useGetSubCodeData();
+  } = useDashboardData(
+    selectedQuarter?.value || '',
+    'Total',
+    selectedSubCode?.value || '',
+    DifferentEmployeeCode,
+  );
+  const {data: subCodeData, isLoading: isLoadingSubCode} = useGetSubCodeData();
 
   // Target vs Achievement summary
   const achievementData = useMemo(
@@ -427,9 +445,13 @@ export default function Dashboard_Partner({noBanner,DifferentEmployeeCode,noPadd
   }, [refetchDashboard]);
 
   const isDataEmpty = !isLoading && !dashboardData;
+
   return (
     <ScrollView
-      className={clsx("flex-1 bg-lightBg-base dark:bg-darkBg-base", noPadding ? '' : 'px-3')}
+      className={clsx(
+        'flex-1 bg-lightBg-base dark:bg-darkBg-base',
+        noPadding ? '' : 'px-3',
+      )}
       contentContainerClassName="flex-grow pb-10 gap-5 pt-3"
       showsVerticalScrollIndicator={false}
       refreshControl={
@@ -481,8 +503,7 @@ export default function Dashboard_Partner({noBanner,DifferentEmployeeCode,noPadd
                   <AppText
                     size="xs"
                     weight="semibold"
-                    className="text-blue-700"
-                  >
+                    className="text-blue-700">
                     Sub Code:
                   </AppText>
                   <AppText
@@ -491,8 +512,7 @@ export default function Dashboard_Partner({noBanner,DifferentEmployeeCode,noPadd
                     numberOfLines={1}
                     ellipsizeMode="tail"
                     className="text-blue-900 ml-1 flex-shrink"
-                    style={{maxWidth: '65%'}}
-                  >
+                    style={{maxWidth: '65%'}}>
                     {selectedSubCode.label}
                   </AppText>
                   <Pressable
@@ -501,11 +521,20 @@ export default function Dashboard_Partner({noBanner,DifferentEmployeeCode,noPadd
                     onPress={() => setSelectedSubCode(null)}
                     hitSlop={8}
                     className="ml-2">
-                    <AppIcon name="x" type="feather" size={14} color="#1E3A8A" />
+                    <AppIcon
+                      name="x"
+                      type="feather"
+                      size={14}
+                      color="#1E3A8A"
+                    />
                   </Pressable>
                 </View>
-                <AppText size="xs" className="text-slate-500 flex-shrink" numberOfLines={2}>
-                  Showing performance data below for the selected Sub Code. Clear to view Parent Code data.
+                <AppText
+                  size="xs"
+                  className="text-slate-500 flex-shrink"
+                  numberOfLines={2}>
+                  Showing performance data below for the selected Sub Code.
+                  Clear to view Parent Code data.
                 </AppText>
               </View>
             </View>
@@ -519,7 +548,7 @@ export default function Dashboard_Partner({noBanner,DifferentEmployeeCode,noPadd
         <NoDataAvailable />
       ) : (
         <>
-        {/* {selectedSubCode?.value && <AppText size='sm' weight='semibold' className='text-slate-700'>SubCode Data</AppText>} */}
+          {/* {selectedSubCode?.value && <AppText size='sm' weight='semibold' className='text-slate-700'>SubCode Data</AppText>} */}
           <TargetAchievementCard
             target={achievementData.target}
             achievement={achievementData.achievement}
@@ -535,12 +564,15 @@ export default function Dashboard_Partner({noBanner,DifferentEmployeeCode,noPadd
             name="Total"
             quarter={selectedQuarter?.value || ''}
           />
-          {!noAnalytics && <PartnerAnalytics
-            dashboardData={dashboardData}
-            isLoading={isLoading}
-            partnerType={empInfo?.EMP_Type}
-            isSubCodeSelected={!!selectedSubCode?.value}
-          />}
+          {!noAnalytics && (
+            <PartnerAnalytics
+              dashboardData={dashboardData}
+              isLoading={isLoading}
+              partnerType={empInfo?.EMP_Type}
+              isSubCodeSelected={!!selectedSubCode?.value}
+            />
+          )}
+
         </>
       )}
     </ScrollView>

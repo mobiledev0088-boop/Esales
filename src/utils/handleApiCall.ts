@@ -48,7 +48,7 @@ export const handleASINApiCall = async <T = any>(
     if (token && userInfo?.EMP_Code) {
       void saveApiLog(url, token, userInfo.EMP_Code);
     } else {
-      console.log('Token or EMP_Code is missing, skipping API log save');
+      console.log('Token or EMP_Code is missing, skipping API log save',url);
     }
   }
 };

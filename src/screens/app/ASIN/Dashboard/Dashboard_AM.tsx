@@ -514,7 +514,7 @@ const TargetVsAchievementComponent: React.FC<
 /**
  * Activation Performance Component - Shows activation performance table with search and sorting
  */
-const ActivationPerformanceComponent: React.FC<
+export const ActivationPerformanceComponent: React.FC<
   ActivationPerformanceComponentProps
 > = ({data = [], isLoading, error, onRetry}) => {
 

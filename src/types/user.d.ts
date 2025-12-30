@@ -33,6 +33,8 @@ export interface UserInfo {
     UPD_PROPERTY: string;
     UPD_TODAY: string;
     UPD_USER: string;
+    Latitude: number | null;
+    Longitude: number | null;
 }
 export type EmpInfo = {
     ASE_PDF_Link: string | null;

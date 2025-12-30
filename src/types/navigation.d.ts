@@ -89,6 +89,9 @@ type AppNavigationParamList = {
   StoreDetails: {PartnerCode: string; StoreType: string};
   // Account Screen
   ChangePassword: undefined;
+  // Attendance Screen
+  Attendance: undefined;
+  AppPermissions: undefined;
   // Notifications Screens
   Notification: undefined;
   // Feedback Screens

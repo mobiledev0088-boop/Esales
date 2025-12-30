@@ -1,5 +1,5 @@
 import moment from 'moment';
-import CryptoJS from 'react-native-crypto-js';
+// import CryptoJS from 'react-native-crypto-js';
 import Toast from 'react-native-simple-toast';
 import RNFS from 'react-native-fs';
 import ReactNativeBlobUtil from 'react-native-blob-util';
@@ -85,7 +85,7 @@ export const convertToCapitalized = (text: string): string => {
 };
 
 export const getPastMonths = (
-  count: number,
+  count=6,
   isForward?: boolean,
   startFrom?: string,
 ): {label: string; value: string}[] => {
@@ -148,20 +148,20 @@ export const ensureFolderExists = async (path: string) => {
   }
 };
 
-export const ecrypt = (text: string) => {
-  var secureKey = 'MAKV2SPBNI992122';
-  var secureIV = 'MobileApp@1A2$US';
-  var key = CryptoJS.enc.Utf8.parse(secureKey);
-  var iv = CryptoJS.enc.Utf8.parse(secureIV);
-  var encText = CryptoJS.AES.encrypt(CryptoJS.enc.Utf8.parse(text), key, {
-    keySize: 128 / 8,
-    iv: iv,
-    mode: CryptoJS.mode.CBC,
-    padding: CryptoJS.pad.Pkcs7,
-  }).toString();
-  console.log('Encrypted Text:', encText);
-  return encText;
-};
+// export const ecrypt = (text: string) => {
+//   var secureKey = 'MAKV2SPBNI992122';
+//   var secureIV = 'MobileApp@1A2$US';
+//   var key = CryptoJS.enc.Utf8.parse(secureKey);
+//   var iv = CryptoJS.enc.Utf8.parse(secureIV);
+//   var encText = CryptoJS.AES.encrypt(CryptoJS.enc.Utf8.parse(text), key, {
+//     keySize: 128 / 8,
+//     iv: iv,
+//     mode: CryptoJS.mode.CBC,
+//     padding: CryptoJS.pad.Pkcs7,
+//   }).toString();
+//   console.log('Encrypted Text:', encText);
+//   return encText;
+// };
 
 export const showToast = (message: string) => {
   Toast.showWithGravity(

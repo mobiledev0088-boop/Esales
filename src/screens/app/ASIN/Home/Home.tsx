@@ -10,13 +10,17 @@ import Demo from '../Demo/Demo';
 import Claim from '../Claim/Claim';
 import Schemes from '../Schemes/Schemes';
 
-import {ComponentType, useMemo} from 'react';
-import {NavigationHelpers,ParamListBase,TabNavigationState} from '@react-navigation/native';
+import {ComponentType, useEffect, useMemo} from 'react';
+import {
+  NavigationHelpers,
+  ParamListBase,
+  TabNavigationState,
+} from '@react-navigation/native';
 import {Pressable, View} from 'react-native';
 import {AppColors} from '../../../../config/theme';
 import AppText from '../../../../components/customs/AppText';
 import {SheetManager} from 'react-native-actions-sheet';
-import AppIcon, { IconType } from '../../../../components/customs/AppIcon';
+import AppIcon, {IconType} from '../../../../components/customs/AppIcon';
 import {useLoginStore} from '../../../../stores/useLoginStore';
 import {ASUS} from '../../../../utils/constant';
 import Dashboard_AM from '../Dashboard/Dashboard_AM';
@@ -26,13 +30,14 @@ import Demo_Partner from '../Demo/Demo_Partner';
 import RollingFunnel from '../Commercial/RollingFunnel/RollingFunnel';
 import PowerCalculator from '../Commercial/PowerCalculator/PowerCalculator';
 import Account from '../User/Account/Account';
-
+import BackgroundFetch from 'react-native-background-fetch';
+import Dashboard_ASE from '../Dashboard/Dashboard_ASE';
 interface TabScreens {
   name: string;
   component: ComponentType<any>;
   icon: string;
   // Optional icon type (library). If omitted, defaults to 'ionicons'
-  iconType?: IconType
+  iconType?: IconType;
   options?: BottomTabNavigationOptions;
   action?: () => void;
   params?: Record<string, any>;
@@ -48,18 +53,17 @@ const Tab = createBottomTabNavigator();
 
 const Home: React.FC = () => {
   const userInfo = useLoginStore(state => state.userInfo);
-
   const getScreens = () => {
     const arr: TabScreens[] = [];
 
     // Dashboard
     if (userInfo?.EMP_Btype === ASUS.BUSINESS_TYPES.COMMERCIAL) {
       // dashboard for  Rooling Funnel
-          arr.push({
-          name: 'Dashboard',
-          component: RollingFunnel,
-          icon: 'bar-chart',
-        });
+      arr.push({
+        name: 'Dashboard',
+        component: RollingFunnel,
+        icon: 'bar-chart',
+      });
     } else {
       if (userInfo?.EMP_RoleId === ASUS.ROLE_ID.AM) {
         arr.push({
@@ -67,20 +71,23 @@ const Home: React.FC = () => {
           component: Dashboard_AM,
           icon: 'bar-chart',
         });
-      } else if (
-        userInfo?.EMP_RoleId === ASUS.ROLE_ID.PARTNERS ||
-        userInfo?.EMP_RoleId === ASUS.ROLE_ID.ASE
-      ) {
+      } else if (userInfo?.EMP_RoleId === ASUS.ROLE_ID.PARTNERS) {
         arr.push({
           name: 'Dashboard',
           component: Dashboard_Partner,
+          icon: 'bar-chart',
+        });
+      } else if (userInfo?.EMP_RoleId === ASUS.ROLE_ID.ASE) {
+        arr.push({
+          name: 'Dashboard',
+          component: Dashboard_ASE,
           icon: 'bar-chart',
         });
       } else {
         arr.push({name: 'Dashboard', component: Dashboard, icon: 'bar-chart'});
       }
     }
-    
+
     // Demo
     if (userInfo?.EMP_Btype !== ASUS.BUSINESS_TYPES.COMMERCIAL) {
       if (
@@ -101,7 +108,12 @@ const Home: React.FC = () => {
         userInfo?.EMP_RoleId !== ASUS.ROLE_ID.ESHOP_HO
       ) {
         // Demo for DISTRIBUTORS and Disti HO and ESHOP HO
-        arr.push({name: 'Demo', component: Demo, icon: 'laptop', iconType:'materialIcons'});
+        arr.push({
+          name: 'Demo',
+          component: Demo,
+          icon: 'laptop',
+          iconType: 'materialIcons',
+        });
       }
     }
 
@@ -130,7 +142,12 @@ const Home: React.FC = () => {
       userInfo?.EMP_RoleId === ASUS.ROLE_ID.DISTI_HO ||
       userInfo?.EMP_RoleId === ASUS.ROLE_ID.DISTRIBUTORS
     ) {
-      arr.push({name: 'Account', component: Account, icon: 'person-circle', params: { noHeader: true }});
+      arr.push({
+        name: 'Account',
+        component: Account,
+        icon: 'person-circle',
+        params: {noHeader: true},
+      });
       // Account
     } else {
       // schemes
@@ -178,7 +195,7 @@ const Home: React.FC = () => {
   return (
     <AppLayout isDashboard>
       <Tab.Navigator
-        screenOptions={{headerShown: false, tabBarHideOnKeyboard: true, }}
+        screenOptions={{headerShown: false, tabBarHideOnKeyboard: true}}
         tabBar={props => <CustomTabBar {...props} TabScreens={TabScreens} />}>
         {TabScreens.map(screen => (
           <Tab.Screen
@@ -227,7 +244,7 @@ const CustomTabBar: React.FC<MyTabBarProps> = ({
         // Only append -outline for ionicons set; otherwise keep the same icon name
         const iconName = isFocused
           ? icon
-          : (iconType === 'ionicons' || iconType === 'material-community')
+          : iconType === 'ionicons' || iconType === 'material-community'
             ? `${icon}-outline`
             : icon;
         const iconColor = isFocused ? AppColors.tabSelected : '#95a5a6';

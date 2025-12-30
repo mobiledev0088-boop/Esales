@@ -30,17 +30,11 @@ const Account = (props: AccountProps) => {
 
   // Determine special access permissions for the user
   const specialAccessPermissions = useMemo(() => {
-    const permissions: Record<string, boolean> = {};
-    if (currentUser?.Is_Multiple_Login === 'Yes') {
-      permissions.multipleLoginAllowed = true;
-    }
-    if (employeeDetails?.Is_LoginAs === 'Yes') {
-      permissions.loginAsAllowed = true;
-    }
-    if (currentUser?.Is_Multiple_BusinessType === 'Yes') {
-      permissions.multipleBusinessTypeAllowed = true;
-    }
-    return permissions;
+    return {
+      multipleLoginAllowed: currentUser?.Is_Multiple_Login === 'Yes',
+      loginAsAllowed: employeeDetails?.Is_LoginAs === 'Yes',
+      multipleBusinessTypeAllowed: currentUser?.Is_Multiple_BusinessType === 'Yes',
+    };
   }, [currentUser, employeeDetails]);
 
   // Render account details content
@@ -58,10 +52,10 @@ const Account = (props: AccountProps) => {
       )}
 
       {/* Special Access Functions */}
-      <SpecialAccessUI
+      {Object.values(specialAccessPermissions).some(Boolean) && ( <SpecialAccessUI
         specialFunctionsAccess={specialAccessPermissions}
         userInfo={currentUser}
-      />
+      />)}
 
       {/* Account Settings */}
       <AccountSettings />

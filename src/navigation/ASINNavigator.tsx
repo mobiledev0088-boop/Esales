@@ -43,6 +43,8 @@ import TargetSummaryAMBranch from "../screens/app/ASIN/Reports/TargetSummaryAMBr
 import TargetPartnerDashboard from "../screens/app/ASIN/Dashboard/TargetPartnerDashboard";
 import UploadDemoData from "../screens/app/ASIN/Demo/UploadDemoData";
 import AddRollingFunnel from "../screens/app/ASIN/Commercial/RollingFunnel/AddRollingFunnel";
+import Attendance from "../screens/app/ASIN/User/Attendance/Attendance";
+import AppPermissions from "../screens/app/ASIN/User/AppPermissions/AppPermissions";
 
 type Screen = {
     name: string;
@@ -55,6 +57,8 @@ const screens: Screen[] = [
     // Drawer Screen
     { name: "Index", component: Index },
     { name: "ChangePassword", component:  ChangePassword},
+    { name: "Attendance", component:  Attendance},
+    { name: "AppPermissions", component:  AppPermissions},
     // Dashboard Screens
     { name: "ScanSN", component: ScanSN },
     { name: "TargetPartnerDashboard", component: TargetPartnerDashboard },

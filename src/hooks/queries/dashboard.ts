@@ -91,11 +91,11 @@ export const useDashboardDataAM = (
   YearQtr: string | null,
   masterTab: string | null,
 ) => {
-  // const {employeeCode, yearQtr} = getUserCredentials();
-  const {yearQtr} = getUserCredentials();
+  const {employeeCode, yearQtr} = getUserCredentials();
+  // const {yearQtr} = getUserCredentials();
   const effectiveYearQtr = YearQtr || yearQtr;
   const effectiveMasterTab = masterTab || 'Total';
-  const employeeCode = 'KN1100081'; // For testing purpose only
+  // const employeeCode = 'KN1100081'; // For testing purpose only
   return useQuery({
     queryKey: [
       'dashboardDataAM',

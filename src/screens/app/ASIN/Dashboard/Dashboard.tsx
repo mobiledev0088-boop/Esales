@@ -59,7 +59,8 @@ import {useNavigation} from '@react-navigation/native';
 import {AppNavigationProp} from '../../../../types/navigation';
 import moment from 'moment';
 import useEmpStore from '../../../../stores/useEmpStore';
-import { useThemeStore } from '../../../../stores/useThemeStore';
+import {useThemeStore} from '../../../../stores/useThemeStore';
+import AppButton from '../../../../components/customs/AppButton';
 
 // Static fallback tabs to prevent recreation
 const STATIC_DASHBOARD_TABS = [
@@ -89,7 +90,10 @@ const DashboardHeader: React.FC<HeaderProps> = ({
       ? calculatePercentage(salesData.Qty_Achieved, salesData.Qty_Target)
       : 0;
 
-  const {bgColor, textColor} = getPerformanceColor(percentage, AppTheme==='dark');
+  const {bgColor, textColor} = getPerformanceColor(
+    percentage,
+    AppTheme === 'dark',
+  );
 
   const displayTitle = tabName
     ? `${DASHBOARD.TABS.LFR === tabName ? tabName : convertToTitleCase(tabName)} Sales`
@@ -117,7 +121,7 @@ const DashboardHeader: React.FC<HeaderProps> = ({
             {displayTitle}
           </AppText>
           <View className="flex-row items-center">
-            <AppText size="lg" weight="bold" className="mr-1 text-[#007BE5]" >
+            <AppText size="lg" weight="bold" className="mr-1 text-[#007BE5]">
               {formatDisplayValue(salesData?.Qty_Achieved)}
             </AppText>
             <AppText size="sm" color="gray" className="mr-2">
@@ -125,7 +129,7 @@ const DashboardHeader: React.FC<HeaderProps> = ({
             </AppText>
             {/* Green Base 0EA473.  Red BAse  EF4444.  */}
             <View className={`px-2 py-1 rounded-full ${bgColor}`}>
-              <AppText size="xs" weight="semibold" color={textColor} >
+              <AppText size="xs" weight="semibold" color={textColor}>
                 {percentage}%
               </AppText>
             </View>
@@ -162,22 +166,21 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
   const AppTheme = useThemeStore(state => state.AppTheme);
   const darkMode = AppTheme === 'dark';
 
-  const handleDistributorWisePress = useCallback((wise:'POD' | 'SELL') => {
+  const handleDistributorWisePress = useCallback((wise: 'POD' | 'SELL') => {
     navigation.push('TargetSummary', {
       masterTab: tabName,
       Quarter: quarter,
       button: 'disti',
-      wise: wise
+      wise: wise,
     });
   }, []);
 
-  const handleSeeMorePress = useCallback((wise:'POD' | 'SELL') => {
+  const handleSeeMorePress = useCallback((wise: 'POD' | 'SELL') => {
     navigation.push('TargetSummary', {
       masterTab: tabName,
       Quarter: quarter,
       button: 'seemore',
-      wise: wise
-
+      wise: wise,
     });
   }, []);
 
@@ -249,10 +252,9 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
     ASUS.ROLE_ID.DISTI_HO,
     ASUS.ROLE_ID.LFR_HO,
   ].includes(userInfo?.EMP_RoleId as any);
-  
 
   const renderActionButtons = useCallback(
-    (wise:'POD' | 'SELL') => (
+    (wise: 'POD' | 'SELL') => (
       <View
         className={clsx(
           'flex-row w-full px-3 mt-4',
@@ -262,9 +264,17 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
           <TouchableOpacity
             className="py-1 flex-row items-center border-b border-blue-600 dark:border-secondary-dark"
             activeOpacity={0.7}
-            onPress={()=>handleDistributorWisePress(wise)}>
-            <AppIcon name="users" type="feather" color={darkMode ? "#ffffff" : "#2563eb"} size={16} />
-            <AppText size="sm" weight="medium" className="text-secondary dark:text-white ml-2">
+            onPress={() => handleDistributorWisePress(wise)}>
+            <AppIcon
+              name="users"
+              type="feather"
+              color={darkMode ? '#ffffff' : '#2563eb'}
+              size={16}
+            />
+            <AppText
+              size="sm"
+              weight="medium"
+              className="text-secondary dark:text-white ml-2">
               Distributor Wise
             </AppText>
           </TouchableOpacity>
@@ -273,14 +283,17 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
         <TouchableOpacity
           className="py-1 flex-row items-center border-b border-blue-600 dark:border-secondary-dark"
           activeOpacity={0.7}
-          onPress={()=>handleSeeMorePress(wise)}>
-          <AppText size="sm" weight="medium" className="text-blue-600 dark:text-white mr-2">
+          onPress={() => handleSeeMorePress(wise)}>
+          <AppText
+            size="sm"
+            weight="medium"
+            className="text-blue-600 dark:text-white mr-2">
             See More
           </AppText>
           <AppIcon
             name="arrow-right"
             type="feather"
-            color={darkMode ? "#ffffff" : "#2563eb"}
+            color={darkMode ? '#ffffff' : '#2563eb'}
             size={16}
           />
         </TouchableOpacity>
@@ -345,8 +358,8 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
   return (
     <View className="">
       {/* F2F2F3 */}
-      <AppText size='xl' weight='bold'  className="pl-3">
-        Target / Achievement 
+      <AppText size="xl" weight="bold" className="pl-3">
+        Target / Achievement
       </AppText>
 
       {/* POD Wise Section */}
@@ -634,7 +647,8 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
   const year = Number(quarter.slice(0, 4));
   const quarterNum = Number(quarter.slice(4));
   const currentMonth = moment().month() + 1; // month() is zero-based
-  const MonthNum = currentMonth < (quarterNum * 3) ? currentMonth : (quarterNum * 3);
+  const MonthNum =
+    currentMonth < quarterNum * 3 ? currentMonth : quarterNum * 3;
   const onPress = () => {
     navigation.push('TargetSummaryAMBranch', {
       Year: year.toString(),
@@ -1197,6 +1211,20 @@ export default function Dashboard() {
 
   return (
     <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
+      <AppButton
+        title="Start Background Service"
+        className="mt-5"
+        onPress={() => {
+          // startService();
+        }}
+      />
+      <AppButton
+        title="Stop Background Service"
+        className="mt-5"
+        onPress={() => {
+          // stopService();
+        }}
+      />
       <MaterialTabBar
         tabs={dashboardTabs}
         initialRouteName={dashboardTabs[0]?.name || 'Total'}

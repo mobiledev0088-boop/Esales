@@ -4,8 +4,9 @@ import {create} from 'zustand';
 import {createMMKVStorage} from '../utils/mmkvStorage';
 
 interface EmpState {
-  empInfo: EmpInfo | null;
-  setEmpInfo: (empInfo: EmpInfo) => void;
+  empInfo: EmpInfo;
+  setEmpInfo: (empInfo: Partial<EmpInfo>) => void;
+  resetEmpInfo: () => void;
 }
 
 const initialEmpInfo: EmpInfo = {
@@ -50,11 +51,21 @@ export const useEmpStore = create<EmpState>()(
   persist(
     set => ({
       empInfo: initialEmpInfo,
-      setEmpInfo: empInfo => set({empInfo}),
+      setEmpInfo: payload =>
+        set(state => ({
+          empInfo: {
+            ...state.empInfo,
+            ...payload,
+          },
+        })),
+      resetEmpInfo: () => set({empInfo: initialEmpInfo}),
     }),
     {
       name: 'emp-store',
       storage: createMMKVStorage<EmpState>(),
+      onRehydrateStorage: () => () => {
+        console.log('✅ Zustand rehydrated from MMKV empStore :');
+      },
     },
   ),
 );

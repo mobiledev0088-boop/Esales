@@ -2,6 +2,7 @@ import {useState, useEffect} from 'react';
 import {getMMKV} from '../utils/mmkvStorage';
 import {handleASINApiCall} from '../utils/handleApiCall';
 import {getDeviceId} from 'react-native-device-info';
+import { useLoginStore } from '../stores/useLoginStore';
 
 interface SplashImageCache {
   imageUrl: string;
@@ -123,7 +124,10 @@ async function fetchAndCacheImage(
     // Validate response has splash image
     if (result?.Status && result?.Datainfo?.[0]?.FestiveAnimation) {
       const freshImageUrl = result.Datainfo[0].FestiveAnimation;
-
+      const Latitude = result.Datainfo[0].Latitude;
+      const Longitude = result.Datainfo[0].Longitude;
+      const setUserInfo = useLoginStore.getState().setUserInfo;
+      setUserInfo({ Latitude, Longitude });
       // Cache the image with timestamp
       const cacheData: SplashImageCache = {
         imageUrl: freshImageUrl,

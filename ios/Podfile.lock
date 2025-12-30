@@ -2010,6 +2010,8 @@ PODS:
     - React-logger (= 0.79.0)
     - React-perflogger (= 0.79.0)
     - React-utils (= 0.79.0)
+  - RNBackgroundFetch (4.2.8):
+    - React-Core
   - RNCClipboard (1.16.3):
     - DoubleConversion
     - glog
@@ -2527,6 +2529,7 @@ DEPENDENCIES:
   - ReactAppDependencyProvider (from `build/generated/ios`)
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - RNBackgroundFetch (from `../node_modules/react-native-background-fetch`)
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - "RNFastImage (from `../node_modules/@d11/react-native-fast-image`)"
@@ -2733,6 +2736,8 @@ EXTERNAL SOURCES:
     :path: build/generated/ios
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  RNBackgroundFetch:
+    :path: "../node_modules/react-native-background-fetch"
   RNCClipboard:
     :path: "../node_modules/@react-native-clipboard/clipboard"
   RNDeviceInfo:
@@ -2863,6 +2868,7 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: 7f5052913dd72a0e84ca95973f9f8bc97f2c5b95
   ReactCodegen: 432ab44c696f7dc8ef0641281012ad3c191e3f89
   ReactCommon: 4f0e046f6c9abecc017956dbfdbaddd331afa0ea
+  RNBackgroundFetch: e44c9e85d7fb3122c37d8a806278f62c7682d7ea
   RNCClipboard: 45b13251c8938aabfc25b9ecc35b5d42ab4eb0b0
   RNDeviceInfo: bcce8752b5043a623fe3c26789679b473f705d3c
   RNFastImage: d43fb4ba5f8ae8b19389b478477fddaae2944fea
@@ -2872,7 +2878,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: c50b05a3941646c4e4098344033ca4609b42be85
   RNKeychain: 48338bf1d8f5e29f84db1b605c2e107b45b83af9
   RNNotifee: 5e3b271e8ea7456a36eec994085543c9adca9168
-  RNPermissions: 98695200d412598033b030bcc2ff71bb1503818d
+  RNPermissions: cfb44d03dc8a755a20bea27f5a5765e7ec523160
   RNReanimated: 7d28912b9349b44943a04884c457d235fac77d65
   RNScreens: eb3800639b236501d2d6487d930b35fe3db68cb0
   RNSVG: d2bcb09b6a3527f6d37f0f351bc5149c69876263
@@ -2886,6 +2892,6 @@ SPEC CHECKSUMS:
   TOCropViewController: 20a14b6a7a098308bf369e7c8d700dc983a974e6
   Yoga: df4e6df930f6d93d6647c10c61d4d6fe5a694805
 
-PODFILE CHECKSUM: 180906d72c35cfc20799fb753caeeeb7f5b62eb2
+PODFILE CHECKSUM: cfdddf8120cffa46a5a89c36940c371564ed212b
 
 COCOAPODS: 1.15.2

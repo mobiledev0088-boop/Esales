@@ -12,6 +12,7 @@ import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {memo, useRef, useImperativeHandle, forwardRef, useState} from 'react';
 import {EmpInfo} from '../../types/user';
 import LogoutModal from '../LogoutModal';
+import { getMMKV } from '../../utils/mmkvStorage';
 
 type ScrollToOptions = {
   x?: number;

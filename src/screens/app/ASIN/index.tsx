@@ -5,10 +5,13 @@ import Account from './User/Account/Account';
 
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import Reports from './Reports/Reports';
+import {useLocation} from '../../../hooks/useLocation';
 
 const Drawer = createDrawerNavigator();
 
 const Index = () => {
+  const {loading, location} = useLocation();
+
   const drawerScreens = [
     {name: 'Home', component: Home},
     {name: 'Account', component: Account},
