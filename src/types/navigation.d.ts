@@ -71,6 +71,10 @@ type AppNavigationParamList = {
     ALPpartnerCode: string;
   };
   ChannelMapAddAGP: undefined;
+  ChannelMapEditAGP: {
+    // AGPpartnerCode: string;
+    initialData: any;
+  };
   ChannelFriendlyClaimListHO: undefined;
   ChannelFriendlyClaimListPartner: undefined;
   ChannelFriendlyClaimListALP: undefined;

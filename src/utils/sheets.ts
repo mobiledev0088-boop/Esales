@@ -22,6 +22,7 @@ import ChannelMapFilterSheet from '../screens/app/APAC/ATID/ChannelMap/ChannelMa
 import ClaimFilterSheetAPAC from '../screens/app/APAC/ATID/Claim/ClaimFilterSheet';
 import ClaimViewMoreSheet from '../screens/app/APAC/ATID/Claim/ClaimViewMoreSheet';
 import DemoFilterSheetAPAC from '../screens/app/APAC/ATID/Demo/DemoFilterSheetAPAC';
+import DropdownActionSheet from '../screens/app/ASIN/More/ChannelMap/ChanelMapAGP/DropdownActionSheet';
 
 registerSheet('MoreSheet', MoreSheet);
 registerSheet('ConfirmationSheet', ConfirmationSheet);
@@ -43,6 +44,7 @@ registerSheet('ChannelMapFilterSheet', ChannelMapFilterSheet);
 registerSheet('ClaimFilterSheetAPAC', ClaimFilterSheetAPAC);
 registerSheet('ClaimViewMoreSheet', ClaimViewMoreSheet);
 registerSheet('DemoFilterSheetAPAC', DemoFilterSheetAPAC);
+registerSheet('DropdownActionSheet', DropdownActionSheet);
 
 // We extend some of the types here to give us great intellisense
 // across the app for all registered sheets.

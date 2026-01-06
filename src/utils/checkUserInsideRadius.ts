@@ -1,21 +1,3 @@
-/**
- * Attendance notification trigger conditions
- *
- * SHOULD run only when:
- * - User is logged in
- * - Location permission is set to "Always"
- * - Notification permission is granted
- * - User is within the configured geo-fence
- *
- * SHOULD be skipped when:
- * - Platform is iOS (handled separately / not supported)
- * - User is not logged in
- * - Required permissions are missing
- * - User has already checked in AND is still inside the geo-fence
- * - User has already checked out AND is outside the geo-fence
- * - Attendance for today has already been completed
- */
-
 import {
   check,
   Permission,
@@ -24,9 +6,10 @@ import {
 } from 'react-native-permissions';
 import {useASEAttendanceStore} from '../stores/useASEAttendanceStore';
 import {useLoginStore} from '../stores/useLoginStore';
-import {isIOS} from './constant';
-import {getCurrentLocation, sendLocalNotificationService} from './services';
+import {ASUS, isIOS} from './constant';
+import {getCurrentLocation} from './services';
 import {Platform} from 'react-native';
+import { displayNotification } from './notificationServices';
 
 const OFFICE = {
   lat: 19.137887555544914,
@@ -42,7 +25,7 @@ function isInsideGeoFence(
   centerLat: number,
   centerLon: number,
   radius = 100,
-): {inside: boolean; distance: number} {
+): {inside: boolean} {
   const R = 6371000;
 
   const toRad = (v: number) => (v * Math.PI) / 180;
@@ -56,7 +39,6 @@ function isInsideGeoFence(
 
   return {
     inside: distance <= radius,
-    distance,
   };
 }
 
@@ -107,12 +89,12 @@ async function checkPermissionsForLocationAndNotification() {
 
 export async function checkUserInsideRadius(): Promise<void> {
   if (isIOS) return;
-
-  const {token,userInfo} = useLoginStore.getState();
-  const {attendanceToday, lastInside, setLastInside} =
-    useASEAttendanceStore.getState();
-  if (!token || attendanceToday?.isCompleted) return;
-
+  const {token, userInfo} = useLoginStore.getState();
+  const {attendanceToday,} = useASEAttendanceStore.getState();
+  // Early exit conditions
+  console.log('[BG] Checking user inside radius...',token, userInfo.EMP_RoleId);
+  if (!token || userInfo.EMP_RoleId !== ASUS.ROLE_ID.ASE  ) return;
+  console.log('[BG] User is logged in and eligible for attendance notifications.');
   const hasPermissions = await checkPermissionsForLocationAndNotification();
   if (!hasPermissions) return;
 
@@ -120,7 +102,7 @@ export async function checkUserInsideRadius(): Promise<void> {
     const location = await fetchLocation();
     if (!location?.lat || !location?.lon) return;
 
-    const {inside, distance} = isInsideGeoFence(
+    const {inside} = isInsideGeoFence(
       {lat: location.lat, lon: location.lon},
       OFFICE.lat,
       OFFICE.lon,
@@ -130,15 +112,10 @@ export async function checkUserInsideRadius(): Promise<void> {
     if (inside === null) return;
 
     // ---------- EDGE DETECTION ----------
-    if (lastInside === null) {
-      // First run → just store state
-      setLastInside(inside);
-      return;
-    }
 
     // ENTERING geo-fence → CHECK-IN
-    if (!lastInside && inside && !attendanceToday?.checkInDone) {
-      await sendLocalNotificationService({
+    if (inside && !attendanceToday?.checkInDone) {
+      await displayNotification({
         channelId: 'BG_LOCATION_CHANNEL',
         title: 'Mark Your Attendance',
         body: `You are inside the office area. Tap here to check in now.`,
@@ -148,20 +125,17 @@ export async function checkUserInsideRadius(): Promise<void> {
 
     // EXITING geo-fence → CHECK-OUT
     if (
-      lastInside &&
       !inside &&
       attendanceToday?.checkInDone &&
       !attendanceToday?.checkOutDone
     ) {
-      await sendLocalNotificationService({
+      await displayNotification({
         channelId: 'BG_LOCATION_CHANNEL',
         title: 'Mark Your Attendance',
         body: `You have left the office area. Tap here to check out now.`,
         screen: 'Attendance',
       });
     }
-    // Update last state AFTER handling transition
-    setLastInside(inside);
   } catch (error) {
     console.error('[BG] Geo check failed', error);
   }

@@ -1,333 +1,225 @@
-import {View, FlatList, TouchableOpacity} from 'react-native';
-import {useMemo, useState} from 'react';
 import moment from 'moment';
+import {View, TouchableOpacity} from 'react-native';
+import {useMemo, useState} from 'react';
 import AppLayout from '../../../../../components/layout/AppLayout';
 import AppText from '../../../../../components/customs/AppText';
-import Card from '../../../../../components/Card';
-import AttendanceMarkModal from '../../../../../components/AttendanceMarkModal';
+import AttendanceMarkModal from './AttendanceMarkModal';
 import AppButton from '../../../../../components/customs/AppButton';
+import {useASEAttendanceStore} from '../../../../../stores/useASEAttendanceStore';
+import AppIcon from '../../../../../components/customs/AppIcon';
+import {
+  AttendanceRecord,
+  HeroStatusCard,
+  InformationModal,
+  isInsideGeoFence,
+  LeaveWeekOffModal,
+  MonthCalendar,
+  toDateKey,
+} from './component';
+import {useLocation} from '../../../../../hooks/useLocation';
 
-type AttendanceStatus = 'Present' | 'Absent' | 'Holiday';
-
-type AttendanceRecord = {
-  date: string; // ISO date string, e.g. '2025-12-22'
-  status: AttendanceStatus;
-  checkIn?: string; // '09:05'
-  checkOut?: string; // '18:02'
-};
-
-// Lightweight mock data provider. Replace with store/API as needed.
-function useAttendanceData() {
-  const todayIso = moment().format('YYYY-MM-DD');
-
-  const history: AttendanceRecord[] = useMemo(() => {
-    // Generate the last 20 days of mock records with varied statuses
-    const out: AttendanceRecord[] = [];
-    for (let i = 0; i < 20; i++) {
-      const d = moment().subtract(i, 'days');
-      const iso = d.format('YYYY-MM-DD');
-      let status: AttendanceStatus = 'Present';
-      if (i % 9 === 0 && i !== 0) status = 'Holiday';
-      else if (i % 7 === 0 && i !== 0) status = 'Absent';
-
-      out.push({
-        date: iso,
-        status,
-        checkIn: status === 'Present' ? '09:10' : undefined,
-        checkOut: status === 'Present' ? '18:05' : undefined,
-      });
-    }
-    return out;
-  }, []);
-
-  const today = history.find(h => h.date === todayIso) ?? {
-    date: todayIso,
-    status: 'Absent' as AttendanceStatus,
-  };
-
-  return {today, history};
-}
-
-const statusStyles: Record<
-  AttendanceStatus,
-  {bg: string; text: string; border: string}
-> = {
-  Present: {
-    bg: 'bg-emerald-50',
-    text: 'text-emerald-700',
-    border: 'border-emerald-200',
+const history: AttendanceRecord[] = [
+  {
+    checkInDone: true,
+    checkInTime: '09:10 AM',
+    checkOutDone: true,
+    checkOutTime: '06:10 PM',
+    attendanceDate: '05-01-2026',
   },
-  Absent: {bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200'},
-  Holiday: {
-    bg: 'bg-amber-50',
-    text: 'text-amber-700',
-    border: 'border-amber-200',
+  {
+    checkInDone: true,
+    checkInTime: '09:05 AM',
+    checkOutDone: true,
+    checkOutTime: '06:00 PM',
+    attendanceDate: '04-01-2026',
   },
-};
-
-function StatusBadge({status}: {status: AttendanceStatus}) {
-  const s = statusStyles[status];
-  return (
-    <View className={`px-2.5 py-1 rounded-full border ${s.bg} ${s.border}`}>
-      <AppText className={`text-xs font-medium ${s.text}`}>{status}</AppText>
-    </View>
-  );
-}
-
-function HeroStatusCard({
-  record,
-  label,
-}: {
-  record: AttendanceRecord;
-  label: string;
-}) {
-  const checkedIn = !!record.checkIn;
-  const checkedOut = !!record.checkOut;
-  const accent = statusStyles[record.status];
-
-  return (
-    <Card
-      className="mb-4 rounded-3xl bg-white dark:bg-neutral-900 mt-5 border border-slate-300 dark:border-slate-800"
-      noshadow>
-      <View className="flex-row items-center">
-        <View className="flex-1 pr-4">
-          <View className="flex-row items-center justify-between">
-            <AppText size='sm' className="text-slate-500">{label}</AppText>
-            <StatusBadge status={record.status} />
-          </View>
-          <AppText className="mt-2 w-[90%]" weight='medium' size='3xl'>
-            {record.status === 'Present' ? 'You are checked in' : record.status}
-          </AppText>
-          <AppText className="mt-1 text-slate-500">
-            Track your hours and history
-          </AppText>
-        </View>
-        <View className="w-40">
-          <View
-            className={`p-3 rounded-2xl border ${accent.bg} ${accent.border}`}>
-            <View className="flex-row items-center justify-between">
-              <AppText className="text-xs text-slate-500">⏰ Check In</AppText>
-              <AppText
-                className={`${checkedIn ? 'text-emerald-600' : 'text-slate-400'} text-xs`}>
-                {checkedIn ? 'done' : 'pending'}
-              </AppText>
-            </View>
-            <AppText
-              className={`mt-1 text-xl font-semibold ${checkedIn ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400'}`}>
-              {record.checkIn ?? '--:--'}
-            </AppText>
-            <View className="mt-3 flex-row items-center justify-between">
-              <AppText className="text-xs text-slate-500">🏁 Check Out</AppText>
-              <AppText
-                className={`${checkedOut ? 'text-emerald-600' : 'text-slate-400'} text-xs`}>
-                {checkedOut ? 'done' : 'pending'}
-              </AppText>
-            </View>
-            <AppText
-              className={`mt-1 text-xl font-semibold ${checkedOut ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400'}`}>
-              {record.checkOut ?? '--:--'}
-            </AppText>
-          </View>
-        </View>
-      </View>
-    </Card>
-  );
-}
-
-function HistoryItem({item}: {item: AttendanceRecord}) {
-  const s = statusStyles[item.status];
-  return (
-    <Card
-      className="mb-3 rounded-2xl bg-white dark:bg-neutral-900 border border-slate-300 dark:border-slate-800"
-      noshadow>
-      <View className="flex-row items-center">
-        <View
-          className={`w-12 h-12 mr-3 rounded-2xl border items-center justify-center ${s.bg} ${s.border}`}>
-          <AppText className={`text-base font-semibold ${s.text}`}>
-            {moment(item.date).date()}
-          </AppText>
-        </View>
-        <View className="flex-1 pr-3">
-          <AppText className="text-[13px] text-slate-500">
-            {moment(item.date).format('ddd, D MMM')}
-          </AppText>
-          <View className="mt-1 flex-row items-center space-x-2">
-            <StatusBadge status={item.status} />
-            {item.status === 'Present' ? (
-              <AppText className="text-sm text-slate-600">
-                {item.checkIn} - {item.checkOut}
-              </AppText>
-            ) : null}
-          </View>
-        </View>
-        <View className={`px-3 py-2 rounded-xl border ${s.bg} ${s.border}`}>
-          <AppText className={`text-xs font-medium ${s.text}`}>
-            {item.status}
-          </AppText>
-        </View>
-      </View>
-    </Card>
-  );
-}
-
-function WeeklyBar({
-  selected,
-  onSelect,
-  statusMap,
-}: {
-  selected: string;
-  onSelect: (iso: string) => void;
-  statusMap: Record<string, AttendanceStatus>;
-}) {
-  const endDate = moment();
-  const start = endDate.clone().subtract(6, 'days');
-  const days = Array.from({length: 7}, (_, i) => start.clone().add(i, 'days'));
-  const monthLabel =
-    start.month() === endDate.month()
-      ? start.format('MMMM YYYY')
-      : `${start.format('MMM')} - ${endDate.format('MMM YYYY')}`;
-  return (
-    <Card
-      className="rounded-2xl mb-4 bg-white dark:bg-neutral-900 border border-slate-300 dark:border-slate-800"
-      noshadow>
-      <View className="flex-row items-center justify-center mb-3">
-        <AppText className="text-sm text-slate-600">{monthLabel}</AppText>
-      </View>
-      <View className="flex-row justify-between">
-        {days.map((d, idx) => {
-          const key = d.format('YYYY-MM-DD');
-          const isSelected = key === selected;
-          const st = statusMap[key] ?? 'Absent';
-          const s = statusStyles[st];
-          return (
-            <TouchableOpacity
-              key={key}
-              onPress={() => onSelect(key)}
-              className={`items-center px-2 py-2 rounded-2xl ${isSelected ? 'bg-slate-100 dark:bg-neutral-800' : ''}`}
-              activeOpacity={0.8}>
-              <AppText
-                className={`text-[10px] ${isSelected ? 'text-slate-900 dark:text-slate-100' : 'text-slate-500'}`}>
-                {d.format('ddd')}
-              </AppText>
-              <View
-                className={`mt-1 w-9 h-9 rounded-2xl items-center justify-center border ${isSelected ? 'border-slate-300 dark:border-neutral-700' : 'border-slate-200 dark:border-neutral-800'}`}>
-                <AppText
-                  className={`text-sm font-semibold ${isSelected ? 'text-slate-900 dark:text-slate-100' : 'text-slate-700 dark:text-slate-200'}`}>
-                  {d.date()}
-                </AppText>
-              </View>
-              <View
-                className={`mt-1 w-2 h-2 rounded-full ${s.bg.replace('50', '400')}`}
-              />
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    </Card>
-  );
-}
+  {
+    checkInDone: true,
+    checkInTime: '09:15 AM',
+    checkOutDone: true,
+    checkOutTime: '06:10 PM',
+    attendanceDate: '03-01-2026',
+  },
+  {
+    checkInDone: false,
+    checkInTime: null,
+    checkOutDone: false,
+    checkOutTime: null,
+    attendanceDate: '02-01-2026',
+  },
+  {
+    checkInDone: false,
+    checkInTime: null,
+    checkOutDone: false,
+    checkOutTime: null,
+    attendanceDate: '01-01-2026',
+  },
+];
 
 export default function Attendance() {
-  const {today, history} = useAttendanceData();
-  const [selected, setSelected] = useState(moment().format('YYYY-MM-DD'));
-  // removed anchor-based weekly navigation
+  const {attendanceToday} = useASEAttendanceStore();
+  const todayKey = useMemo(() => moment().format('YYYY-MM-DD'), []);
+  const {location} = useLocation();
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const parsed = toDateKey(attendanceToday.attendanceDate);
+    return parsed ? moment(parsed) : moment();
+  });
 
-  // Local mutable records so modal actions update UI immediately
-  const [records, setRecords] = useState<AttendanceRecord[]>(history);
-  const selectedRecord = records.find(h => h.date === selected) ?? today;
-  const statusByDate = useMemo(() => {
-    const map: Record<string, AttendanceStatus> = {};
-    records.forEach(h => {
-      map[h.date] = h.status;
+  const isMarkEnabled = useMemo(() => {
+    if (!location) return false;
+    const {lat, lon} = location;
+    if (!attendanceToday.checkInDone && !isInsideGeoFence(lat, lon))
+      return false;
+    return true;
+  }, [attendanceToday, location]);
+
+  const [selectedDateKey, setSelectedDateKey] = useState(() => {
+    const parsed = toDateKey(attendanceToday.attendanceDate);
+    return parsed ?? todayKey;
+  });
+
+  const calendarRecords = useMemo(() => {
+    const seen = new Set<string>();
+    const merged = [...history];
+    if (attendanceToday.attendanceDate) {
+      merged.push(attendanceToday);
+    }
+
+    return merged.filter(rec => {
+      const key = toDateKey(rec.attendanceDate);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [attendanceToday]);
+
+  const recordByDate = useMemo(() => {
+    const map: Record<string, AttendanceRecord> = {};
+    calendarRecords.forEach(rec => {
+      const key = toDateKey(rec.attendanceDate);
+      if (key) map[key] = {...rec, attendanceDate: key};
     });
     return map;
-  }, [records]);
+  }, [calendarRecords]);
 
-  const selectedLabel =
-    selected === moment().format('YYYY-MM-DD')
-      ? "Today's Status"
-      : moment(selected).format('ddd, D MMM');
+  const selectedRecord = useMemo<AttendanceRecord>(() => {
+    if (!selectedDateKey) {
+      return {
+        checkInDone: false,
+        checkInTime: null,
+        checkOutDone: false,
+        checkOutTime: null,
+        attendanceDate: null,
+      };
+    }
+
+    const found = recordByDate[selectedDateKey];
+    if (found) return found;
+
+    return {
+      checkInDone: false,
+      checkInTime: null,
+      checkOutDone: false,
+      checkOutTime: null,
+      attendanceDate: selectedDateKey,
+    };
+  }, [recordByDate, selectedDateKey]);
+
+  const selectedLabel = useMemo(() => {
+    const selDate = selectedDateKey ? moment(selectedDateKey) : null;
+    if (selDate?.isValid()) {
+      if (selDate.isSame(moment(), 'day')) return 'Today';
+      if (selDate.isSame(moment().subtract(1, 'day'), 'day'))
+        return 'Yesterday';
+      return selDate.format('D MMM, YYYY');
+    }
+    return 'Today';
+  }, [selectedDateKey]);
 
   // Attendance Mark Modal state and handlers
   const [isMarkOpen, setIsMarkOpen] = useState(false);
-
-  const handleCheckIn = () => {
-    const now = new Date();
-    const hh = `${now.getHours()}`.padStart(2, '0');
-    const mm = `${now.getMinutes()}`.padStart(2, '0');
-    const time = `${hh}:${mm}`;
-    setRecords(prev => {
-      const exists = prev.some(p => p.date === selected);
-      const next: AttendanceRecord[] = exists
-        ? prev.map(p =>
-            p.date === selected
-              ? {
-                  ...p,
-                  status: 'Present' as AttendanceStatus,
-                  checkIn: p.checkIn ?? time,
-                }
-              : p,
-          )
-        : [
-            {
-              date: selected,
-              status: 'Present' as AttendanceStatus,
-              checkIn: time,
-            },
-            ...prev,
-          ];
-      return next;
-    });
-    setIsMarkOpen(false);
-  };
-
-  const handleCheckOut = () => {
-    const now = new Date();
-    const hh = `${now.getHours()}`.padStart(2, '0');
-    const mm = `${now.getMinutes()}`.padStart(2, '0');
-    const time = `${hh}:${mm}`;
-    setRecords(prev =>
-      prev.map(p =>
-        p.date === selected
-          ? {...p, status: 'Present' as AttendanceStatus, checkOut: time}
-          : p,
-      ),
-    );
-    setIsMarkOpen(false);
-  };
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
+  const [isLeaveOpen, setIsLeaveOpen] = useState(false);
 
   return (
     <AppLayout title="Attendance" needBack needPadding>
       <HeroStatusCard record={selectedRecord} label={selectedLabel} />
-      <AppButton
-        title="Mark Attendance"
-        className="rounded-xl mb-3"
-        onPress={() => setIsMarkOpen(true)}
-        noLoading
+      <View className="flex-row items-center justify-between gap-x-2">
+        <AppButton
+          title={'Mark Attendance'}
+          className="rounded-xl flex-[2]"
+          onPress={() => setIsMarkOpen(true)}
+          disabled={!isMarkEnabled}
+          noLoading
+        />
+        {/* helper text showing why marking is disabled */}
+        <AppButton
+          title={'Apply Leave / Week Off'}
+          className="flex-[2] rounded-xl bg-slate-500 dark:bg-slate-700"
+          onPress={() => setIsLeaveOpen(true)}
+          noLoading
+        />
+      </View>
+      {!isMarkEnabled && (
+          <View className="flex-row items-center gap-x-2 mb-5 mt-2 px-1">
+            <AppIcon
+              name="info"
+              type="feather"
+              size={16}
+              style={{color: '#f59e0b'}}
+            />
+            <AppText size='sm' className="text-slate-700">
+              You need to be inside office area to mark attendance.
+            </AppText>
+          </View>
+        )}
+      <View className="flex-row items-center justify-between mb-3 px-1">
+        <View className="flex-row items-center gap-x-2">
+          <View className="p-2 bg-[#E5E7EB] rounded-full">
+            <AppIcon
+              name="calendar"
+              type="feather"
+              size={20}
+              style={{color: '#374151'}}
+            />
+          </View>
+          <AppText
+            weight="semibold"
+            size="lg"
+            className="text-slate-900 dark:text-slate-50">
+            Attendance Calendar
+          </AppText>
+        </View>
+        <TouchableOpacity
+          onPress={() => setIsInfoOpen(true)}
+          className="h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-neutral-900">
+          <AppIcon
+            name="info"
+            type="feather"
+            size={18}
+            style={{color: '#0ea5e9'}}
+          />
+        </TouchableOpacity>
+      </View>
+      <MonthCalendar
+        month={currentMonth}
+        records={calendarRecords}
+        selectedDateKey={selectedDateKey}
+        onSelectDate={key => setSelectedDateKey(key)}
+        onMonthChange={setCurrentMonth}
       />
-      <WeeklyBar
-        selected={selected}
-        onSelect={d => setSelected(d)}
-        statusMap={statusByDate}
-      />
-      <AppText className="text-base font-semibold text-slate-900 dark:text-slate-100 mb-2">
-        Recent History
-      </AppText>
-      <FlatList
-        data={records}
-        keyExtractor={it => it.date}
-        renderItem={({item}) => <HistoryItem item={item} />}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{paddingBottom: 24}}
-      />
+
       <AttendanceMarkModal
-        isVisible={isMarkOpen}
+        isOpen={isMarkOpen}
         onClose={() => setIsMarkOpen(false)}
-        onCheckIn={handleCheckIn}
-        onCheckOut={handleCheckOut}
-        status={(selectedRecord?.status ?? 'None') as any}
-        checkIn={selectedRecord?.checkIn ?? null}
-        checkOut={selectedRecord?.checkOut ?? null}
+      />
+      <LeaveWeekOffModal
+        isOpen={isLeaveOpen}
+        onClose={() => setIsLeaveOpen(false)}
+      />
+      <InformationModal
+        isOpen={isInfoOpen}
+        onClose={() => setIsInfoOpen(false)}
       />
     </AppLayout>
   );

@@ -1,13 +1,15 @@
 import React from 'react';
-import { View } from 'react-native';
+import {TouchableOpacity, View} from 'react-native';
 import Accordion from '../../../../../../components/Accordion';
 import AppText from '../../../../../../components/customs/AppText';
 import AppInput from '../../../../../../components/customs/AppInput';
-import AppDropdown, { AppDropdownItem } from '../../../../../../components/customs/AppDropdown';
-import AppIcon, { IconType } from '../../../../../../components/customs/AppIcon';
-import { useThemeStore } from '../../../../../../stores/useThemeStore';
-import { AppColors } from '../../../../../../config/theme';
-import { ValidationErrors } from './formValidation';
+import {AppDropdownItem} from '../../../../../../components/customs/AppDropdown';
+import AppIcon, {IconType} from '../../../../../../components/customs/AppIcon';
+import {useThemeStore} from '../../../../../../stores/useThemeStore';
+import {AppColors} from '../../../../../../config/theme';
+import {ValidationErrors} from './formValidation';
+import {showDropdownActionSheet} from './DropdownActionSheet';
+import {useChannelMapStore} from '../../../../../../stores/useChannelMapStore';
 
 // Field width options
 export type FieldWidth = 'full' | 'half';
@@ -53,20 +55,21 @@ export default function FormSection({
   onToggle,
   columns = 1,
 }: FormSectionProps) {
-  const AppTheme = useThemeStore((state) => state.AppTheme);
+  const AppTheme = useThemeStore(state => state.AppTheme);
+  const {setDropdownList} = useChannelMapStore(state => state);
 
   const formatLabel = (key: string, customLabel?: string) => {
     if (customLabel) return customLabel;
     return key
       .replace(/([A-Z])/g, ' $1')
-      .replace(/^./, (str) => str.toUpperCase())
+      .replace(/^./, str => str.toUpperCase())
       .trim();
   };
 
   // Count required fields and filled required fields
-  const requiredFields = fields.filter((field) => field.required);
+  const requiredFields = fields.filter(field => field.required);
   const filledRequiredFields = requiredFields.filter(
-    (field) => values[field.key] && values[field.key].trim() !== ''
+    field => values[field.key] && values[field.key]?.trim() !== '',
   );
 
   const hasValidationErrors = Object.keys(validationErrors).length > 0;
@@ -101,8 +104,11 @@ export default function FormSection({
               className="text-gray-900 dark:text-gray-100">
               {title}
             </AppText>
-            <AppText size="xs" className="text-gray-500 dark:text-gray-400 mt-0.5">
-              {filledRequiredFields.length}/{requiredFields.length} required fields filled
+            <AppText
+              size="xs"
+              className="text-gray-500 dark:text-gray-400 mt-0.5">
+              {filledRequiredFields.length}/{requiredFields.length} required
+              fields filled
             </AppText>
           </View>
         </View>
@@ -111,41 +117,74 @@ export default function FormSection({
         {fields.map((field, index) => {
           const fieldWidth = field.width || (columns === 2 ? 'half' : 'full');
           const widthClass = fieldWidth === 'half' ? 'w-1/2' : 'w-full';
+          const dropdownLabel = field.dropdownData?.find(
+            item => String(item.value) === values[field.key],
+          )?.label;
 
           return (
             <View
               key={field.key}
               className={`${widthClass} px-1.5 mb-4`}
-              style={{ zIndex: 9000 - index }}>
+              style={{zIndex: 9000 - index}}>
               <View>
                 {field.type === 'dropdown' ? (
-                  <>
-                    <AppDropdown
-                      data={field.dropdownData || []}
-                      selectedValue={values[field.key] || null}
-                      onSelect={(item) => onValueChange(field.key, item?.value || '')}
-                      mode={'dropdown'}
-                      label={formatLabel(field.key, field.label)}
-                      required={field.required ?? false}
-                      placeholder={
-                        field.placeholder || `Select ${formatLabel(field.key, field.label).toLowerCase()}`
-                      }
-                      allowClear={true}
-                      zIndex={9000 - index}
-                      error={validationErrors[field.key]}
-                    />
-                  </>
+                  <View>
+                    <AppText
+                      weight="semibold"
+                      size="md"
+                      className="text-gray-700">
+                      {field.required && (
+                        <AppText className="text-red-500" weight="bold">
+                          *
+                        </AppText>
+                      )}{' '}
+                      {formatLabel(field.key, field.label)}
+                    </AppText>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setDropdownList(field.dropdownData || []);
+                        showDropdownActionSheet({
+                          selected: values[field.key] || null,
+                          onSelect: selectedItem => {
+                            onValueChange(field.key, selectedItem.value);
+                          }
+                        });
+                      }}
+                      activeOpacity={0.7}
+                      className="flex-row border border-[#ccc] dark:border-[#444] rounded-xl h-12 items-center px-3">
+                      <AppText
+                        className="flex-1"
+                        size="base"
+                        weight="medium"
+                        style={{
+                          color: values[field.key]
+                            ? AppColors[AppTheme].text
+                            : '#888',
+                        }}>
+                        {dropdownLabel || values[field.key] || field.placeholder}
+                      </AppText>
+                      <View>
+                        <AppIcon
+                          type={'feather'}
+                          name={'chevron-down'}
+                          size={20}
+                          color={AppColors[AppTheme].text}
+                        />
+                      </View>
+                    </TouchableOpacity>
+                  </View>
                 ) : (
                   <>
                     <AppInput
                       size="md"
                       variant="border"
                       value={values[field.key] || ''}
-                      setValue={(text) => onValueChange(field.key, text)}
+                      setValue={text => onValueChange(field.key, text)}
                       isOptional={!field.required}
                       label={formatLabel(field.key, field.label)}
                       placeholder={
-                        field.placeholder || `Enter ${formatLabel(field.key, field.label).toLowerCase()}`
+                        field.placeholder ||
+                        `Enter ${formatLabel(field.key, field.label).toLowerCase()}`
                       }
                       keyboardType={field.keyboardType}
                       maxLength={field.maxLength}
@@ -162,7 +201,7 @@ export default function FormSection({
                         ) : undefined
                       }
                       containerClassName="mb-0"
-                      error={validationErrors[field.key] }
+                      error={validationErrors[field.key]}
                     />
                   </>
                 )}

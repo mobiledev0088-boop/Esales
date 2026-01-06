@@ -1,5 +1,10 @@
 // src/providers/AppProviders.tsx
-import {PropsWithChildren, useEffect} from 'react';
+import '../../utils/sheets';
+
+import CustomStatusBar from '../../components/CustomStatusBar';
+import GlobalLoader from '../../components/GlobalLoader';
+
+import {PropsWithChildren, useEffect, useRef} from 'react';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {NavigationContainer} from '@react-navigation/native';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
@@ -7,47 +12,54 @@ import {QueryProvider} from './QueryProvider';
 import {useThemeStore} from '../useThemeStore';
 import {useColorScheme} from 'nativewind';
 import {AppColors} from '../../config/theme';
-import CustomStatusBar from '../../components/CustomStatusBar';
 import {SheetProvider} from 'react-native-actions-sheet';
-import GlobalLoader from '../../components/GlobalLoader';
 import {useLoaderStore} from '../useLoaderStore';
-
-import '../../utils/sheets';
 import {enableScreens} from 'react-native-screens';
-import BackgroundFetch from 'react-native-background-fetch';
-import { checkUserInsideRadius } from '../../utils/syncAttendance';
+import {initBackgroundFetchService} from '../../utils/services';
+import notifee from '@notifee/react-native';
+import {
+  navigateFromNotification,
+  registerForegroundHandler,
+  registerNotificationPressHandler,
+} from '../../utils/notificationServices';
 
 export const AppProviders = ({children}: PropsWithChildren) => {
+  const navigationRef = useRef<any>(null);
+  const pendingNavigation = useRef<any>(null);
   const {setColorScheme} = useColorScheme();
-
   const AppTheme = useThemeStore(state => state.AppTheme);
   const globalLoading = useLoaderStore(state => state.globalLoading);
 
-  const initBackgroundFetch = async () => {
-    const status = await BackgroundFetch.configure(
-      {
-        minimumFetchInterval: 15, // Minimum 15 minutes
-        stopOnTerminate: false, // Continue after app is closed (Android)
-        startOnBoot: true, // Auto-start after device restart (Android)
-        enableHeadless: true, // Run HeadlessTask (Android)
-        requiredNetworkType: BackgroundFetch.NETWORK_TYPE_ANY,
-      },
-      async taskId => {
-        console.log('[BackgroundFetch] Event received: ', taskId);
-        await checkUserInsideRadius();
-        // Finish the background fetch needed for it to work correctly
-        BackgroundFetch.finish(taskId);
-      },
-      error => {
-        console.error('[BackgroundFetch] Failed to configure: ', error);
-      },
-    );
-    console.log('[BackgroundFetch] Status: ', status);
+  const handleInitialNotification = async () => {
+    const notifeeEvent = await notifee.getInitialNotification();
+    if (notifeeEvent) {
+      const data = notifeeEvent.notification?.data;
+      const screenName = data?.screen;
+      if (screenName) {
+        pendingNavigation.current = {screen: screenName, params: data};
+      }
+      return;
+    }
+  };
+
+  const onReady = () => {
+    if (pendingNavigation.current) {
+      navigateFromNotification(pendingNavigation.current, navigationRef);
+      pendingNavigation.current = null;
+    }
   };
 
   useEffect(() => {
     setColorScheme(AppTheme);
-    initBackgroundFetch();
+    initBackgroundFetchService();
+    handleInitialNotification();
+    const fgUnsub = registerForegroundHandler();
+    const pressUnsub = registerNotificationPressHandler(navigationRef);
+
+    return () => {
+      fgUnsub();
+      pressUnsub();
+    };
   }, [AppTheme, setColorScheme]);
 
   enableScreens();
@@ -56,7 +68,7 @@ export const AppProviders = ({children}: PropsWithChildren) => {
     <QueryProvider>
       <SafeAreaProvider>
         <GestureHandlerRootView style={{flex: 1}}>
-          <NavigationContainer>
+          <NavigationContainer ref={navigationRef} onReady={onReady}>
             <SheetProvider>
               <CustomStatusBar
                 backgroundColor={AppColors[AppTheme].primary}

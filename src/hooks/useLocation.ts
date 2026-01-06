@@ -1,16 +1,21 @@
 import {useEffect, useState} from 'react';
 import {getCurrentLocation} from '../utils/services';
 import {InteractionManager} from 'react-native';
+import {requestNotificationPermission} from '../utils/notificationServices';
+
+type Location = null | {
+  lat: number;
+  lon: number;
+};
 
 export const useLocation = () => {
-  const [location, setLocation] = useState<null | {lat: number; lon: number}>(
-    null,
-  );
+  const [location, setLocation] = useState<Location>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchLocation = () => {
     getCurrentLocation()
       .then(pos => {
+        requestNotificationPermission();
         if (pos) {
           setLocation({
             lat: pos.coords.latitude,
@@ -27,7 +32,6 @@ export const useLocation = () => {
       // This runs AFTER the screen transition animation is done
       fetchLocation();
     });
-
     return () => task.cancel();
   }, []);
 

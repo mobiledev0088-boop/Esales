@@ -1,4 +1,5 @@
 import { IconType } from "../../../../../components/customs/AppIcon";
+import { FormField } from "./ChanelMapAGP/FormSection";
 
 export interface BrandConfig {
   name: string;
@@ -68,6 +69,7 @@ export interface LFRListResponse {
 }
 export interface AGPDetailsResponse {
   AGP_Info: AGPDetails[];
+  Table1: any[];
 }
 export interface LFRDetailsResponse {
   LFR_Info: LFRDetails[];
@@ -75,11 +77,15 @@ export interface LFRDetailsResponse {
 
 export interface AGPDetails {
   // Shop Info
+  ACM_ID: string;
+  Company_Name: string;
   Shop_Name: string;
   ShopAddress: string;
+  ShopLandLine: string;
   Pin_Code: number;
   Owner_Name: string;
   Owner_Number: number;
+  Owner_Email: string;
   GST_No: string;
   KeyPersonName: string;
   KeyPersonDesignation: string;
@@ -92,6 +98,7 @@ export interface AGPDetails {
   Territory: string;
   Territory_Manager: string;
   CSE_Code: string;
+  Customize_Branding: string;
   ChannelMapCode: string;
   ECommerceId: string | null;
   Pkiosk: string | null;
@@ -100,6 +107,7 @@ export interface AGPDetails {
   ROG_Kiosk_Cnt: string | null;
   Pkiosk_ROG_Kiosk: string | null;
   IsActive: string;
+  chainStore: string;
   IsLoginCreated: string;
   // Competition Info Brand
   Competition_Type_ASUS: string;
@@ -233,6 +241,43 @@ export interface AGPListItem {
   ACM_GST_No: string;
   ACM_ShopName: string;
   ACM_BranchName: string;
+}
+
+export interface ChannelMapInfoProps {
+  shopFields: FormField[];
+  shopInfo: any;
+  updateShopInfo: (key: string, value: string) => void;
+  validationErrors: any;
+  openAccordion: string;
+  handleAccordionToggle: (key: string) => void;
+  asusFields: FormField[];
+  asusInfo: any;
+  updateAsusInfo: (key: string, value: string) => void;
+  brandCompFields: FormField[];
+  brandCompetition: any;
+  updateBrandCompetition: (key: string, value: string) => void;
+  consumerDTFields: FormField[];
+  consumerDTCompetition: any;
+  updateConsumerDTCompetition: (key: string, value: string) => void;
+  gamingDTFields: FormField[];
+  gamingDTCompetition: any;
+  updateGamingDTCompetition: (key: string, value: string) => void;
+  aioFields: FormField[];
+  AIOCompetition: any;
+  updateAIOCompetition: (key: string, value: string) => void;
+  monthlyFields: FormField[];
+  monthlyData: any;
+  updateMonthlyData: (key: string, value: string) => void;
+  handleSubmit: () => void; 
+}
+
+export interface FinanceMapProps {
+  financeFields: FormField[];
+  financeInfo: Record<string, any>;
+  updateFinanceInfo: (key: string, value: any) => void;
+  validationErrors: Record<string, Record<string, string>>;
+  openAccordion: string;
+  handleAccordionToggle: (sectionId: string) => void;
 }
 
 export interface InfoRowProps {

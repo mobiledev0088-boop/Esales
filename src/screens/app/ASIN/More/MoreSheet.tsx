@@ -271,13 +271,13 @@ const EachMoreOption = ({
       onPress={onPress}
       className="items-center">
       <View
-        className="bg-lightBg-surface dark:bg-darkBg-surface justify-center items-center p-2 rounded-xl border border-util-blue dark:border-util-cyan"
+        className="bg-lightBg-surface dark:bg-darkBg-surface justify-center items-center p-2 rounded-xl border border-primary dark:border-secondary-dark"
         style={getShadowStyle(3)}>
         <AppIcon
           type={iconType}
           name={iconName}
           size={43}
-          color={isDarkMode ? '#fff' : AppColors.primary}
+          color={isDarkMode ? '#007BE5' : AppColors.primary}
         />
       </View>
       <View className="mt-2 items-center">

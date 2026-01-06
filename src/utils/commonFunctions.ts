@@ -6,6 +6,12 @@ import ReactNativeBlobUtil from 'react-native-blob-util';
 import {AppColors} from '../config/theme';
 import {useLoginStore} from '../stores/useLoginStore';
 import {ASUS} from './constant';
+import { Platform } from 'react-native';
+
+export const getPlatformVersion = () => {
+  const v = Platform.Version;
+  return typeof v === 'number' ? v : parseInt(String(v), 10);
+}
 
 const getAPACcurrencySymbol = () => {
   const {EMP_RoleId, EMP_CountryID} = useLoginStore.getState().userInfo;
@@ -90,7 +96,7 @@ export const getPastMonths = (
   startFrom?: string,
 ): {label: string; value: string}[] => {
   const months: {label: string; value: string}[] = [];
-  const baseDate = startFrom ? moment(startFrom, 'YYYYM') : moment();
+  const baseDate = startFrom ? moment(startFrom, 'YYYYM').subtract(15, 'days') : moment().subtract(15, 'days');
   if (isForward) {
     for (let i = 0; i < count; i++) {
       months.push({
@@ -110,7 +116,7 @@ export const getPastMonths = (
 };
 
 export const getPastQuarters = (
-  count: number = 5,
+  count = 5,
   isForward?: boolean,
 ): {label: string; value: string}[] => {
   const quarters: {label: string; value: string}[] = [];
@@ -273,3 +279,16 @@ export const applyOpacityHex = (hex: string, opacity: number) => {
 
   return `#${base}${alpha}`;
 };
+
+export const convertStringToNumber = (value: string | number): number | null => {
+  if (typeof value === 'number') {
+    return value;
+  }
+  if (!value || value.trim() === '') {
+    return null;
+  }
+  const cleanedValue = value.replace(/[^0-9.-]/g, '');
+  const parsedValue = parseFloat(cleanedValue);
+  return isNaN(parsedValue) ? null : parsedValue;
+}
+

@@ -6,25 +6,37 @@ import AppButton from '../../../../../../components/customs/AppButton';
 import AppIcon from '../../../../../../components/customs/AppIcon';
 import AppText from '../../../../../../components/customs/AppText';
 import {validateSection, ValidationErrors} from './formValidation';
-import {showToast} from '../../../../../../utils/commonFunctions';
+import {convertStringToNumber, showToast} from '../../../../../../utils/commonFunctions';
+import {
+  useAddAgpMutation,
+  useGetAddChannelMapDropdown,
+  useGetCSENameList,
+  useGetPinCodeList,
+} from '../../../../../../hooks/queries/channelMap';
+import Skeleton from '../../../../../../components/skeleton/skeleton';
+import {screenWidth} from '../../../../../../utils/constant';
+import {getDeviceId} from 'react-native-device-info';
+import {useLoginStore} from '../../../../../../stores/useLoginStore';
+import { useNavigation } from '@react-navigation/native';
+import { useLoaderStore } from '../../../../../../stores/useLoaderStore';
 
 const initialShopInfo = {
-  // CompanyName: '1',
-  // ShopName: '1',
-  // ShopAddress: '1',
-  // ShopLandLine: '9988776655',
-  // OwnerName: '1',
-  // OwnerNumber: '9988776655',
-  // OwnerMailID: 'a@gmail.com',
-  // GSTNo: '1',
-  CompanyName: '',
-  ShopName: '',
-  ShopAddress: '',
-  ShopLandLine: '',
-  OwnerName: '',
-  OwnerNumber: '',
-  OwnerMailID: '',
-  GSTNo: '',
+  CompanyName: '1',
+  ShopName: '1',
+  ShopAddress: '1',
+  ShopLandLine: '9988776655',
+  OwnerName: '1',
+  OwnerNumber: '9988776655',
+  OwnerMailID: 'a@gmail.com',
+  GSTNo: '1',
+  // CompanyName: '',
+  // ShopName: '',
+  // ShopAddress: '',
+  // ShopLandLine: '',
+  // OwnerName: '',
+  // OwnerNumber: '',
+  // OwnerMailID: '',
+  // GSTNo: '',
   KeyPersonName: '',
   KeyPersonDesig: '',
   KeyPersonNo: '',
@@ -36,72 +48,72 @@ const initialAsusInfo = {
   CustomisedBranding: '',
   BusinessType: '',
   chainStore: '',
-  BANNED: '',
-  IsLoginCreated: '',
+  BANNED: 'A',
+  IsLoginCreated: 'Y',
 };
 const intialBrandCom = {
   AsusType: '',
-  AsusMonthNo: '',
+  AsusMonthNo: '1',
   HPType: '',
-  HPMonthNo: '',
+  HPMonthNo: '1',
   DellType: '',
-  DellMonthNo: '',
+  DellMonthNo: '1',
   LenovoType: '',
-  LenovoMonthNo: '',
+  LenovoMonthNo: '1',
   AcerType: '',
-  AcerMonthNo: '',
+  AcerMonthNo: '1',
   MSIType: '',
-  MSIMonthNo: '',
+  MSIMonthNo: '1',
   SamsungType: '',
-  SamsungMonthNo: '',
+  SamsungMonthNo: '1',
 };
 const initialConsumerDTCom = {
   CDTBusinessType: '',
   CDTModeOfBusiness: '',
-  CDTMonthlyNumber: '',
-  CDTMonthlyCommNo: '',
-  CDTWhiteBrand: '',
-  CDTDealRatio: '',
+  CDTMonthlyNumber: '1',
+  CDTMonthlyCommNo: '1',
+  CDTWhiteBrand: '1',
+  CDTDealRatio: '1',
   CDTAsusType: '',
-  CDTAsusMonthNo: '',
+  CDTAsusMonthNo: '1',
   CDTHPType: '',
-  CDTHPMonthNo: '',
+  CDTHPMonthNo: '1',
   CDTDellType: '',
-  CDTDellMonthNo: '',
+  CDTDellMonthNo: '1',
   CDTLenovoType: '',
-  CDTLenovoMonthNo: '',
+  CDTLenovoMonthNo: '1',
   CDTAcerType: '',
-  CDTAcerMonthNo: '',
+  CDTAcerMonthNo: '1',
 };
 const initialGamingDTCom = {
-  GDTMonthlyNumber: '',
-  GDTMonthlyDIY: '',
+  GDTMonthlyNumber: '1',
+  GDTMonthlyDIY: '1',
   GDTAsusType: '',
-  GDTAsusMonthNo: '',
+  GDTAsusMonthNo: '1',
   GDTHPType: '',
-  GDTHPMonthNo: '',
+  GDTHPMonthNo: '1',
   GDTDellType: '',
-  GDTDellMonthNo: '',
+  GDTDellMonthNo: '1',
   GDTLenovoType: '',
-  GDTLenovoMonthNo: '',
+  GDTLenovoMonthNo: '1',
   GDTAcerType: '',
-  GDTAcerMonthNo: '',
+  GDTAcerMonthNo: '1',
 };
 const initialAIOCompetition = {
   AIOBusinessType: '',
   AIOModeOfBusiness: '',
-  AIOMonthlyNumber: '',
-  AIOMonthlyCommNo: '',
+  AIOMonthlyNumber: '1',
+  AIOMonthlyCommNo: '1',
   AIOAsusType: '',
-  AIOAsusMonthNo: '',
+  AIOAsusMonthNo: '1',
   AIOHPType: '',
-  AIOHPMonthNo: '',
+  AIOHPMonthNo: '1',
   AIODellType: '',
-  AIODellMonthNo: '',
+  AIODellMonthNo: '1',
   AIOLenovoType: '',
-  AIOLenovoMonthNo: '',
+  AIOLenovoMonthNo: '1',
   AIOAcerType: '',
-  AIOAcerMonthNo: '',
+  AIOAcerMonthNo: '1',
   AIODealRatio: '',
 };
 const initialMonthlyData = {
@@ -111,6 +123,28 @@ const initialMonthlyData = {
 };
 
 export default function ChannelMapAddAGP() {
+  // API Calls
+  const navigation = useNavigation();
+  const {
+    data: PinCodeData,
+    isLoading: isPinCodeLoading,
+    isError: isPinCodeError,
+  } = useGetPinCodeList();
+  const {
+    data: CSENameData,
+    isLoading: isCSENameLoading,
+    isError: isCSENameError,
+  } = useGetCSENameList();
+  const {
+    data: DropdownData,
+    isLoading: isAddChannelMapDropdownLoading,
+    isError: isAddChannelMapDropdownError,
+  } = useGetAddChannelMapDropdown();
+  const { mutate: addAgpMutate } = useAddAgpMutation();
+  // store state
+  const userInfo = useLoginStore(state => state.userInfo);
+  const setGlobalLoading = useLoaderStore(state => state.setGlobalLoading);
+
   // State management
   const [shopInfo, setShopInfo] = useState(initialShopInfo);
   const [asusInfo, setAsusInfo] = useState(initialAsusInfo);
@@ -145,7 +179,9 @@ export default function ChannelMapAddAGP() {
   });
 
   // make it Array for easy checking
-  const [unlockedSections, setUnlockedSections] = useState<Array<string>>(['shopInfo']);
+  const [unlockedSections, setUnlockedSections] = useState<string[]>([
+    'shopInfo',
+  ]);
 
   // Optimized update handlers with real-time validation clearing
   const updateShopInfo = useCallback((key: string, value: string) => {
@@ -388,19 +424,118 @@ export default function ChannelMapAddAGP() {
       }
       return;
     }
-
+    setGlobalLoading(true);
     // All valid - proceed with submission
-    const formData = {
-      shopInfo,
-      asusInfo,
-      brandCompetition,
-      consumerDTCompetition,
-      gamingDTCompetition,
-      AIOCompetition,
-      monthlyData,
+    let dataToSend = {
+      UserName: userInfo.EMP_Code ? userInfo.EMP_Code : '',
+      MachineName: getDeviceId(),
+      BranchName: '',
+      ChannelMapCode: '',
+
+      // Shop Information
+      CompanyName: shopInfo.CompanyName,
+      ShopName: shopInfo.ShopName,
+      GSTNo: shopInfo.GSTNo,
+      OwnerName: shopInfo.OwnerName,
+      OwnerNumber: shopInfo.OwnerNumber,
+      OwnerMailID: shopInfo.OwnerMailID,
+      ShopAddress: shopInfo.ShopAddress,
+      ShopLandLine: shopInfo.ShopLandLine,
+      KeyPersonName: shopInfo.KeyPersonName,
+      KeyPersonDesignation: shopInfo.KeyPersonDesig,
+      KeyPersonNumber: shopInfo.KeyPersonNo,
+      KeyPersonMailID: shopInfo.KeyPersonMail,
+
+      // ASUS Information
+      TaskOwner: asusInfo.TaskOwner,
+      PinCode: convertStringToNumber(asusInfo.PinCode),
+      CustomisedBranding: convertStringToNumber(asusInfo.CustomisedBranding),
+      BusinessType: convertStringToNumber(asusInfo.BusinessType),
+      chainStore: asusInfo.chainStore,
+      BANNED: asusInfo.BANNED,
+      IsLoginCreated: asusInfo.IsLoginCreated,
+
+      // Brand Competition
+      AsusType: convertStringToNumber(brandCompetition.AsusType),
+      AsusMonthNo: convertStringToNumber(brandCompetition.AsusMonthNo),
+      HPType: convertStringToNumber(brandCompetition.HPType),
+      HPMonthNo: convertStringToNumber(brandCompetition.HPMonthNo),
+      DellType: convertStringToNumber(brandCompetition.DellType),
+      DellMonthNo: convertStringToNumber(brandCompetition.DellMonthNo),
+      LenovaType: convertStringToNumber(brandCompetition.LenovoType),
+      LenovaMonthNo: convertStringToNumber(brandCompetition.LenovoMonthNo), 
+      AcerType: convertStringToNumber(brandCompetition.AcerType),
+      AcerMonthNo: convertStringToNumber(brandCompetition.AcerMonthNo),
+      MSIType: convertStringToNumber(brandCompetition.MSIType),
+      MSIMonthNo: convertStringToNumber(brandCompetition.MSIMonthNo),
+      SamsungType: convertStringToNumber(brandCompetition.SamsungType),
+      SamsungMonthNo: convertStringToNumber(brandCompetition.SamsungMonthNo),
+      // Consumer DT Competition
+      CDTBusinessType: convertStringToNumber(consumerDTCompetition.CDTBusinessType),
+      CDTModeOfBusiness: convertStringToNumber(consumerDTCompetition.CDTModeOfBusiness),
+      CDTMonthlyNumber: convertStringToNumber(consumerDTCompetition.CDTMonthlyNumber),
+      CDTMonthlyCommNo: convertStringToNumber(consumerDTCompetition.CDTMonthlyCommNo),
+      CDTWhiteBrand: convertStringToNumber(consumerDTCompetition.CDTWhiteBrand),
+      CDTDealRatio: convertStringToNumber(consumerDTCompetition.CDTDealRatio),
+      CDTAsusType: convertStringToNumber(consumerDTCompetition.CDTAsusType),
+      CDTAsusMonthlyNo: convertStringToNumber(consumerDTCompetition.CDTAsusMonthNo),
+      CDTHPType: convertStringToNumber(consumerDTCompetition.CDTHPType),
+      CDTHPMonthlyNo: convertStringToNumber(consumerDTCompetition.CDTHPMonthNo),
+      CDTDellType: convertStringToNumber(consumerDTCompetition.CDTDellType),
+      CDTDellMonthlyNo: convertStringToNumber(consumerDTCompetition.CDTDellMonthNo),
+      CDTLenovoType: convertStringToNumber(consumerDTCompetition.CDTLenovoType),
+      CDTLenovoMonthlyNo: convertStringToNumber(consumerDTCompetition.CDTLenovoMonthNo),
+      CDTAcerType: convertStringToNumber(consumerDTCompetition.CDTAcerType),
+      CDTAcerMonthlyNo: convertStringToNumber(consumerDTCompetition.CDTAcerMonthNo),
+      // Gaming DT Competition
+      GDTMonthlyNumber: convertStringToNumber(gamingDTCompetition.GDTMonthlyNumber),
+      GDTMonthlyDIY: convertStringToNumber(gamingDTCompetition.GDTMonthlyDIY),
+      GDTAsusType: convertStringToNumber(gamingDTCompetition.GDTAsusType),
+      GDTAsusMonthlyNo: convertStringToNumber(gamingDTCompetition.GDTAsusMonthNo),
+      GDTHPType: convertStringToNumber(gamingDTCompetition.GDTHPType),
+      GDTHPMonthlyNo: convertStringToNumber(gamingDTCompetition.GDTHPMonthNo),
+      GDTDellType: convertStringToNumber(gamingDTCompetition.GDTDellType),
+      GDTDellMonthlyNo: convertStringToNumber(gamingDTCompetition.GDTDellMonthNo),
+      GDTLenovoType: convertStringToNumber(gamingDTCompetition.GDTLenovoType),
+      GDTLenovoMonthlyNo: convertStringToNumber(gamingDTCompetition.GDTLenovoMonthNo),
+      GDTAcerType: convertStringToNumber(gamingDTCompetition.GDTAcerType),
+      GDTAcerMonthlyNo: convertStringToNumber(gamingDTCompetition.GDTAcerMonthNo),
+
+      // AIO Competition
+      AIOBusinessType: convertStringToNumber(AIOCompetition.AIOBusinessType),
+      AIOModeOfBusiness: convertStringToNumber(AIOCompetition.AIOModeOfBusiness),
+      AIOMonthlyNumber: convertStringToNumber(AIOCompetition.AIOMonthlyNumber),
+      AIOMonthlyCommNo: convertStringToNumber(AIOCompetition.AIOMonthlyCommNo),
+      AIOAsusType: convertStringToNumber(AIOCompetition.AIOAsusType),
+      AIOAsusMonthlyNo: convertStringToNumber(AIOCompetition.AIOAsusMonthNo),
+      AIOHPType: convertStringToNumber(AIOCompetition.AIOHPType),
+      AIOHPMonthlyNo: convertStringToNumber(AIOCompetition.AIOHPMonthNo),
+      AIODellType: convertStringToNumber(AIOCompetition.AIODellType),
+      AIODellMonthlyNo: convertStringToNumber(AIOCompetition.AIODellMonthNo),
+      AIOLenovoType: convertStringToNumber(AIOCompetition.AIOLenovoType),
+      AIOLenovoMonthlyNo: convertStringToNumber(AIOCompetition.AIOLenovoMonthNo),
+      AIOAcerType: convertStringToNumber(AIOCompetition.AIOAcerType),
+      AIOAcerMonthlyNo: convertStringToNumber(AIOCompetition.AIOAcerMonthNo),
+      AIODealRatio: convertStringToNumber(AIOCompetition.AIODealRatio),
+      // Monthly Sales Data
+      MonthlyNBSales: convertStringToNumber(monthlyData.MonthlyNBSales),
+      MonthlyDTAIOSales: convertStringToNumber(monthlyData.MonthlyDTAIOSales),
+      DisplayNB: convertStringToNumber(monthlyData.DisplayNB),
     };
-    console.log('Form Data:', formData);
-    // Example: API call, navigation, etc.
+    console.log('Data to send:', dataToSend);
+    addAgpMutate(dataToSend,{
+      onSuccess: () => {
+        setGlobalLoading(false);
+        showToast('Channel Map added successfully!');
+        navigation.goBack();
+      },
+      onError: (error) => {
+        setGlobalLoading(false);
+        console.error('Error adding Channel Map:', error);
+        showToast('Error adding Channel Map. Please try again.');
+      },
+    });
+
   }, [
     sections,
     getSectionFields,
@@ -417,37 +552,12 @@ export default function ChannelMapAddAGP() {
   const dropdownOptions = useMemo(
     () => ({
       yesNo: [
-        {label: 'Yes', value: 'Yes'},
-        {label: 'No', value: 'No'},
+        {label: 'Yes', value: 'Y'},
+        {label: 'No', value: 'N'},
       ],
-      businessType: [
-        {label: 'Retail', value: 'Retail'},
-        {label: 'Wholesale', value: 'Wholesale'},
-        {label: 'Both', value: 'Both'},
-      ],
-      brandType: [
-        {label: 'Premium', value: 'Premium'},
-        {label: 'Standard', value: 'Standard'},
-        {label: 'Budget', value: 'Budget'},
-        {label: 'None', value: 'None'},
-      ],
-      modeOfBusiness: [
-        {label: 'Online', value: 'Online'},
-        {label: 'Offline', value: 'Offline'},
-        {label: 'Hybrid', value: 'Hybrid'},
-      ],
-      salesRange: [
-        {label: '0-10', value: '0-10'},
-        {label: '10-25', value: '10-25'},
-        {label: '25-50', value: '25-50'},
-        {label: '50-100', value: '50-100'},
-        {label: '100+', value: '100+'},
-      ],
-      displayRange: [
-        {label: '0-5', value: '0-5'},
-        {label: '5-10', value: '5-10'},
-        {label: '10-20', value: '10-20'},
-        {label: '20+', value: '20+'},
+      active: [
+        {label: 'Active', value: 'A'},
+        {label: 'Inactive', value: 'I'},
       ],
     }),
     [],
@@ -576,7 +686,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'Pin Code',
       placeholder: 'Select Pin Code',
-      dropdownData: dropdownOptions.salesRange,
+      dropdownData: PinCodeData,
       required: true,
       width: 'full',
     },
@@ -585,7 +695,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'CSE Name',
       placeholder: 'Select CSE Name',
-      dropdownData: dropdownOptions.yesNo,
+      dropdownData: CSENameData,
       required: true,
       width: 'full',
     },
@@ -595,7 +705,7 @@ export default function ChannelMapAddAGP() {
       label: 'Customised Branding',
       leftIcon: 'tag',
       placeholder: 'Select Branding',
-      dropdownData: dropdownOptions.yesNo,
+      dropdownData: DropdownData?.customisedBranding,
       required: true,
       width: 'full',
     },
@@ -605,7 +715,7 @@ export default function ChannelMapAddAGP() {
       label: 'Business Type',
       leftIcon: 'briefcase',
       placeholder: 'Select Business ',
-      dropdownData: dropdownOptions.businessType,
+      dropdownData: DropdownData?.businessType,
       required: true,
       width: 'half',
     },
@@ -620,22 +730,22 @@ export default function ChannelMapAddAGP() {
       width: 'half',
     },
     {
-      key: 'BANNED',
-      type: 'dropdown',
-      label: 'Banned Status',
-      leftIcon: 'x-circle',
-      placeholder: 'Banned?',
-      dropdownData: dropdownOptions.yesNo,
-      required: true,
-      width: 'half',
-    },
-    {
       key: 'IsLoginCreated',
       type: 'dropdown',
       label: 'Login Created',
       leftIcon: 'log-in',
       placeholder: 'Login Created?',
       dropdownData: dropdownOptions.yesNo,
+      required: true,
+      width: 'half',
+    },
+    {
+      key: 'BANNED',
+      type: 'dropdown',
+      label: 'Is Active',
+      leftIcon: 'x-circle',
+      placeholder: 'Is Active?',
+      dropdownData: dropdownOptions.active,
       required: true,
       width: 'half',
     },
@@ -647,7 +757,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'Asus ',
       leftIcon: 'layers',
-      dropdownData: dropdownOptions.brandType,
+      dropdownData: DropdownData?.asus,
       placeholder: 'Select Type',
       required: true,
       width: 'half',
@@ -667,7 +777,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'HP',
       leftIcon: 'layers',
-      dropdownData: dropdownOptions.brandType,
+      dropdownData: DropdownData?.hp,
       placeholder: 'Select Type',
       required: true,
       width: 'half',
@@ -687,7 +797,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'Dell ',
       leftIcon: 'layers',
-      dropdownData: dropdownOptions.brandType,
+      dropdownData: DropdownData?.dell,
       placeholder: 'Select Type',
       required: true,
       width: 'half',
@@ -707,7 +817,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'Lenovo ',
       leftIcon: 'layers',
-      dropdownData: dropdownOptions.brandType,
+      dropdownData: DropdownData?.lenovo,
       placeholder: 'Select Type',
       required: true,
       width: 'half',
@@ -727,7 +837,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'Acer ',
       leftIcon: 'layers',
-      dropdownData: dropdownOptions.brandType,
+      dropdownData: DropdownData?.acer,
       placeholder: 'Select Type',
       required: true,
       width: 'half',
@@ -747,7 +857,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'MSI ',
       leftIcon: 'layers',
-      dropdownData: dropdownOptions.brandType,
+      dropdownData: DropdownData?.msi,
       placeholder: 'Select Type',
       required: true,
       width: 'half',
@@ -767,7 +877,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'Samsung ',
       leftIcon: 'layers',
-      dropdownData: dropdownOptions.brandType,
+      dropdownData: DropdownData?.samsung,
       placeholder: 'Select Type',
       required: true,
       width: 'half',
@@ -790,7 +900,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'Business Type',
       leftIcon: 'briefcase',
-      dropdownData: dropdownOptions.businessType,
+      dropdownData: DropdownData?.businessType,
       placeholder: 'Select Type',
       required: true,
       width: 'half',
@@ -800,7 +910,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'Mode of Business',
       leftIcon: 'shopping-cart',
-      dropdownData: dropdownOptions.modeOfBusiness,
+      dropdownData: DropdownData?.cdt_ModeOfBusiness,
       placeholder: 'Select Mode',
       required: true,
       width: 'half',
@@ -830,6 +940,7 @@ export default function ChannelMapAddAGP() {
       type: 'input',
       label: 'White Brand Monthly No.',
       leftIcon: 'box',
+      keyboardType: 'numeric',
       placeholder: 'Monthly No.',
       required: true,
       width: 'half',
@@ -839,6 +950,7 @@ export default function ChannelMapAddAGP() {
       type: 'input',
       label: 'Deal Ratio in Overall DT Business',
       leftIcon: 'percent',
+      keyboardType: 'numeric',
       placeholder: 'Deal Ratio',
       required: true,
       width: 'half',
@@ -848,7 +960,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'Asus',
       leftIcon: 'layers',
-      dropdownData: dropdownOptions.brandType,
+      dropdownData: DropdownData?.cdt_asus,
       placeholder: 'Select Type',
       required: true,
       width: 'half',
@@ -868,7 +980,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'HP ',
       leftIcon: 'layers',
-      dropdownData: dropdownOptions.brandType,
+      dropdownData: DropdownData?.cdt_hp,
       placeholder: 'Select Type',
       required: true,
       width: 'half',
@@ -888,7 +1000,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'Dell',
       leftIcon: 'layers',
-      dropdownData: dropdownOptions.brandType,
+      dropdownData: DropdownData?.cdt_dell,
       placeholder: 'Select Type',
       required: true,
       width: 'half',
@@ -908,7 +1020,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'Lenovo',
       leftIcon: 'layers',
-      dropdownData: dropdownOptions.brandType,
+      dropdownData: DropdownData?.cdt_lenovo,
       placeholder: 'Select Type',
       required: true,
       width: 'half',
@@ -928,7 +1040,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'Acer',
       leftIcon: 'layers',
-      dropdownData: dropdownOptions.brandType,
+      dropdownData: DropdownData?.cdt_acer,
       placeholder: 'Select Type',
       required: true,
       width: 'half',
@@ -971,7 +1083,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'Asus',
       leftIcon: 'layers',
-      dropdownData: dropdownOptions.brandType,
+      dropdownData: DropdownData?.gdt_asus,
       placeholder: 'Select Type',
       required: true,
       width: 'half',
@@ -991,7 +1103,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'HP',
       leftIcon: 'layers',
-      dropdownData: dropdownOptions.brandType,
+      dropdownData: DropdownData?.gdt_hp,
       placeholder: 'Select Type',
       required: true,
       width: 'half',
@@ -1011,7 +1123,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'Dell',
       leftIcon: 'layers',
-      dropdownData: dropdownOptions.brandType,
+      dropdownData: DropdownData?.gdt_dell,
       placeholder: 'Select Type',
       required: true,
       width: 'half',
@@ -1031,7 +1143,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'Lenovo',
       leftIcon: 'layers',
-      dropdownData: dropdownOptions.brandType,
+      dropdownData: DropdownData?.gdt_lenovo,
       placeholder: 'Select Type',
       required: true,
       width: 'half',
@@ -1051,7 +1163,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'Acer',
       leftIcon: 'layers',
-      dropdownData: dropdownOptions.brandType,
+      dropdownData: DropdownData?.gdt_acer,
       placeholder: 'Select Type',
       required: true,
       width: 'half',
@@ -1074,7 +1186,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'Business Type',
       leftIcon: 'briefcase',
-      dropdownData: dropdownOptions.businessType,
+      dropdownData: DropdownData?.businessType,
       placeholder: 'Select Type',
       required: true,
       width: 'half',
@@ -1084,7 +1196,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'Mode of Business',
       leftIcon: 'shopping-cart',
-      dropdownData: dropdownOptions.modeOfBusiness,
+      dropdownData: DropdownData?.aio_ModeOfBusiness,
       placeholder: 'Select Mode',
       required: true,
       width: 'half',
@@ -1114,7 +1226,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'Asus',
       leftIcon: 'layers',
-      dropdownData: dropdownOptions.brandType,
+      dropdownData: DropdownData?.aio_asus,
       placeholder: 'Select Type',
       required: true,
       width: 'half',
@@ -1134,7 +1246,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'HP',
       leftIcon: 'layers',
-      dropdownData: dropdownOptions.brandType,
+      dropdownData: DropdownData?.aio_hp,
       placeholder: 'Select Type',
       required: true,
       width: 'half',
@@ -1154,7 +1266,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'Dell',
       leftIcon: 'layers',
-      dropdownData: dropdownOptions.brandType,
+      dropdownData: DropdownData?.aio_dell,
       placeholder: 'Select Type',
       required: true,
       width: 'half',
@@ -1174,7 +1286,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'Lenovo',
       leftIcon: 'layers',
-      dropdownData: dropdownOptions.brandType,
+      dropdownData: DropdownData?.aio_lenovo,
       placeholder: 'Select Type',
       required: true,
       width: 'half',
@@ -1194,7 +1306,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'Acer',
       leftIcon: 'layers',
-      dropdownData: dropdownOptions.brandType,
+      dropdownData: DropdownData?.aio_acer,
       placeholder: 'Select Type',
       required: true,
       width: 'half',
@@ -1227,7 +1339,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'NB Sales',
       leftIcon: 'shopping-bag',
-      dropdownData: dropdownOptions.salesRange,
+      dropdownData: DropdownData?.monthlyNBSales,
       placeholder: 'Select NB Sales',
       required: true,
       width: 'full',
@@ -1237,7 +1349,7 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'DT/AIO Sales',
       leftIcon: 'monitor',
-      dropdownData: dropdownOptions.salesRange,
+      dropdownData: DropdownData?.monthlyDTAIOSales,
       placeholder: 'Select DT/AIO Sales',
       required: true,
       width: 'full',
@@ -1247,12 +1359,48 @@ export default function ChannelMapAddAGP() {
       type: 'dropdown',
       label: 'NB Display Unit',
       leftIcon: 'eye',
-      dropdownData: dropdownOptions.displayRange,
+      dropdownData: DropdownData?.displayNB,
       placeholder: 'Select NB Display Unit',
       required: true,
       width: 'full',
     },
   ];
+
+  const isLoading =
+    isPinCodeLoading || isAddChannelMapDropdownLoading || isCSENameLoading;
+  const Error =
+    isPinCodeError || isAddChannelMapDropdownError || isCSENameError;
+
+  if (isLoading) {
+    return (
+      <AppLayout title="Add New AGP" needBack needPadding needScroll>
+        <View className="flex-1 pt-2">
+          <Skeleton width={screenWidth - 20} height={50} borderRadius={8} />
+          <View className="gap-y-2 mt-2">
+            {[...Array(7)].map((_, index) => (
+              <Skeleton
+                key={index}
+                width={screenWidth - 20}
+                height={80}
+                borderRadius={8}
+              />
+            ))}
+          </View>
+        </View>
+      </AppLayout>
+    );
+  }
+  if (Error) {
+    return (
+      <AppLayout title="Add New AGP" needBack needPadding needScroll>
+        <View className="flex-1 justify-center items-center">
+          <AppText className="text-red-500">
+            An error occurred while loading data. Please try again later.
+          </AppText>
+        </View>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout title="Add New AGP" needBack needPadding needScroll>

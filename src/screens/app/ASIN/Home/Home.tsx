@@ -216,7 +216,7 @@ const CustomTabBar: React.FC<MyTabBarProps> = ({
   TabScreens,
 }) => {
   return (
-    <View className="flex-row justify-around items-center bg-lightBg-base dark:bg-darkBg-base border-t border-gray-200 py-3">
+    <View className="flex-row justify-around items-center bg-lightBg-surface dark:bg-darkBg-surface py-3">
       {state.routes.map((route, index) => {
         const isFocused = state.index === index;
         const screen = TabScreens.find(s => s.name === route.name);

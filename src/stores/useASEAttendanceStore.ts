@@ -2,41 +2,105 @@ import {create} from 'zustand';
 import {persist} from 'zustand/middleware';
 import {createMMKVStorage} from '../utils/mmkvStorage';
 
-interface AttendanceStore {
-  lastInside: boolean | null;
-  setLastInside: (inside: boolean) => void;
-  attendanceToday: {
-    checkInDone: boolean;
-    checkOutDone: boolean;
-    isCompleted: boolean;
-  };
-  setAttendanceToday: (attendance: {
-    checkInDone: boolean;
-    checkOutDone: boolean;
-    isCompleted: boolean;
-  }) => void;
+export interface AttendanceToday {
+  checkInDone: boolean;
+  checkInTime: string | null;
+  checkOutDone: boolean;
+  checkOutTime: string | null;
+  attendanceDate: string | null;
+}
+
+export interface AttendanceStore {
+  attendanceToday: AttendanceToday;
+  currentStatus: 'CheckIn' | 'CheckOut' | 'None';
+  markCheckInDone: () => void;
+  markCheckInDoneOverride: () => void;
+  markCheckOutDone: () => void;
+  checkAndResetIfNewDay: () => boolean;
   reset: () => void;
 }
+
+const defaultAttendanceToday = {
+  checkInDone: false,
+  checkInTime: null,
+  checkOutDone: false,
+  checkOutTime: null,
+  attendanceDate: null,
+};
+
+const isDifferentDay = (d1: Date, d2: Date) =>
+  d1.getFullYear() !== d2.getFullYear() &&
+  d1.getMonth() !== d2.getMonth() &&
+  d1.getDate() !== d2.getDate();
 
 export const useASEAttendanceStore = create<AttendanceStore>()(
   persist(
     (set, get) => ({
-      lastInside: null,
-      setLastInside: (inside: boolean) => set({lastInside: inside}),
-      attendanceToday: {
-        checkInDone: false,
-        checkOutDone: false,
-        isCompleted: false,
+      attendanceToday: defaultAttendanceToday,
+      currentStatus: 'None',
+
+      markCheckInDone: () => {
+        set(state => ({
+          attendanceToday: {
+            ...state.attendanceToday,
+            checkInDone: true,
+            checkInTime: new Date().toLocaleTimeString('en-GB', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true,
+            }),
+            attendanceDate: new Date().toISOString(),
+          },
+          currentStatus: 'CheckIn',
+        }));
       },
-      setAttendanceToday: attendance => set({attendanceToday: attendance}),
+      markCheckInDoneOverride: () => {
+        set(state => ({
+          attendanceToday: {
+            ...state.attendanceToday,
+            checkInDone: true,
+            checkInTime: new Date().toLocaleTimeString('en-GB', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true,
+            }),
+            attendanceDate: new Date().toISOString(),
+            checkOutDone: false,
+            checkOutTime: null,
+          },
+          currentStatus: 'CheckIn',
+        }));
+      },
+      markCheckOutDone: () => {
+        set(state => ({
+          attendanceToday: {
+            ...state.attendanceToday,
+            checkOutDone: true,
+            checkOutTime: new Date().toLocaleTimeString('en-GB', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true,
+            }),
+          },
+          currentStatus: 'CheckOut',
+        }));
+      },
+      checkAndResetIfNewDay: () => {
+        const lastCheckInTime = get().attendanceToday.attendanceDate;
+        if (!lastCheckInTime) return false;
+        if (isDifferentDay(new Date(), new Date(lastCheckInTime))) {
+          set({
+            attendanceToday: defaultAttendanceToday,
+            currentStatus: 'None',
+          });
+          return true;
+        }
+        return false;
+      },
       reset: () =>
         set({
-          lastInside: null,
-          attendanceToday: {
-            checkInDone: false,
-            checkOutDone: false,
-            isCompleted: false,
-          },
+          attendanceToday: defaultAttendanceToday,
+          currentStatus: 'None',
         }),
     }),
     {

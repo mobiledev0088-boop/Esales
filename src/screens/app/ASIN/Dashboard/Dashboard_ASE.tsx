@@ -13,9 +13,9 @@ import {convertToASINUnits} from '../../../../utils/commonFunctions';
 import {screenWidth} from '../../../../utils/constant';
 import {ActivationPerformanceComponent} from './Dashboard_AM';
 import Skeleton from '../../../../components/skeleton/skeleton';
-import AttendanceMarkModal from '../../../../components/AttendanceMarkModal';
-import {getCurrentLocation} from '../../../../utils/services';
-import BackgroundFetch from 'react-native-background-fetch';
+import AttendanceMarkModal from '../User/Attendance/AttendanceMarkModal';
+import AppButton from '../../../../components/customs/AppButton';
+import { displayNotification } from '../../../../utils/notificationServices';
 
 interface TargetAchievementProps {
   target: number;
@@ -121,7 +121,7 @@ const TargetAchievementCard = ({
         </View>
         {/* Columns*/}
         <View className="flex-row items-center ">
-          <View className="items-center my-3 mx-2">
+          <View className="items-center my-3 mx-1">
             <CircularProgressBar
               progress={percentage}
               progressColor={'#10b981'}
@@ -132,8 +132,8 @@ const TargetAchievementCard = ({
             <AppText className="text-xs text-gray-500 mt-3 self-start mb-1 ml-2">
               ACH / TGT
             </AppText>
-            <View className="items-end flex-row border ">
-              <AppText className="text-lg" >
+            <View className="flex-row w-full ml-2">
+              <AppText className="text-lg">
                 {convertToASINUnits(achievement)}
               </AppText>
               <AppText className="text-md text-gray-500">
@@ -224,6 +224,14 @@ export default function Dashboard_ASE({
   }, [refetchDashboard]);
 
   const isDataEmpty = !isLoading && !dashboardData;
+  const handlePress = async () => {
+    await displayNotification({
+      channelId: 'BG_LOCATION_CHANNEL',
+      title: 'Mark Your Attendance',
+      body: `You have left the office area. Tap here to check out now.`,
+      screen: 'Attendance',
+    });
+  };
 
   return (
     <ScrollView
@@ -244,6 +252,7 @@ export default function Dashboard_ASE({
         />
       }>
       {!noBanner && <BannerComponent />}
+      <AppButton title="Send Notification" onPress={handlePress} />
       {/* Title and Month Selection */}
       <View className="mb-2 flex-row items-center justify-between px-3 border-b border-slate-300 pb-4">
         <View>

@@ -128,7 +128,8 @@ const ALPInfo = () => {
               <AppButton
                 title="Add ALP Finance Map"
                 iconName="plus-circle"
-                className="rounded py-4 mt-2 bg-secondary"
+                className="rounded-lg py-4 mt-2 bg-secondary mb-2"
+                noLoading
                 onPress={() =>
                   navigation.push('ChannelMapALPFinance', {
                     financerDataALP: data?.Table1[0],
@@ -208,7 +209,9 @@ const AGPInfo = () => {
       ASUS.ROLE_ID.BPM,
     ].includes(userInfo.EMP_RoleId as any) ||
     ['KN2200052', 'KN1800037', 'KN2500069'].includes(userInfo?.EMP_Code || '');
-  return (
+    // console.log("Finance data", data?.Table1[0]);
+    console.log("agpDetails", agpDetails);
+    return (
     <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base px-1">
       <SearchableDropdown
         data={listData || []}
@@ -242,16 +245,16 @@ const AGPInfo = () => {
           <AppButton
             title="Edit Partner"
             iconName="edit"
-            className="rounded py-4  bg-secondary"
-            // onPress={()=> navigation.push('ChannelMapEditAGP',{
-            //   AGPpartnerCode: selectedItem.value,
-            //   agpDetailsData: data?.Table1[0],
-            // })}
+            className="rounded-lg py-4  bg-secondary mb-2"
+            onPress={()=> navigation.push('ChannelMapEditAGP',{
+              // AGPpartnerCode: selectedItem.value,
+              initialData: selectedItem?.value,
+            })}
           />
           <AppButton
             title="Add Partner"
             iconName="plus-circle"
-            className="rounded py-4 bg-secondary"
+            className="rounded-lg py-4 bg-secondary mb-2"
             onPress={() => navigation.push('ChannelMapAddAGP')}
           />
         </View>
@@ -260,7 +263,7 @@ const AGPInfo = () => {
           title="Add New Partner"
           iconName="plus-circle"
           size="lg"
-          className="rounded py-4 mt-2 bg-secondary"
+          className="rounded-lg py-4 mt-2 bg-secondary mb-2"
           onPress={() => navigation.push('ChannelMapAddAGP')}
         />
       )}

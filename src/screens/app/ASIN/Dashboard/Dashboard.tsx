@@ -1211,20 +1211,6 @@ export default function Dashboard() {
 
   return (
     <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
-      <AppButton
-        title="Start Background Service"
-        className="mt-5"
-        onPress={() => {
-          // startService();
-        }}
-      />
-      <AppButton
-        title="Stop Background Service"
-        className="mt-5"
-        onPress={() => {
-          // stopService();
-        }}
-      />
       <MaterialTabBar
         tabs={dashboardTabs}
         initialRouteName={dashboardTabs[0]?.name || 'Total'}
