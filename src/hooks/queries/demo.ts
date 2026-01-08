@@ -4,11 +4,18 @@ import {useLoginStore} from '../../stores/useLoginStore';
 import {handleAPACApiCall, handleASINApiCall} from '../../utils/handleApiCall';
 import {formatUnique} from '../../utils/commonFunctions';
 
+interface SummaryOverviewData {
+    Vertical: string;
+    Total_Offline_Models: number;
+    Store_count: number;
+    Status: string;
+}
+
 export const useGetDemoDataReseller = (
   YearQtr: string,
   Category: string,
-  KioskCnt: string,
-  RogKioskCnt: string,
+  KioskCnt: number | null,
+  RogKioskCnt: number | null,
 ) => {
   const {EMP_Code: employeeCode = '', EMP_RoleId: RoleId = ''} = useLoginStore(
     state => state.userInfo,
@@ -41,7 +48,75 @@ export const useGetDemoDataReseller = (
   });
 };
 
-export const useGeROItDemoData = (YearQtr: string, Category: string) => {
+export const useGetDemoDataRetailer = (
+  YearQtr: string,
+  Category: string,
+  IsCompulsory: string,
+) => {
+  const {EMP_Code: employeeCode = '', EMP_RoleId: RoleId = ''} = useLoginStore(
+    state => state.userInfo,
+  );
+  const empInfo = useEmpStore(state => state.empInfo);
+  const queryPayload = {
+    YearQtr,
+    RoleId,
+    employeeCode,
+    Category,
+    IsCompulsory: IsCompulsory,
+    sync_date: empInfo?.Sync_Date,
+  };
+
+  return useQuery({
+    queryKey: ['demoDataRetailer', ...Object.values(queryPayload)],
+    queryFn: async () => {
+      const response = await handleASINApiCall(
+        '/DemoForm/GetDemoFormDataRetailer_CategoryWise',
+        queryPayload,
+      );
+      const result = response?.demoFormData;
+      if (!result?.Status) {
+        throw new Error('Failed to fetch activation data');
+      }
+      return result.Datainfo?.DemoDetailsList || [];
+    },
+  });
+};
+
+export const useGetDemoDataLFR = (
+  YearQtr: string,
+  Category: string,
+  IsCompulsory: string,
+) => {
+  const {EMP_Code: employeeCode = '', EMP_RoleId: RoleId = ''} = useLoginStore(
+    state => state.userInfo,
+  );
+  const empInfo = useEmpStore(state => state.empInfo);
+  const queryPayload = {
+    YearQtr,
+    RoleId,
+    employeeCode,
+    Category,
+    IsCompulsory: IsCompulsory,
+    sync_date: empInfo?.Sync_Date,
+  };
+
+  return useQuery({
+    queryKey: ['demoDataRetailer', ...Object.values(queryPayload)],
+    queryFn: async () => {
+      const response = await handleASINApiCall(
+        '/DemoForm/GetDemoFormDataLFR_CategoryWise_New',
+        queryPayload,
+      );
+      const result = response?.demoFormData;
+      if (!result?.Status) {
+        throw new Error('Failed to fetch activation data');
+      }
+      return result.Datainfo?.DemoDetailsList || [];
+    },
+  });
+};
+
+export const useGetDemoDataROI = (YearQtr: string, Category: string) => {
   const {EMP_Code: employeeCode = '', EMP_RoleId: RoleId = ''} = useLoginStore(
     state => state.userInfo,
   );
@@ -70,8 +145,8 @@ export const useGeROItDemoData = (YearQtr: string, Category: string) => {
 export const useGetBranchWiseDemoData = (
   YearQtr: string,
   Category: string,
-  KioskCnt: string,
-  RogKioskCnt: string,
+  KioskCnt: number | null,
+  RogKioskCnt: number | null,
   branchName: string,
   IsCompulsory: string,
   enabled: boolean,
@@ -141,36 +216,120 @@ export const useGetBranchWiseDemoData = (
   }
 };
 
-export const useGetDemoDataRetailer = (
+export const useGetBranchWiseDemoDataRet = (
   YearQtr: string,
   Category: string,
+  branchName: string,
   IsCompulsory: string,
+  enabled: boolean,
 ) => {
   const {EMP_Code: employeeCode = '', EMP_RoleId: RoleId = ''} = useLoginStore(
     state => state.userInfo,
   );
-  const empInfo = useEmpStore(state => state.empInfo);
   const queryPayload = {
     YearQtr,
     RoleId,
     employeeCode,
     Category,
-    IsCompulsory: IsCompulsory,
-    sync_date: empInfo?.Sync_Date,
+    IsCompulsory,
+    branchName,
+  };
+
+    return useQuery({
+      queryKey: ['branchWiseDemoDataRetailer', ...Object.values(queryPayload)],
+      queryFn: async () => {
+        const response = await handleASINApiCall(
+          '/DemoForm/GetDemoFormDataRetailer_BranchWisedata',
+          queryPayload,
+        );
+        const result = response?.demoFormData;
+        if (!result?.Status) {
+          throw new Error('Failed to fetch branch-wise data');
+        }
+        return result.Datainfo?.DemoDetailsList || [];
+      },
+      enabled: enabled && !!branchName,
+    });
+};
+
+export const useGetSummaryOverviewData = () => {
+  const {EMP_Code: employeeCode = ''} = useLoginStore(state => state.userInfo);
+  return useQuery({
+    queryKey: ['summaryOverviewData', employeeCode],
+    queryFn: async () => {
+      const response = await handleASINApiCall(
+        '/DemoForm/GetPartnerDemoCategoryList_Discontinued',
+        {employeeCode},
+      );
+      const result = response?.demoFormData;
+      if (!result?.Status) {
+        throw new Error('Failed to fetch summary overview data');
+      }
+      const data = result.Datainfo?.Table1 as SummaryOverviewData[];
+      return data || [];
+    },
+  });
+};
+
+export const useGetDemoCategories = (yearQtr: string) => {
+  const queryPayload = {
+    YearQtr: yearQtr,
   };
 
   return useQuery({
-    queryKey: ['demoDataRetailer', ...Object.values(queryPayload)],
+    queryKey: ['demoCategories', yearQtr],
     queryFn: async () => {
       const response = await handleASINApiCall(
-        '/DemoForm/GetDemoFormDataRetailer_CategoryWise',
+        '/DemoForm/GetPartnerDemoCategoryList_Reseller',
         queryPayload,
       );
       const result = response?.demoFormData;
       if (!result?.Status) {
-        throw new Error('Failed to fetch activation data');
+        throw new Error('Failed to fetch categories');
       }
-      return result.Datainfo?.DemoDetailsList || [];
+      const categories = result.Datainfo?.Table || [];
+      return categories.map((item: {Demo_Category: string}) => ({
+        label: item.Demo_Category,
+        value: item.Demo_Category,
+      }));
+    },
+    enabled: !!yearQtr,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+};
+
+// APAC
+export const useGetDemoFilterOptionsAPAC = (
+  Month: string,
+  PartnerCode: string,
+) => {
+  const {EMP_Code: employeeCode = ''} = useLoginStore(state => state.userInfo);
+  const queryPayload = {employeeCode, Month, PartnerCode};
+  return useQuery({
+    queryKey: ['demoFilterOptionsAPAC', ...Object.values(queryPayload)],
+    queryFn: async () => {
+      const response = await handleAPACApiCall(
+        '/DemoForm/GetDemoByProgramFilters',
+        queryPayload,
+      );
+      const result = response?.demoFormData;
+      if (!result?.Status) {
+        throw new Error('Failed to fetch filter options');
+      }
+      return result.Datainfo || {};
+    },
+    select: data => {
+      
+      const Category = formatUnique(data?.CategoryFilter, 'Demo_Category');
+      const AGP_Filter = formatUnique(data?.AGP_Filter,'PM_Code','PM_Name');
+      const Store_filter = formatUnique(data?.Store_filter,'Store_id','Store_name');
+      const ProgramName_Filter = formatUnique(data?.ProgramName_Filter,'CM_CPORID','CM_SchemeCategory');
+      return {
+        Category,
+        AGP_Filter,
+        Store_filter,
+        ProgramName_Filter,
+      };
     },
   });
 };
@@ -255,7 +414,7 @@ export const useGetDemoDataPartner = ({
   });
 };
 
-export const useGetDemoDataROI = (YearQtr: string, Category: string) => {
+export const useGetDemoDataROIAPAC = (YearQtr: string, Category: string) => {
   const {
     EMP_Code: employeeCode = '',
     EMP_RoleId: RoleId = '',
@@ -280,41 +439,6 @@ export const useGetDemoDataROI = (YearQtr: string, Category: string) => {
         throw new Error('Failed to fetch activation data');
       }
       return result.Datainfo?.ROI_Details || [];
-    },
-  });
-};
-
-export const useGetDemoFilterOptionsAPAC = (
-  Month: string,
-  PartnerCode: string,
-) => {
-  const {EMP_Code: employeeCode = ''} = useLoginStore(state => state.userInfo);
-  const queryPayload = {employeeCode, Month, PartnerCode};
-  return useQuery({
-    queryKey: ['demoFilterOptionsAPAC', ...Object.values(queryPayload)],
-    queryFn: async () => {
-      const response = await handleAPACApiCall(
-        '/DemoForm/GetDemoByProgramFilters',
-        queryPayload,
-      );
-      const result = response?.demoFormData;
-      if (!result?.Status) {
-        throw new Error('Failed to fetch filter options');
-      }
-      return result.Datainfo || {};
-    },
-    select: data => {
-      
-      const Category = formatUnique(data?.CategoryFilter, 'Demo_Category');
-      const AGP_Filter = formatUnique(data?.AGP_Filter,'PM_Code','PM_Name');
-      const Store_filter = formatUnique(data?.Store_filter,'Store_id','Store_name');
-      const ProgramName_Filter = formatUnique(data?.ProgramName_Filter,'CM_CPORID','CM_SchemeCategory');
-      return {
-        Category,
-        AGP_Filter,
-        Store_filter,
-        ProgramName_Filter,
-      };
     },
   });
 };

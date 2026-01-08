@@ -10,10 +10,13 @@ import AppIcon, {IconType} from '../../../../../components/customs/AppIcon';
 import {EmpInfo, UserInfo} from '../../../../../types/user';
 import AppInput from '../../../../../components/customs/AppInput';
 import AppButton from '../../../../../components/customs/AppButton';
-import {use, useMemo, useState} from 'react';
+import {useMemo, useState} from 'react';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import {getDeviceId} from 'react-native-device-info';
-import {handleASINApiCall} from '../../../../../utils/handleApiCall';
+import {
+  handleAPACApiCall,
+  handleASINApiCall,
+} from '../../../../../utils/handleApiCall';
 import {useNavigation} from '@react-navigation/native';
 import {AppNavigationProp} from '../../../../../types/navigation';
 import {useLoginStore} from '../../../../../stores/useLoginStore';
@@ -28,7 +31,92 @@ import AppDropdown, {
   AppDropdownItem,
 } from '../../../../../components/customs/AppDropdown';
 
-// --- return components ---
+// --- types ---
+export interface SpecialFunctionsAccess {
+  loginAsAllowed: boolean;
+  changeCountryAllowed: boolean;
+  multipleBusinessTypeAllowed: boolean;
+}
+// --- API Hooks ---
+const useGetBusinessTypes = (enabled: boolean) => {
+  const {EMP_Code: employeeCode} = useLoginStore(state => state.userInfo);
+  return useQuery({
+    queryKey: ['businessTypes', employeeCode],
+    queryFn: async () => {
+      const response = await handleASINApiCall('/Auth/BusinessTypeInfo', {
+        employeeCode,
+      });
+      const result = response.login;
+      if (!result?.Status) return [];
+      return result.Datainfo;
+    },
+    select: data =>
+      data.map((item: any) => ({
+        label: item.BT_Name,
+        value: item.BEI_BusinessType,
+      })) as AppDropdownItem[],
+    enabled,
+  });
+};
+
+const useGetCountries = (enabled: boolean) => {
+  const {EMP_Code: employeeCode} = useLoginStore(state => state.userInfo);
+  return useQuery({
+    queryKey: ['countries', employeeCode],
+    queryFn: async () => {
+      const response = await handleASINApiCall('/Auth/CountryInfo', {
+        employeeCode,
+      });
+      const result = response.login;
+      if (!result?.Status) return [];
+      return result.Datainfo;
+    },
+    select: data =>
+      data.map((item: any) => ({
+        label: item.CN_Name,
+        value: item.CN_Code,
+      })) as AppDropdownItem[],
+    enabled,
+  });
+};
+
+const useChangeCountryMutation = () => {
+  return useMutation({
+    mutationFn: async (Country: string) => {
+      const {EMP_Code: employeeCode} = useLoginStore(state => state.userInfo);
+      const payload = {employeeCode, Country};
+      const res = await handleASINApiCall('/Auth/UpdateUserInfo', payload);
+      const result = res?.login;
+      if (!result?.Status)
+        throw new Error(result?.Message || 'Failed to change country');
+      console.log('India Data Updated');
+      const res2 = await handleAPACApiCall('/Auth/UpdateUserInfo', payload);
+      const result2 = res2?.login;
+      if (!result2?.Status)
+        throw new Error(result2?.Message || 'Failed to change country');
+      console.log('APAC Data Updated');
+      const res3 = await handleAPACApiCall('/Auth/UserInfo', {employeeCode});
+      const result3 = res3?.login;
+      if (!result3?.Status)
+        throw new Error(result3?.Message || 'Failed to fetch user info');
+      const userDetails = result3.Datainfo[0];
+      const Token = result3.Token;
+      return {userDetails, Token};
+    },
+  });
+};
+
+const useChangeBusinessTypeMutation = () => {
+  return useMutation({
+    mutationFn: async (BusinessType: string) => {
+      const {EMP_Code: employeeCode} = useLoginStore(state => state.userInfo);
+      const payload = {employeeCode, BusinessType};
+      const res = await handleASINApiCall('/Auth/UpdateUserInfo', payload);
+      const result = res?.login;
+    },
+  });
+};
+// --- Helper Functions ---
 const renderCardRow = (
   iconType: IconType,
   iconName: string,
@@ -75,27 +163,21 @@ const renderInfoRow = (
   </View>
 );
 
-const countriesData: AppDropdownItem[] = [
-  {label: 'United States', value: 'us'},
-  {label: 'Canada', value: 'ca'},
-  {label: 'United Kingdom', value: 'uk'},
-  {label: 'Germany', value: 'de'},
-  {label: 'France', value: 'fr'},
-  {label: 'Japan', value: 'jp'},
-  {label: 'Australia', value: 'au'},
-  {label: 'Brazil', value: 'br'},
-  {label: 'India', value: 'in'},
-  {label: 'China', value: 'cn'},
-];
-
-const TabSelector = () => {
-  const TABS = ['PC Business', 'ALL Business', 'Commercial'];
-  const [selectedIndex, setSelectedIndex] = useState(0);
+const TabSelector = ({
+  TABS,
+  handlePress,
+  selectedIndex,
+}: {
+  TABS: AppDropdownItem[] | null;
+  handlePress: (index: number) => void;
+  selectedIndex: number;
+}) => {
   const isDarkTheme = useThemeStore(state => state.AppTheme === 'dark');
+  if (!TABS || TABS.length === 0) return null;
   return (
     <View className="flex-row justify-between items-center p-1 py-2 bg-lightBg-base dark:bg-darkBg-base rounded h-16 mb-4">
       {TABS.map((tab, index) => {
-        const isSelected = selectedIndex === index;
+        const isSelected = selectedIndex === Number(tab.value);
         return (
           <TouchableOpacity
             key={index}
@@ -105,13 +187,13 @@ const TabSelector = () => {
                 ? '#007AFF'
                 : AppColors[isDarkTheme ? 'dark' : 'light'].bgSurface,
             }}
-            onPress={() => setSelectedIndex(index)}
+            onPress={() => handlePress(Number(tab.value))}
             activeOpacity={0.8}>
             <AppText
               color={isSelected || isDarkTheme ? 'white' : 'black'}
               weight="bold"
               size="sm">
-              {tab}
+              {tab.label}
             </AppText>
           </TouchableOpacity>
         );
@@ -269,30 +351,24 @@ export const SpecialAccessUI = ({
   specialFunctionsAccess,
   userInfo,
 }: {
-  specialFunctionsAccess: any;
+  specialFunctionsAccess: SpecialFunctionsAccess;
   userInfo: UserInfo | null;
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const setAuthData = useLoginStore(state => state.setAuthData);
+  const {EMP_CountryID,EMP_Btype} = useLoginStore(state => state.userInfo);
+  const {data: businessTypes, isLoading: isBusinessTypesLoading} =
+    useGetBusinessTypes(specialFunctionsAccess.multipleBusinessTypeAllowed);
+  const {data: countries, isLoading} = useGetCountries(
+    specialFunctionsAccess.changeCountryAllowed,
+  );
+  const {mutate: changeCountryMutate, isPending: isChangingCountry} =
+    useChangeCountryMutation();
 
   const [loginAsID, setLoginAsID] = useState<string>('');
   const [loginAsError, setLoginAsError] = useState<string>('');
-
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
-
-  // Using the reusable dropdown manager hook
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(EMP_CountryID);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-  // --- Fetch Data ---
-  const {data: countries} = useQuery({
-    queryKey: ['countries'],
-    queryFn: () =>
-      handleASINApiCall('/Auth/CountryInfo', {
-        employeeCode: userInfo?.EMP_Code || '',
-      }),
-    select: data => data?.login || [],
-    enabled: !!userInfo?.EMP_Code && specialFunctionsAccess?.Is_Multiple_Login,
-  });
 
   // --- Mutation Logic ---
   const {mutate} = useMutation({
@@ -338,8 +414,22 @@ export const SpecialAccessUI = ({
     if (validateLoginAs()) mutate();
   };
 
+  const handleChangeCountry = (item: AppDropdownItem | null) => {
+    if (item && item.value !== selectedCountry) {
+      // Additional logic to handle country change can be added here
+      changeCountryMutate(item.value, {
+        onSuccess: () => {
+          showToast(`Country changed to ${item.label}`);
+        },
+        onError: error => {
+          showToast(
+            error instanceof Error ? error.message : 'Failed to change country',
+          );
+        },
+      });
+    }
+  };
   const AppTheme = useThemeStore(state => state.AppTheme);
-
   return (
     <>
       <AppText className="ml-2 mt-8 mb-2 underline">
@@ -347,7 +437,7 @@ export const SpecialAccessUI = ({
       </AppText>
       <Card className="rounded-md gap-5">
         {/* Login As */}
-        {specialFunctionsAccess?.Is_LoginAs && (
+        {specialFunctionsAccess?.loginAsAllowed && (
           <Accordion
             header={
               <View className="flex-row items-center gap-2">
@@ -380,7 +470,7 @@ export const SpecialAccessUI = ({
           </Accordion>
         )}
         {/* Switch Country */}
-        {specialFunctionsAccess?.Is_Multiple_Login && (
+        {specialFunctionsAccess?.changeCountryAllowed && (
           <Accordion
             header={
               <View className="flex-row items-center gap-2">
@@ -399,10 +489,10 @@ export const SpecialAccessUI = ({
                 isDropdownOpen ? 'min-h-80' : 'h-20',
               )}>
               <AppDropdown
-                data={countriesData}
+                data={countries || []}
                 mode="dropdown"
-                placeholder="Select a Country"
-                onSelect={item => setSelectedCountry(item?.value || null)}
+                placeholder={isLoading ? 'Loading...' : 'Select a Country'}
+                onSelect={handleChangeCountry}
                 selectedValue={selectedCountry || undefined}
                 zIndex={9000}
                 onOpenChange={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -411,7 +501,7 @@ export const SpecialAccessUI = ({
           </Accordion>
         )}
         {/* Switch Business Type */}
-        {specialFunctionsAccess?.Is_Multiple_BusinessType && (
+        {specialFunctionsAccess?.multipleBusinessTypeAllowed && (
           <Accordion
             header={
               <View className="flex-row items-center gap-2">
@@ -424,7 +514,11 @@ export const SpecialAccessUI = ({
                 <AppText weight="bold">Switch Business Type</AppText>
               </View>
             }>
-            <TabSelector />
+            <TabSelector 
+              TABS={businessTypes || []}
+              handlePress={()=>{}}
+              selectedIndex={EMP_Btype}  
+            />
           </Accordion>
         )}
       </Card>
@@ -448,13 +542,14 @@ export const AccountSettings = () => {
           () => navigation.push('ChangePassword'),
           AppTheme,
         )}
-        {isASE && renderCardRow(
-          'ionicons',
-          'checkmark-done-circle-outline',
-          'Attendance',
-          () => navigation.push('Attendance'),
-          AppTheme,
-        )}
+        {isASE &&
+          renderCardRow(
+            'ionicons',
+            'checkmark-done-circle-outline',
+            'Attendance',
+            () => navigation.push('Attendance'),
+            AppTheme,
+          )}
         {renderCardRow(
           'ionicons',
           'settings-outline',

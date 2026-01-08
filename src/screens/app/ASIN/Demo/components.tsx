@@ -1,8 +1,5 @@
 import {memo, useMemo, useState} from 'react';
-import AppDropdown, {
-  AppDropdownItem,
-} from '../../../../components/customs/AppDropdown';
-import {showDemoFilterSheet} from './DemoFilterSheet';
+import AppDropdown from '../../../../components/customs/AppDropdown';
 import {Pressable, ScrollView, TouchableOpacity, View} from 'react-native';
 import AppText from '../../../../components/customs/AppText';
 import AppIcon from '../../../../components/customs/AppIcon';
@@ -19,16 +16,31 @@ import {AppNavigationProp} from '../../../../types/navigation';
 import Skeleton from '../../../../components/skeleton/skeleton';
 import {screenWidth} from '../../../../utils/constant';
 import {
-  filterDemoItemsByPartnerType,
-  Filters,
+  DemoItemReseller,
+  DemoItemRetailer,
   METRIC_COLOR,
   MetricProps,
+  OFFLINE_STATUS_STYLES,
   ProgressStatProps,
-  TerritoryItem,
-  TransformedBranch,
+  STAT_PALETTE,
+  StatsHeaderProps,
+  TerritoryItemRes,
+  TerritoryItemRet,
+  transformDemoDataRetailer,
+  TransformedBranchRes,
+  TransformedBranchRet,
   transformTerritoryData,
 } from './utils';
-import {useGetBranchWiseDemoData} from '../../../../hooks/queries/demo';
+import {
+  useGetBranchWiseDemoData,
+  useGetBranchWiseDemoDataRet,
+  useGetSummaryOverviewData,
+} from '../../../../hooks/queries/demo';
+import Accordion from '../../../../components/Accordion';
+import {twMerge} from 'tailwind-merge';
+import {AppColors} from '../../../../config/theme';
+import FilterButton from '../../../../components/FilterButton';
+import clsx from 'clsx';
 
 // helper component
 const ProgressStat: React.FC<ProgressStatProps> = ({
@@ -81,275 +93,249 @@ const Metric: React.FC<MetricProps> = memo(({label, value, icon, tint}) => (
 ));
 
 // component
-export const SummaryCard: React.FC<{
-  at_least_single_demo: number;
-  at_80_demo?: number;
-  demo_100: number;
-  total_partners: number;
-  awp_partners?: number;
-  quarters: AppDropdownItem[];
-  selectedQuarter: AppDropdownItem | null;
-  setSelectedQuarter: React.Dispatch<
-    React.SetStateAction<AppDropdownItem | null>
-  >;
-  filters: Filters;
-  setFilters: any;
-  partnerTypes: {label: string; value: string}[];
-}> = memo(
-  ({
-    at_least_single_demo,
-    at_80_demo,
-    demo_100,
-    total_partners,
-    awp_partners,
-    quarters,
-    selectedQuarter,
-    setSelectedQuarter,
-    filters,
-    setFilters,
-    partnerTypes,
-  }) => {
-    const openFilter = () => {
-      showDemoFilterSheet({
-        ...filters,
-        yearQtr: selectedQuarter?.value || '',
-        partnerTypes: partnerTypes,
-        onApply: res => setFilters(res),
-        onReset: () =>
-          setFilters({
-            category: null,
-            premiumKiosk: null,
-            rogKiosk: null,
-            partnerType: null,
-            agpName: null,
-          }),
-      });
-    };
-
-    // Component: SelectedFilterChips
-    const SelectedFilterChips = ({
-      filters,
-      setFilters,
-    }: {
-      filters: Filters;
-      setFilters: React.Dispatch<React.SetStateAction<Filters>>;
-    }) => {
-      const entries = Object.entries(filters).filter(([, v]) => v && v !== '');
-      const removeKey = (k: keyof Filters) => {
-        setFilters(prev => ({...prev, [k]: null}));
-      };
-      if (entries.length === 0) return null;
-      return (
-        <View>
-          <AppText size="xs" className="text-slate-400 mb-2">
-            Selected Filters ({entries.length})
+export const SummaryOverView = memo(() => {
+  const {data, isLoading} = useGetSummaryOverviewData();
+  const Totals = useMemo(() => {
+    if (!data) return {models: 0, stores: 0};
+    let modelSum = 0;
+    let storeSum = 0;
+    data.forEach(item => {
+      modelSum += item.Total_Offline_Models;
+      storeSum += item.Store_count;
+    });
+    return {models: modelSum, stores: storeSum};
+  }, [data]);
+  if (isLoading)
+    return <Skeleton width={screenWidth - 20} height={50} borderRadius={12} />;
+  if (!data) return null;
+  return (
+    <Accordion
+      containerClassName="mt-2 border border-slate-200 dark:border-slate-700 rounded-2xl"
+      headerClassName="bg-white px-3 py-3"
+      needBottomBorder={false}
+      header={
+        <View className="flex-row items-center gap-x-1">
+          <View className="w-7 h-7 bg-blue-100 rounded-full justify-center items-center">
+            <AppIcon name="info" type="feather" size={17} color="#2563eb" />
+          </View>
+          <AppText weight="semibold" size="md">
+            Summary Overview
           </AppText>
-          <View className="flex-row flex-wrap -m-1">
-            {entries.map(([k, v]) => (
-              <View
-                key={k}
-                className="m-1 flex-row items-center bg-white border border-slate-200 rounded-full pl-3 pr-1 py-1 shadow-sm">
-                <AppText
-                  size="xs"
-                  numberOfLines={1}
-                  className="text-slate-600 mr-1 max-w-[120px]">
-                  {k}: {String(v)}
-                </AppText>
-                <TouchableOpacity
-                  onPress={() => removeKey(k as keyof Filters)}
-                  hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
-                  className="w-5 h-5 rounded-full bg-slate-200 items-center justify-center">
-                  <AppIcon name="x" type="feather" size={12} color="#475569" />
-                </TouchableOpacity>
-              </View>
-            ))}
-          </View>
         </View>
-      );
-    };
-    return (
-      <View>
-        <View className="flex-row justify-end items-center gap-3">
-          <View className="w-36">
-            <AppDropdown
-              data={quarters}
-              selectedValue={selectedQuarter?.value}
-              mode="dropdown"
-              placeholder="Quarter"
-              onSelect={setSelectedQuarter}
-            />
+      }>
+      <View className="px-3 pb-3 bg-white dark:bg-slate-900 rounded-b-2xl">
+        <View className="flex-row items-stretch gap-2 mb-3">
+          <View className="p-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg">
+            <AppText
+              weight="semibold"
+              size="xs"
+              className="text-slate-500 dark:text-slate-300 uppercase">
+              Total Offline Models
+            </AppText>
+            <AppText
+              size="lg"
+              weight="bold"
+              className="text-slate-900 dark:text-slate-50 text-center">
+              {Totals.models.toLocaleString('en-US')}
+            </AppText>
           </View>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={openFilter}
-            className="">
-            <View
-              className={`flex-1 flex-row w-14 items-center justify-center rounded bg-white border border-[#ccc]`}>
-              <AppIcon
-                name="tune-variant"
-                type="material-community"
-                size={20}
-                color={'#475569'}
-              />
-            </View>
-          </TouchableOpacity>
-        </View>
-        <View className="mb-4">
-          <SelectedFilterChips filters={filters} setFilters={setFilters} />
+          <View className="p-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg">
+            <AppText
+              weight="semibold"
+              size="xs"
+              className="text-slate-500 dark:text-slate-300 uppercase">
+              Total Stores
+            </AppText>
+            <AppText
+              size="lg"
+              weight="bold"
+              className="text-slate-900 dark:text-slate-50 text-center">
+              {Totals.stores.toLocaleString('en-US')}
+            </AppText>
+          </View>
         </View>
 
-        <Card className="mb-3">
-          <View className="pb-3 border-b border-slate-100">
+        <View className="ßborder border-slate-200 dark:border-slate-700">
+          <View className="flex-row items-center justify-between px-2 py-1.5 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/70">
+            <AppText
+              weight="semibold"
+              size="sm"
+              className="flex-1 text-slate-700 dark:text-slate-100">
+              Vertical
+            </AppText>
+            <AppText
+              weight="semibold"
+              size="sm"
+              className="w-24 text-center text-slate-700 dark:text-slate-100">
+              Offline
+            </AppText>
+            <AppText
+              weight="semibold"
+              size="sm"
+              className="w-16 text-center text-slate-700 dark:text-slate-100">
+              Stores
+            </AppText>
+            <AppText
+              weight="semibold"
+              size="sm"
+              className="w-32 text-center text-slate-700 dark:text-slate-100">
+              Status
+            </AppText>
+          </View>
+          {data.map((item, idx) => {
+            const palette = OFFLINE_STATUS_STYLES[item.Status];
+            const stripe =
+              idx % 2 === 0
+                ? 'bg-white dark:bg-slate-900'
+                : 'bg-slate-50 dark:bg-slate-900/60';
+
+            return (
+              <View
+                key={item.Vertical}
+                className={twMerge(
+                  'flex-row items-center px-2 py-2',
+                  idx !== data.length - 1 &&
+                    'border-b border-slate-100 dark:border-slate-800',
+                  stripe,
+                )}>
+                <View className="flex-1">
+                  <AppText
+                    weight="semibold"
+                    size="sm"
+                    className="text-slate-900 dark:text-slate-50">
+                    {item.Vertical}
+                  </AppText>
+                </View>
+
+                <AppText
+                  weight="semibold"
+                  size="sm"
+                  className="w-24 text-center text-slate-800 dark:text-slate-50">
+                  {item.Total_Offline_Models.toLocaleString('en-US')}
+                </AppText>
+                <AppText
+                  weight="semibold"
+                  size="sm"
+                  className="w-16 text-center text-slate-800 dark:text-slate-50">
+                  {item.Store_count.toLocaleString('en-US')}
+                </AppText>
+
+                <View className="w-32">
+                  <View
+                    className={twMerge(
+                      'px-2 py-0.5 rounded-full',
+                      palette.bg,
+                      palette.border,
+                    )}>
+                    <AppText
+                      weight="semibold"
+                      size="xs"
+                      className={twMerge(
+                        'uppercase text-center',
+                        palette.text,
+                      )}>
+                      {item.Status}
+                    </AppText>
+                  </View>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      </View>
+    </Accordion>
+  );
+});
+
+export const StatsHeader = memo(
+  ({
+    stats,
+    counts,
+  }: StatsHeaderProps) => {
+    return (
+      <View className="mb-3">
+        <Card
+          className="p-3 border border-slate-200 dark:border-slate-700"
+          noshadow>
+          <View className="pb-2 border-b border-slate-100 dark:border-slate-700">
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center gap-2">
-                <View className="w-8 h-8 rounded-full bg-primary/10 items-center justify-center">
+                <View className="w-8 h-8 rounded-full bg-primary/10 dark:bg-primary-dark/20 items-center justify-center">
                   <AppIcon
                     name="bar-chart-2"
                     type="feather"
                     size={16}
-                    color="#0066FF"
+                    color={AppColors.primary}
                   />
                 </View>
                 <AppText
                   size="base"
                   weight="semibold"
-                  className="text-slate-800">
+                  className="text-slate-800 dark:text-slate-100">
                   Overall Summary
                 </AppText>
               </View>
-              {filters.category && (
-                <View className="bg-blue-50 dark:bg-blue-900/20 px-3 py-1.5 rounded-full">
-                  <AppText
-                    size="xs"
-                    weight="medium"
-                    className="text-blue-600 dark:text-blue-400">
-                    {filters.category}
-                  </AppText>
-                </View>
-              )}
             </View>
-            <AppText size="xs" className="text-slate-400 mt-1">
-              Aggregated data across all branches
-            </AppText>
           </View>
 
-          {/* Demo Metrics */}
-          <View className="flex-row justify-around mt-4">
-            <View className="flex-1 items-center">
-              <View className="w-12 h-12 rounded-xl bg-violet-500 items-center justify-center mb-2 shadow-sm">
-                <AppIcon name="target" type="feather" size={20} color="white" />
-              </View>
-              <AppText
-                size="xs"
-                weight="medium"
-                numberOfLines={2}
-                className="text-center leading-tight text-violet-600">
-                At Least Single
-              </AppText>
-              <AppText
-                size="lg"
-                weight="semibold"
-                className="mt-1 text-violet-600">
-                {at_least_single_demo}
-              </AppText>
-            </View>
-
-            <View className="w-px bg-slate-100 mx-3" />
-            {at_80_demo != null ? (
-              <View className="flex-1 flex-row">
-                <View className="flex-1 items-center">
-                  <View className="w-12 h-12 rounded-xl bg-sky-500 items-center justify-center mb-2 shadow-sm">
-                    <AppIcon
-                      name="target"
-                      type="feather"
-                      size={20}
-                      color="white"
-                    />
+          <View className="flex-row  -mx-1 mt-2">
+            {stats.map((s, idx) => {
+              const palette = STAT_PALETTE[s.name];
+              const isLastInRow = idx === stats.length - 1;
+              return (
+                <View
+                  key={s.label}
+                  className={clsx(
+                    'flex-1 px-1 mb-2',
+                    !isLastInRow && 'border-r border-slate-200',
+                  )}>
+                  <View className="items-center p-2.5 dark:border-slate-700 dark:bg-slate-800/70">
+                    <View
+                      className={twMerge(
+                        'mb-1.5 h-9 w-9 items-center justify-center rounded-md',
+                        palette.iconBg,
+                      )}>
+                      <AppIcon
+                        name={s.icon}
+                        type={s.iconType as any}
+                        size={18}
+                        color="white"
+                      />
+                    </View>
+                    <AppText
+                      size="md"
+                      weight="semibold"
+                      className="text-slate-900 dark:text-slate-50 leading-snug text-center">
+                      {s.value}
+                    </AppText>
+                    <AppText
+                      size="xs"
+                      weight="semibold"
+                      className={twMerge(
+                        'mt-0.5 uppercase text-slate-600 dark:text-slate-300 text-center',
+                        palette.tint,
+                      )}
+                      numberOfLines={2}>
+                      {s.label}
+                    </AppText>
                   </View>
-                  <AppText
-                    size="xs"
-                    weight="medium"
-                    numberOfLines={2}
-                    className="text-center leading-tight text-sky-600">
-                    80% Demo
-                  </AppText>
-                  <AppText
-                    size="lg"
-                    weight="semibold"
-                    className="mt-1 text-sky-600">
-                    {at_80_demo}
-                  </AppText>
                 </View>
-                <View className="w-px bg-slate-100 mx-3" />
-              </View>
-            ) : (
-              false
-            )}
-
-            <View className="flex-1 items-center">
-              <View className="w-12 h-12 rounded-xl bg-teal-500 items-center justify-center mb-2 shadow-sm">
-                <AppIcon
-                  name="check-circle"
-                  type="feather"
-                  size={20}
-                  color="white"
-                />
-              </View>
-              <AppText
-                size="xs"
-                weight="medium"
-                numberOfLines={2}
-                className="text-center leading-tight text-teal-600">
-                100% Demo
-              </AppText>
-              <AppText
-                size="lg"
-                weight="semibold"
-                className="mt-1 text-teal-600">
-                {demo_100}
-              </AppText>
-            </View>
+              );
+            })}
           </View>
         </Card>
-
-        {/* Partner Metrics - Outside Card */}
-        <View className="flex-row gap-3 mb-3">
-          <View className="w-[48%] bg-white dark:bg-slate-800 rounded-lg px-4 py-3 border border-slate-200 dark:border-slate-700">
-            <AppText
-              size="xs"
-              weight="medium"
-              className="text-slate-500 dark:text-slate-400 mb-1 text-center">
-              {filters.partnerType
-                ? `Total ${filters.partnerType}`
-                : 'Total Partners'}
+        <SummaryOverView />
+        <View className="flex-row items-center justify-between px-1 mt-2">
+          {counts.awp_count !== null && (
+            <AppText className="text-slate-700 dark:text-slate-300">
+              AWP Partners: <AppText weight="bold">{counts.awp_count}</AppText>
             </AppText>
-            <AppText
-              size="xl"
-              weight="bold"
-              className="text-slate-800 dark:text-slate-100 text-center">
-              {total_partners}
+          )}
+          {counts.total_partners !== null && (
+            <AppText className="text-slate-700 dark:text-slate-300">
+              Total Partners:{' '}
+              <AppText weight="bold">{counts.total_partners}</AppText>
             </AppText>
-          </View>
-
-          {awp_partners != null ? (
-            <View className="w-[48%] bg-white dark:bg-slate-800 rounded-lg px-4 py-3 border border-slate-200 dark:border-slate-700">
-              <AppText
-                size="xs"
-                weight="medium"
-                className="text-slate-500 dark:text-slate-400 mb-1 text-center">
-                {filters.partnerType
-                  ? `AWP ${filters.partnerType}`
-                  : 'AWP Partners'}
-              </AppText>
-              <AppText
-                size="xl"
-                weight="bold"
-                className="text-slate-800 dark:text-slate-100 text-center">
-                {awp_partners}
-              </AppText>
-            </View>
-          ) : (
-            false
           )}
         </View>
       </View>
@@ -357,19 +343,37 @@ export const SummaryCard: React.FC<{
   },
 );
 
+export const DemoSkeleton: React.FC = () => {
+  return (
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      className="flex-1 pt-5  px-3 bg-lightBg-base">
+      <Skeleton width={screenWidth - 24} height={200} borderRadius={12} />
+      <View className="mt-5 pb-20">
+        <Skeleton width={screenWidth - 24} height={100} borderRadius={6} />
+        <Skeleton width={screenWidth - 24} height={100} borderRadius={6} />
+        <Skeleton width={screenWidth - 24} height={100} borderRadius={6} />
+        <Skeleton width={screenWidth - 24} height={100} borderRadius={6} />
+        <Skeleton width={screenWidth - 24} height={100} borderRadius={6} />
+      </View>
+    </ScrollView>
+  );
+};
+
+// Resller Component
 export const BranchCard = memo(
   ({
     item,
     summaryData,
     yearQtr,
     category,
-    premiumKiosk = '0',
-    rogKiosk = '0',
+    premiumKiosk = 0,
+    rogKiosk = 0,
     partnerType,
     IsCompulsory,
     tab,
   }: {
-    item: TransformedBranch;
+    item: TransformedBranchRes;
     summaryData: {
       at_least_single_demo: number;
       demo_100: number;
@@ -377,8 +381,8 @@ export const BranchCard = memo(
     };
     yearQtr: string;
     category: string;
-    premiumKiosk?: string;
-    rogKiosk?: string;
+    premiumKiosk?: number|null;
+    rogKiosk?: number|null;
     partnerType: string | null;
     IsCompulsory?: string;
     tab: 'LFR' | 'retailer' | 'reseller';
@@ -411,6 +415,13 @@ export const BranchCard = memo(
 
       // Apply frontend partner type filtering
       if (partnerType) {
+        const filterDemoItemsByPartnerType = (
+          items: DemoItemReseller[],
+          partnerType: string | null,
+        ): DemoItemReseller[] => {
+          if (!partnerType || partnerType === 'All') return items;
+          return items.filter(item => item.AGP_Or_T3 === partnerType);
+        };
         return transformed
           .map(territory => ({
             ...territory,
@@ -425,7 +436,6 @@ export const BranchCard = memo(
       return transformed;
     }, [territoryData, showFront, partnerType]);
 
-    // Calculate percentages based on overall summary
     const atLeastSinglePercent = useMemo(() => {
       if (summaryData.at_least_single_demo === 0) return 0;
       return Math.round(
@@ -437,13 +447,6 @@ export const BranchCard = memo(
       if (summaryData.demo_100 === 0) return 0;
       return Math.round((item.demo_100 / summaryData.demo_100) * 100);
     }, [item.demo_100, summaryData.demo_100]);
-
-    const demo80Percent = useMemo(() => {
-      if (!summaryData.at_80_demo) return 0;
-      return Math.round(
-        ((item.at_80_demo || 0) / summaryData.at_80_demo) * 100,
-      );
-    }, [item.at_80_demo, summaryData.at_80_demo]);
 
     const flipCard = () => {
       // Determine target height before we toggle state
@@ -506,7 +509,9 @@ export const BranchCard = memo(
                   yearQtr,
                 });
               }}>
-              <Card className="p-0">
+              <Card
+                className="p-0 border border-slate-200 dark:border-slate-700"
+                noshadow>
                 <View className="flex-row items-center gap-2 pb-2 border-b border-slate-100 pt-4 px-3">
                   <View className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center">
                     <AppIcon
@@ -550,7 +555,7 @@ export const BranchCard = memo(
                   ) : (
                     false
                   )}
-                  {item.awp_Count != null ? (
+                  {item.rog_kiosk != null ? (
                     <Metric
                       label="ROG Kiosk"
                       value={item.rog_kiosk}
@@ -561,7 +566,7 @@ export const BranchCard = memo(
                     false
                   )}
 
-                  {item.awp_Count != null ? (
+                  {item.pkiosk != null ? (
                     <Metric
                       label="Premium Kiosk"
                       value={item.pkiosk}
@@ -571,7 +576,7 @@ export const BranchCard = memo(
                   ) : (
                     false
                   )}
-                  {item.awp_Count != null ? (
+                  {item.pkiosk_rogkiosk != null ? (
                     <Metric
                       label="P+ROG Kiosk"
                       value={item.pkiosk_rogkiosk}
@@ -592,18 +597,6 @@ export const BranchCard = memo(
                       total={summaryData.at_least_single_demo}
                       barTint="bg-violet-500"
                       percentTint="text-violet-600"
-                    />
-                  ) : (
-                    false
-                  )}
-                  {item.at_80_demo != null ? (
-                    <ProgressStat
-                      label="80% Demo"
-                      percent={demo80Percent}
-                      current={item.at_80_demo}
-                      total={summaryData.at_80_demo || 0}
-                      barTint="bg-sky-500"
-                      percentTint="text-sky-600"
                     />
                   ) : (
                     false
@@ -644,7 +637,9 @@ export const BranchCard = memo(
                   containerHeight.value = h;
                 }
               }}>
-              <Card className="p-0">
+              <Card
+                className="p-0 border border-slate-200 dark:border-slate-700"
+                noshadow>
                 {/* Header with flip back button */}
                 <Pressable
                   onPress={flipCard}
@@ -727,7 +722,7 @@ export const BranchCard = memo(
 );
 
 export const TerritoryCard: React.FC<{
-  territory: TerritoryItem;
+  territory: TerritoryItemRes;
   partnerType: string | null;
   navigation: any;
   yearQtr: string;
@@ -831,19 +826,422 @@ export const TerritoryCard: React.FC<{
   );
 });
 
-export const DemoSkeleton: React.FC = () => {
-  return (
-    <ScrollView
-      showsVerticalScrollIndicator={false}
-      className="flex-1 pt-5  px-3 bg-lightBg-base">
-      <Skeleton width={screenWidth - 24} height={200} borderRadius={12} />
-      <View className="mt-5 pb-20">
-        <Skeleton width={screenWidth - 24} height={100} borderRadius={6} />
-        <Skeleton width={screenWidth - 24} height={100} borderRadius={6} />
-        <Skeleton width={screenWidth - 24} height={100} borderRadius={6} />
-        <Skeleton width={screenWidth - 24} height={100} borderRadius={6} />
-        <Skeleton width={screenWidth - 24} height={100} borderRadius={6} />
+// Retailer Component
+export const BranchCardRet = memo(
+  ({
+    item,
+    summaryData,
+    yearQtr,
+    category,
+    partnerType,
+    IsCompulsory,
+    tab,
+  }: {
+    item: TransformedBranchRet;
+    summaryData: {
+      at_least_single_demo: number;
+      demo_100: number;
+      at_80_demo: number;
+    };
+    yearQtr: string;
+    category: string;
+    partnerType: string | null;
+    IsCompulsory?: string;
+    tab: 'LFR' | 'retailer' | 'reseller';
+  }) => {
+    const [showFront, setShowFront] = useState(true);
+    const [frontCardHeight, setFrontCardHeight] = useState(0);
+    const [backCardHeight, setBackCardHeight] = useState(0);
+    const rotate = useSharedValue(0);
+    const containerHeight = useSharedValue(0);
+    const navigation = useNavigation<AppNavigationProp>();
+
+    // Fetch territory data only when card is flipped
+    const {data: territoryData, isLoading: isLoadingTerritories} =
+      useGetBranchWiseDemoDataRet(
+        yearQtr,
+        category,
+        item.state,
+        IsCompulsory || '',
+        !showFront,
+      );
+    // Transform and filter territory data
+    const territories = useMemo(() => {
+      if (!territoryData || showFront) return [];
+      const transformed = transformDemoDataRetailer(territoryData, {groupType: 'territory',labelKey: 'territory'});
+
+      // Apply frontend partner type filtering
+      if (partnerType) {
+        const filterDemoItemsByPartnerType = (
+          items: DemoItemRetailer[],
+          partnerType: string | null,
+        ): DemoItemRetailer[] => {
+          if (!partnerType || partnerType === 'All') return items;
+          return items.filter(item => item.PartnerType === partnerType);
+        };
+        return transformed
+          .map(({...territory}) => ({
+            ...territory,
+            partners: filterDemoItemsByPartnerType(territory.partners, partnerType),
+          }))
+          .filter(item => item.partners.length > 0);
+      }
+      return transformed;
+    }, [territoryData, showFront, partnerType]);
+
+
+    const atLeastSinglePercent = useMemo(() => {
+      if (summaryData.at_least_single_demo === 0) return 0;
+      return Math.round(
+        (item.at_least_single_demo / summaryData.at_least_single_demo) * 100,
+      );
+    }, [item.at_least_single_demo, summaryData.at_least_single_demo]);
+
+    const demo100Percent = useMemo(() => {
+      if (summaryData.demo_100 === 0) return 0;
+      return Math.round((item.demo_100 / summaryData.demo_100) * 100);
+    }, [item.demo_100, summaryData.demo_100]);
+
+    const demo80Percent = useMemo(() => {
+      if (!summaryData.at_80_demo || summaryData.at_80_demo === 0) return 0;
+      return Math.round((item.at_80_demo / summaryData.at_80_demo) * 100);
+    }, [item.at_80_demo, summaryData.at_80_demo]);
+
+    const flipCard = () => {
+      // Determine target height before we toggle state
+      const targetHeight = showFront
+        ? backCardHeight || frontCardHeight
+        : frontCardHeight || backCardHeight;
+      if (targetHeight) {
+        containerHeight.value = withTiming(targetHeight, {
+          duration: 600,
+          easing: Easing.out(Easing.cubic),
+        });
+      }
+      rotate.value = withTiming(showFront ? 180 : 0, {
+        duration: 600,
+        easing: Easing.out(Easing.cubic),
+      });
+      setShowFront(prev => !prev);
+    };
+
+    const frontAnimatedStyle = useAnimatedStyle(() => {
+      return {
+        transform: [
+          {rotateY: `${interpolate(rotate.value, [0, 180], [0, 180])}deg`},
+        ],
+        opacity: interpolate(rotate.value, [0, 90], [1, 0]),
+      };
+    });
+
+    const backAnimatedStyle = useAnimatedStyle(() => {
+      return {
+        transform: [
+          {rotateY: `${interpolate(rotate.value, [0, 180], [180, 360])}deg`},
+        ],
+        opacity: interpolate(rotate.value, [90, 180], [0, 1]),
+      };
+    });
+    const containerStyle = useAnimatedStyle(() => ({
+      height: containerHeight.value || undefined,
+    }));
+    return (
+      <View className="mb-3">
+        <Animated.View style={[containerStyle]} className="relative">
+          {/* Front Card */}
+          <Animated.View
+            style={frontAnimatedStyle}
+            // Measure front height once; initialize container height
+            onLayout={e => {
+              const h = e.nativeEvent.layout.height;
+              if (!frontCardHeight && h) {
+                setFrontCardHeight(h);
+                if (!containerHeight.value) containerHeight.value = h;
+              }
+            }}
+            pointerEvents={showFront ? 'auto' : 'none'}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                navigation.push('DemoPartners', {
+                  partners: item.partners,
+                  yearQtr,
+                });
+              }}>
+              <Card
+                className="p-0 border border-slate-200 dark:border-slate-700"
+                noshadow>
+                <View className="flex-row items-center gap-2 pb-2 border-b border-slate-100 pt-4 px-3">
+                  <View className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center">
+                    <AppIcon
+                      name="map-pin"
+                      type="feather"
+                      size={16}
+                      color="black"
+                    />
+                  </View>
+                  <AppText
+                    size="base"
+                    weight="semibold"
+                    className="text-slate-800 tracking-tight flex-1"
+                    numberOfLines={1}>
+                    {item.state}
+                  </AppText>
+                  <View className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center">
+                    <AppIcon
+                      name="chevron-right"
+                      type="feather"
+                      size={16}
+                      color="#475569"
+                    />
+                  </View>
+                </View>
+                {/* Metric grid */}
+                <View className="mt-3 px-3 flex-row flex-wrap pb-2 border-b border-slate-100">
+                  <Metric
+                    label={partnerType ? partnerType : 'Partners'}
+                    value={item.partner_count}
+                    icon="users"
+                    tint="slate"
+                  />
+                </View>
+                {/* Progress section */}
+                <View className="mt-5 px-3 gap-3">
+                  {item.at_least_single_demo != null ? (
+                    <ProgressStat
+                      label="At Least Single"
+                      percent={atLeastSinglePercent}
+                      current={item.at_least_single_demo}
+                      total={summaryData.at_least_single_demo}
+                      barTint="bg-violet-500"
+                      percentTint="text-violet-600"
+                    />
+                  ) : (
+                    false
+                  )}
+                  {item.at_80_demo != null ? (
+                    <ProgressStat
+                      label="80% Demo"
+                      percent={demo80Percent}
+                      current={item.at_80_demo}
+                      total={summaryData.at_80_demo || 0}
+                      barTint="bg-sky-500"
+                      percentTint="text-sky-600"
+                    />
+                  ) : (
+                    false
+                  )}
+                  {item.demo_100 != null ? (
+                    <ProgressStat
+                      label="100% Demo"
+                      percent={demo100Percent}
+                      current={item.demo_100}
+                      total={summaryData.demo_100}
+                      barTint="bg-teal-500"
+                      percentTint="text-teal-600"
+                    />
+                  ) : (
+                    false
+                  )}
+                </View>
+                <Pressable
+                  onPress={flipCard}
+                  className="px-3 py-3 items-center mt-3">
+                  <AppText size="sm" className="text-primary" weight="medium">
+                    Tap here to view territories
+                  </AppText>
+                </Pressable>
+              </Card>
+            </TouchableOpacity>
+          </Animated.View>
+          {/* Back Card - Territory Details */}
+          <Animated.View
+            style={[backAnimatedStyle]}
+            className={'absolute w-full'}
+            pointerEvents={!showFront ? 'auto' : 'none'}>
+            <View
+              onLayout={e => {
+                const h = e.nativeEvent.layout.height;
+                setBackCardHeight(h);
+                if (!showFront && h) {
+                  containerHeight.value = h;
+                }
+              }}>
+              <Card
+                className="p-0 border border-slate-200 dark:border-slate-700"
+                noshadow>
+                {/* Header with flip back button */}
+                <Pressable
+                  onPress={flipCard}
+                  className="flex-row items-center gap-2 pb-2 border-b border-slate-100 pt-4 px-3 active:opacity-70">
+                  <View className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center">
+                    <AppIcon
+                      name="arrow-left"
+                      type="feather"
+                      size={16}
+                      color="#475569"
+                    />
+                  </View>
+                  <AppText
+                    size="base"
+                    weight="semibold"
+                    className="text-slate-800 tracking-tight flex-1"
+                    numberOfLines={1}>
+                    {item.state} - Territories
+                  </AppText>
+                  <View className="px-2 py-1 rounded-full bg-slate-100">
+                    <AppText size="xs" className="text-slate-500">
+                      {territories.length}
+                    </AppText>
+                  </View>
+                </Pressable>
+
+                {/* Territory List */}
+                <View className="px-3 pt-3 pb-4">
+                  {isLoadingTerritories ? (
+                    <View className="gap-3">
+                      <Skeleton
+                        width={screenWidth - 60}
+                        height={120}
+                        borderRadius={12}
+                      />
+                      <Skeleton
+                        width={screenWidth - 60}
+                        height={120}
+                        borderRadius={12}
+                      />
+                      <Skeleton
+                        width={screenWidth - 60}
+                        height={120}
+                        borderRadius={12}
+                      />
+                    </View>
+                  ) : territories.length === 0 ? (
+                    <View className="items-center py-8">
+                      <AppIcon
+                        name="inbox"
+                        type="feather"
+                        size={24}
+                        color="#94a3b8"
+                      />
+                      <AppText size="sm" className="text-slate-400 mt-2">
+                        No territory data available
+                      </AppText>
+                    </View>
+                  ) : (
+                    <View className="gap-3">
+                      {territories.map(territory => (
+                        <TerritoryCardRet
+                          key={territory.id}
+                          territory={territory}
+                          partnerType={partnerType}
+                          navigation={navigation}
+                          yearQtr={yearQtr}
+                        />
+                      ))}
+                    </View>
+                  )}
+                </View>
+              </Card>
+            </View>
+          </Animated.View>
+        </Animated.View>
       </View>
-    </ScrollView>
+    );
+  },
+);
+
+export const TerritoryCardRet: React.FC<{
+  territory: TerritoryItemRet;
+  partnerType: string | null;
+  navigation: any;
+  yearQtr: string;
+}> = memo(({territory, partnerType, navigation, yearQtr}) => {
+  return (
+    <TouchableOpacity
+      className="rounded-xl border border-slate-100 bg-white/50 overflow-hidden"
+      onPress={() => {
+        navigation.push('DemoPartners', {
+          partners: territory.partners,
+          yearQtr,
+        });
+      }}>
+      {/* Territory Header */}
+      <View className="flex-row items-center px-3 py-2 bg-slate-50/60 border-b border-slate-100">
+        <View className="w-7 h-7 rounded-md bg-slate-100 items-center justify-center mr-2">
+          <AppIcon name="map" type="feather" size={14} color="#475569" />
+        </View>
+        <AppText
+          size="sm"
+          weight="medium"
+          className="text-slate-700 flex-1"
+          numberOfLines={1}>
+          {territory.territory}
+        </AppText>
+        <View className="w-7 h-7 rounded-full bg-slate-100 items-center justify-center">
+          <AppIcon
+            name="chevron-right"
+            type="feather"
+            size={14}
+            color="#475569"
+          />
+        </View>
+      </View>
+
+      {/* Territory Metrics */}
+      <View className="flex-row flex-wrap mt-2 px-3">
+        <Metric
+          label={partnerType ? partnerType : 'Partners'}
+          value={territory.partner_count}
+          icon="users"
+          tint="slate"
+        />
+      </View>
+
+      {/* Territory Progress Stats */}
+      <View className="mt-2 px-3 pb-3 gap-3">
+        <ProgressStat
+          label="At Least Single"
+          percent={
+            territory.partner_count > 0
+              ? Math.round(
+                  (territory.at_least_single_demo / territory.partner_count) *
+                    100,
+                )
+              : 0
+          }
+          current={territory.at_least_single_demo}
+          total={territory.partner_count}
+          barTint="bg-violet-500"
+          percentTint="text-violet-600"
+        />
+        <ProgressStat
+          label="80% Demo"
+          percent={
+            territory.partner_count > 0
+              ? Math.round(
+                  (territory.at_80_demo / territory.partner_count) * 100,
+                )
+              : 0
+          }
+          current={territory.at_80_demo}
+          total={territory.partner_count}
+          barTint="bg-violet-500"
+          percentTint="text-violet-600"
+        />
+        <ProgressStat
+          label="100% Demo"
+          percent={
+            territory.partner_count > 0
+              ? Math.round((territory.demo_100 / territory.partner_count) * 100)
+              : 0
+          }
+          current={territory.demo_100}
+          total={territory.partner_count}
+          barTint="bg-teal-500"
+          percentTint="text-teal-600"
+        />
+      </View>
+    </TouchableOpacity>
   );
-};
+});

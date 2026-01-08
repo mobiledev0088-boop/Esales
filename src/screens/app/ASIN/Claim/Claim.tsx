@@ -288,7 +288,7 @@ const ClaimCodeWise = () => {
       />
     </View>
   );
-};
+};  
 
 const PartnerWise = () => {
   const navigation = useNavigation<AppNavigationProp>();

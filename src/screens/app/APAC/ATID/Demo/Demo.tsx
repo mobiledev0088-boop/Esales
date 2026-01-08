@@ -6,7 +6,7 @@ import {useMemo, useState, useCallback, memo} from 'react';
 import {
   useGetDemoDataProgram,
   useGetDemoDataPartner,
-  useGetDemoDataROI,
+  useGetDemoDataROIAPAC,
 } from '../../../../../hooks/queries/demo';
 import Accordion from '../../../../../components/Accordion';
 import Card from '../../../../../components/Card';
@@ -862,7 +862,7 @@ const ROI = () => {
     new Set(),
   );
   const isDarkMode = useThemeStore(state => state.AppTheme === 'dark');
-  const {data, isLoading, error, refetch} = useGetDemoDataROI('20252', 'All');
+  const {data, isLoading, error, refetch} = useGetDemoDataROIAPAC('20252', 'All');
 
   const groupedByBranch = useMemo(() => {
     const list = Array.isArray(data) ? data : [];

@@ -8,7 +8,7 @@ type Location = null | {
   lon: number;
 };
 
-export const useLocation = () => {
+export const useLocation = (enabled: boolean = true) => {
   const [location, setLocation] = useState<Location>(null);
   const [loading, setLoading] = useState(true);
 
@@ -28,12 +28,19 @@ export const useLocation = () => {
   };
 
   useEffect(() => {
+    if (!enabled) {
+      setLoading(false);
+      setLocation(null);
+      return;
+    }
+
+    setLoading(true);
     const task = InteractionManager.runAfterInteractions(() => {
       // This runs AFTER the screen transition animation is done
       fetchLocation();
     });
     return () => task.cancel();
-  }, []);
+  }, [enabled]);
 
   return {location, loading};
 };

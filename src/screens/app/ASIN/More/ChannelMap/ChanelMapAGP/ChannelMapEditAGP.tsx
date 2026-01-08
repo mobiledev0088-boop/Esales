@@ -1789,7 +1789,7 @@ const ChannelMapInfoComponent = (props: ChannelMapInfoProps) => {
   );
 };
 
-const FinanceInfo = (props: FinanceMapProps) => {
+const FinanceInfo = () => {
   // const { financeFields, financeInfo, updateFinanceInfo, validationErrors, openAccordion, handleAccordionToggle } = props;
   return <View className="flex-1">
       {/* <FormSection

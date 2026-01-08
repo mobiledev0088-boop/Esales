@@ -26,6 +26,9 @@ function isInsideGeoFence(
   centerLon: number,
   radius = 100,
 ): {inside: boolean} {
+  if(centerLat === null || centerLon === null){
+    return {inside: false};
+  }
   const R = 6371000;
 
   const toRad = (v: number) => (v * Math.PI) / 180;
@@ -104,8 +107,8 @@ export async function checkUserInsideRadius(): Promise<void> {
 
     const {inside} = isInsideGeoFence(
       {lat: location.lat, lon: location.lon},
-      OFFICE.lat,
-      OFFICE.lon,
+      userInfo.Latitude!,
+      userInfo.Longitude!,
       OFFICE.radius,
     );
 

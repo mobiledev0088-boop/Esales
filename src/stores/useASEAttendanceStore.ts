@@ -8,24 +8,26 @@ export interface AttendanceToday {
   checkOutDone: boolean;
   checkOutTime: string | null;
   attendanceDate: string | null;
+  status: 'Present' | 'Absent' | 'Partial' | 'Leave' | 'WeekOff' |  'None';
 }
 
 export interface AttendanceStore {
   attendanceToday: AttendanceToday;
   currentStatus: 'CheckIn' | 'CheckOut' | 'None';
   markCheckInDone: () => void;
-  markCheckInDoneOverride: () => void;
   markCheckOutDone: () => void;
+  setTheStatus: (status: AttendanceToday['status']) => void;
   checkAndResetIfNewDay: () => boolean;
   reset: () => void;
 }
 
-const defaultAttendanceToday = {
+const defaultAttendanceToday: AttendanceToday = {
   checkInDone: false,
   checkInTime: null,
   checkOutDone: false,
   checkOutTime: null,
   attendanceDate: null,
+  status: 'None',
 };
 
 const isDifferentDay = (d1: Date, d2: Date) =>
@@ -38,7 +40,6 @@ export const useASEAttendanceStore = create<AttendanceStore>()(
     (set, get) => ({
       attendanceToday: defaultAttendanceToday,
       currentStatus: 'None',
-
       markCheckInDone: () => {
         set(state => ({
           attendanceToday: {
@@ -50,23 +51,7 @@ export const useASEAttendanceStore = create<AttendanceStore>()(
               hour12: true,
             }),
             attendanceDate: new Date().toISOString(),
-          },
-          currentStatus: 'CheckIn',
-        }));
-      },
-      markCheckInDoneOverride: () => {
-        set(state => ({
-          attendanceToday: {
-            ...state.attendanceToday,
-            checkInDone: true,
-            checkInTime: new Date().toLocaleTimeString('en-GB', {
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: true,
-            }),
-            attendanceDate: new Date().toISOString(),
-            checkOutDone: false,
-            checkOutTime: null,
+            status: 'Partial',
           },
           currentStatus: 'CheckIn',
         }));
@@ -81,8 +66,17 @@ export const useASEAttendanceStore = create<AttendanceStore>()(
               minute: '2-digit',
               hour12: true,
             }),
+            status: 'Present',
           },
           currentStatus: 'CheckOut',
+        }));
+      },
+      setTheStatus: (status: AttendanceToday['status']) => {
+        set(state => ({
+          attendanceToday: {
+            ...state.attendanceToday,
+            status: status,
+          },
         }));
       },
       checkAndResetIfNewDay: () => {

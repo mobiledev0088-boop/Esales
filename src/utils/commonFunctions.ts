@@ -154,21 +154,6 @@ export const ensureFolderExists = async (path: string) => {
   }
 };
 
-// export const ecrypt = (text: string) => {
-//   var secureKey = 'MAKV2SPBNI992122';
-//   var secureIV = 'MobileApp@1A2$US';
-//   var key = CryptoJS.enc.Utf8.parse(secureKey);
-//   var iv = CryptoJS.enc.Utf8.parse(secureIV);
-//   var encText = CryptoJS.AES.encrypt(CryptoJS.enc.Utf8.parse(text), key, {
-//     keySize: 128 / 8,
-//     iv: iv,
-//     mode: CryptoJS.mode.CBC,
-//     padding: CryptoJS.pad.Pkcs7,
-//   }).toString();
-//   console.log('Encrypted Text:', encText);
-//   return encText;
-// };
-
 export const showToast = (message: string) => {
   Toast.showWithGravity(
     typeof message === 'string' ? message : JSON.stringify(message),
@@ -291,4 +276,21 @@ export const convertStringToNumber = (value: string | number): number | null => 
   const parsedValue = parseFloat(cleanedValue);
   return isNaN(parsedValue) ? null : parsedValue;
 }
+
+export const getCurrentQuarter = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const quarter = Math.floor(now.getMonth() / 3) + 1;
+  return Number(`${year}${quarter}`);
+};
+
+export function to12HourFormat(time24:string) {
+  const [hour, minute] = time24.split(':').map(Number);
+
+  const period = hour >= 12 ? 'PM' : 'AM';
+  const hour12 = hour % 12 || 12;
+
+  return `${hour12}:${minute.toString().padStart(2, '0')} ${period}`;
+}
+
 

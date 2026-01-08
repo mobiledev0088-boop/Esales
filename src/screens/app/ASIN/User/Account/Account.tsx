@@ -1,38 +1,34 @@
 import AppLayout from '../../../../../components/layout/AppLayout';
-import {View} from 'react-native';
-import {useLoginStore} from '../../../../../stores/useLoginStore';
 import useEmpStore from '../../../../../stores/useEmpStore';
 
+import {View} from 'react-native';
 import {useMemo} from 'react';
+import {useRoute} from '@react-navigation/native';
+import {ASUS} from '../../../../../utils/constant';
+import {useLoginStore} from '../../../../../stores/useLoginStore';
 import {
   AccountSettings,
   PersonalDetails,
   ProfileCard,
   SpecialAccessUI,
+  SpecialFunctionsAccess,
   SyncedDate,
 } from './component';
-import {ASUS} from '../../../../../utils/constant';
 
 
-type AccountProps = {
-  noHeader?: boolean;
-};
-
-import { useRoute } from '@react-navigation/native';
-
-const Account = (props: AccountProps) => {
+const Account = (props: {noHeader?: boolean}) => {
   const route = useRoute();
   // Prefer prop, fallback to route.params
-  const noHeader = props.noHeader ?? (route.params && (route.params as any).noHeader);
+  const noHeader =
+    props.noHeader ?? (route.params && (route.params as any).noHeader);
   const currentUser = useLoginStore(state => state.userInfo);
   const employeeDetails = useEmpStore(state => state.empInfo);
-  console.log('Account Screen - noHeader:', currentUser);
 
   // Determine special access permissions for the user
-  const specialAccessPermissions = useMemo(() => {
+  const specialAccessPermissions: SpecialFunctionsAccess = useMemo(() => {
     return {
-      multipleLoginAllowed: currentUser?.Is_Multiple_Login === 'Yes',
       loginAsAllowed: employeeDetails?.Is_LoginAs === 'Yes',
+      changeCountryAllowed: currentUser?.Is_Multiple_Login === 'Yes',
       multipleBusinessTypeAllowed: currentUser?.Is_Multiple_BusinessType === 'Yes',
     };
   }, [currentUser, employeeDetails]);
@@ -52,10 +48,12 @@ const Account = (props: AccountProps) => {
       )}
 
       {/* Special Access Functions */}
-      {Object.values(specialAccessPermissions).some(Boolean) && ( <SpecialAccessUI
-        specialFunctionsAccess={specialAccessPermissions}
-        userInfo={currentUser}
-      />)}
+      {Object.values(specialAccessPermissions).some(Boolean) && (
+        <SpecialAccessUI
+          specialFunctionsAccess={specialAccessPermissions}
+          userInfo={currentUser}
+        />
+      )}
 
       {/* Account Settings */}
       <AccountSettings />

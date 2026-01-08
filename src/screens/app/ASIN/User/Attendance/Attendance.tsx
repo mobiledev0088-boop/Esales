@@ -1,14 +1,19 @@
 import moment from 'moment';
 import {View, TouchableOpacity} from 'react-native';
-import {useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useNavigation} from '@react-navigation/native';
 import AppLayout from '../../../../../components/layout/AppLayout';
 import AppText from '../../../../../components/customs/AppText';
 import AttendanceMarkModal from './AttendanceMarkModal';
 import AppButton from '../../../../../components/customs/AppButton';
-import {useASEAttendanceStore} from '../../../../../stores/useASEAttendanceStore';
+import {
+  AttendanceToday,
+  useASEAttendanceStore,
+} from '../../../../../stores/useASEAttendanceStore';
 import AppIcon from '../../../../../components/customs/AppIcon';
 import {
-  AttendanceRecord,
+  AttendaceNotAvailable,
+  AttendanceSkeleton,
   HeroStatusCard,
   InformationModal,
   isInsideGeoFence,
@@ -17,84 +22,114 @@ import {
   toDateKey,
 } from './component';
 import {useLocation} from '../../../../../hooks/useLocation';
+import {isIOS} from '../../../../../utils/constant';
+import {
+  check,
+  PERMISSIONS,
+  RESULTS,
+  PermissionStatus,
+} from 'react-native-permissions';
+import {AppNavigationProp} from '../../../../../types/navigation';
+import {useGetAttendanceHistory} from '../../../../../hooks/queries/attendance';
+import {useLoginStore} from '../../../../../stores/useLoginStore';
 
-const history: AttendanceRecord[] = [
-  {
-    checkInDone: true,
-    checkInTime: '09:10 AM',
-    checkOutDone: true,
-    checkOutTime: '06:10 PM',
-    attendanceDate: '05-01-2026',
-  },
-  {
-    checkInDone: true,
-    checkInTime: '09:05 AM',
-    checkOutDone: true,
-    checkOutTime: '06:00 PM',
-    attendanceDate: '04-01-2026',
-  },
-  {
-    checkInDone: true,
-    checkInTime: '09:15 AM',
-    checkOutDone: true,
-    checkOutTime: '06:10 PM',
-    attendanceDate: '03-01-2026',
-  },
-  {
-    checkInDone: false,
-    checkInTime: null,
-    checkOutDone: false,
-    checkOutTime: null,
-    attendanceDate: '02-01-2026',
-  },
-  {
-    checkInDone: false,
-    checkInTime: null,
-    checkOutDone: false,
-    checkOutTime: null,
-    attendanceDate: '01-01-2026',
-  },
-];
+// const history: AttendanceToday[] = [
+//   {
+//     checkInDone: true,
+//     checkInTime: '09:10 AM',
+//     checkOutDone: true,
+//     checkOutTime: '06:10 PM',
+//     attendanceDate: '05-01-2026',
+//     status: 'Present',
+//   },
+//   {
+//     checkInDone: true,
+//     checkInTime: '09:05 AM',
+//     checkOutDone: true,
+//     checkOutTime: '06:00 PM',
+//     attendanceDate: '04-01-2026',
+//     status: 'Present',
+//   },
+//   {
+//     checkInDone: true,
+//     checkInTime: '09:15 AM',
+//     checkOutDone: true,
+//     checkOutTime: '06:10 PM',
+//     attendanceDate: '03-01-2026',
+//     status: 'Present',
+//   },
+//   {
+//     checkInDone: false,
+//     checkInTime: null,
+//     checkOutDone: false,
+//     checkOutTime: null,
+//     attendanceDate: '02-01-2026',
+//     status: 'Absent',
+//   },
+//   {
+//     checkInDone: false,
+//     checkInTime: null,
+//     checkOutDone: false,
+//     checkOutTime: null,
+//     attendanceDate: '01-01-2026',
+//     status: 'Absent',
+//   },
+// ];
+
+const LOCATION_PERMISSION = isIOS
+  ? PERMISSIONS.IOS.LOCATION_WHEN_IN_USE
+  : PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION;
 
 export default function Attendance() {
+  const navigation = useNavigation<AppNavigationProp>();
+  const {Latitude, Longitude} = useLoginStore(state => state.userInfo);
   const {attendanceToday} = useASEAttendanceStore();
-  const todayKey = useMemo(() => moment().format('YYYY-MM-DD'), []);
-  const {location} = useLocation();
+  const {data, isLoading, error} = useGetAttendanceHistory();
+
+  const [permissionStatus, setPermissionStatus] =
+    useState<PermissionStatus | null>(null);
+  const hasLocationPermission = permissionStatus === RESULTS.GRANTED;
+  const {location, loading} = useLocation(hasLocationPermission);
+
+  const [isMarkOpen, setIsMarkOpen] = useState(false);
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
+  const [isLeaveOpen, setIsLeaveOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(() => {
     const parsed = toDateKey(attendanceToday.attendanceDate);
     return parsed ? moment(parsed) : moment();
   });
-
-  const isMarkEnabled = useMemo(() => {
-    if (!location) return false;
-    const {lat, lon} = location;
-    if (!attendanceToday.checkInDone && !isInsideGeoFence(lat, lon))
-      return false;
-    return true;
-  }, [attendanceToday, location]);
-
+  const todayKey = useMemo(() => moment().format('YYYY-MM-DD'), []);
   const [selectedDateKey, setSelectedDateKey] = useState(() => {
     const parsed = toDateKey(attendanceToday.attendanceDate);
     return parsed ?? todayKey;
   });
 
+  const isMarkEnabled = useMemo(() => {
+    if (!location) return false;
+    const {lat, lon} = location;
+    if (
+      !attendanceToday.checkInDone &&
+      !isInsideGeoFence(lat, lon, Latitude!, Longitude!)
+    )
+      return false;
+    return true;
+  }, [attendanceToday, location, Latitude, Longitude]);
   const calendarRecords = useMemo(() => {
     const seen = new Set<string>();
-    const merged = [...history];
+    const merged = [...(data || [])];
     if (attendanceToday.attendanceDate) {
       merged.push(attendanceToday);
     }
-
     return merged.filter(rec => {
       const key = toDateKey(rec.attendanceDate);
       if (!key || seen.has(key)) return false;
       seen.add(key);
       return true;
     });
-  }, [attendanceToday]);
+  }, [attendanceToday, data]);
 
   const recordByDate = useMemo(() => {
-    const map: Record<string, AttendanceRecord> = {};
+    const map: Record<string, AttendanceToday> = {};
     calendarRecords.forEach(rec => {
       const key = toDateKey(rec.attendanceDate);
       if (key) map[key] = {...rec, attendanceDate: key};
@@ -102,7 +137,7 @@ export default function Attendance() {
     return map;
   }, [calendarRecords]);
 
-  const selectedRecord = useMemo<AttendanceRecord>(() => {
+  const selectedRecord = useMemo<AttendanceToday>(() => {
     if (!selectedDateKey) {
       return {
         checkInDone: false,
@@ -110,6 +145,7 @@ export default function Attendance() {
         checkOutDone: false,
         checkOutTime: null,
         attendanceDate: null,
+        status: 'None',
       };
     }
 
@@ -122,6 +158,7 @@ export default function Attendance() {
       checkOutDone: false,
       checkOutTime: null,
       attendanceDate: selectedDateKey,
+      status: 'None',
     };
   }, [recordByDate, selectedDateKey]);
 
@@ -136,10 +173,21 @@ export default function Attendance() {
     return 'Today';
   }, [selectedDateKey]);
 
-  // Attendance Mark Modal state and handlers
-  const [isMarkOpen, setIsMarkOpen] = useState(false);
-  const [isInfoOpen, setIsInfoOpen] = useState(false);
-  const [isLeaveOpen, setIsLeaveOpen] = useState(false);
+  const syncPermission = useCallback(async () => {
+    const status = await check(LOCATION_PERMISSION);
+    setPermissionStatus(status);
+  }, []);
+
+  useEffect(() => {
+    syncPermission();
+  }, [syncPermission]);
+
+  if (permissionStatus !== RESULTS.GRANTED) {
+    return <AttendaceNotAvailable navigation={navigation} />;
+  }
+  if (loading || isLoading) {
+    return <AttendanceSkeleton />;
+  }
 
   return (
     <AppLayout title="Attendance" needBack needPadding>
@@ -147,33 +195,33 @@ export default function Attendance() {
       <View className="flex-row items-center justify-between gap-x-2">
         <AppButton
           title={'Mark Attendance'}
-          className="rounded-xl flex-[2]"
+          className="rounded-xl flex-1"
           onPress={() => setIsMarkOpen(true)}
           disabled={!isMarkEnabled}
           noLoading
         />
-        {/* helper text showing why marking is disabled */}
         <AppButton
           title={'Apply Leave / Week Off'}
-          className="flex-[2] rounded-xl bg-slate-500 dark:bg-slate-700"
+          className="flex-1 rounded-xl bg-secondary dark:bg-secondary-dark"
           onPress={() => setIsLeaveOpen(true)}
+          disabled={['Leave', 'WeekOff'].includes(attendanceToday.status)}
           noLoading
         />
       </View>
       {!isMarkEnabled && (
-          <View className="flex-row items-center gap-x-2 mb-5 mt-2 px-1">
-            <AppIcon
-              name="info"
-              type="feather"
-              size={16}
-              style={{color: '#f59e0b'}}
-            />
-            <AppText size='sm' className="text-slate-700">
-              You need to be inside office area to mark attendance.
-            </AppText>
-          </View>
-        )}
-      <View className="flex-row items-center justify-between mb-3 px-1">
+        <View className="flex-row items-center gap-x-2 mb-5 mt-2 px-1">
+          <AppIcon
+            name="info"
+            type="feather"
+            size={16}
+            style={{color: '#f59e0b'}}
+          />
+          <AppText size="sm" className="text-slate-700">
+            You need to be inside office area to mark attendance.
+          </AppText>
+        </View>
+      )}
+      <View className="flex-row items-center justify-between mb-3 px-1 mt-3">
         <View className="flex-row items-center gap-x-2">
           <View className="p-2 bg-[#E5E7EB] rounded-full">
             <AppIcon
@@ -201,6 +249,7 @@ export default function Attendance() {
           />
         </TouchableOpacity>
       </View>
+
       <MonthCalendar
         month={currentMonth}
         records={calendarRecords}

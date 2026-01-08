@@ -7,6 +7,14 @@ import AppInput from '../../../../../components/customs/AppInput';
 import AppButton from '../../../../../components/customs/AppButton';
 import moment from 'moment';
 import Card from '../../../../../components/Card';
+import {useMarkAttendance} from '../../../../../hooks/queries/attendance';
+import AppLayout from '../../../../../components/layout/AppLayout';
+import Skeleton from '../../../../../components/skeleton/skeleton';
+import {screenWidth} from '../../../../../utils/constant';
+import {
+  AttendanceToday,
+  useASEAttendanceStore,
+} from '../../../../../stores/useASEAttendanceStore';
 
 interface InformationModalProps {
   isOpen: boolean;
@@ -18,25 +26,22 @@ interface LeaveWeekOffModalProps {
   onClose: () => void;
 }
 
-export interface AttendanceRecord {
-  checkInDone: boolean;
-  checkInTime: string | null;
-  checkOutDone: boolean;
-  checkOutTime: string | null;
-  attendanceDate: string | null;
-};
-
 interface MonthCalendarProps {
   month: moment.Moment;
-  records: AttendanceRecord[];
+  records: AttendanceToday[];
   selectedDateKey?: string | null;
   onSelectDate?: (dateKey: string) => void;
   onMonthChange?: (next: moment.Moment) => void;
-};
+}
 
 type LeaveWeekOff = 'Leave' | 'Week Off';
-type AttendanceStatus = 'Present' | 'Absent' | 'Partial';
-
+type AttendanceStatus =
+  | 'Present'
+  | 'Absent'
+  | 'Partial'
+  | 'Leave'
+  | 'WeekOff'
+  | 'None';
 
 // Utility Functions
 export const toDateKey = (value: string | null) => {
@@ -45,20 +50,22 @@ export const toDateKey = (value: string | null) => {
   return parsed.isValid() ? parsed.format('YYYY-MM-DD') : null;
 };
 
-export const isInsideGeoFence = (lat: number, lon: number) => {
+export const isInsideGeoFence = (lat: number, lon: number,centerLat: number,centerLon: number) => {
+  console.log('centerLat, centerLon',centerLat, centerLon);
+  if(centerLat === null || centerLon === null) return false;
   // const {Latitude, Longitude} = useLoginStore(state => state.userInfo);
 
   // Office Location
-//   const centerLat = 19.137887555544914;
-//   const centerLon = 72.83872748527693;
+  // const centerLat = 19.137887555544914;
+  // const centerLon = 72.83872748527693;
 
   // old office Location
   // const centerLat = 19.133975;
   // const centerLon = 86.836282;
 
   // Home Location
-  const centerLat = 19.190455;
-  const centerLon = 86.830674;
+  // const centerLat = 19.190455;
+  // const centerLon = 86.830674;
 
   const radius = 100; // meters
   const R = 6371000; // Earth radius
@@ -74,14 +81,15 @@ export const isInsideGeoFence = (lat: number, lon: number) => {
   return distance <= radius;
 };
 
-
 // helpers function
 const deriveStatus = (
-  record?: AttendanceRecord | null,
+  record?: AttendanceToday | null,
 ): AttendanceStatus | null => {
   if (!record) return null;
   if (record.checkInDone && record.checkOutDone) return 'Present';
   if (record.checkInDone || record.checkOutDone) return 'Partial';
+  if (record.status === 'Leave') return 'Leave';
+  if (record.status === 'WeekOff') return 'WeekOff';
   return 'Absent';
 };
 
@@ -89,16 +97,27 @@ const statusStyles: Record<
   AttendanceStatus,
   {bg: string; text: string; border: string}
 > = {
+  None: {bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200'},
   Present: {
     bg: 'bg-emerald-50',
     text: 'text-emerald-700',
     border: 'border-emerald-200',
   },
-  Absent: {bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200'},
+  Absent: {bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200'},
   Partial: {
     bg: 'bg-amber-50',
     text: 'text-amber-700',
     border: 'border-amber-200',
+  },
+  Leave: {
+    bg: 'bg-rose-50',
+    text: 'text-rose-600',
+    border: 'border-rose-200',
+  },
+  WeekOff: {
+    bg: 'bg-warning-50',
+    text: 'text-warning-600',
+    border: 'border-warning-200',
   },
 };
 
@@ -107,12 +126,12 @@ export const HeroStatusCard = ({
   record,
   label,
 }: {
-  record: AttendanceRecord;
+  record: AttendanceToday;
   label: string;
 }) => {
   const checkedIn = !!record.checkInDone;
   const checkedOut = !!record.checkOutDone;
-  const status = checkedIn ? (checkedOut ? 'Present' : 'Partial') : 'Absent';
+  const status = record.status;
   const accent = statusStyles[status];
   const s = statusStyles[status];
   return (
@@ -187,7 +206,7 @@ export const MonthCalendar = ({
   const maxMonth = useMemo(() => moment().startOf('month'), []);
 
   const recordMap = useMemo(() => {
-    const map: Record<string, AttendanceRecord> = {};
+    const map: Record<string, AttendanceToday> = {};
     records.forEach(rec => {
       const key = toDateKey(rec.attendanceDate);
       if (key) map[key] = {...rec, attendanceDate: key};
@@ -312,8 +331,11 @@ export const MonthCalendar = ({
           const isSelected = selectedDateKey === day.key;
           const selectedTone: Record<AttendanceStatus, string> = {
             Present: 'bg-emerald-500 border-emerald-500',
-            Absent: 'bg-rose-500 border-rose-500',
+            Absent: 'bg-red-500 border-red-500',
             Partial: 'bg-amber-500 border-amber-500',
+            Leave: 'bg-rose-500 border-rose-500',
+            WeekOff: 'bg-warning-500 border-warning-500',
+            None: 'bg-slate-500 border-slate-500',
           };
 
           const tone = isSelected
@@ -328,7 +350,6 @@ export const MonthCalendar = ({
             : day.isFuture
               ? 'text-slate-300 dark:text-slate-600'
               : 'text-slate-900 dark:text-slate-100';
-
           return (
             <TouchableOpacity
               key={day.key}
@@ -406,6 +427,8 @@ export const LeaveWeekOffModal = ({
   const [selection, setSelection] = useState<LeaveWeekOff>('Leave');
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const {mutate: markAttendanceAPI} = useMarkAttendance();
+  const setTheStatus = useASEAttendanceStore(state => state.setTheStatus);
 
   const resetState = useCallback(() => {
     setSelection('Leave');
@@ -424,8 +447,24 @@ export const LeaveWeekOffModal = ({
       return;
     }
     // Submit logic placeholder: integrate API here.
-    resetState();
-    onClose();
+    markAttendanceAPI(
+      {
+        status: selection === 'Leave' ? 'Leave' : 'WeekOff',
+        Lat: 0,
+        Lon: 0,
+        reason: reason.trim(),
+      },
+      {
+        onSuccess: () => {
+          setTheStatus(selection === 'Leave' ? 'Leave' : 'WeekOff');
+          resetState();
+          onClose();
+        },
+        onError: (err: any) => {
+          setError(err?.message || 'Failed to apply');
+        },
+      },
+    );
   }, [selection, reason, resetState, onClose]);
 
   return (
@@ -504,5 +543,62 @@ export const LeaveWeekOffModal = ({
         noLoading
       />
     </AppModal>
+  );
+};
+
+export const AttendanceSkeleton = () => {
+  return (
+    <AppLayout title="Attendance" needBack needPadding>
+      <View className="mt-4" />
+      <Skeleton width={screenWidth - 14} height={200} borderRadius={12} />
+      <View className="flex-row justify-between items-center">
+        <Skeleton width={screenWidth / 2 - 14} height={40} borderRadius={8} />
+        <Skeleton width={screenWidth / 2 - 14} height={40} borderRadius={8} />
+      </View>
+      <Skeleton width={screenWidth / 2} height={20} borderRadius={8} />
+      <View>
+        <Skeleton width={screenWidth - 14} height={300} borderRadius={12} />
+      </View>
+    </AppLayout>
+  );
+};
+
+export const AttendaceNotAvailable = ({navigation}: {navigation: any}) => {
+  return (
+    <AppLayout title="Attendance" needBack needPadding>
+      <View className="flex-1 justify-center items-center px-4">
+        <View className="w-full rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
+          <View className="h-14 w-14 rounded-2xl items-center justify-center bg-sky-100 dark:bg-sky-900/40">
+            <AppIcon
+              name="navigation"
+              type="feather"
+              size={26}
+              style={{color: '#0ea5e9'}}
+            />
+          </View>
+          <AppText
+            weight="semibold"
+            size="xl"
+            className="text-slate-900 dark:text-slate-50 mt-4">
+            Location access needed
+          </AppText>
+          <AppText
+            size="sm"
+            className="text-slate-600 dark:text-slate-300 mt-2 leading-6">
+            You can’t mark attendance without location. Go to App Permissions
+            and enable location access for Esales.
+          </AppText>
+          <View className="flex-row gap-x-3 mt-6">
+            <AppButton
+              title="Open App Permissions"
+              iconName="settings"
+              onPress={() => navigation.push('AppPermissions')}
+              className="flex-1 rounded-xl"
+              noLoading
+            />
+          </View>
+        </View>
+      </View>
+    </AppLayout>
   );
 };

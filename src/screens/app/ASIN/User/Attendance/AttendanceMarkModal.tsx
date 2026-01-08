@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState} from 'react';
+import {use, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import AppModal from '../../../../../components/customs/AppModal';
 import AppText from '../../../../../components/customs/AppText';
@@ -7,6 +7,8 @@ import Card from '../../../../../components/Card';
 import {useLocation} from '../../../../../hooks/useLocation';
 import {useASEAttendanceStore} from '../../../../../stores/useASEAttendanceStore';
 import {isInsideGeoFence} from './component';
+import {useMarkAttendance} from '../../../../../hooks/queries/attendance';
+import { useLoginStore } from '../../../../../stores/useLoginStore';
 
 interface ModalProps {
   isOpen?: boolean;
@@ -14,11 +16,8 @@ interface ModalProps {
 }
 
 const statusStyles = {
-  Present: {
-    bg: 'bg-emerald-50',
-    text: 'text-emerald-700',
-    border: 'border-emerald-200',
-  },
+  Present: {bg: 'bg-emerald-50',text: 'text-emerald-700',border: 'border-emerald-200'},
+  Partial: {bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200'},
   Absent: {bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200'},
   None: {bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200'},
 } as const;
@@ -28,29 +27,65 @@ export default function AttendanceMarkModal({
   onClose,
 }: ModalProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const {Latitude, Longitude} = useLoginStore(state => state.userInfo);
   const {
     attendanceToday,
     checkAndResetIfNewDay,
     markCheckInDone,
     markCheckOutDone,
   } = useASEAttendanceStore();
+  const {mutate: markAttendanceAPI} = useMarkAttendance();
   const {location} = useLocation();
   const userInsideGeoFence = useMemo(() => {
     if (!location) return false;
     const {lat, lon} = location;
-    return isInsideGeoFence(lat, lon);
-  }, [location]);
+    return isInsideGeoFence(lat, lon, Latitude!, Longitude!);
+  }, [location, Latitude, Longitude]);
 
   const handleCheckIn = () => {
     if (attendanceToday.checkInDone) return;
-    markCheckInDone();
-    !isOpen && setIsVisible(false);
+    markAttendanceAPI(
+      {
+        status: 'Present',
+        Lat: location?.lat || 0,
+        Lon: location?.lon || 0,
+      },
+      {
+        onSuccess: () => {
+          markCheckInDone();
+          !isOpen && setIsVisible(false);
+        },
+        onError: (error: any) => {
+          console.error('Error marking attendance:', error.message);
+        },
+        onSettled: () => {
+          // Optional: any cleanup or final actions
+        },
+      },
+    );
   };
 
   const handleCheckOut = () => {
     if (attendanceToday.checkOutDone && !userInsideGeoFence) return;
-    markCheckOutDone();
-    !isOpen && setIsVisible(false);
+    markAttendanceAPI(
+      {
+        status: 'Absent',
+        Lat: location?.lat || 0,
+        Lon: location?.lon || 0,
+      },
+      {
+        onSuccess: () => {
+          markCheckOutDone();
+          !isOpen && setIsVisible(false);
+        },
+        onError: (error: any) => {
+          console.error('Error marking attendance:', error.message);
+        },
+        onSettled: () => {
+          // Optional: any cleanup or final actions
+        },
+      },
+    );
   };
 
   const handleClose = () => setIsVisible(false);
@@ -72,7 +107,7 @@ export default function AttendanceMarkModal({
     if (isOpen) return;
     if (!location) return;
     const {lat, lon} = location;
-    const insideGeoFence = isInsideGeoFence(lat, lon);
+    const insideGeoFence = isInsideGeoFence(lat, lon, Latitude!, Longitude!);
 
     const needToShowModal = !attendanceToday.checkInDone
       ? insideGeoFence
@@ -85,7 +120,7 @@ export default function AttendanceMarkModal({
     } else {
       setIsVisible(false);
     }
-  }, [location]);
+  }, [location, Latitude, Longitude]);
   return (
     <AppModal
       isOpen={isOpen || isVisible}

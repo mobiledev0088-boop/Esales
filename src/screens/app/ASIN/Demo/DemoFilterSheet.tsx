@@ -1,84 +1,34 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import {View, TouchableOpacity, FlatList, TextInput} from 'react-native';
+import {View, TouchableOpacity, FlatList} from 'react-native';
 import ActionSheet, {SheetManager, useSheetPayload} from 'react-native-actions-sheet';
 import AppText from '../../../../components/customs/AppText';
 import AppButton from '../../../../components/customs/AppButton';
-import AppIcon from '../../../../components/customs/AppIcon';
 import {useThemeStore} from '../../../../stores/useThemeStore';
 import {screenHeight, screenWidth} from '../../../../utils/constant';
-import {useQuery} from '@tanstack/react-query';
-import {handleASINApiCall} from '../../../../utils/handleApiCall';
 import Skeleton from '../../../../components/skeleton/skeleton';
+import SheetIndicator from '../../../../components/SheetIndicator';
+import { DemoFilterResult } from './utils';
 
 // Payload contract for the sheet
 export interface DemoFilterPayload {
-  // pre-selected values (keys below)
-  category?: string | null;
-  premiumKiosk?: string | null; // yes/no
-  rogKiosk?: string | null; // yes/no
-  partnerType?: string | null;
-  compulsory?: string | null;
-  // Year Quarter for API call
-  yearQtr?: string;
-  // data sources (optional override)
-  categories?: {label: string; value: string}[];
-  partnerTypes?: {label: string; value: string}[];
-  agpNames?: {label: string; value: string}[];
+  filters :{
+    category?: string | null;
+    premiumKiosk?: number | null; // yes/no
+    rogKiosk?: number | null; // yes/no
+    partnerType?: string | null;
+    compulsory?: string | null;
+    yearQtr?: string;
+  }
+  data:{
+    categories?: {label: string; value: string}[];
+    partnerTypes?: {label: string; value: string}[];
+  }
   onApply?: (filters: DemoFilterResult) => void;
   onReset?: () => void;
 }
 
-export interface DemoFilterResult {
-  category: string | null;
-  premiumKiosk: string | null;
-  rogKiosk: string | null;
-  partnerType: string | null;
-  agpName: string | null;
-  compulsory?: string | null;
-}
-
-const DEFAULT_PARTNER_TYPES = [
-  {label: 'Retail', value: 'retail'},
-  {label: 'Online', value: 'online'},
-  {label: 'Distributor', value: 'distributor'},
-];
-
-const DEFAULT_AGP_NAMES = [
-  {label: 'AGP 1', value: 'agp1'},
-  {label: 'AGP 2', value: 'agp2'},
-  {label: 'AGP 3', value: 'agp3'},
-];
-
 // Numeric list (0..5) for kiosk selection
 const KIOSK_NUMBERS = Array.from({length: 6}, (_, i) => ({label: String(i), value: String(i)}));
-
-// Hook to fetch categories from API
-const useGetDemoCategories = (yearQtr: string) => {
-  const queryPayload = {
-    YearQtr: yearQtr,
-  };
-
-  return useQuery({
-    queryKey: ['demoCategories', yearQtr],
-    queryFn: async () => {
-      const response = await handleASINApiCall(
-        '/DemoForm/GetPartnerDemoCategoryList_Reseller',
-        queryPayload,
-      );
-      const result = response?.demoFormData;
-      if (!result?.Status) {
-        throw new Error('Failed to fetch categories');
-      }
-      const categories = result.Datainfo?.Table || [];
-      return categories.map((item: {Demo_Category: string}) => ({
-        label: item.Demo_Category,
-        value: item.Demo_Category,
-      }));
-    },
-    enabled: !!yearQtr,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-  });
-};
 
 // Radio row (indicator on left)
 const RadioRow = React.memo(({label, selected, onPress}: {label: string; selected: boolean; onPress: () => void}) => (
@@ -109,20 +59,19 @@ const GroupItem = ({label, active, hasValue, onPress}: {label: string; active: b
 );
 
 const DemoFilterSheet: React.FC = () => {
-  const payload = (useSheetPayload?.() || {}) as DemoFilterPayload;
+  const {filters,onApply,onReset,data} = (useSheetPayload?.() || {}) as DemoFilterPayload;
 
   // Fetch categories from API
-  const {data: categoriesData, isLoading: isCategoriesLoading} = useGetDemoCategories(payload.yearQtr || '');
   
-  const categories = categoriesData || [];
-  const partnerTypes = payload.partnerTypes || DEFAULT_PARTNER_TYPES;
-  const agpNames = payload.agpNames || DEFAULT_AGP_NAMES;
+  // console.log('Fetched categories:', categoriesData,isCategoriesLoading);
+  
+  const partnerTypes = data?.partnerTypes;
 
-  const [category, setCategory] = useState<string | null>(payload.category ?? '');
-  const [premiumKiosk, setPremiumKiosk] = useState<string | null>(payload?.premiumKiosk ?? '');
-  const [rogKiosk, setRogKiosk] = useState<string | null>(payload?.rogKiosk ?? '');
-  const [partnerType, setPartnerType] = useState<string | null>(payload.partnerType ?? '');
-  const [compulsory, setCompulsory] = useState<string | null>(payload?.compulsory ?? '');
+  const [category, setCategory] = useState<string | null>(filters.category ?? '');
+  const [premiumKiosk, setPremiumKiosk] = useState<number | null>(filters?.premiumKiosk ?? null);
+  const [rogKiosk, setRogKiosk] = useState<number | null>(filters?.rogKiosk ?? null);
+  const [partnerType, setPartnerType] = useState<string | null>(filters.partnerType ?? '');
+  const [compulsory, setCompulsory] = useState<string | null>(filters?.compulsory ?? '');
   const [group, setGroup] = useState<string>('category');
 
   const AppTheme = useThemeStore(state => state.AppTheme);
@@ -135,13 +84,13 @@ const DemoFilterSheet: React.FC = () => {
     {key: 'category', label: 'Category', hasValue: !!category},
     {key: 'partnerType', label: 'Partner Type', hasValue: !!partnerType},
   ]
-  if(payload?.premiumKiosk){
+  if(filters?.premiumKiosk !== null){
     arr.push({key: 'premiumKiosk', label: 'Premium Kiosk', hasValue: !!premiumKiosk});
   }
-  if(payload?.rogKiosk){
+  if(filters?.rogKiosk !== null){
     arr.push({key: 'rogKiosk', label: 'ROG Kiosk', hasValue: !!rogKiosk});
   }
-  if(payload?.compulsory){
+  if(filters?.compulsory){
     arr.push({key: 'compulsory', label: 'Compulsory', hasValue: !!compulsory});
   }
   return arr;
@@ -176,16 +125,16 @@ const DemoFilterSheet: React.FC = () => {
                 <RadioRow
                   label={item.label}
                   selected={isSelected}
-                  onPress={() => setPremiumKiosk(item.value)}
+                  onPress={() => setPremiumKiosk(Number(item.value))}
                 />
               );
             }}
             style={{flex:1}}
             contentContainerStyle={{paddingBottom: 40}}
           />
-          {premiumKiosk && (
+          {premiumKiosk !== 0 && premiumKiosk !== null && (
             <TouchableOpacity
-              onPress={() => setPremiumKiosk('')}
+              onPress={() => setPremiumKiosk(0)}
               className="py-3 px-3 border-t border-slate-200 dark:border-slate-600 flex-row items-center justify-center">
               <AppText size="sm" className="text-blue-600 dark:text-blue-400 underline">Clear Selection</AppText>
             </TouchableOpacity>
@@ -205,30 +154,20 @@ const DemoFilterSheet: React.FC = () => {
                 <RadioRow
                   label={item.label}
                   selected={isSelected}
-                  onPress={() => setRogKiosk(item.value)}
+                  onPress={() => setRogKiosk(Number(item.value))}
                 />
               );
             }}
             style={{flex:1}}
             contentContainerStyle={{paddingBottom: 40}}
           />
-          {rogKiosk && (
+          {rogKiosk !== 0 && rogKiosk !== null && (
             <TouchableOpacity
-              onPress={() => setRogKiosk('')}
+              onPress={() => setRogKiosk(0)}
               className="py-3 px-3 border-t border-slate-200 dark:border-slate-600 flex-row items-center justify-center">
               <AppText size="sm" className="text-blue-600 dark:text-blue-400 underline">Clear Selection</AppText>
             </TouchableOpacity>
           )}
-        </View>
-      );
-    }
-    // category or partnerType
-    if (group === 'category' && isCategoriesLoading) {
-      return (
-        <View className="gap-2">
-          {Array.from({length: 5}).map((_, idx) => (
-            <Skeleton key={idx} width={screenWidth - 80} height={40} />
-          ))}
         </View>
       );
     }
@@ -257,7 +196,7 @@ const DemoFilterSheet: React.FC = () => {
         </View>
       );
     }
-    const list = group === 'category' ? categoriesData : partnerTypes;
+    const list = group === 'category' ? data?.categories : partnerTypes;
     const hasSelection = group === 'category' ? !!category : !!partnerType;
     return (
       <View className="flex-1">
@@ -284,11 +223,11 @@ const DemoFilterSheet: React.FC = () => {
 
   const handleReset = () => {
     setCategory('');
-    setPremiumKiosk('');
-    setRogKiosk('');
+    setPremiumKiosk(0);
+    setRogKiosk(0);
     setPartnerType('');
     // setAgpName('');
-    payload.onReset?.();
+    onReset?.();
   };
 
   const handleApply = () => {
@@ -299,7 +238,7 @@ const DemoFilterSheet: React.FC = () => {
       partnerType: partnerType || null,
       agpName: null,
     };
-    payload.onApply?.(result);
+    onApply?.(result);
     SheetManager.hide('DemoFilterSheet');
   };
 
@@ -322,6 +261,7 @@ const DemoFilterSheet: React.FC = () => {
           marginTop: 8,
         }}
         >
+          <SheetIndicator/>
         <View className='px-3 pb-4 pt-2'>
           {/* Header */}
           <View className="flex-row items-center justify-between mt-2 mb-4">
@@ -379,6 +319,6 @@ const DemoFilterSheet: React.FC = () => {
 export default DemoFilterSheet;
 
 // Helper functions
-export const showDemoFilterSheet = (props: DemoFilterPayload = {}) =>
+export const showDemoFilterSheet = (props: DemoFilterPayload) =>
   SheetManager.show('DemoFilterSheet', {payload: props});
 export const hideDemoFilterSheet = () => SheetManager.hide('DemoFilterSheet');

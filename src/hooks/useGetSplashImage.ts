@@ -126,6 +126,7 @@ async function fetchAndCacheImage(
       const freshImageUrl = result.Datainfo[0].FestiveAnimation;
       const Latitude = result.Datainfo[0].Latitude;
       const Longitude = result.Datainfo[0].Longitude;
+      const Year_Qtr = result.Datainfo[0].Year_Qtr;
       const setUserInfo = useLoginStore.getState().setUserInfo;
       setUserInfo({ Latitude, Longitude });
       // Cache the image with timestamp

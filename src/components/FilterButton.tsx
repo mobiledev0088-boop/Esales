@@ -31,7 +31,7 @@ const FilterButton: React.FC<FilterButtonProps> = ({
   containerClassName,
   containerStyle,
 }) => {
-    const classStyle = twMerge(clsx('p-4 mb-3 rounded-md bg-white',needBorder ? 'border border-gray-200 dark:border-gray-700' : '',containerClassName)); 
+    const classStyle = twMerge(clsx('p-4 rounded-md bg-white',needBorder ? 'border border-gray-200 dark:border-gray-700' : '',containerClassName)); 
     const mergedContainerStyle = [noShadow ? {} : getShadowStyle(shadowLevel) ,containerStyle];
     return (
     <TouchableOpacity
