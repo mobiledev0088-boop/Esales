@@ -9,6 +9,11 @@ import {
   ImageLibraryOptions,
 } from 'react-native-image-picker';
 import {check, request, PERMISSIONS, RESULTS} from 'react-native-permissions';
+import ImageMarker, {
+  ImageFormat,
+  Position,
+  TextBackgroundType,
+} from 'react-native-image-marker';
 
 type ImageSource = 'camera' | 'gallery';
 
@@ -24,6 +29,7 @@ interface ImagePickerResult {
 interface UseImagePickerOptions {
   enableCrop?: boolean;
   quality?: 0.1 | 0.2 | 0.3 | 0.4 | 0.5 | 0.6 | 0.7 | 0.8 | 0.9 | 1.0;
+  watermarkText?: string | null;
   maxWidth?: number;
   maxHeight?: number;
   showSourceSelector?: boolean;
@@ -117,12 +123,61 @@ async function requestLibraryPermission() {
   }
 }
 
+async function addWatermarkIfNeeded(
+  uri: string,
+  watermarkText?: string | null,
+): Promise<string> {
+  try {
+    if (!watermarkText || watermarkText.trim().length === 0) {
+      return uri;
+    }
+    const watermarkedImage = await ImageMarker.markText({
+      backgroundImage: {
+        src: uri,
+      },
+      watermarkTexts: [
+        {
+          text: watermarkText,
+          position: {
+            position: Position.bottomLeft,
+          },
+          style: {
+            textBackgroundStyle: {
+              paddingX: 10,
+              paddingY: 10,
+              color: '#00539B99', // Primary color with 60% opacity
+            },
+            color: '#FFFFFF',
+            fontSize: 42,
+            shadowStyle: {
+              dx: 2,
+              dy: 2,
+              radius: 1,
+              color: '#000000',
+            },
+          },
+        },
+      ],
+      filename:'watermarked_image',
+      quality: 100,
+      saveFormat: ImageFormat.jpg,
+    });
+
+    console.log('Watermarked image path:', watermarkedImage);
+    return normalizeUri(watermarkedImage);
+  } catch (error) {
+    console.error('Error adding watermark:', error);
+    return uri;
+  }
+}
+
 export function useImagePicker(
   options: UseImagePickerOptions = {},
 ): UseImagePickerReturn {
   const {
     enableCrop = false,
     quality = 0.8,
+    watermarkText = null,
     maxWidth = 2000,
     maxHeight = 2000,
     mediaType = 'photo',
@@ -131,7 +186,7 @@ export function useImagePicker(
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [imageData, setImageData] = useState<ImagePickerResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Crop modal states
   const [showCropModal, setShowCropModal] = useState(false);
   const [tempImageUri, setTempImageUri] = useState<string | null>(null);
@@ -203,13 +258,21 @@ export function useImagePicker(
           const result = convertAssetToResult(asset);
 
           setImageData(result);
-          
+
           // If crop is enabled, show crop modal, otherwise set image directly
           if (enableCrop) {
             setTempImageUri(result.uri);
             setShowCropModal(true);
           } else {
-            setImageUri(result.uri);
+            if (watermarkText) {
+              const watermarkedUri = await addWatermarkIfNeeded(
+                result.uri,
+                watermarkText,
+              );
+              setImageUri(watermarkedUri);
+            } else {
+              setImageUri(result.uri);
+            }
           }
         }
       } catch (error) {

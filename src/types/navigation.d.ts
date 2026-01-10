@@ -77,6 +77,7 @@ type AppNavigationParamList = {
   };
   ChannelFriendlyClaimListHO: undefined;
   ChannelFriendlyClaimListPartner: undefined;
+  ChannelFriendlyClaimsUpload: undefined;
   ChannelFriendlyClaimListALP: undefined;
   ChannelFriendlyClaimViewALP: {
     data: any;

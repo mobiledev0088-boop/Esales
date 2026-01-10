@@ -52,10 +52,9 @@ const getASINOptions = (
     let navigateTo = () =>
       (roleId === ASUS.ROLE_ID.PARTNERS
         ? 'ChannelFriendlyClaimListPartner'
-        : ['KN2200052', 'KN1800045', 'KN1500008', 'KN2500069'].includes(empCode)
-          ? 'ChannelFriendlyClaimListPartner'
-          : // ? 'ChannelFriendlyClaimListALP'
-            'ChannelFriendlyClaimListHO') as any;
+        : ['KN2200052', 'KN1800045', 'KN1500008'].includes(empCode)
+          ? 'ChannelFriendlyClaimListALP'
+          : 'ChannelFriendlyClaimListHO') as any;
     options.push({
       label: 'Channel Friendly',
       iconName: 'houzz',

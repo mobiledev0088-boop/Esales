@@ -20,6 +20,7 @@ import AppDropdown, {
 } from '../../../../../components/customs/AppDropdown';
 import Skeleton from '../../../../../components/skeleton/skeleton';
 import moment from 'moment';
+import { screenWidth } from '../../../../../utils/constant';
 
 interface ClaimInfoItem {
   APCAE_Id: number;
@@ -571,20 +572,19 @@ const FilterSection: React.FC<{
 );
 
 const LoadingSkeleton = () => (
-  <View className="p-4">
-    <View className="mb-4">
-      <Skeleton height={200} borderRadius={12} />
+  <View className="px-3 pt-3">
+  <View className='flex-row justify-between items-center mb-3'>
+      <Skeleton width={screenWidth * 0.45} height={40} borderRadius={4} />
+      <Skeleton width={screenWidth * 0.45} height={40} borderRadius={4} />
+  </View>
+    <Skeleton width={screenWidth - 14} height={150} borderRadius={8} />
+    <View className="mt-4">
+      {[...Array(5)].map((_, index) => (
+        <View key={index} className="mb-3">
+          <Skeleton width={screenWidth - 14} height={120} borderRadius={8} />
+        </View>
+      ))}
     </View>
-    <View className="mb-4">
-      <Skeleton height={150} borderRadius={12} />
-    </View>
-    <View className="mb-3">
-      <Skeleton height={180} borderRadius={12} />
-    </View>
-    <View className="mb-3">
-      <Skeleton height={180} borderRadius={12} />
-    </View>
-    <Skeleton height={180} borderRadius={12} />
   </View>
 );
 

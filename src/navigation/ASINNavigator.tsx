@@ -46,6 +46,7 @@ import AddRollingFunnel from "../screens/app/ASIN/Commercial/RollingFunnel/AddRo
 import Attendance from "../screens/app/ASIN/User/Attendance/Attendance";
 import AppPermissions from "../screens/app/ASIN/User/AppPermissions/AppPermissions";
 import ChannelMapEditAGP from "../screens/app/ASIN/More/ChannelMap/ChanelMapAGP/ChannelMapEditAGP";
+import ChannelFriendlyClaimsUpload from "../screens/app/ASIN/More/ChannelFriendly/ChannelFriendlyClaimsUpload";
 
 type Screen = {
     name: string;
@@ -88,6 +89,7 @@ const screens: Screen[] = [
     { name: "ChannelMapEditAGP", component: ChannelMapEditAGP },
     { name: "ChannelFriendlyClaimListHO", component: ChannelFriendlyClaimListHO },
     { name: "ChannelFriendlyClaimListPartner", component: ChannelFriendlyClaimListPartner },
+    { name: "ChannelFriendlyClaimsUpload", component: ChannelFriendlyClaimsUpload },
     { name: "ChannelFriendlyClaimListALP", component: ChannelFriendlyClaimListALP },
     { name: "ChannelFriendlyClaimViewALP", component: ChannelFriendlyClaimViewALP },
     { name: "ChannelFriendlyPartnerClaimInfo", component: ChannelFriendlyPartnerClaimInfo },
