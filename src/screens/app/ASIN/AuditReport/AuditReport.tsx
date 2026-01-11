@@ -81,7 +81,7 @@ export default function AuditReport() {
     try {
       setLoading(true);
 
-      const fileName = selectedPartner.value.split('/').pop() || 'report.pdf';
+      const fileName = 'report.pdf';
       const downloadsDir = Platform.select({
         ios: `${RNFS.DocumentDirectoryPath}/Downloads/`,
         android: `${RNFS.DownloadDirectoryPath}/${ASUS.APP_NAME}`,

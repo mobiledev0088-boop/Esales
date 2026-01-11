@@ -149,8 +149,18 @@ export const getDaysBetween = (start: string, end: string): number => {
 
 // Ensure folder exists
 export const ensureFolderExists = async (path: string) => {
-  if (!(await RNFS.exists(path))) {
-    await RNFS.mkdir(path);
+  try {
+    const folderPath = path.replace(/\/+$/, '');
+    const isExists = await RNFS.exists(folderPath);
+    if (!isExists) {
+      await RNFS.mkdir(folderPath);
+      console.log('Folder created:', folderPath);
+    } else {
+      console.log('Folder already exists:', folderPath);
+    }
+  } catch (err) {
+    console.error('Failed to create folder:', err);
+    throw err;
   }
 };
 
@@ -292,5 +302,47 @@ export function to12HourFormat(time24:string) {
 
   return `${hour12}:${minute.toString().padStart(2, '0')} ${period}`;
 }
+
+export const getMimeTypeFromUrl = (url: string): string => {
+  if (!url) return 'application/octet-stream';
+
+  // Remove query params and fragments
+  const cleanUrl = url.split('?')[0].split('#')[0];
+
+  // Extract extension
+  const extension = cleanUrl.split('.').pop()?.toLowerCase();
+
+  if (!extension) return 'application/octet-stream';
+
+  const mimeTypes: Record<string, string> = {
+    pdf: 'application/pdf',
+    doc: 'application/msword',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    xls: 'application/vnd.ms-excel',
+    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ppt: 'application/vnd.ms-powerpoint',
+    pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    png: 'image/png',
+    gif: 'image/gif',
+    webp: 'image/webp',
+
+    mp4: 'video/mp4',
+    mov: 'video/quicktime',
+    avi: 'video/x-msvideo',
+
+    mp3: 'audio/mpeg',
+    wav: 'audio/wav',
+
+    zip: 'application/zip',
+    rar: 'application/vnd.rar',
+    '7z': 'application/x-7z-compressed',
+  };
+
+  return mimeTypes[extension] || 'application/octet-stream';
+};
+
 
 

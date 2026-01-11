@@ -45,6 +45,7 @@ import {useLoginStore} from '../../../../stores/useLoginStore';
 import {useInfiniteQuery, useQueryClient} from '@tanstack/react-query';
 import SchemeSkeleton from '../../../../components/skeleton/SchemesSkeleton';
 import SchemeSearch from './SchemeSearch';
+import {downloadFile} from '../../../../utils/services';
 
 // consts
 const [ONGOING, PP, LAPSED] = ['ongoing', 'pp', 'lapsed'] as const;
@@ -350,7 +351,9 @@ const SchemeCardInner: React.FC<SchemeCardProps> = ({
   }, [onDownload, scheme?.File_Path]);
 
   return (
-    <Card className="mb-5 p-4 rounded-lg bg-white dark:bg-darkBg-surface">
+    <Card
+      noshadow
+      className="mb-5 p-4 rounded-lg bg-white dark:bg-darkBg-surface border border-slate-200 dark:border-slate-700">
       <View className="mb-3">
         <AppText
           size="md"
@@ -414,6 +417,13 @@ const SchemeCardInner: React.FC<SchemeCardProps> = ({
             value={activatedValue}
           />
         )}
+        <TouchableOpacity
+          onPress={() => Linking.openURL('https://asuspromo.in/terms')}
+          className="items-end">
+          <AppText color="primary" className="underline">
+            Promo Link
+          </AppText>
+        </TouchableOpacity>
       </View>
 
       <AppButton
@@ -482,7 +492,12 @@ const SchemeBanner = memo(
       <View className="w-full pt-4">
         <View className="flex-row items-center mb-2">
           <View className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/40 items-center justify-center mr-2">
-            <AppIcon type="feather" name="bar-chart-2" size={18} color="#2563eb" />
+            <AppIcon
+              type="feather"
+              name="bar-chart-2"
+              size={18}
+              color="#2563eb"
+            />
           </View>
           <AppText
             size="lg"
@@ -845,13 +860,14 @@ export default function Schemes() {
       showToast('File not available');
       return;
     }
+    console.log('Downloading scheme file from', url);
     try {
-      const can = await Linking.canOpenURL(url);
-      if (!can) {
-        showToast('Invalid download link');
-        return;
-      }
-      await Linking.openURL(url);
+      showToast('Downloading file...');
+      await downloadFile({
+        url: url,
+        fileName: 'Report_Jan.xlsx',
+        autoOpen: true,
+      });
     } catch (e) {
       console.log('Open URL error', e);
       showToast('Unable to open link');

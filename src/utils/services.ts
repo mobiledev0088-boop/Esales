@@ -1,12 +1,19 @@
-import {PermissionsAndroid} from 'react-native';
-import {request, PERMISSIONS, RESULTS} from 'react-native-permissions';
-import Geolocation from 'react-native-geolocation-service';
-import {isIOS} from './constant';
-
 import BackgroundFetch from 'react-native-background-fetch';
-import {checkUserInsideRadius} from './checkUserInsideRadius';
+import Geolocation from 'react-native-geolocation-service';
 
-// hepler function
+import {isIOS} from './constant';
+import {PermissionsAndroid} from 'react-native';
+import {checkUserInsideRadius} from './checkUserInsideRadius';
+import {request, PERMISSIONS, RESULTS} from 'react-native-permissions';
+import ReactNativeBlobUtil from 'react-native-blob-util';
+import {ensureFolderExists, getMimeTypeFromUrl} from './commonFunctions';
+
+type DownloadParams = {
+  url: string;
+  fileName: string;
+  autoOpen?: boolean;
+};
+
 const requestLocationPermission = async (): Promise<boolean> => {
   if (isIOS) {
     const status = await request(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE);
@@ -37,7 +44,7 @@ export const getCurrentLocation =
         },
       );
     });
-};
+  };
 
 export const initBackgroundFetchService = async () => {
   const status = await BackgroundFetch.configure(
@@ -64,3 +71,51 @@ export const initBackgroundFetchService = async () => {
     console.log('[BackgroundFetch] Background fetch is disabled');
   }
 };
+
+export async function downloadFile({
+  url,
+  fileName,
+  autoOpen = true,
+}: DownloadParams): Promise<string> {
+  const safeName = fileName
+    .replace(/[<>:"/\\|?*&=]/g, '_')
+    .replace(/\s+$/g, '')
+    .slice(0, 200);
+
+  const mimeType = getMimeTypeFromUrl(url);
+  const {fs} = ReactNativeBlobUtil;
+
+  if (isIOS) {
+    const iosPath = `${fs.dirs.DocumentDir}/Downloads/${safeName}`;
+    await fs.mkdir(`${fs.dirs.DocumentDir}/Downloads`);
+    const res = await ReactNativeBlobUtil.config({
+      path: iosPath,
+    }).fetch('GET', url);
+    if (autoOpen) {
+      ReactNativeBlobUtil.ios.openDocument(res.path());
+    }
+    return res.path();
+  }
+  const downloadPath = `/storage/emulated/0/Download/Esales`;
+  await ensureFolderExists(downloadPath);
+
+  await ReactNativeBlobUtil.config({
+    addAndroidDownloads: {
+      useDownloadManager: true, // 🔥 REQUIRED
+      notification: true,
+      path: `${downloadPath}/${safeName}`,
+      mime: mimeType,
+      title: safeName,
+      description: 'Downloading file',
+      mediaScannable: true,
+    },
+  }).fetch('GET', url);
+
+  if (autoOpen) {
+    ReactNativeBlobUtil.android.actionViewIntent(
+      `${downloadPath}/${safeName}`,
+      mimeType,
+    );
+  }
+  return `${downloadPath}/${safeName}`;
+}

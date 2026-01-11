@@ -176,10 +176,9 @@ const ClaimCodeWise = () => {
   const isFilteredEmpty =
     claimData.length > 0 && sortedFilteredData.length === 0;
   const isApiEmpty = claimData.length === 0;
-
   return (
     <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base px-3 pt-2">
-      {!isLoading ? (<ClaimListSkeleton />) : isError ? (
+      {isLoading ? <ClaimListSkeleton /> : isError ? (
         <View className="flex-1 items-center justify-center">
           <AppText>Failed to load claim data.</AppText>
         </View>
