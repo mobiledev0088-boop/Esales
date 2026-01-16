@@ -85,7 +85,6 @@ export const useGetDemoDataRetailer = (
 export const useGetDemoDataLFR = (
   YearQtr: string,
   Category: string,
-  IsCompulsory: string,
 ) => {
   const {EMP_Code: employeeCode = '', EMP_RoleId: RoleId = ''} = useLoginStore(
     state => state.userInfo,
@@ -96,7 +95,7 @@ export const useGetDemoDataLFR = (
     RoleId,
     employeeCode,
     Category,
-    IsCompulsory: IsCompulsory,
+    IsCompulsory: 'yes',
     sync_date: empInfo?.Sync_Date,
   };
 
@@ -281,6 +280,31 @@ export const useGetDemoCategories = (yearQtr: string) => {
     queryFn: async () => {
       const response = await handleASINApiCall(
         '/DemoForm/GetPartnerDemoCategoryList_Reseller',
+        queryPayload,
+      );
+      const result = response?.demoFormData;
+      if (!result?.Status) {
+        throw new Error('Failed to fetch categories');
+      }
+      const categories = result.Datainfo?.Table || [];
+      return categories.map((item: {Demo_Category: string}) => ({
+        label: item.Demo_Category,
+        value: item.Demo_Category,
+      }));
+    },
+  });
+};
+
+export const useGetDemoCategoriesRet = (yearQtr: string) => {
+  const queryPayload = {
+    YearQtr: yearQtr,
+  };
+
+  return useQuery({
+    queryKey: ['demoCategories', yearQtr],
+    queryFn: async () => {
+      const response = await handleASINApiCall(
+        '/DemoForm/GetPartnerDemoCategoryList_Retailer',
         queryPayload,
       );
       const result = response?.demoFormData;

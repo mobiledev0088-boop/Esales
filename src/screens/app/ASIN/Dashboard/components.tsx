@@ -43,11 +43,12 @@ export const buildActivationTabItems = (
   labels: string[],
   baseData: any,
   overrideData: any,
+  isAPAC: boolean,
 ): TabItem[] => {
   const source = overrideData || baseData;
   return labels.map(label => {
     const id = TAB_LABEL_TO_ID[label];
-    const cfg = getCurrentTabConfig(id,true);
+    const cfg = getCurrentTabConfig(id,isAPAC);
     const tabData = getActivationTabData(source, id);
     return {
       label,
@@ -285,6 +286,7 @@ export const ActivationPerformanceComponent: React.FC<
   } = useDashboardActivationData();
   const navigation = useNavigation<AppNavigationProp>();
   const userInfo = useLoginStore(state => state.userInfo);
+  const isAPAC = useMemo(() => userInfo?.EMP_CountryID !== ASUS.COUNTRIES.ASIN, [userInfo]);
   const providedTabs = useMemo(
     () => (tabs && tabs.length > 0 ? tabs : [...DEFAULT_ACTIVATION_TABS]),
     [tabs],
@@ -301,8 +303,8 @@ export const ActivationPerformanceComponent: React.FC<
   const maximumDate = useMemo(() => new Date(), []);
   const minimumDate = useMemo(() => moment().subtract(5, 'years').toDate(), []);
   const tabItems: TabItem[] = useMemo(
-    () => buildActivationTabItems(providedTabs, data, activationData),
-    [providedTabs, data, activationData],
+    () => buildActivationTabItems(providedTabs, data, activationData,isAPAC),
+    [providedTabs, data, activationData,isAPAC],
   );
 
   const handleActivationDataFetch = useCallback(

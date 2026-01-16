@@ -1,25 +1,7 @@
 import {create} from 'zustand';
 import {persist} from 'zustand/middleware';
 import {createMMKVStorage} from '../utils/mmkvStorage';
-
-export interface AttendanceToday {
-  checkInDone: boolean;
-  checkInTime: string | null;
-  checkOutDone: boolean;
-  checkOutTime: string | null;
-  attendanceDate: string | null;
-  status: 'Present' | 'Absent' | 'Partial' | 'Leave' | 'WeekOff' |  'None';
-}
-
-export interface AttendanceStore {
-  attendanceToday: AttendanceToday;
-  currentStatus: 'CheckIn' | 'CheckOut' | 'None';
-  markCheckInDone: () => void;
-  markCheckOutDone: () => void;
-  setTheStatus: (status: AttendanceToday['status']) => void;
-  checkAndResetIfNewDay: () => boolean;
-  reset: () => void;
-}
+import { AttendanceStore, AttendanceToday, isDifferentDay } from '../screens/app/ASIN/User/Attendance/utils';
 
 const defaultAttendanceToday: AttendanceToday = {
   checkInDone: false,
@@ -29,11 +11,6 @@ const defaultAttendanceToday: AttendanceToday = {
   attendanceDate: null,
   status: 'None',
 };
-
-const isDifferentDay = (d1: Date, d2: Date) =>
-  d1.getFullYear() !== d2.getFullYear() &&
-  d1.getMonth() !== d2.getMonth() &&
-  d1.getDate() !== d2.getDate();
 
 export const useASEAttendanceStore = create<AttendanceStore>()(
   persist(

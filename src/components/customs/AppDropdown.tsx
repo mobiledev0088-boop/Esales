@@ -8,7 +8,7 @@ import {
   ReactNode,
   useRef,
 } from 'react';
-import {Pressable} from 'react-native';
+import {Pressable, TouchableOpacity} from 'react-native';
 import {
   View,
   StyleSheet,
@@ -54,7 +54,7 @@ export interface AppDropdownProps {
   needIndicator?: boolean;
   error?: string;
 }
-const BATCH_SIZE = 40;
+const BATCH_SIZE = 20;
 
 const AppDropdown: React.FC<AppDropdownProps> = ({
   data,
@@ -126,15 +126,15 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
   const handleOpenChange = useCallback(
     (state: SetStateAction<boolean>) => {
       setOpen(state);
-      if (!state) {
-        // Reset everything to initial state
-        setSearchResults(data);
-        if (!selectedValue) {
-          setDisplayedItems(data.slice(0, BATCH_SIZE)); 
-          setLoadedCount(BATCH_SIZE);
-        }
-        isLoadingMoreRef.current = false;
-      }
+      // if (!state) {
+      //   // Reset everything to initial state
+      //   setSearchResults(data);
+      //   if (!selectedValue) {
+      //     setDisplayedItems(data.slice(0, BATCH_SIZE));
+      //     setLoadedCount(BATCH_SIZE);
+      //   }
+      //   isLoadingMoreRef.current = false;
+      // }
       onOpenChange?.();
     },
     [data, onOpenChange],
@@ -200,8 +200,10 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
   );
 
   const handleClear = useCallback(() => {
+    // also reset the selection and list
     setValue(null);
     handleSelect(null);
+    setDisplayedItems(data.slice(0, BATCH_SIZE));
     onClear?.();
   }, [onClear]);
 
@@ -252,27 +254,13 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
   return (
     <View style={[styles.container, style]}>
       {label && (
-        <View className="mb-1 flex-row items-center">
-          {labelIconTsx ? (
-            <View style={{marginRight: 4}}>{labelIconTsx}</View>
-          ) : labelIcon ? (
-            <AppIcon
-              type="feather"
-              name={labelIcon}
-              size={16}
-              color={theme.text}
-              style={{marginRight: 4}}
-            />
-          ) : null}
-          <AppText weight="semibold" size="md" className="text-gray-700">
-            {required && (
-              <AppText className="text-red-500" weight="bold">
-                *
-              </AppText>
-            )}{' '}
-            {label}
-          </AppText>
-        </View>
+        <RenderLabel
+          color={theme.text}
+          label={label}
+          labelIcon={labelIcon}
+          labelIconTsx={labelIconTsx}
+          required={required}
+        />
       )}
       <View>
         <DropDownPicker
@@ -313,34 +301,8 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
             scrollEventThrottle: 16,
           }}
           showArrowIcon
-          ArrowDownIconComponent={() =>
-            allowClear && value ? (
-              <Pressable hitSlop={8} onPress={handleClear}>
-                <AppIcon type="feather" name="x" size={18} color={theme.text} />
-              </Pressable>
-            ) : (
-              <AppIcon
-                type="feather"
-                name="chevron-down"
-                size={20}
-                color={theme.text}
-              />
-            )
-          }
-          ArrowUpIconComponent={() =>
-            allowClear && value ? (
-              <Pressable hitSlop={8} onPress={handleClear}>
-                <AppIcon type="feather" name="x" size={18} color={theme.text} />
-              </Pressable>
-            ) : (
-              <AppIcon
-                type="feather"
-                name="chevron-up"
-                size={20}
-                color={theme.text}
-              />
-            )
-          }
+          ArrowDownIconComponent={() =><DropdownIcon isClose={allowClear && !!value} color={theme.text} handleClear={handleClear} isUpIcon={false} />}
+          ArrowUpIconComponent={() =><DropdownIcon isClose={allowClear && !!value} color={theme.text} handleClear={handleClear} isUpIcon={true} />}
           listItemLabelStyle={{
             color: theme.text,
             borderBottomWidth: 0.3,
@@ -362,11 +324,6 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {width: '100%'},
-});
-
-export default AppDropdown;
 export interface AppDropdownMultipleProps {
   data: AppDropdownItem[];
   onSelect: (items: AppDropdownItem[]) => void;
@@ -666,3 +623,75 @@ export const AppDropdownMultiple: React.FC<AppDropdownMultipleProps> = memo(
     );
   },
 );
+
+const styles = StyleSheet.create({
+  container: {width: '100%'},
+});
+
+const RenderLabel = memo(
+  ({
+    labelIconTsx,
+    labelIcon,
+    color,
+    required,
+    label,
+  }: {
+    labelIconTsx?: ReactNode;
+    labelIcon?: string;
+    color: string;
+    required?: boolean;
+    label: string;
+  }) => {
+    return (
+      <View className="mb-1 flex-row items-center">
+        {labelIconTsx ? (
+          <View style={{marginRight: 4}}>{labelIconTsx}</View>
+        ) : labelIcon ? (
+          <AppIcon
+            type="feather"
+            name={labelIcon}
+            size={16}
+            color={color}
+            style={{marginRight: 4}}
+          />
+        ) : null}
+        <AppText weight="semibold" size="md" className="text-gray-700">
+          {required && (
+            <AppText className="text-red-500" weight="bold">
+              *
+            </AppText>
+          )}{' '}
+          {label}
+        </AppText>
+      </View>
+    );
+  },
+);
+
+const DropdownIcon = memo(
+  ({
+    isClose,
+    handleClear,
+    color,
+    isUpIcon = false,
+  }: {
+    isClose: boolean;
+    handleClear: () => void;
+    color: string;
+    isUpIcon?: boolean;
+  }) =>
+    isClose ? (
+      <TouchableOpacity hitSlop={8} onPress={handleClear}>
+        <AppIcon type="feather" name="x" size={18} color={color} />
+      </TouchableOpacity>
+    ) : (
+      <AppIcon
+        type="feather"
+        name={isUpIcon ? 'chevron-up' : 'chevron-down'}
+        size={20}
+        color={color}
+      />
+    ),
+);
+
+export default AppDropdown;

@@ -44,6 +44,16 @@ export interface DemoItemROI {
   Model_Series: string;
 }
 
+interface GroupROI {
+  id: string;
+  state: string;
+  partner_count: number;
+  total_demo: number;
+  total_act: number;
+  total_stock: number;
+  partners: Map<string, DemoItemROI>;
+}
+
 // Reseller Demo - Unified
 export interface TransformedBranchRes {
   id: string;
@@ -55,6 +65,7 @@ export interface TransformedBranchRes {
   pkiosk: number;
   awp_Count: number;
   pkiosk_rogkiosk: number;
+  pending: number;
   partners: DemoItemReseller[];
 }
 
@@ -68,6 +79,7 @@ export interface TerritoryItemRes {
   pkiosk: number;
   awp_Count: number;
   pkiosk_rogkiosk: number;
+  pending: number;
   partners: DemoItemReseller[];
 }
 
@@ -78,7 +90,18 @@ export interface TransformedBranchRet {
   demo_100: number;
   at_80_demo: number;
   partner_count: number;
+  pending: number;
   partners: DemoItemRetailer[];
+}
+
+export interface TransformedBranchROI {
+  id: string;
+  state: string;
+  total_demo: number;
+  total_act: number;
+  total_stock: number;
+  partner_count: number;
+  partners: DemoItemROI[];
 }
 export interface TerritoryItemRet {
   id: string;
@@ -87,6 +110,7 @@ export interface TerritoryItemRet {
   at_80_demo: number;
   demo_100: number;
   partner_count: number;
+  pending: number;
   partners: DemoItemRetailer[];
 }
 export interface GroupConfig {
@@ -105,15 +129,16 @@ export interface DemoFilterResult {
 
 export interface ResellerFilterType {
   category: string;
-  premiumKiosk: number;
+  pKiosk: number;
   rogKiosk: number;
-  partnerType: string | null;
+  partnerType: string;
 }
 
 export interface StatsHeaderProps {
   stats: {
     label: string;
     value: number;
+    pending?: number;
     icon: string;
     iconType?: string;
     name: keyof typeof STAT_PALETTE;
@@ -138,7 +163,7 @@ export interface MetricProps {
   label: string;
   value: number;
   icon: string;
-  tint: 'slate' | 'violet' | 'teal' | 'amber' | 'blue';
+  tint: 'slate' | 'violet' | 'teal' | 'amber' | 'blue' | 'yellow';
 }
 
 export interface Filters {
@@ -174,6 +199,7 @@ export const METRIC_COLOR: Record<MetricProps['tint'], string> = {
   teal: 'text-teal-600 dark:text-teal-400',
   amber: 'text-amber-600 dark:text-amber-400',
   blue: 'text-blue-600 dark:text-blue-400',
+  yellow: 'text-yellow-600 dark:text-yellow-400',
 };
 export const METRIC_BG_COLOR: Record<MetricProps['tint'], string> = {
   slate: 'bg-slate-100 dark:bg-slate-800',
@@ -181,6 +207,7 @@ export const METRIC_BG_COLOR: Record<MetricProps['tint'], string> = {
   teal: 'bg-teal-100 dark:bg-teal-900',
   amber: 'bg-amber-100 dark:bg-amber-900',
   blue: 'bg-blue-100 dark:bg-blue-900',
+  yellow: 'bg-yellow-100 dark:bg-yellow-900',
 };
 export const METRIC_ICON_COLOR: Record<MetricProps['tint'], string> = {
   slate: '#64748b',
@@ -188,6 +215,7 @@ export const METRIC_ICON_COLOR: Record<MetricProps['tint'], string> = {
   teal: '#14b8a6',
   amber: '#f59e0b',
   blue: '#3b82f6',
+  yellow: '#eab308',
 };
 
 // Reseller Demo - Unified
@@ -205,8 +233,10 @@ export const transformDemoData = (apiData: {
 
     // Calculate demo percentage for this partner
     let percentage = 0;
+    let pending = 0;
     if (item.TotalCompulsoryDemo !== 0) {
       percentage = (item.DemoExecuted / item.TotalCompulsoryDemo) * 100;
+      pending = item.TotalCompulsoryDemo - item.DemoExecuted;
     }
 
     // Get or create branch
@@ -220,6 +250,7 @@ export const transformDemoData = (apiData: {
         rog_kiosk: 0,
         pkiosk: 0,
         pkiosk_rogkiosk: 0,
+        pending: 0,
         awp_Count:
           apiData.PartnerCount.find(pc => {
             if (pc.BranchName === branchName) return pc;
@@ -233,6 +264,7 @@ export const transformDemoData = (apiData: {
 
     // Increment partner count
     branch.partner_count += 1;
+    branch.pending += pending;
 
     // Sum kiosk counts
     branch.rog_kiosk += item.ROG_Kiosk_cnt || 0;
@@ -280,6 +312,7 @@ export const transformTerritoryData = (apiData: {
         demo_100: 0,
         rog_kiosk: 0,
         pkiosk: 0,
+        pending: 0,
         awp_Count:
           apiData.PartnerCount?.find(pc => pc.BranchName === territoryName)
             ?.PartnerCnt || 0,
@@ -297,6 +330,8 @@ export const transformTerritoryData = (apiData: {
     territory.rog_kiosk += item.ROG_Kiosk_cnt || 0;
     territory.pkiosk += item.Pkiosk_Cnt || 0;
     territory.pkiosk_rogkiosk += item.PKIOSK_ROG_KIOSK || 0;
+    territory.pending += (item.TotalCompulsoryDemo - item.DemoExecuted) || 0;
+   
 
     // Increment demo counters based on percentage
     if (percentage > 0 && percentage <= 50) {
@@ -312,7 +347,7 @@ export const transformTerritoryData = (apiData: {
   return Array.from(territoryMap.values());
 };
 
-// Retailer Demo - Unified
+// Retailer Demo
 export const transformDemoDataRetailer = (
   apiData: DemoItemRetailer[],
   config: GroupConfig,
@@ -325,6 +360,7 @@ export const transformDemoDataRetailer = (
       at_least_single_demo: number;
       at_80_demo: number;
       demo_100: number;
+      pending: number;
       partners: Map<string, DemoItemRetailer>;
     } & Record<typeof config.labelKey, string>
   >();
@@ -351,6 +387,7 @@ export const transformDemoDataRetailer = (
         at_least_single_demo: 0,
         at_80_demo: 0,
         demo_100: 0,
+        pending: 0,
         partners: new Map(),
       } as any);
     }
@@ -379,6 +416,8 @@ export const transformDemoDataRetailer = (
     for (const partner of group.partners.values()) {
       const total = partner.TotalCompulsoryDemo || 0;
       const percentage = total ? (partner.DemoExecuted / total) * 100 : 0;
+      const pending = total - partner.DemoExecuted;
+      group.pending = group.pending + pending;
 
       if (percentage > 0 && percentage < 80) {
         group.at_least_single_demo++;
@@ -392,6 +431,153 @@ export const transformDemoDataRetailer = (
 
   /* -------------------- Step 3: Normalize output -------------------- */
   return Array.from(map.values()).map(group => ({
+    ...group,
+    partners: Array.from(group.partners.values()),
+  }));
+};
+
+// LFR Demo 
+export const transformDemoDataLFR = (
+  apiData: DemoItemRetailer[]
+) => {
+  const map = new Map<
+    string,
+    {
+      id: string;
+      partner_count: number;
+      state: string;
+      at_least_single_demo: number;
+      at_80_demo: number;
+      demo_100: number;
+      pending: number;
+      partners: Map<string, DemoItemRetailer>;
+    }
+  >();
+
+  /* -------------------- Step 1: Aggregate -------------------- */
+  for (const item of apiData) {
+    const {
+      BranchName,
+      PartnerName,
+      PartnerType,
+      PartnerCode,
+      DemoExecuted,
+      Demo_UnitModel,
+    } = item;
+
+    const groupKey = BranchName;
+    const partnerKey = `${PartnerName}-${PartnerType}-${PartnerCode}`;
+
+    if (!map.has(groupKey)) {
+      map.set(groupKey, {
+        id: String(map.size + 1),
+        state: BranchName,
+        partner_count: 0,
+        at_least_single_demo: 0,
+        at_80_demo: 0,
+        demo_100: 0,
+        pending: 0,
+        partners: new Map(),
+      } as any);
+    }
+
+    const group = map.get(groupKey)!;
+    const existingPartner = group.partners.get(partnerKey);
+
+    if (existingPartner) {
+      existingPartner.DemoExecuted += DemoExecuted;
+
+      if (Demo_UnitModel) {
+        const models = new Set(
+          existingPartner.Demo_UnitModel?.split(',') ?? [],
+        );
+        models.add(Demo_UnitModel);
+        existingPartner.Demo_UnitModel = [...models].join(',');
+      }
+    } else {
+      group.partners.set(partnerKey, { ...item });
+      group.partner_count++;
+    }
+  }
+
+  /* -------------------- Step 2: Calculate buckets -------------------- */
+  for (const group of map.values()) {
+    for (const partner of group.partners.values()) {
+      const total = partner.TotalCompulsoryDemo || 0;
+      const percentage = total ? (partner.DemoExecuted / total) * 100 : 0;
+      const pending = total - partner.DemoExecuted;
+      group.pending = group.pending + pending;
+
+      if (percentage > 0 && percentage < 80) {
+        group.at_least_single_demo++;
+      } else if (percentage >= 80 && percentage < 100) {
+        group.at_80_demo++;
+      } else if (percentage >= 100) {
+        group.demo_100++;
+      }
+    }
+  }
+
+  /* -------------------- Step 3: Normalize output -------------------- */
+  return Array.from(map.values()).map(group => ({
+    ...group,
+    partners: Array.from(group.partners.values()),
+  }));
+};
+
+export const transformDemoDataROI = (apiData: DemoItemROI[]) => {
+  const groupMap = new Map<string, GroupROI>();
+
+  for (const item of apiData) {
+    const {
+      BranchName,
+      PartnerName,
+      PartnerType,
+      PartnerCode,
+      Model_Series,
+      Total_Demo_Count,
+      Activation_count,
+      Inventory_Count,
+    } = item;
+
+    const groupKey = BranchName;
+    const partnerKey = `${PartnerName}-${PartnerType}-${PartnerCode}-${Model_Series}`;
+
+    /* ---------- Create group if not exists ---------- */
+    let group = groupMap.get(groupKey);
+    if (!group) {
+      group = {
+        id: String(groupMap.size + 1),
+        state: BranchName,
+        partner_count: 0,
+        total_demo: 0,
+        total_act: 0,
+        total_stock: 0,
+        partners: new Map(),
+      };
+      groupMap.set(groupKey, group);
+    }
+
+    /* ---------- Partner aggregation ---------- */
+    const existingPartner = group.partners.get(partnerKey);
+
+    if (existingPartner) {
+      existingPartner.Total_Demo_Count += Total_Demo_Count;
+      existingPartner.Activation_count += Activation_count;
+      existingPartner.Inventory_Count += Inventory_Count;
+    } else {
+      group.partners.set(partnerKey, { ...item });
+      group.partner_count++;
+    }
+
+    /* ---------- Increment group totals ---------- */
+    group.total_demo += Total_Demo_Count;
+    group.total_act += Activation_count;
+    group.total_stock += Inventory_Count;
+  }
+
+  /* ---------- Normalize output ---------- */
+  return Array.from(groupMap.values()).map(group => ({
     ...group,
     partners: Array.from(group.partners.values()),
   }));

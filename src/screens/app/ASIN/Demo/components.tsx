@@ -29,6 +29,7 @@ import {
   transformDemoDataRetailer,
   TransformedBranchRes,
   TransformedBranchRet,
+  TransformedBranchROI,
   transformTerritoryData,
 } from './utils';
 import {
@@ -545,51 +546,51 @@ export const BranchCard = memo(
                     icon="users"
                     tint="slate"
                   />
-                  {item.awp_Count != null ? (
+                  {item.awp_Count !== null && (
                     <Metric
                       label="AWP Count"
                       value={item.awp_Count}
                       icon="users"
-                      tint="slate"
+                      tint="blue"
                     />
-                  ) : (
-                    false
                   )}
-                  {item.rog_kiosk != null ? (
+                  {item.rog_kiosk !== null && (
                     <Metric
                       label="ROG Kiosk"
                       value={item.rog_kiosk}
                       icon="monitor"
                       tint="teal"
                     />
-                  ) : (
-                    false
                   )}
 
-                  {item.pkiosk != null ? (
+                  {item.pkiosk !== null && (
                     <Metric
                       label="Premium Kiosk"
                       value={item.pkiosk}
                       icon="star"
                       tint="amber"
                     />
-                  ) : (
-                    false
                   )}
-                  {item.pkiosk_rogkiosk != null ? (
+                  {item.pkiosk_rogkiosk !== null && (
                     <Metric
                       label="P+ROG Kiosk"
                       value={item.pkiosk_rogkiosk}
                       icon="layers"
                       tint="violet"
                     />
-                  ) : (
-                    false
+                  )}
+                  {item.pending !== null && (
+                    <Metric
+                      label="Pending"
+                      value={item.pending}
+                      icon="pause-circle"
+                      tint="yellow"
+                    />
                   )}
                 </View>
                 {/* Progress section */}
                 <View className="mt-5 px-3 gap-3">
-                  {item.at_least_single_demo != null ? (
+                  {item.at_least_single_demo !== null && (
                     <ProgressStat
                       label="At Least Single"
                       percent={atLeastSinglePercent}
@@ -598,10 +599,8 @@ export const BranchCard = memo(
                       barTint="bg-violet-500"
                       percentTint="text-violet-600"
                     />
-                  ) : (
-                    false
                   )}
-                  {item.demo_100 != null ? (
+                  {item.demo_100 !== null && (
                     <ProgressStat
                       label="100% Demo"
                       percent={demo100Percent}
@@ -610,8 +609,6 @@ export const BranchCard = memo(
                       barTint="bg-teal-500"
                       percentTint="text-teal-600"
                     />
-                  ) : (
-                    false
                   )}
                 </View>
                 <Pressable
@@ -835,7 +832,6 @@ export const BranchCardRet = memo(
     category,
     partnerType,
     IsCompulsory,
-    tab,
   }: {
     item: TransformedBranchRet;
     summaryData: {
@@ -847,7 +843,6 @@ export const BranchCardRet = memo(
     category: string;
     partnerType: string | null;
     IsCompulsory?: string;
-    tab: 'LFR' | 'retailer' | 'reseller';
   }) => {
     const [showFront, setShowFront] = useState(true);
     const [frontCardHeight, setFrontCardHeight] = useState(0);
@@ -1003,6 +998,12 @@ export const BranchCardRet = memo(
                     value={item.partner_count}
                     icon="users"
                     tint="slate"
+                  />
+                   <Metric
+                    label={'Pending'}
+                    value={item.pending}
+                    icon="layers"
+                    tint="violet"
                   />
                 </View>
                 {/* Progress section */}
@@ -1245,3 +1246,255 @@ export const TerritoryCardRet: React.FC<{
     </TouchableOpacity>
   );
 });
+
+// LFR Component
+export const BranchCardLFR = memo(
+  ({
+    item,
+    summaryData,
+    yearQtr,
+  }: {
+    item: TransformedBranchRet;
+    summaryData: {
+      at_least_single_demo: number;
+      demo_100: number;
+      at_80_demo: number;
+    };
+    yearQtr: string;
+  }) => {
+    const navigation = useNavigation<AppNavigationProp>();
+
+    const atLeastSinglePercent = useMemo(() => {
+      if (summaryData.at_least_single_demo === 0) return 0;
+      return Math.round(
+        (item.at_least_single_demo / summaryData.at_least_single_demo) * 100,
+      );
+    }, [item.at_least_single_demo, summaryData.at_least_single_demo]);
+
+    const demo100Percent = useMemo(() => {
+      if (summaryData.demo_100 === 0) return 0;
+      return Math.round((item.demo_100 / summaryData.demo_100) * 100);
+    }, [item.demo_100, summaryData.demo_100]);
+
+    const demo80Percent = useMemo(() => {
+      if (!summaryData.at_80_demo || summaryData.at_80_demo === 0) return 0;
+      return Math.round((item.at_80_demo / summaryData.at_80_demo) * 100);
+    }, [item.at_80_demo, summaryData.at_80_demo]);
+    return (
+      <TouchableOpacity
+      className='mb-3'
+              activeOpacity={0.8}
+              onPress={() => {
+                navigation.push('DemoPartners', {
+                  partners: item.partners,
+                  yearQtr,
+                });
+              }}>
+              <Card
+                className="p-0 border border-slate-200 dark:border-slate-700"
+                noshadow>
+                <View className="flex-row items-center gap-2 pb-2 border-b border-slate-100 pt-4 px-3">
+                  <View className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center">
+                    <AppIcon
+                      name="map-pin"
+                      type="feather"
+                      size={16}
+                      color="black"
+                    />
+                  </View>
+                  <AppText
+                    size="base"
+                    weight="semibold"
+                    className="text-slate-800 tracking-tight flex-1"
+                    numberOfLines={1}>
+                    {item.state}
+                  </AppText>
+                  <View className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center">
+                    <AppIcon
+                      name="chevron-right"
+                      type="feather"
+                      size={16}
+                      color="#475569"
+                    />
+                  </View>
+                </View>
+                {/* Metric grid */}
+                <View className="mt-3 px-3 flex-row flex-wrap pb-2 border-b border-slate-100">
+                  <Metric
+                    label={'Partners'}
+                    value={item.partner_count}
+                    icon="users"
+                    tint="slate"
+                  />
+                  <Metric
+                    label={'Pending'}
+                    value={item.pending}
+                    icon="layers"
+                    tint="violet"
+                  />
+                </View>
+                {/* Progress section */}
+                <View className="mt-5 px-3 gap-3 pb-4">
+                  {item.at_least_single_demo != null ? (
+                    <ProgressStat
+                      label="At Least Single"
+                      percent={atLeastSinglePercent}
+                      current={item.at_least_single_demo}
+                      total={summaryData.at_least_single_demo}
+                      barTint="bg-violet-500"
+                      percentTint="text-violet-600"
+                    />
+                  ) : (
+                    false
+                  )}
+                  {item.at_80_demo != null ? (
+                    <ProgressStat
+                      label="80% Demo"
+                      percent={demo80Percent}
+                      current={item.at_80_demo}
+                      total={summaryData.at_80_demo || 0}
+                      barTint="bg-sky-500"
+                      percentTint="text-sky-600"
+                    />
+                  ) : (
+                    false
+                  )}
+                  {item.demo_100 != null ? (
+                    <ProgressStat
+                      label="100% Demo"
+                      percent={demo100Percent}
+                      current={item.demo_100}
+                      total={summaryData.demo_100}
+                      barTint="bg-teal-500"
+                      percentTint="text-teal-600"
+                    />
+                  ) : (
+                    false
+                  )}
+                </View>
+              </Card>
+            </TouchableOpacity>
+    );
+  },
+);
+export const BranchCardROI = memo(
+  ({
+    item,
+    summaryData,
+    yearQtr,
+  }: {
+    item: TransformedBranchROI;
+    summaryData: {
+        total_demo: number,
+        total_act: number,
+        total_stock: number,
+    };
+    yearQtr: string;
+  }) => {
+    const navigation = useNavigation<AppNavigationProp>();
+
+    const totalDemoPercent = useMemo(() => {
+      if (summaryData.total_demo === 0) return 0;
+      return Math.round(
+        (item.total_demo / summaryData.total_demo) * 100,
+      );
+    }, [item.total_demo, summaryData.total_demo]);
+    const totalActPercent = useMemo(() => {
+      if (summaryData.total_demo === 0) return 0;
+      return Math.round((item.total_act / summaryData.total_demo) * 100);
+    }, [item.total_act, summaryData.total_demo]);
+    const totalStockPercent = useMemo(() => {
+      if (!summaryData.total_stock || summaryData.total_stock === 0) return 0;
+      return Math.round((item.total_stock / summaryData.total_stock) * 100);
+    }, [item.total_stock, summaryData.total_stock]);
+    return (
+      <TouchableOpacity
+      className='mb-3'
+              activeOpacity={0.8}
+              onPress={() => {
+                navigation.push('DemoPartners', {
+                  partners: item.partners,
+                  yearQtr,
+                });
+              }}>
+              <Card
+                className="p-0 border border-slate-200 dark:border-slate-700"
+                noshadow>
+                <View className="flex-row items-center gap-2 pb-2 border-b border-slate-100 pt-4 px-3">
+                  <View className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center">
+                    <AppIcon
+                      name="map-pin"
+                      type="feather"
+                      size={16}
+                      color="black"
+                    />
+                  </View>
+                  <AppText
+                    size="base"
+                    weight="semibold"
+                    className="text-slate-800 tracking-tight flex-1"
+                    numberOfLines={1}>
+                    {item.state}
+                  </AppText>
+                  <View className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center">
+                    <AppIcon
+                      name="chevron-right"
+                      type="feather"
+                      size={16}
+                      color="#475569"
+                    />
+                  </View>
+                </View>
+                {/* Metric grid */}
+                <View className="mt-3 px-3 flex-row flex-wrap pb-2 border-b border-slate-100">
+                  <Metric
+                    label={'Partners'}
+                    value={item.partner_count}
+                    icon="users"
+                    tint="slate"
+                  />
+                </View>
+                {/* Progress section */}
+                <View className="mt-5 px-3 gap-3 pb-4">
+                  {item.total_demo != null ? (
+                    <ProgressStat
+                      label="At Least Single"
+                      percent={totalDemoPercent}
+                      current={item.total_demo}
+                      total={summaryData.total_demo}
+                      barTint="bg-violet-500"
+                      percentTint="text-violet-600"
+                    />
+                  ) : (
+                    false
+                  )}
+                  {item.total_act != null ? (
+                    <ProgressStat
+                      label="80% Demo"
+                      percent={totalActPercent}
+                      current={item.total_act}
+                      total={summaryData.total_demo || 0}
+                      barTint="bg-sky-500"
+                      percentTint="text-sky-600"
+                    />
+                  ) : (
+                    false
+                  )}
+                  {item.total_stock != null ? (
+                    <ProgressStat
+                      label="100% Demo"
+                      percent={totalStockPercent}
+                      current={item.total_stock}
+                      total={summaryData.total_stock}
+                      barTint="bg-teal-500"
+                      percentTint="text-teal-600"
+                    />
+                  ) : (
+                    false
+                  )}
+                </View>
+              </Card>
+            </TouchableOpacity>
+    );
+  },
+);

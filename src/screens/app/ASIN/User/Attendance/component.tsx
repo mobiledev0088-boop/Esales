@@ -1,4 +1,4 @@
-import {TouchableOpacity, View} from 'react-native';
+import {Alert, Linking, TouchableOpacity, View} from 'react-native';
 import AppModal from '../../../../../components/customs/AppModal';
 import AppIcon from '../../../../../components/customs/AppIcon';
 import AppText from '../../../../../components/customs/AppText';
@@ -7,118 +7,93 @@ import AppInput from '../../../../../components/customs/AppInput';
 import AppButton from '../../../../../components/customs/AppButton';
 import moment from 'moment';
 import Card from '../../../../../components/Card';
-import {useMarkAttendance} from '../../../../../hooks/queries/attendance';
 import AppLayout from '../../../../../components/layout/AppLayout';
 import Skeleton from '../../../../../components/skeleton/skeleton';
-import {screenWidth} from '../../../../../utils/constant';
+import {ASUS, screenWidth} from '../../../../../utils/constant';
+import {useASEAttendanceStore} from '../../../../../stores/useASEAttendanceStore';
+import {useLoginStore} from '../../../../../stores/useLoginStore';
+import {useMutation, useQuery} from '@tanstack/react-query';
+import {handleASINApiCall} from '../../../../../utils/handleApiCall';
 import {
-  AttendanceToday,
-  useASEAttendanceStore,
-} from '../../../../../stores/useASEAttendanceStore';
-
-interface InformationModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-interface LeaveWeekOffModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-interface MonthCalendarProps {
-  month: moment.Moment;
-  records: AttendanceToday[];
-  selectedDateKey?: string | null;
-  onSelectDate?: (dateKey: string) => void;
-  onMonthChange?: (next: moment.Moment) => void;
-}
-
-type LeaveWeekOff = 'Leave' | 'Week Off';
-type AttendanceStatus =
-  | 'Present'
-  | 'Absent'
-  | 'Partial'
-  | 'Leave'
-  | 'WeekOff'
-  | 'None';
-
-// Utility Functions
-export const toDateKey = (value: string | null) => {
-  if (!value) return null;
-  const parsed = moment(value, ['DD-MM-YYYY', 'YYYY-MM-DD', moment.ISO_8601]);
-  return parsed.isValid() ? parsed.format('YYYY-MM-DD') : null;
-};
-
-export const isInsideGeoFence = (lat: number, lon: number,centerLat: number,centerLon: number) => {
-  console.log('centerLat, centerLon',centerLat, centerLon);
-  if(centerLat === null || centerLon === null) return false;
-  // const {Latitude, Longitude} = useLoginStore(state => state.userInfo);
-
-  // Office Location
-  // const centerLat = 19.137887555544914;
-  // const centerLon = 72.83872748527693;
-
-  // old office Location
-  // const centerLat = 19.133975;
-  // const centerLon = 86.836282;
-
-  // Home Location
-  // const centerLat = 19.190455;
-  // const centerLon = 86.830674;
-
-  const radius = 100; // meters
-  const R = 6371000; // Earth radius
-
-  // console.log('current location', lat, lon);
-  // console.log('geo-fence center', centerLat, centerLon);
-
-  const toRad = (v: number) => (v * Math.PI) / 180;
-  const x = toRad(lon - centerLon) * Math.cos(toRad((lat + centerLat) / 2));
-  const y = toRad(lat - centerLat);
-  const distance = Math.sqrt(x * x + y * y) * R;
-  // console.log('distance from geo-fence center', distance);
-  return distance <= radius;
-};
-
-// helpers function
-const deriveStatus = (
-  record?: AttendanceToday | null,
-): AttendanceStatus | null => {
-  if (!record) return null;
-  if (record.checkInDone && record.checkOutDone) return 'Present';
-  if (record.checkInDone || record.checkOutDone) return 'Partial';
-  if (record.status === 'Leave') return 'Leave';
-  if (record.status === 'WeekOff') return 'WeekOff';
-  return 'Absent';
-};
-
-const statusStyles: Record<
   AttendanceStatus,
-  {bg: string; text: string; border: string}
-> = {
-  None: {bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200'},
-  Present: {
-    bg: 'bg-emerald-50',
-    text: 'text-emerald-700',
-    border: 'border-emerald-200',
-  },
-  Absent: {bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200'},
-  Partial: {
-    bg: 'bg-amber-50',
-    text: 'text-amber-700',
-    border: 'border-amber-200',
-  },
-  Leave: {
-    bg: 'bg-rose-50',
-    text: 'text-rose-600',
-    border: 'border-rose-200',
-  },
-  WeekOff: {
-    bg: 'bg-warning-50',
-    text: 'text-warning-600',
-    border: 'border-warning-200',
-  },
+  AttendanceToday,
+  deriveStatus,
+  InformationModalProps,
+  LeaveWeekOff,
+  LeaveWeekOffModalProps,
+  MarkAttendancePayload,
+  MonthCalendarProps,
+  StatusMap,
+  statusStyles,
+  toDateKey,
+  transformASEData,
+  transformAttendanceData,
+} from './utils';
+import {getCurrentQuarter} from '../../../../../utils/commonFunctions';
+
+// API Hooks
+export const useMarkAttendance = () => {
+  const userInfo = useLoginStore(state => state.userInfo);
+  const employeeCode = userInfo?.EMP_Code || '';
+
+  return useMutation({
+    mutationFn: async ({status, Lat, Lon, reason}: MarkAttendancePayload) => {
+      const response = await handleASINApiCall(
+        '/ASE/PostASIN_ISP_Attendance_Info_Insert',
+        {
+          IChannelID: employeeCode,
+          Status: StatusMap[status],
+          Latitude: Lat,
+          Longitude: Lon,
+          reason: reason || null,
+        },
+      );
+      const result = response?.DashboardData;
+      if (!result?.Status) {
+        throw new Error('Attendance marking failed');
+      }
+      return result;
+    },
+  });
+};
+
+export const useGetAttendanceHistory = (iChannelCode?:string) => {
+  const {EMP_Code, EMP_RoleId: RoleId} = useLoginStore(state => state.userInfo);
+  const EmployeeCode = EMP_Code;
+  const IChannelID = RoleId === ASUS.ROLE_ID.ASE ? EMP_Code : iChannelCode || '';
+  return useQuery({
+    queryKey: ['getAttendance', EmployeeCode, IChannelID, RoleId],
+    queryFn: async () => {
+      const response = await handleASINApiCall(
+        '/ASE/PostASIN_ISP_Attendance_Info',
+        {
+          EmployeeCode,
+          IChannelID,
+          RoleId,
+          Year: getCurrentQuarter(),
+          Month: 1,
+        },
+      );
+      const result = response.DashboardData;
+      if (!result?.Status)
+        return {
+          ASE_List: [],
+          attendance_data: [],
+        };
+      return {
+        ASE_List: result?.Datainfo?.Table || [],
+        attendance_data: result?.Datainfo?.Table1 || [],
+      };
+    },
+    select: data => {
+      return {
+        ASE_List: transformASEData(data.ASE_List),
+        attendance_data: transformAttendanceData(data.attendance_data),
+      };
+    },
+    staleTime: 0,
+    gcTime: 0,
+  });
 };
 
 // Components
@@ -546,9 +521,9 @@ export const LeaveWeekOffModal = ({
   );
 };
 
-export const AttendanceSkeleton = () => {
+export const AttendanceSkeleton = ({onlyHeader}: {onlyHeader?: boolean}) => {
   return (
-    <AppLayout title="Attendance" needBack needPadding>
+    <AppLayout title="Attendance" needBack needPadding onlyHeader>
       <View className="mt-4" />
       <Skeleton width={screenWidth - 14} height={200} borderRadius={12} />
       <View className="flex-row justify-between items-center">
@@ -563,9 +538,17 @@ export const AttendanceSkeleton = () => {
   );
 };
 
-export const AttendaceNotAvailable = ({navigation}: {navigation: any}) => {
+export const AttendaceNotAvailable = ({navigation,onlyHeader}: {navigation: any, onlyHeader?: boolean}) => {
+  const openSettings = async () => {
+    try {
+      // Intent for Android to open the App Info/Settings page
+      await Linking.openSettings();
+    } catch (error) {
+      Alert.alert("Error", "Unable to open settings");
+    }
+  };
   return (
-    <AppLayout title="Attendance" needBack needPadding>
+    <AppLayout title="Attendance" needBack needPadding onlyHeader={onlyHeader}>
       <View className="flex-1 justify-center items-center px-4">
         <View className="w-full rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
           <View className="h-14 w-14 rounded-2xl items-center justify-center bg-sky-100 dark:bg-sky-900/40">
@@ -592,7 +575,8 @@ export const AttendaceNotAvailable = ({navigation}: {navigation: any}) => {
             <AppButton
               title="Open App Permissions"
               iconName="settings"
-              onPress={() => navigation.push('AppPermissions')}
+              // onPress={() => navigation.push('AppPermissions')}
+              onPress={openSettings}
               className="flex-1 rounded-xl"
               noLoading
             />

@@ -42,8 +42,8 @@ type FilterData = {
 const ClaimCodeWise = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const Date = {
-    startMonth: moment().subtract(11, 'months').format('YYYYMM'),
-    endMonth: moment().format('YYYYMM'),
+    startMonth: moment().subtract(12, 'months').format('YYYYMM'),
+    endMonth: moment().subtract(1, 'months').format('YYYYMM'),
   };
   const [filterData, setFilterData] = useState<FilterData>({
     partnerType: 'Channel',

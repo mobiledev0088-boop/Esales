@@ -1,25 +1,21 @@
 import moment from 'moment';
 import {View, TouchableOpacity} from 'react-native';
 import {useCallback, useEffect, useMemo, useState} from 'react';
-import {useNavigation} from '@react-navigation/native';
+import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import AppLayout from '../../../../../components/layout/AppLayout';
 import AppText from '../../../../../components/customs/AppText';
 import AttendanceMarkModal from './AttendanceMarkModal';
 import AppButton from '../../../../../components/customs/AppButton';
-import {
-  AttendanceToday,
-  useASEAttendanceStore,
-} from '../../../../../stores/useASEAttendanceStore';
+import {useASEAttendanceStore} from '../../../../../stores/useASEAttendanceStore';
 import AppIcon from '../../../../../components/customs/AppIcon';
 import {
   AttendaceNotAvailable,
   AttendanceSkeleton,
   HeroStatusCard,
   InformationModal,
-  isInsideGeoFence,
   LeaveWeekOffModal,
   MonthCalendar,
-  toDateKey,
+  useGetAttendanceHistory,
 } from './component';
 import {useLocation} from '../../../../../hooks/useLocation';
 import {isIOS} from '../../../../../utils/constant';
@@ -29,52 +25,9 @@ import {
   RESULTS,
   PermissionStatus,
 } from 'react-native-permissions';
-import {AppNavigationProp} from '../../../../../types/navigation';
-import {useGetAttendanceHistory} from '../../../../../hooks/queries/attendance';
+import {AppNavigationProp, AppNavigationParamList} from '../../../../../types/navigation';
 import {useLoginStore} from '../../../../../stores/useLoginStore';
-
-// const history: AttendanceToday[] = [
-//   {
-//     checkInDone: true,
-//     checkInTime: '09:10 AM',
-//     checkOutDone: true,
-//     checkOutTime: '06:10 PM',
-//     attendanceDate: '05-01-2026',
-//     status: 'Present',
-//   },
-//   {
-//     checkInDone: true,
-//     checkInTime: '09:05 AM',
-//     checkOutDone: true,
-//     checkOutTime: '06:00 PM',
-//     attendanceDate: '04-01-2026',
-//     status: 'Present',
-//   },
-//   {
-//     checkInDone: true,
-//     checkInTime: '09:15 AM',
-//     checkOutDone: true,
-//     checkOutTime: '06:10 PM',
-//     attendanceDate: '03-01-2026',
-//     status: 'Present',
-//   },
-//   {
-//     checkInDone: false,
-//     checkInTime: null,
-//     checkOutDone: false,
-//     checkOutTime: null,
-//     attendanceDate: '02-01-2026',
-//     status: 'Absent',
-//   },
-//   {
-//     checkInDone: false,
-//     checkInTime: null,
-//     checkOutDone: false,
-//     checkOutTime: null,
-//     attendanceDate: '01-01-2026',
-//     status: 'Absent',
-//   },
-// ];
+import { AttendanceToday, isInsideGeoFence, toDateKey } from './utils';
 
 const LOCATION_PERMISSION = isIOS
   ? PERMISSIONS.IOS.LOCATION_WHEN_IN_USE
@@ -82,9 +35,10 @@ const LOCATION_PERMISSION = isIOS
 
 export default function Attendance() {
   const navigation = useNavigation<AppNavigationProp>();
+  const {params} = useRoute<RouteProp<AppNavigationParamList, 'Attendance'>>();
   const {Latitude, Longitude} = useLoginStore(state => state.userInfo);
   const {attendanceToday} = useASEAttendanceStore();
-  const {data, isLoading, error} = useGetAttendanceHistory();
+  const {data, isLoading, error} = useGetAttendanceHistory(params?.iChannelCode);
 
   const [permissionStatus, setPermissionStatus] =
     useState<PermissionStatus | null>(null);
@@ -116,7 +70,7 @@ export default function Attendance() {
   }, [attendanceToday, location, Latitude, Longitude]);
   const calendarRecords = useMemo(() => {
     const seen = new Set<string>();
-    const merged = [...(data || [])];
+    const merged = [...(data?.attendance_data || [])];
     if (attendanceToday.attendanceDate) {
       merged.push(attendanceToday);
     }
@@ -182,16 +136,20 @@ export default function Attendance() {
     syncPermission();
   }, [syncPermission]);
 
-  if (permissionStatus !== RESULTS.GRANTED) {
-    return <AttendaceNotAvailable navigation={navigation} />;
+  if (!params?.aseName && permissionStatus !== RESULTS.GRANTED) {
+    return <AttendaceNotAvailable navigation={navigation} onlyHeader={!params?.aseName} />;
   }
   if (loading || isLoading) {
-    return <AttendanceSkeleton />;
+    return <AttendanceSkeleton onlyHeader={!params?.aseName} />;
   }
-
   return (
-    <AppLayout title="Attendance" needBack needPadding>
+    <AppLayout
+      title={params?.aseName ? `Attendance - ${params.aseName}` : 'Attendance'}
+      needBack
+      needPadding
+      >
       <HeroStatusCard record={selectedRecord} label={selectedLabel} />
+     {!params?.aseName && <View>
       <View className="flex-row items-center justify-between gap-x-2">
         <AppButton
           title={'Mark Attendance'}
@@ -221,6 +179,7 @@ export default function Attendance() {
           </AppText>
         </View>
       )}
+      </View>}
       <View className="flex-row items-center justify-between mb-3 px-1 mt-3">
         <View className="flex-row items-center gap-x-2">
           <View className="p-2 bg-[#E5E7EB] rounded-full">

@@ -530,7 +530,10 @@ export const AccountSettings = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const {EMP_RoleId} = useLoginStore(state => state.userInfo);
   const AppTheme = useThemeStore(state => state.AppTheme);
-  const isASE = EMP_RoleId === ASUS.ROLE_ID.ASE;
+  const {ASE,BSM,HO_EMPLOYEES,AM,TM} = ASUS.ROLE_ID;
+  const allowAttendanceRoles = [ASE,BSM,HO_EMPLOYEES,AM,TM];
+  const isAttendanceAllowed = allowAttendanceRoles.includes(EMP_RoleId as any);
+  const attendanceNavigation  = EMP_RoleId === ASE ? 'Attendance' : 'Attendance_HO';
   return (
     <>
       <AppText className="ml-2 mt-8 mb-2 underline">Account Settings</AppText>
@@ -542,12 +545,12 @@ export const AccountSettings = () => {
           () => navigation.push('ChangePassword'),
           AppTheme,
         )}
-        {isASE &&
+        {isAttendanceAllowed &&
           renderCardRow(
             'ionicons',
             'checkmark-done-circle-outline',
             'Attendance',
-            () => navigation.push('Attendance'),
+            () => navigation.push(attendanceNavigation),
             AppTheme,
           )}
         {renderCardRow(

@@ -23,6 +23,7 @@ import ClaimFilterSheetAPAC from '../screens/app/APAC/ATID/Claim/ClaimFilterShee
 import ClaimViewMoreSheet from '../screens/app/APAC/ATID/Claim/ClaimViewMoreSheet';
 import DemoFilterSheetAPAC from '../screens/app/APAC/ATID/Demo/DemoFilterSheetAPAC';
 import DropdownActionSheet from '../screens/app/ASIN/More/ChannelMap/ChanelMapAGP/DropdownActionSheet';
+import SourceOptionSheet from '../components/SourceOptionSheet';
 
 registerSheet('MoreSheet', MoreSheet);
 registerSheet('ConfirmationSheet', ConfirmationSheet);
@@ -32,6 +33,7 @@ registerSheet('DemoFilterSheet', DemoFilterSheet);
 registerSheet('ClaimFilterSheet', ClaimFilterSheet);
 registerSheet('WODFilterSheet', WODFilterSheet);
 registerSheet('SchemeInfoSheet', SchemeInfoSheet);
+registerSheet('SourceOptionSheet', SourceOptionSheet);
 registerSheet('ActivationFilterSheet', ActivationFilterSheet);
 registerSheet('PartnerDetailsSheet', PartnerDetailsSheet);
 registerSheet('DemoDetailsSheet', DemoDetailsSheet);

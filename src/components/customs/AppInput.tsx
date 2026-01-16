@@ -28,6 +28,7 @@ interface CustomInputProps extends TextInputProps {
     helpText?: string;
     showClearButton?: boolean;
     onClear?: () => void;
+    readOnly?: boolean;
     variant?: 'border' | 'underline' | 'pill';
     size?: 'sm' | 'md' | 'lg';
     inputWapperStyle?: ViewStyle;
@@ -53,6 +54,7 @@ const AppInput = forwardRef<TextInput, CustomInputProps>(({
     helpText,
     showClearButton = true,
     onClear,
+    readOnly = false,
     variant = 'border',
     size = 'md',
     inputWapperStyle,
@@ -62,11 +64,14 @@ const AppInput = forwardRef<TextInput, CustomInputProps>(({
     const [hidePassword, setHidePassword] = useState(secureTextEntry ?? isPassword);
     const [isFocused, setIsFocused] = useState(false);
 
+    const isDisabled = readOnly === true;
+
     const borderColor = useMemo(() => {
         if (error) return '#EF4444';
+        if (isDisabled) return '#E5E7EB';
         if (isFocused) return '#3B82F6';
         return '#D1D5DB';
-    }, [error, isFocused]);
+    }, [error, isFocused, isDisabled]);
 
 
     const height = size === 'sm' ? 40 : size === 'lg' ? 54 : 45;
@@ -108,9 +113,10 @@ const AppInput = forwardRef<TextInput, CustomInputProps>(({
     }, [borderColor, variant, inputWapperStyle, height]);
 
     const handleClear = useCallback(() => {
+        if (isDisabled) return;
         setValue('');
         onClear?.();
-    }, [onClear]);
+    }, [onClear, setValue, isDisabled]);
     return (
         <View className={twMerge('w-full', containerClassName)}>
             {label && (
@@ -119,32 +125,33 @@ const AppInput = forwardRef<TextInput, CustomInputProps>(({
                 </AppText>
             )}
 
-            <View style={[inputContainerStyle]} >
+            <View style={[inputContainerStyle, isDisabled && { opacity: 0.6 }]} >
                 {leftIconTsx ?? (leftIcon && <Icon name={leftIcon} size={20} color={appTheme === 'dark' ? "#fff" : "#000"} style={{ marginLeft: 8, marginRight:8 }} />)}
 
                 <TextInput
                     ref={ref}
                     value={value}
                     onChangeText={setValue}
-                    placeholderTextColor="#9CA3AF"
+                    placeholderTextColor={isDisabled ? '#D1D5DB' : '#9CA3AF'}
                     secureTextEntry={hidePassword}
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
-                    className={twMerge('flex-1 text-gray-900 dark:text-gray-100 font-manropeMedium ', inputClassName)}
+                    className={twMerge('flex-1 text-gray-900 dark:text-gray-100 font-manropeMedium ', isDisabled && 'text-gray-400', inputClassName)}
                     style={{fontSize, height: '100%'}}
+                    editable={!isDisabled}
                     // for screen readers
                     accessibilityLabel={label}
                     accessibilityHint={helpText}
                     {...props}
                 />
 
-                {isPassword && (
+                {isPassword && !isDisabled && (
                     <Pressable onPress={() => setHidePassword(!hidePassword)} className="mr-3">
                         <Icon name={hidePassword ? 'eye-off' : 'eye'} size={20} color="#6B7280" />
                     </Pressable>
                 )}
 
-                {showClearButton && value && !isPassword && (
+                {showClearButton && value && !isPassword && !isDisabled && (
                     <Pressable onPress={handleClear} className="mr-2">
                         <Icon name="close-circle-outline" size={20} color="#9CA3AF" />
                     </Pressable>

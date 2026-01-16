@@ -12,7 +12,7 @@ import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {memo, useRef, useImperativeHandle, forwardRef, useState} from 'react';
 import {EmpInfo} from '../../types/user';
 import LogoutModal from '../LogoutModal';
-import { getMMKV } from '../../utils/mmkvStorage';
+import {getMMKV} from '../../utils/mmkvStorage';
 
 type ScrollToOptions = {
   x?: number;
@@ -32,6 +32,7 @@ type AppLayoutProps = {
   title?: string;
   needScroll?: boolean;
   needPadding?: boolean;
+   onlyHeader?: boolean;
   onScrollToComplete?: () => void;
 };
 
@@ -43,6 +44,7 @@ type HeaderProps = {
   name: string;
   empInfo: EmpInfo | null;
   isDashboard?: boolean;
+  onlyHeader?: boolean;
 };
 
 const Header = memo<HeaderProps>(
@@ -54,24 +56,27 @@ const Header = memo<HeaderProps>(
     name,
     empInfo,
     isDashboard = false,
+    onlyHeader = false,
   }) => {
-    const roleName = empInfo?.EMP_Type === 'T3Partner' ? '': empInfo?.RoleName || 'N/AA';
-    const empType =  empInfo?.EMP_Type ?  empInfo.EMP_Type + ' ' :  '';
+    const roleName =
+      empInfo?.EMP_Type === 'T3Partner' ? '' : empInfo?.RoleName || 'N/AA';
+    const empType = empInfo?.EMP_Type ? empInfo.EMP_Type + ' ' : '';
     const [isOpen, setIsOpen] = useState(false);
     return (
       <View className="flex-row items-center justify-between px-4 py-4 bg-primary dark:bg-primary-dark rounded-b-md">
         {/* Left */}
         <View className="flex-row items-center max-w-[70%]">
-          <Pressable
-            onPress={needBack ? navigation.goBack : navigation.openDrawer}
-            hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
-          >
-          <Icon
-            name={needBack ? 'arrow-back' : 'menu'}
-            size={25}
-            color="#fff"
-            />
+          {!onlyHeader && (
+            <Pressable
+              onPress={needBack ? navigation.goBack : navigation.openDrawer}
+              hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+              <Icon
+                name={needBack ? 'arrow-back' : 'menu'}
+                size={25}
+                color="#fff"
+              />
             </Pressable>
+          )}
 
           <View className="ml-4">
             {title ? (
@@ -100,7 +105,10 @@ const Header = memo<HeaderProps>(
         {/* Right */}
         {isDashboard && (
           <View className="flex-row items-center">
-            <Pressable hitSlop={20} className="relative" onPress={()=>stackNavigation.push('Notification')}>
+            <Pressable
+              hitSlop={20}
+              className="relative"
+              onPress={() => stackNavigation.push('Notification')}>
               <Icon name="notifications" size={25} color="#fff" />
               <View className="absolute top-0 right-0 w-3 h-3 bg-[#ee4949] rounded-full" />
             </Pressable>
@@ -113,15 +121,23 @@ const Header = memo<HeaderProps>(
               />
             </Pressable>
             <Pressable onPress={() => setIsOpen(true)}>
-            <Icon
-              name="logout"
-              size={25}
-              color="#fff"
-              style={{marginLeft: 10}}
-            />
+              <Icon
+                name="logout"
+                size={25}
+                color="#fff"
+                style={{marginLeft: 10}}
+              />
             </Pressable>
           </View>
         )}
+        {onlyHeader && <Pressable onPress={() => setIsOpen(true)}>
+              <Icon
+                name="logout"
+                size={25}
+                color="#fff"
+                style={{marginLeft: 10}}
+              />
+            </Pressable>}
         <LogoutModal isVisible={isOpen} onClose={() => setIsOpen(false)} />
       </View>
     );
@@ -138,6 +154,7 @@ const AppLayout = forwardRef<AppLayoutRef, AppLayoutProps>(
       needScroll = false,
       needPadding = false,
       onScrollToComplete,
+      onlyHeader = false,
     },
     ref,
   ) => {
@@ -146,7 +163,7 @@ const AppLayout = forwardRef<AppLayoutRef, AppLayoutProps>(
     const userInfo = useLoginStore(state => state.userInfo);
     const empInfo = useEmpStore(state => state.empInfo);
     const name = userInfo?.EMP_Name?.split('_')[0] || '----';
-    
+
     const scrollViewRef = useRef<KeyboardAwareScrollView>(null);
 
     // Expose scroll methods via ref
@@ -165,45 +182,49 @@ const AppLayout = forwardRef<AppLayoutRef, AppLayoutProps>(
       [onScrollToComplete],
     );
 
-  return needScroll ? (
-    <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
-      <Header
-        needBack={needBack}
-        title={title}
-        navigation={navigation}
-        name={name}
-        empInfo={empInfo}
-        isDashboard={isDashboard}
-        stackNavigation={stackNavigation}
-      />
-      <KeyboardAwareScrollView
-        ref={scrollViewRef}
-        className="flex-1"
-        enableOnAndroid
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[
-          {flexGrow: 1},
-          needPadding && {paddingHorizontal: 8},
-        ]}
-        showsVerticalScrollIndicator={false}
-        >
-        {children}
-      </KeyboardAwareScrollView>
-    </View>
-  ) : (
-    <View className='flex-1 bg-lightBg-base dark:bg-darkBg-base'>
-      <Header
-        needBack={needBack}
-        title={title}
-        navigation={navigation}
-        name={name}
-        empInfo={empInfo}
-        isDashboard={isDashboard}
-        stackNavigation={stackNavigation}
-      />
-      <View className={clsx('flex-1', needPadding && 'px-2')}>{children}</View>
-    </View>
-  );
-});
+    return needScroll ? (
+      <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
+        <Header
+          needBack={needBack}
+          title={title}
+          navigation={navigation}
+          name={name}
+          empInfo={empInfo}
+          isDashboard={isDashboard}
+          stackNavigation={stackNavigation}
+          onlyHeader={onlyHeader}
+        />
+        <KeyboardAwareScrollView
+          ref={scrollViewRef}
+          className="flex-1"
+          enableOnAndroid
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={[
+            {flexGrow: 1},
+            needPadding && {paddingHorizontal: 8},
+          ]}
+          showsVerticalScrollIndicator={false}>
+          {children}
+        </KeyboardAwareScrollView>
+      </View>
+    ) : (
+      <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
+        <Header
+          needBack={needBack}
+          title={title}
+          navigation={navigation}
+          name={name}
+          empInfo={empInfo}
+          isDashboard={isDashboard}
+          stackNavigation={stackNavigation}
+          onlyHeader={onlyHeader}
+        />
+        <View className={clsx('flex-1', needPadding && 'px-2')}>
+          {children}
+        </View>
+      </View>
+    );
+  },
+);
 
 export default memo(AppLayout);

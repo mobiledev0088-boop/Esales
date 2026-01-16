@@ -92,10 +92,20 @@ type AppNavigationParamList = {
   AddNewStandPOSM: undefined;
   ShopExpansion: undefined;
   StoreDetails: {PartnerCode: string; StoreType: string};
+  UploadGalleryReview: {
+    data: any;
+    storeCode: string;
+    referenceImages: any[];
+  };
   // Account Screen
   ChangePassword: undefined;
   // Attendance Screen
-  Attendance: undefined;
+  Attendance: {
+    iChannelCode?: string;
+    aseName?: string;
+    branchName?: string;
+  } | undefined;
+  Attendance_HO: undefined;
   AppPermissions: undefined;
   // Notifications Screens
   Notification: undefined;

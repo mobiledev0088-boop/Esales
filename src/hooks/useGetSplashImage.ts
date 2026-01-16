@@ -122,22 +122,25 @@ async function fetchAndCacheImage(
     const result = response?.login;
 
     // Validate response has splash image
-    if (result?.Status && result?.Datainfo?.[0]?.FestiveAnimation) {
-      const freshImageUrl = result.Datainfo[0].FestiveAnimation;
+    if (result?.Status) {
+      if(result?.Datainfo?.[0]?.FestiveAnimation){
+        const freshImageUrl = result.Datainfo[0].FestiveAnimation;
+        // Cache the image with timestamp
+        const cacheData: SplashImageCache = {
+          imageUrl: freshImageUrl,
+          timestamp: Date.now(),
+        };
+        // Intentionally empty - image will be shown on next app launch
+        storage.set(CACHE_KEY, JSON.stringify(cacheData));
+      }
       const Latitude = result.Datainfo[0].Latitude;
       const Longitude = result.Datainfo[0].Longitude;
-      const Year_Qtr = result.Datainfo[0].Year_Qtr;
+      console.log('Fetched fresh location from splash image  API:', Latitude, Longitude);
+      // const Year_Qtr = result.Datainfo[0].Year_Qtr;
       const setUserInfo = useLoginStore.getState().setUserInfo;
       setUserInfo({ Latitude, Longitude });
-      // Cache the image with timestamp
-      const cacheData: SplashImageCache = {
-        imageUrl: freshImageUrl,
-        timestamp: Date.now(),
-      };
-      storage.set(CACHE_KEY, JSON.stringify(cacheData));
-
-      // Intentionally empty - image will be shown on next app launch
-    } else {
+    }
+    else {
       console.log('No splash image found in API response');
     }
   } catch (error) {

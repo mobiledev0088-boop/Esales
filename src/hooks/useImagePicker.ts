@@ -9,11 +9,7 @@ import {
   ImageLibraryOptions,
 } from 'react-native-image-picker';
 import {check, request, PERMISSIONS, RESULTS} from 'react-native-permissions';
-import ImageMarker, {
-  ImageFormat,
-  Position,
-  TextBackgroundType,
-} from 'react-native-image-marker';
+import ImageMarker, {ImageFormat, Position} from 'react-native-image-marker';
 
 type ImageSource = 'camera' | 'gallery';
 
@@ -158,7 +154,7 @@ async function addWatermarkIfNeeded(
           },
         },
       ],
-      filename:'watermarked_image',
+      filename: 'watermarked_image',
       quality: 100,
       saveFormat: ImageFormat.jpg,
     });
@@ -288,19 +284,27 @@ export function useImagePicker(
     [quality, maxWidth, maxHeight, mediaType],
   );
 
-  const handleCropComplete = useCallback((croppedUri: string) => {
+  const handleCropComplete = useCallback(async (croppedUri: string) => {
     // Normalize the cropped URI for Android
     const normalizedUri = normalizeUri(croppedUri);
-    setImageUri(normalizedUri);
+    if (watermarkText) {
+      const watermarkedUri = await addWatermarkIfNeeded(
+        normalizedUri,
+        watermarkText,
+      );
+      setImageUri(watermarkedUri);
+    } else {
+      setImageUri(normalizedUri);
+    }
     setShowCropModal(false);
     setTempImageUri(null);
-  }, []);
+  }, [watermarkText]);
 
   const handleCropCancel = useCallback(() => {
     setShowCropModal(false);
     setTempImageUri(null);
     setImageData(null);
-  }, []);
+  }, [watermarkText]);
 
   const reset = useCallback(() => {
     setImageUri(null);

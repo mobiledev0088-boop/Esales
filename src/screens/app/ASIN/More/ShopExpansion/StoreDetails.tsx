@@ -1,5 +1,5 @@
 import {Text, View, ScrollView, TouchableOpacity, FlatList} from 'react-native';
-import {useState} from 'react';
+import {useMemo, useState} from 'react';
 import {useRoute} from '@react-navigation/native';
 import {useLoginStore} from '../../../../../stores/useLoginStore';
 import useEmpStore from '../../../../../stores/useEmpStore';
@@ -17,6 +17,7 @@ import AppModal from '../../../../../components/customs/AppModal';
 import {AppColors} from '../../../../../config/theme';
 import ImageSlider, {SwiperItem} from '../../../../../components/ImageSlider';
 import AppTabBar, {TabItem} from '../../../../../components/CustomTabBar';
+import GalleryReview from './GalleryReview/GalleryReview';
 
 interface PartnerDetails {
   PS_ID: number;
@@ -730,7 +731,10 @@ export default function StoreDetails() {
     StoreType: string;
   };
   const {data: storeDetails, isLoading} = useGetStoreDetails(PartnerCode);
-  console.log('Store Details:', storeDetails, isLoading);
+  const asstesKey = useMemo(() => {
+    if(!storeDetails || !storeDetails.Table1 || !storeDetails.Table1.length) return [];
+    return [...new Set(storeDetails.Table1.map((item:{ImageType:string}) => item.ImageType))] as string[];
+  }, [storeDetails]);
   return (
     <AppLayout title="Store Details" needBack needPadding>
       <MaterialTabBar
@@ -745,11 +749,7 @@ export default function StoreDetails() {
           {
             name: 'Gallery Review',
             label: 'Gallery Review',
-            component: (
-              <View>
-                <Text>Gallery Review Content</Text>
-              </View>
-            ),
+            component: <GalleryReview data={{PartnerCode, StoreType}} assetsKey={asstesKey} />,
           },
         ]}
       />

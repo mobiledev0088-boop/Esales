@@ -14,8 +14,6 @@ import {screenWidth} from '../../../../utils/constant';
 import {ActivationPerformanceComponent} from './Dashboard_AM';
 import Skeleton from '../../../../components/skeleton/skeleton';
 import AttendanceMarkModal from '../User/Attendance/AttendanceMarkModal';
-import AppButton from '../../../../components/customs/AppButton';
-import { displayNotification } from '../../../../utils/notificationServices';
 
 interface TargetAchievementProps {
   target: number;
@@ -224,14 +222,6 @@ export default function Dashboard_ASE({
   }, [refetchDashboard]);
 
   const isDataEmpty = !isLoading && !dashboardData;
-  const handlePress = async () => {
-    await displayNotification({
-      channelId: 'BG_LOCATION_CHANNEL',
-      title: 'Mark Your Attendance',
-      body: `You have left the office area. Tap here to check out now.`,
-      screen: 'Attendance',
-    });
-  };
 
   return (
     <ScrollView
@@ -252,7 +242,6 @@ export default function Dashboard_ASE({
         />
       }>
       {!noBanner && <BannerComponent />}
-      <AppButton title="Send Notification" onPress={handlePress} />
       {/* Title and Month Selection */}
       <View className="mb-2 flex-row items-center justify-between px-3 border-b border-slate-300 pb-4">
         <View>

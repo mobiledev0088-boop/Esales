@@ -5,10 +5,10 @@ import AppText from '../../../../../components/customs/AppText';
 import AppButton from '../../../../../components/customs/AppButton';
 import Card from '../../../../../components/Card';
 import {useLocation} from '../../../../../hooks/useLocation';
-import {useASEAttendanceStore} from '../../../../../stores/useASEAttendanceStore';
-import {isInsideGeoFence} from './component';
-import {useMarkAttendance} from '../../../../../hooks/queries/attendance';
+import {useASEAttendanceStore} from '../../../../../stores/useASEAttendanceStore';;
 import { useLoginStore } from '../../../../../stores/useLoginStore';
+import { useMarkAttendance } from './component';
+import { isInsideGeoFence } from './utils';
 
 interface ModalProps {
   isOpen?: boolean;
@@ -23,7 +23,7 @@ const statusStyles = {
 } as const;
 
 export default function AttendanceMarkModal({
-  isOpen = false,
+  isOpen,
   onClose,
 }: ModalProps) {
   const [isVisible, setIsVisible] = useState(false);
@@ -104,7 +104,7 @@ export default function AttendanceMarkModal({
   }, [checkAndResetIfNewDay]);
 
   useEffect(() => {
-    if (isOpen) return;
+    if (isOpen !== undefined) return;
     if (!location) return;
     const {lat, lon} = location;
     const insideGeoFence = isInsideGeoFence(lat, lon, Latitude!, Longitude!);
@@ -121,13 +121,15 @@ export default function AttendanceMarkModal({
       setIsVisible(false);
     }
   }, [location, Latitude, Longitude]);
+  console.log('User inside geofence:', isOpen);
   return (
     <AppModal
       isOpen={isOpen || isVisible}
       onClose={onClose || handleClose}
       modalWidth={'92%'}
       animationType="bounce"
-      showCloseButton>
+      showCloseButton
+      >
       <View className="p-4">
         <View className="mb-3 flex-row items-center justify-between">
           <AppText className="text-lg font-semibold text-slate-900 dark:text-slate-100">
@@ -176,7 +178,6 @@ export default function AttendanceMarkModal({
             onPress={handleCheckIn}
             disabled={attendanceToday.checkInDone}
             className="flex-1 rounded-xl bg-emerald-600"
-            noLoading
           />
           <AppButton
             title={
@@ -190,7 +191,6 @@ export default function AttendanceMarkModal({
               (attendanceToday.checkOutDone && !userInsideGeoFence)
             }
             className="flex-1 rounded-xl bg-indigo-600"
-            noLoading
           />
         </View>
       </View>
