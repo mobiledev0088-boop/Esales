@@ -1,8 +1,6 @@
 import {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import AppLayout, {
-  AppLayoutRef,
-} from '../../../../components/layout/AppLayout';
+import AppLayout, {AppLayoutRef} from '../../../../components/layout/AppLayout';
 
 import BarcodeScanner from '../../../../components/BarcodeScanner';
 import {useMutation} from '@tanstack/react-query';
@@ -15,7 +13,7 @@ import {CautionModal, NoResultsMessage, SearchCard} from './component';
 import {useScanSNStore} from '../../../../stores/useScanSNStore';
 import {useThemeStore} from '../../../../stores/useThemeStore';
 
-const ScanSN = () => {
+export default function ScanSN() {
   const userInfo = useLoginStore(state => state.userInfo);
   const recentSearches = useScanSNStore(state => state.recentSearches);
   const addRecentSearch = useScanSNStore(state => state.addRecentSearch);
@@ -82,7 +80,7 @@ const ScanSN = () => {
       needScroll
       needPadding
       ref={layoutRef}>
-        
+
       {/* Caution Modal */}
       <CautionModal />
 
@@ -115,6 +113,4 @@ const ScanSN = () => {
       />}
     </AppLayout>
   );
-};
-
-export default ScanSN;
+}

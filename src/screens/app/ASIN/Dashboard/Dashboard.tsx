@@ -619,7 +619,6 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
       {
         name: 'ASE LFR',
         label: 'ASE LFR',
-        // Need header=false for LFR HO single tab view
         component: <ASELFRTab needHeader={false} />,
       },
     ];

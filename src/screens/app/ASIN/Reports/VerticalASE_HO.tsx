@@ -1,4 +1,4 @@
-import {memo, useMemo, useState, useCallback, useEffect} from 'react';
+import {memo, useMemo, useState, useCallback, useEffect, useRef} from 'react';
 import {View, FlatList, ActivityIndicator} from 'react-native';
 import {useQuery} from '@tanstack/react-query';
 import {useRoute, RouteProp} from '@react-navigation/native';
@@ -18,6 +18,7 @@ import {
 } from '../../../../utils/commonFunctions';
 import {isIOS, screenWidth} from '../../../../utils/constant';
 import Skeleton from '../../../../components/skeleton/skeleton';
+import {DataStateView} from '../../../../components/DataStateView';
 
 // -------------------- Constants --------------------
 const CHART_COLORS = {
@@ -28,7 +29,7 @@ const CHART_COLORS = {
 } as const;
 
 const PAGINATION_CONFIG = {
-  ITEMS_PER_PAGE: 50,
+  ITEMS_PER_PAGE: 20,
   MAX_TO_RENDER_PER_BATCH: 15,
   INITIAL_NUM_TO_RENDER: 15,
   WINDOW_SIZE: 5,
@@ -345,36 +346,6 @@ const PartnerCard = memo(({partner}: {partner: PartnerASEData}) => {
   );
 });
 
-// -------------------- Custom Hooks --------------------
-const usePagination = <T,>(data: T[], itemsPerPage: number) => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-
-  const paginatedData = useMemo(() => {
-    const endIndex = currentPage * itemsPerPage;
-    return data.slice(0, endIndex);
-  }, [data, currentPage, itemsPerPage]);
-
-  const hasMoreData = useMemo(() => {
-    return paginatedData.length < data.length;
-  }, [paginatedData.length, data.length]);
-
-  const loadMore = useCallback(() => {
-    if (hasMoreData && !isLoadingMore) {
-      setIsLoadingMore(true);
-      setCurrentPage(prev => prev + 1);
-      setIsLoadingMore(false);
-    }
-  }, [hasMoreData, isLoadingMore]);
-
-  const reset = useCallback(() => {
-    setCurrentPage(1);
-    setIsLoadingMore(false);
-  }, []);
-
-  return {paginatedData, hasMoreData, loadMore, reset, isLoadingMore};
-};
-
 // -------------------- Main Component --------------------
 export default function VerticalASE_HO() {
   const route = useRoute<RouteProp<{params: VerticalASE_HOParams}, 'params'>>();
@@ -382,11 +353,16 @@ export default function VerticalASE_HO() {
   const YearQtr = `${Year}${Month}`;
 
   // Generate month options
-  const monthOptions = useMemo<AppDropdownItem[]>(() => getPastMonths(6, false, YearQtr),[YearQtr]);
+  const monthOptions = useMemo<AppDropdownItem[]>(
+    () => getPastMonths(6, false, YearQtr),
+    [YearQtr],
+  );
 
   // Filter and pagination states
   const [selectedPartner, setSelectedPartner] = useState<string | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState<AppDropdownItem | null>(monthOptions[0]);
+  const [selectedMonth, setSelectedMonth] = useState<AppDropdownItem | null>(
+    monthOptions[0],
+  );
   const [refreshing, setRefreshing] = useState(false);
 
   // Fetch data
@@ -422,22 +398,12 @@ export default function VerticalASE_HO() {
     );
   }, [partnerASEData, selectedPartner]);
 
-  // Use custom pagination hook
-  const {paginatedData, hasMoreData, loadMore, reset, isLoadingMore} = 
-    usePagination<PartnerASEData>(filteredFullData, PAGINATION_CONFIG.ITEMS_PER_PAGE);
-
-  // Reset pagination when filters change
-  useEffect(() => {
-    reset();
-  }, [selectedPartner, selectedMonth, reset]);
-
   // Pull to refresh handler - resets pagination
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    reset();
     await refetch();
     setRefreshing(false);
-  }, [refetch, reset]);
+  }, [refetch]);
 
   // Optimized render item with useCallback
   const renderItem = useCallback(
@@ -451,19 +417,6 @@ export default function VerticalASE_HO() {
       `${item.Partner_Code}_${item.IchannelID}_${index}`,
     [],
   );
-
-  // Footer component for loading more indicator
-  const renderFooter = useCallback(() => {
-    if (!isLoadingMore) return null;
-    return (
-      <View className="py-4 items-center">
-        <ActivityIndicator size="small" color="#3b82f6" />
-        <AppText size="xs" color="gray" className="mt-2">
-          Loading more...
-        </AppText>
-      </View>
-    );
-  }, [isLoadingMore]);
 
   // Loading skeleton
   const renderLoadingSkeleton = useCallback(
@@ -486,29 +439,6 @@ export default function VerticalASE_HO() {
     [],
   );
 
-  // Empty state component
-  const renderEmptyComponent = useCallback(
-    () => (
-      <View className="flex-1 items-center justify-center py-20">
-        <AppText size="sm" color="gray">
-          {isError
-            ? 'Failed to load data. Please try again.'
-            : 'No partner data available for this period.'}
-        </AppText>
-      </View>
-    ),
-    [isError],
-  );
-
-  const getItemLayout = useCallback(
-    (_: ArrayLike<PartnerASEData> | null | undefined, index: number) => ({
-      length: PAGINATION_CONFIG.CARD_HEIGHT,
-      offset: PAGINATION_CONFIG.CARD_HEIGHT * index,
-      index,
-    }),
-    []
-  );
-
   // Main render
   return (
     <AppLayout
@@ -516,9 +446,15 @@ export default function VerticalASE_HO() {
       needPadding={false}
       needBack
       needScroll={false}>
-      <View className="flex-1 bg-gray-50 dark:bg-darkBg">
-        {/* Filter section - only show when data is loaded */}
-        {!isLoading && partnerASEData && partnerASEData.length > 0 && (
+      <DataStateView
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={onRefresh}
+        LoadingComponent={renderLoadingSkeleton()}
+        isEmpty={!isLoading && filteredFullData.length === 0}
+        >
+        <View className="flex-1 bg-gray-50 dark:bg-darkBg">
+          {/* Filter section - only show when data is loaded */}
           <View className="px-3 py-3 bg-white dark:bg-darkCard border-b border-gray-200 dark:border-darkBorder">
             <View className="flex-row gap-2">
               <View className="flex-[5]">
@@ -545,39 +481,29 @@ export default function VerticalASE_HO() {
             </View>
             <View className="mt-2 flex-row justify-between items-center">
               <AppText size="xs" color="gray">
-                Showing {paginatedData.length} of {filteredFullData.length} partners
-                {selectedPartner && ` (filtered from ${partnerASEData.length} total)`}
+                Total {filteredFullData.length} partners
+                {selectedPartner &&
+                  ` (filtered from ${partnerASEData.length} total)`}
               </AppText>
-              {hasMoreData && (
-                <AppText size="xs" className="text-blue-600 dark:text-blue-400">
-                  {filteredFullData.length - paginatedData.length} more
-                </AppText>
-              )}
             </View>
           </View>
-        )}
 
-        {/* Partner list with pagination and optimized performance */}
-        <FlatList
-          data={paginatedData}
-          renderItem={renderItem}
-          keyExtractor={keyExtractor}
-          contentContainerStyle={{padding: 12, paddingBottom: 16}}
-          ListEmptyComponent={
-            isLoading ? renderLoadingSkeleton() : renderEmptyComponent()
-          }
-          ListFooterComponent={renderFooter}
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          onEndReached={loadMore}
-          onEndReachedThreshold={PAGINATION_CONFIG.END_REACHED_THRESHOLD}
-          getItemLayout={!isIOS ? getItemLayout : undefined}
-          removeClippedSubviews={true}
-          maxToRenderPerBatch={PAGINATION_CONFIG.MAX_TO_RENDER_PER_BATCH}
-          initialNumToRender={PAGINATION_CONFIG.INITIAL_NUM_TO_RENDER}
-          windowSize={PAGINATION_CONFIG.WINDOW_SIZE}
-        />
-      </View>
+          {/* Partner list with pagination and optimized performance */}
+          <FlatList
+            data={filteredFullData}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            contentContainerStyle={{padding: 12, paddingBottom: 16}}
+            showsVerticalScrollIndicator={false}
+            initialNumToRender={20}
+            maxToRenderPerBatch={20}
+            windowSize={7}
+            removeClippedSubviews={true}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        </View>
+      </DataStateView>
     </AppLayout>
   );
 }
