@@ -1,4 +1,10 @@
-import {View, TouchableOpacity, Keyboard, FlatList, ScrollView} from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  Keyboard,
+  FlatList,
+  ScrollView,
+} from 'react-native';
 import {useState, useRef, useCallback, memo, useMemo, useEffect} from 'react';
 import AppLayout from '../../../../../components/layout/AppLayout';
 import AppInput from '../../../../../components/customs/AppInput';
@@ -12,8 +18,8 @@ import {useMutation} from '@tanstack/react-query';
 import {handleASINApiCall} from '../../../../../utils/handleApiCall';
 import {showToast} from '../../../../../utils/commonFunctions';
 import Card from '../../../../../components/Card';
-import { useNavigation } from '@react-navigation/native';
-import { AppNavigationProp } from '../../../../../types/navigation';
+import {useNavigation} from '@react-navigation/native';
+import {AppNavigationProp} from '../../../../../types/navigation';
 
 interface ProductInfoItem {
   id?: string | number;
@@ -30,47 +36,39 @@ interface ProductInfoItem {
 
 const Disclaimer = () => {
   const isDarkTheme = useThemeStore(state => state.AppTheme) === 'dark';
-  return(
-  <View className="bg-red-100 dark:bg-[#EF4444] rounded-lg p-3 border border-red-600 dark:border-0 ">
-    <View className="flex-row items-center gap-2">
-      <AppIcon
-        type="ionicons"
-        name="information-circle-outline"
-        size={20}
-        color={isDarkTheme ? "#fff" : "#DC2626"}
-      />
-      <AppText size="base" weight="semibold" className="text-error mb-1">
-        Disclaimer
+  return (
+    <View className="bg-red-100 dark:bg-[#EF4444] rounded-lg p-3 border border-red-600 dark:border-0 ">
+      <View className="flex-row items-center gap-2">
+        <AppIcon
+          type="ionicons"
+          name="information-circle-outline"
+          size={20}
+          color={isDarkTheme ? '#fff' : '#DC2626'}
+        />
+        <AppText size="base" weight="semibold" className="text-error mb-1">
+          Disclaimer
+        </AppText>
+      </View>
+      <AppText className="text-error " size="xs">
+        Final Specifications will be as per the announced Pricelist shared by
+        ASUS CPM. In case of any queries, feel free to contact ASUS Sales
+        Representative.
       </AppText>
     </View>
-    <AppText className="text-error " size="xs">
-      Final Specifications will be as per the announced Pricelist shared by ASUS
-      CPM. In case of any queries, feel free to contact ASUS Sales
-      Representative.
-    </AppText>
-  </View>
-);
-}
+  );
+};
 
 const InitialState = () => (
   <View className="items-center justify-center mt-20 px-6">
     <View className="w-28 h-28 rounded-full bg-primary/10 items-center justify-center mb-6">
-      <AppIcon
-        name="search"
-        type="feather"
-        size={64}
-        color="#5A67D8"
-      />
+      <AppIcon name="search" type="feather" size={64} color="#5A67D8" />
     </View>
-    <AppText
-      size="xl"
-      weight="bold"
-      color="text"
-      className="mb-3 text-center">
+    <AppText size="xl" weight="bold" color="text" className="mb-3 text-center">
       Search for Products
     </AppText>
     <AppText size="sm" color="gray" className="text-center leading-5">
-      Enter a product name or model in the search field above, or enable the "Made in India" filter to browse available products.
+      Enter a product name or model in the search field above, or enable the
+      "Made in India" filter to browse available products.
     </AppText>
   </View>
 );
@@ -96,7 +94,8 @@ const EmptyState = ({onReset}: {onReset: () => void}) => (
       No Products Found
     </AppText>
     <AppText size="sm" color="gray" className="text-center mb-4 leading-5">
-      We couldn't find any products matching your search. Try adjusting the keywords or check for typos.
+      We couldn't find any products matching your search. Try adjusting the
+      keywords or check for typos.
     </AppText>
     <TouchableOpacity
       onPress={onReset}
@@ -142,7 +141,12 @@ const FilterPill = ({
         resizeMode="contain"
       />
     ) : icon ? (
-      <AppIcon name={icon} type={iconType} size={18} color={isActive ? '#fff' : '#6B7280'} />
+      <AppIcon
+        name={icon}
+        type={iconType}
+        size={18}
+        color={isActive ? '#fff' : '#6B7280'}
+      />
     ) : null}
     <AppText
       size="sm"
@@ -183,8 +187,86 @@ const SpecItem = ({
     <View className="flex-row items-start mr-4 mb-3 w-[45%] ">
       <AppIcon name={icon} type={type} size={20} color="#4B5563" />
       <View className="ml-2 flex-1">
-        {label && (<AppText size="xs" className="mb-0.5 leading-3 text-gray-400">{label}</AppText>)}
-        <AppText size="sm" weight="medium">{value}</AppText>
+        {label && (
+          <AppText size="xs" className="mb-0.5 leading-3 text-gray-400">
+            {label}
+          </AppText>
+        )}
+        <AppText size="sm" weight="medium">
+          {value}
+        </AppText>
+      </View>
+    </View>
+  );
+};
+
+const SelectedProductsBar = ({
+  products,
+  onRemove,
+}: {
+  products: ProductInfoItem[];
+  onRemove: (item: ProductInfoItem) => void;
+}) => {
+  if (!products.length) {
+    return null;
+  }
+
+  return (
+    <View className="mb-2">
+      <View className="flex-row items-center justify-between mb-1.5 px-1">
+        <View className="flex-row items-center">
+          <AppIcon
+            name="compare-arrows"
+            type="materialIcons"
+            size={16}
+            color="#6B7280"
+          />
+          <AppText
+            size="xs"
+            weight="medium"
+            className="ml-1.5 text-gray-600 dark:text-gray-300">
+            Selected for Compare ({products.length}/2)
+          </AppText>
+        </View>
+        <AppText
+          size="xs"
+          className="text-[11px] text-gray-400 dark:text-gray-500">
+          Tap to remove a product
+        </AppText>
+      </View>
+
+      <View className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl px-2.5 py-2 flex-row items-center">
+        {products.map((item: ProductInfoItem, index: number) => {
+          const label = item?.PD_sales_model_name || 'Unknown Model';
+          const shortLabel =
+            label.length > 24 ? `${label.slice(0, 22)}…` : label;
+
+          return (
+            <TouchableOpacity
+              key={(item.PD_ID || item.PD_sales_model_name || index).toString()}
+              activeOpacity={0.8}
+              onPress={() => onRemove(item)}
+              className="flex-1 flex-row items-center mx-1.5 px-2.5 py-1.5 rounded-xl bg-primary/5 dark:bg-primary/20">
+              <View className="w-6 h-6 rounded-full bg-primary items-center justify-center mr-1.5">
+                <AppText size="xs" weight="bold" className="text-white">
+                  {index + 1}
+                </AppText>
+              </View>
+              <View className="flex-1 mr-1">
+                <AppText
+                  size="xs"
+                  weight="semibold"
+                  numberOfLines={1}
+                  className="text-gray-800 dark:text-gray-100">
+                  {shortLabel}
+                </AppText> 
+              </View>
+              <View className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 items-center justify-center ml-0.5">
+                <AppIcon name="x" type="feather" size={14} color="#6B7280" />
+              </View>
+            </TouchableOpacity>
+          );
+        })}
       </View>
     </View>
   );
@@ -228,7 +310,7 @@ const ProductInfoCard = memo(
         activeOpacity={0.7}
         onPress={onPress}
         disabled={compareMode && isSelectionDisabled && !isSelected}>
-        <Card 
+        <Card
           className={`px-0 mb-3 ${
             isSelected ? 'border-2 border-primary' : ''
           }`}>
@@ -240,11 +322,16 @@ const ProductInfoCard = memo(
                     isSelected
                       ? 'bg-primary border-primary'
                       : isSelectionDisabled
-                      ? 'border-gray-300 bg-gray-100'
-                      : 'border-gray-400 bg-white'
+                        ? 'border-gray-300 bg-gray-100'
+                        : 'border-gray-400 bg-white'
                   }`}>
                   {isSelected && (
-                    <AppIcon name="check" type="feather" size={14} color="#fff" />
+                    <AppIcon
+                      name="check"
+                      type="feather"
+                      size={14}
+                      color="#fff"
+                    />
                   )}
                 </View>
               </View>
@@ -320,7 +407,7 @@ const ProductInfoCard = memo(
   (prev, next) => {
     const prevKey = prev.item.PD_ID || prev.item.PD_sales_model_name;
     const nextKey = next.item.PD_ID || next.item.PD_sales_model_name;
-    
+
     return (
       prevKey === nextKey &&
       prev.AppTheme === next.AppTheme &&
@@ -339,7 +426,9 @@ export default function ProductInfo() {
   const [expandableRAM, setExpandableRAM] = useState(false);
   const [expandableStorage, setExpandableStorage] = useState(false);
   const [compareMode, setCompareMode] = useState(false);
-  const [selectedProducts, setSelectedProducts] = useState<ProductInfoItem[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<ProductInfoItem[]>(
+    [],
+  );
   const listRef = useRef<FlatList>(null);
   const AppTheme = useThemeStore(state => state.AppTheme);
   const navigation = useNavigation<AppNavigationProp>();
@@ -397,15 +486,18 @@ export default function ProductInfo() {
     listRef.current?.scrollToOffset({offset: 0, animated: true});
   }, []);
 
-  const handleNavigation = useCallback((item: ProductInfoItem) => {
-    navigation.push('ProductDescription', {product: item});
-  }, [navigation]);
+  const handleNavigation = useCallback(
+    (item: ProductInfoItem) => {
+      navigation.push('ProductDescription', {product: item});
+    },
+    [navigation],
+  );
 
   const toggleCompareMode = useCallback(() => {
     const newValue = !compareMode;
     setCompareMode(newValue);
     setSelectedProducts([]);
-    
+
     // If enabling compare mode without prior search, fetch all products
     if (newValue && !hasSearched) {
       setHasSearched(true);
@@ -418,15 +510,15 @@ export default function ProductInfo() {
       // Use PD_ID as primary identifier, fallback to PD_sales_model_name
       const itemKey = item.PD_ID || item.PD_sales_model_name;
       const isAlreadySelected = prev.some(
-        p => (p.PD_ID || p.PD_sales_model_name) === itemKey
+        p => (p.PD_ID || p.PD_sales_model_name) === itemKey,
       );
-      
+
       if (isAlreadySelected) {
         return prev.filter(p => (p.PD_ID || p.PD_sales_model_name) !== itemKey);
       } else if (prev.length < 2) {
         return [...prev, item];
       }
-      
+
       return prev;
     });
   }, []);
@@ -446,7 +538,7 @@ export default function ProductInfo() {
   const toggleIndiaFilter = useCallback(() => {
     const newValue = !onlyIndia;
     setOnlyIndia(newValue);
-    
+
     // If enabling filter without prior search, fetch all products
     if (newValue && !hasSearched) {
       setHasSearched(true);
@@ -457,7 +549,7 @@ export default function ProductInfo() {
   const toggleExpandableRAM = useCallback(() => {
     const newValue = !expandableRAM;
     setExpandableRAM(newValue);
-    
+
     // If enabling filter without prior search, fetch all products
     if (newValue && !hasSearched) {
       setHasSearched(true);
@@ -468,7 +560,7 @@ export default function ProductInfo() {
   const toggleExpandableStorage = useCallback(() => {
     const newValue = !expandableStorage;
     setExpandableStorage(newValue);
-    
+
     // If enabling filter without prior search, fetch all products
     if (newValue && !hasSearched) {
       setHasSearched(true);
@@ -478,22 +570,24 @@ export default function ProductInfo() {
 
   const shouldShowResults = hasSearched && !isPending;
   const rawData = hasSearched ? data || [] : [];
-  
+
   const displayedData = useMemo(() => {
     let filtered = rawData;
-    
+
     if (onlyIndia) {
       filtered = filtered.filter((item: any) => item?.PD_Made_In_India === 'Y');
     }
-    
+
     if (expandableRAM) {
       filtered = filtered.filter((item: any) => item?.Empty_ExtraRAM === '1x ');
     }
-    
+
     if (expandableStorage) {
-      filtered = filtered.filter((item: any) => item?.ExtraEmpty_Storage_Slot === '1x ');
+      filtered = filtered.filter(
+        (item: any) => item?.ExtraEmpty_Storage_Slot === '1x ',
+      );
     }
-    
+
     return filtered;
   }, [rawData, onlyIndia, expandableRAM, expandableStorage]);
 
@@ -514,15 +608,18 @@ export default function ProductInfo() {
           ref={listRef}
           data={showInitialState ? [] : displayedData}
           keyExtractor={(item, index) =>
-            item?.PD_ID?.toString() || item?.PD_sales_model_name?.toString() || index.toString()
+            item?.PD_ID?.toString() ||
+            item?.PD_sales_model_name?.toString() ||
+            index.toString()
           }
           renderItem={({item}) => {
             const itemKey = item.PD_ID || item.PD_sales_model_name;
             const isSelected = selectedProducts.some(
-              p => (p.PD_ID || p.PD_sales_model_name) === itemKey
+              p => (p.PD_ID || p.PD_sales_model_name) === itemKey,
             );
-            const isSelectionDisabled = selectedProducts.length >= 2 && !isSelected;
-            
+            const isSelectionDisabled =
+              selectedProducts.length >= 2 && !isSelected;
+
             return (
               <ProductInfoCard
                 item={item}
@@ -542,17 +639,20 @@ export default function ProductInfo() {
               <View className="mb-4">
                 <View className="flex-row items-center justify-between mb-2.5 px-1">
                   <View className="flex-row items-center">
-                    <AppIcon 
-                      name="information-circle-outline" 
-                      type="ionicons" 
-                      size={18} 
-                      color="#6B7280" 
+                    <AppIcon
+                      name="information-circle-outline"
+                      type="ionicons"
+                      size={18}
+                      color="#6B7280"
                     />
-                    <AppText size="xs" weight="medium" className="ml-1.5 text-gray-600 dark:text-gray-400">
+                    <AppText
+                      size="xs"
+                      weight="medium"
+                      className="ml-1.5 text-gray-600 dark:text-gray-400">
                       Filter Options
                     </AppText>
                   </View>
-                  
+
                   {/* Compare Button - Top Right */}
                   <TouchableOpacity
                     activeOpacity={0.7}
@@ -562,28 +662,31 @@ export default function ProductInfo() {
                       compareMode
                         ? 'bg-primary'
                         : displayedData.length === 0
-                        ? 'bg-gray-200 dark:bg-gray-700'
-                        : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600'
+                          ? 'bg-gray-200 dark:bg-gray-700'
+                          : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600'
                     }`}
-                    style={[
-                      displayedData.length === 0 ? {opacity: 0.5} : {},
-                      getShadowStyle(1)
-                    ]}>
-                    <AppIcon 
-                      name="compare-arrows" 
-                      type="materialIcons" 
-                      size={18} 
-                      color={compareMode ? '#fff' : displayedData.length === 0 ? '#9CA3AF' : '#6B7280'} 
+                    style={[displayedData.length === 0 ? {opacity: 0.5} : {}]}>
+                    <AppIcon
+                      name="compare-arrows"
+                      type="materialIcons"
+                      size={18}
+                      color={
+                        compareMode
+                          ? '#fff'
+                          : displayedData.length === 0
+                            ? '#9CA3AF'
+                            : '#6B7280'
+                      }
                     />
                     <AppText
                       size="sm"
                       weight="semibold"
                       className={`ml-1.5 ${
-                        compareMode 
-                          ? 'text-white' 
+                        compareMode
+                          ? 'text-white'
                           : displayedData.length === 0
-                          ? 'text-gray-400'
-                          : 'text-gray-700 dark:text-gray-300'
+                            ? 'text-gray-400'
+                            : 'text-gray-700 dark:text-gray-300'
                       }`}>
                       Compare
                     </AppText>
@@ -596,6 +699,12 @@ export default function ProductInfo() {
                     )}
                   </TouchableOpacity>
                 </View>
+                {compareMode && selectedProducts.length > 0 && (
+                  <SelectedProductsBar
+                    products={selectedProducts}
+                    onRemove={handleCompareToggle}
+                  />
+                )}
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
@@ -632,7 +741,9 @@ export default function ProductInfo() {
                     placeholder="Search Product"
                     value={searchQuery}
                     setValue={setSearchQuery}
-                    inputWapperStyle={{backgroundColor: AppColors[AppTheme].bgSurface}}
+                    inputWapperStyle={{
+                      backgroundColor: AppColors[AppTheme].bgSurface,
+                    }}
                     onSubmitEditing={getProductsList}
                     returnKeyType="search"
                   />
@@ -652,7 +763,6 @@ export default function ProductInfo() {
                   </TouchableOpacity>
                 )}
               </View>
-
               <Disclaimer />
             </View>
           }
@@ -680,7 +790,12 @@ export default function ProductInfo() {
               activeOpacity={0.85}
               className="bg-primary rounded-full px-8 py-4 flex-row items-center"
               style={getShadowStyle(6)}>
-              <AppIcon name="compare-arrows" type="materialIcons" size={22} color="#fff" />
+              <AppIcon
+                name="compare-arrows"
+                type="materialIcons"
+                size={22}
+                color="#fff"
+              />
               <AppText size="base" weight="bold" className="text-white ml-2">
                 Compare Now
               </AppText>
@@ -701,4 +816,4 @@ export default function ProductInfo() {
       </View>
     </AppLayout>
   );
-};
+}

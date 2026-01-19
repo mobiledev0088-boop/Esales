@@ -1,21 +1,20 @@
 import {FlatList, TouchableOpacity, View} from 'react-native';
-import React, {useCallback, useMemo, useState} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 import {useQuery} from '@tanstack/react-query';
-import {useRoute} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import moment from 'moment';
 import AppLayout from '../../../../components/layout/AppLayout';
 import AppIcon from '../../../../components/customs/AppIcon';
 import AppText from '../../../../components/customs/AppText';
 import AppInput from '../../../../components/customs/AppInput';
-import AppDatePicker, {
-  DatePickerState,
-} from '../../../../components/customs/AppDatePicker';
+import AppDatePicker, {DatePickerState} from '../../../../components/customs/AppDatePicker';
 import Card from '../../../../components/Card';
 import AppTabBar, {TabItem} from '../../../../components/CustomTabBar';
 import {ActivationPerformanceSkeleton} from '../../../../components/skeleton/DashboardSkeleton';
 import {
   convertToASINUnits,
   getDaysBetween,
+  isEmptyData,
 } from '../../../../utils/commonFunctions';
 import {handleASINApiCall} from '../../../../utils/handleApiCall';
 import {useLoginStore} from '../../../../stores/useLoginStore';
@@ -29,9 +28,13 @@ import {
   ACTIVATION_ID_TO_DATA_KEY,
 } from '../Dashboard/dashboardUtils';
 import {showActivationFilterSheet} from './ActivationFilterSheet';
+import AppDropdown, {
+  AppDropdownItem,
+} from '../../../../components/customs/AppDropdown';
+import clsx from 'clsx';
+import {AppNavigationProp} from '../../../../types/navigation';
 
 const ITEMS_PER_BATCH = 10;
-
 interface ApiParams {
   masterTab: string;
   StartDate: Date;
@@ -155,13 +158,19 @@ const TableRow = ({
   isLast,
   columns,
   searchQuery = '',
+  isAGPorALP,
+  handlePress,
 }: {
   item: ActivationData;
   isLast: boolean;
   columns: TableColumn[];
   searchQuery?: string;
+  isAGPorALP: boolean;
+  handlePress: (name: string) => void;
 }) => (
-  <View
+  <TouchableOpacity
+    disabled={!isAGPorALP}
+    onPress={() => handlePress(item.name)}
     className={`flex-row items-center px-4 py-3 ${!isLast ? 'border-b border-gray-100' : ''}`}>
     {columns.map(column => (
       <View
@@ -170,11 +179,13 @@ const TableRow = ({
         <HighlightedText
           text={String(item[column.dataKey] || '0')}
           searchQuery={searchQuery}
-          className={`text-sm ${column.key === 'name' ? 'font-manropeSemibold' : 'font-manropeBold'} ${column.colorType === 'primary' ? 'text-blue-600' : column.colorType === 'success' ? 'text-green-600' : column.colorType === 'warning' ? 'text-amber-600' : column.colorType === 'secondary' ? 'text-gray-600' : 'text-gray-800'}`}
+          className={clsx(
+            `text-sm ${column.key === 'name' ? 'font-manropeSemibold' : 'font-manropeBold'} ${column.colorType === 'primary' ? 'text-blue-600' : column.colorType === 'success' ? 'text-green-600' : column.colorType === 'warning' ? 'text-amber-600' : column.colorType === 'secondary' ? 'text-gray-600' : 'text-gray-800'} ${column.key === 'name' && isAGPorALP && 'text-primary underline'}`,
+          )}
         />
       </View>
     ))}
-  </View>
+  </TouchableOpacity>
 );
 
 // Totals row component to display column sums
@@ -187,18 +198,21 @@ const TotalsRow = ({
 }) => {
   // Calculate totals for numeric columns
   const columnTotals = useMemo(() => {
-    return columns.reduce((totals, column) => {
-      if (column.key === 'name') {
-        totals[column.key] = 'Total';
-      } else {
-        const sum = data.reduce((acc, item) => {
-          const value = Number(item[column.dataKey]) || 0;
-          return acc + value;
-        }, 0);
-        totals[column.key] = sum;
-      }
-      return totals;
-    }, {} as Record<string, string | number>);
+    return columns.reduce(
+      (totals, column) => {
+        if (column.key === 'name') {
+          totals[column.key] = 'Total';
+        } else {
+          const sum = data.reduce((acc, item) => {
+            const value = Number(item[column.dataKey]) || 0;
+            return acc + value;
+          }, 0);
+          totals[column.key] = sum;
+        }
+        return totals;
+      },
+      {} as Record<string, string | number>,
+    );
   }, [columns, data]);
 
   return (
@@ -239,10 +253,10 @@ const DataTable = ({
   sortConfig: {key: string; direction: 'asc' | 'desc'} | null;
   onSort: (columnKey: string) => void;
 }) => {
+  const navigation = useNavigation<AppNavigationProp>();
   // Filter data based on search query
   const filteredData = useMemo(() => {
     if (!searchQuery) return data;
-
     const query = searchQuery.toLowerCase();
     return data.filter(item => {
       // Search across all column data
@@ -294,6 +308,15 @@ const DataTable = ({
     [sortedData, visibleCount],
   );
 
+  const handlePress = useCallback(
+    (name: string) => {
+      let AGP_Code = name.match(/\(([^)]+)\)/)?.[1];
+      console.log('Extracted AGP_Code:', AGP_Code);
+      navigation.navigate('TargetPartnerDashboard', {partner: {AGP_Code}});
+    },
+    [navigation],
+  );
+
   const renderItem = useCallback(
     ({item, index}: {item: ActivationData; index: number}) => (
       <TableRow
@@ -301,9 +324,11 @@ const DataTable = ({
         isLast={index === displayedData.length - 1}
         columns={columns}
         searchQuery={searchQuery}
+        isAGPorALP={activeTab === 'agp' || activeTab === 'alp'}
+        handlePress={handlePress}
       />
     ),
-    [displayedData.length, columns, searchQuery],
+    [displayedData.length, columns, searchQuery, activeTab, handlePress],
   );
 
   const keyExtractor = useCallback(
@@ -426,23 +451,27 @@ const TerritoryDisplay = ({territory}: {territory: string}) => (
   <View className="mb-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-700">
     <View className="flex-row items-center">
       <View className="w-10 h-10 bg-blue-500 rounded-full items-center justify-center mr-3">
-        <AppIcon
-          name="location"
-          size={20}
-          color="#FFFFFF"
-          type="ionicons"
-        />
+        <AppIcon name="location" size={20} color="#FFFFFF" type="ionicons" />
       </View>
       <View className="flex-1">
-        <AppText size="xs" className="text-blue-600 dark:text-blue-400 mb-1" weight="medium">
+        <AppText
+          size="xs"
+          className="text-blue-600 dark:text-blue-400 mb-1"
+          weight="medium">
           Territory
         </AppText>
-        <AppText size="lg" weight="bold" className="text-blue-800 dark:text-blue-200">
+        <AppText
+          size="lg"
+          weight="bold"
+          className="text-blue-800 dark:text-blue-200">
           {territory}
         </AppText>
       </View>
       <View className="bg-blue-100 dark:bg-blue-800 px-3 py-1.5 rounded-full">
-        <AppText size="xs" weight="semibold" className="text-blue-700 dark:text-blue-300">
+        <AppText
+          size="xs"
+          weight="semibold"
+          className="text-blue-700 dark:text-blue-300">
           Active
         </AppText>
       </View>
@@ -521,36 +550,49 @@ const buildTabItems = (
   sortConfigs: Record<string, {key: string; direction: 'asc' | 'desc'} | null>,
   handleSort: (tabId: string, columnKey: string) => void,
   selectedBranches: string[],
+  cseName: AppDropdownItem | null,
+  partnerType: AppDropdownItem | null,
 ): TabItem[] => {
   return labels.map(label => {
     const id = TAB_LABEL_TO_ID[label];
-    const config = getCurrentTabConfig(id,false);
-    const tabData = getActivationTabData(data, id);
+    const config = getCurrentTabConfig(id, false);
     const visibleCount = visibleCounts[id] || ITEMS_PER_BATCH;
     const searchQuery = searchQueries[id] || '';
     const sortConfig = sortConfigs[id] || null;
 
+    let tabData = getActivationTabData(data, id);
     // Determine the display label based on branch filter
     let displayLabel = label;
     if (id === 'branch' && selectedBranches.length === 1) {
       // If exactly one branch is selected, show the branch name as the tab label
       displayLabel = selectedBranches[0];
     }
-
+    if (id === 'agp') {
+      if (cseName?.value) {
+        tabData = tabData.filter(
+          (item: ActivationData) => item.CSE_Name === cseName.value,
+        );
+      } else if (partnerType?.value) {
+        tabData = tabData.filter(
+          (item: ActivationData) => item.Partner_Type === partnerType.value,
+        );
+      }
+    }
+    console.log('Tab Data for', label, tabData);
     return {
       label: displayLabel,
       name: id,
       component: (
         <View>
-          <TableHeader
-            columns={config.columns}
-            sortConfig={sortConfig}
-            onSort={columnKey => handleSort(id, columnKey)}
-          />
           <SearchBox
             value={searchQuery}
             onChangeText={text => handleSearchChange(id, text)}
             placeholder={`Search ${label}...`}
+          />
+          <TableHeader
+            columns={config.columns}
+            sortConfig={sortConfig}
+            onSort={columnKey => handleSort(id, columnKey)}
           />
           <DataTable
             data={tabData}
@@ -578,6 +620,8 @@ const ActivationPerformanceView = ({
   hasActiveFilters,
   selectedBranches,
   territory,
+  cseList,
+  partnerTypeList,
 }: {
   tabs: string[];
   data: any;
@@ -588,6 +632,8 @@ const ActivationPerformanceView = ({
   hasActiveFilters?: boolean;
   selectedBranches: string[];
   territory?: string;
+  cseList: {label: string; value: string}[];
+  partnerTypeList: {label: string; value: string}[];
 }) => {
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
   const [visibleCounts, setVisibleCounts] = useState<Record<string, number>>(
@@ -600,6 +646,11 @@ const ActivationPerformanceView = ({
   const [sortConfigs, setSortConfigs] = useState<
     Record<string, {key: string; direction: 'asc' | 'desc'} | null>
   >({});
+  const [cseName, setCseName] = useState<AppDropdownItem | null>(null);
+  const [partnerType, setPartnerType] = useState<AppDropdownItem | null>({
+    label: 'AGP',
+    value: 'AGP',
+  });
 
   const providedTabs = useMemo(
     () => (tabs && tabs.length > 0 ? tabs : [...DEFAULT_ACTIVATION_TABS]),
@@ -607,7 +658,7 @@ const ActivationPerformanceView = ({
   );
 
   const initialActiveId = useMemo(
-    () => deriveInitialActiveId(providedTabs,false),
+    () => deriveInitialActiveId(providedTabs, false),
     [providedTabs],
   );
 
@@ -681,6 +732,8 @@ const ActivationPerformanceView = ({
         sortConfigs,
         handleSort,
         selectedBranches,
+        cseName,
+        partnerType,
       ),
     [
       providedTabs,
@@ -691,6 +744,7 @@ const ActivationPerformanceView = ({
       handleSearchChange,
       sortConfigs,
       handleSort,
+      partnerType,
     ],
   );
 
@@ -702,7 +756,7 @@ const ActivationPerformanceView = ({
 
     // Apply search filter if query exists
     const searchQuery = searchQueries[activeTabId] || '';
-    const config = getCurrentTabConfig(activeTabId,false);
+    const config = getCurrentTabConfig(activeTabId, false);
 
     let filteredData = rawData;
     if (searchQuery) {
@@ -773,10 +827,7 @@ const ActivationPerformanceView = ({
     }));
   }, [isFullyExpanded, activeTabId]);
 
-  if (isLoading) {
-    return <ActivationPerformanceSkeleton />;
-  }
-
+  if (isLoading) return <ActivationPerformanceSkeleton />;
   return (
     <View className="py-3">
       <View className="flex-row gap-3 items-center">
@@ -791,6 +842,29 @@ const ActivationPerformanceView = ({
           hasActiveFilters={hasActiveFilters}
         />
       </View>
+      {activeTabId === 'agp' && (
+        <View className="flex-row justify-between items-center my-3">
+          <AppDropdown
+            mode="autocomplete"
+            data={cseList}
+            placeholder="Select CSE"
+            onSelect={setCseName}
+            selectedValue={cseName?.value}
+            style={{width: '59%'}}
+            allowClear
+            onClear={() => setCseName(null)}
+          />
+          <AppDropdown
+            mode="dropdown"
+            data={partnerTypeList}
+            placeholder="Select Type"
+            onSelect={setPartnerType}
+            selectedValue={partnerType?.value}
+            style={{width: '40%'}}
+          />
+        </View>
+      )}
+
       <AppDatePicker
         mode="dateRange"
         visible={isDatePickerVisible}
@@ -805,10 +879,11 @@ const ActivationPerformanceView = ({
         }}
       />
       <Card
-        className="p-1"
+        className="p-1 border border-slate-200 dark:border-gray-700"
         needSeeMore={hasMoreItems || isFullyExpanded}
         seeMoreText={isFullyExpanded ? 'Show Less' : 'Load More'}
-        seeMoreOnPress={handleToggleVisibility}>
+        seeMoreOnPress={handleToggleVisibility}
+        noshadow>
         <View className="pt-3 overflow-hidden">
           {territory && <TerritoryDisplay territory={territory} />}
           <AppTabBar
@@ -825,7 +900,13 @@ const ActivationPerformanceView = ({
 // Main screen component
 export default function ActPerformanceBranchWise() {
   const route = useRoute<any>();
-  const {masterTab, StartDate, EndDate, Product_Category='', Territory=''} = route.params || {};
+  const {
+    masterTab,
+    StartDate,
+    EndDate,
+    Product_Category = '',
+    Territory = '',
+  } = route.params || {};
 
   // Date range state management
   const [dateRange, setDateRange] = useState<DatePickerState>({
@@ -887,7 +968,11 @@ export default function ActPerformanceBranchWise() {
             name:
               key === 'Top5Branch'
                 ? item['Top_Branch_Territory']
-                : item[`Top_${key.replace(/top5/i, '')}`],
+                : key === 'Top5AGP'
+                  ? `${item[`Top_${key.replace(/top5/i, '')}`]} \n-(${item.AGP_Code || 'N/A'})`
+                  : key === 'TOP5ALP'
+                    ? `${item[`Top_${key.replace(/top5/i, '')}`]} \n-(${item.ALP_Code || 'N/A'})`
+                    : item[`Top_${key.replace(/top5/i, '')}`],
             SO_Cnt: item.SO_Cnt || item.SellOut_Qty || '0',
           }));
         }
@@ -896,6 +981,29 @@ export default function ActPerformanceBranchWise() {
       {} as Record<string, any[]>,
     );
     return [labels, transformedData];
+  }, [data]);
+
+  const CSEList = useMemo(() => {
+    const branchData = transformedData['Top5AGP'] || [];
+    const cseSet = new Set<string>();
+    branchData.forEach(item => {
+      if (item.CSE_Name) {
+        cseSet.add(item.CSE_Name);
+      }
+    });
+    return Array.from(cseSet).map(name => ({label: name, value: name}));
+  }, [data]);
+
+  const PartnerTypeList = useMemo(() => {
+    const branchData = transformedData['Top5AGP'] || [];
+    const partnerTypeSet = new Set<string>();
+    branchData.forEach(item => {
+      if (item.Partner_Type) {
+        let type = isEmptyData(item.Partner_Type) ? 'T3' : item.Partner_Type;
+        partnerTypeSet.add(type);
+      }
+    });
+    return Array.from(partnerTypeSet).map(name => ({label: name, value: name}));
   }, [data]);
 
   // Handle date range change and refetch data
@@ -919,7 +1027,6 @@ export default function ActPerformanceBranchWise() {
       cpu: filters.cpu,
       gpu: filters.gpu,
       onApply: appliedFilters => {
-        console.log('Applied filters:', appliedFilters);
         setFilters({
           branches: appliedFilters.branches,
           model: appliedFilters.model,
@@ -945,10 +1052,11 @@ export default function ActPerformanceBranchWise() {
 
   // Check if any filters are active (exclude territory branch from count)
   const hasActiveFilters = useMemo(() => {
-    const branchFilterActive = Territory 
-      ? filters.branches.length > 1 || (filters.branches.length === 1 && filters.branches[0] !== Territory)
+    const branchFilterActive = Territory
+      ? filters.branches.length > 1 ||
+        (filters.branches.length === 1 && filters.branches[0] !== Territory)
       : filters.branches.length > 0;
-    
+
     return (
       branchFilterActive ||
       filters.model.length > 0 ||
@@ -972,6 +1080,8 @@ export default function ActPerformanceBranchWise() {
         hasActiveFilters={hasActiveFilters}
         selectedBranches={filters.branches}
         territory={Territory}
+        cseList={CSEList}
+        partnerTypeList={PartnerTypeList}
       />
     </AppLayout>
   );

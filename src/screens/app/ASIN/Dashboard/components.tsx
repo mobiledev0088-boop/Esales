@@ -1,4 +1,4 @@
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   useDashboardActivationData,
   useDashboardBanner,
@@ -452,6 +452,7 @@ const getPctTextColor = (p: number) =>
 // Modern Monthly Data tiles
 const MonthlyDataTiles = ({data}: {data: MonthlyPerformanceItem[]}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const scrollViewRef = useRef<ScrollView | null>(null);
   const processed = useMemo(
     () =>
       (data || []).map(m => {
@@ -482,9 +483,29 @@ const MonthlyDataTiles = ({data}: {data: MonthlyPerformanceItem[]}) => {
     );
   }
 
+  // Scroll to current month (within active quarter) on mount/update
+  useEffect(() => {
+    if (!processed.length || !scrollViewRef.current) {
+      return;
+    }
+
+    const today = moment();
+    const renderedOrder = [...processed].reverse();
+
+    const index = renderedOrder.findIndex(item =>
+      moment(item.month, ['MMMM YYYY', 'MMM YYYY']).isSame(today, 'month'),
+    );
+
+    if (index > 0) {
+      // Each tile is treated as ~144px height in paging calculations
+      scrollViewRef.current.scrollTo({y: index * 144, animated: false});
+      setCurrentIndex(index);
+    }
+  }, [processed]);
   return (
     <View className="flex-row items-center h-36">
       <ScrollView
+        ref={scrollViewRef}
         pagingEnabled
         showsVerticalScrollIndicator={false}
         style={{maxHeight: 144}}
@@ -612,8 +633,8 @@ export const TargetAchievementCard = ({
 
   const theme = getTheme();
   if (isLoading) return <TargetAchievementSkeleton />;
-  return (
-    <Card className="mt-4">
+  return ( 
+    <Card className="mt-4 border border-slate-200 dark:border-slate-700" noshadow>
       <View className="flex-row items-center border-b border-gray-200 pb-2">
         <View
           className={`w-10 h-10 rounded-xl ${theme.bg} items-center justify-center`}>

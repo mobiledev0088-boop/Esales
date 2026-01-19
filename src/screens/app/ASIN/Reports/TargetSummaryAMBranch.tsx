@@ -2,7 +2,7 @@ import {FlatList, ScrollView, TouchableOpacity, View} from 'react-native';
 import {useLoginStore} from '../../../../stores/useLoginStore';
 import {useQuery} from '@tanstack/react-query';
 import {handleASINApiCall} from '../../../../utils/handleApiCall';
-import {useRoute} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import AppDropdown, {AppDropdownItem} from '../../../../components/customs/AppDropdown';
 import {useCallback, useMemo, useState} from 'react';
 import {
@@ -20,6 +20,7 @@ import {AppColors} from '../../../../config/theme';
 import { CircularProgressBar} from '../../../../components/customs/AppChart';
 import {PieChart} from 'react-native-gifted-charts';
 import { Watermark } from '../../../../components/Watermark';
+import { AppNavigationProp } from '../../../../types/navigation';
 
 
 const PARTNER_COLORS: Record<string, string> = {
@@ -122,6 +123,7 @@ const useGetTrgtVsAchvDetail = (YearQtr: string, masterTab: string) => {
 
 export default function TargetSummaryAMBranch() {
   const route = useRoute();
+  const navigation = useNavigation<AppNavigationProp>();
   const {Year, Month, masterTab} = route.params as {
     Year: string;
     Month: string;
@@ -231,8 +233,7 @@ export default function TargetSummaryAMBranch() {
 
   const renderItem = useCallback(
     ({item}: {item: SummaryItem}) => {
-      const hasProducts =
-        item.ProductCategoryType && item.ProductCategoryType.length > 0;
+      const hasProducts = item.ProductCategoryType && item.ProductCategoryType.length > 0;
       const totalAchieved = item.AchievedQty || 0;
       // Build pie chart data with stable colors + percentage labels
       const totalPartnerQty = item.PartnerWiseDetails.reduce(
@@ -245,9 +246,18 @@ export default function TargetSummaryAMBranch() {
         return {
           value: qty,
           color: getPartnerColor(p.ALP_Type, idx),
-          label: `${percent.toFixed(0)}%`,
+          text: `${percent.toFixed(0)}%`,
         };
       });
+      const handleLegendPress = (type: string, Branch: string) => {
+        // Optional: Implement any interaction when legend is pressed
+        navigation.push('VerticalASE_HO', {
+          Branch,
+          Year,
+          Month,
+          AlpType: type || '',
+        });
+      }
 
       return (
         <Accordion
@@ -316,14 +326,17 @@ export default function TargetSummaryAMBranch() {
                   renderProductCard(product, index),
                 )}
               </ScrollView>
-
               <View className="items-center mt-2">
                 <PieChart
                   data={pieData}
+                  radius={95}
+                  // Label Settings
                   showText
                   textSize={14}
                   textColor="white"
-                  radius={95}
+                  // showTextBackground
+                  // textBackgroundRadius={20}
+                  labelsPosition='outward'
                   // Add a thin separator (stroke) between slices for visual clarity
                   strokeColor="#ffffff"
                   strokeWidth={2}
@@ -334,7 +347,8 @@ export default function TargetSummaryAMBranch() {
                 {/* Legend */}
                 <View className="flex-row flex-wrap justify-center mt-5 gap-3 px-4">
                   {item.PartnerWiseDetails.map((p, idx) => (
-                    <View
+                    <TouchableOpacity
+                      onPress={() => handleLegendPress(p.ALP_Type, item.BranchName)}
                       key={`${p.ALP_Type}_${idx}`}
                       className="flex-row items-center rounded-full px-3 py-1"
                       style={{
@@ -350,7 +364,7 @@ export default function TargetSummaryAMBranch() {
                       <AppText size="xs" weight="semibold" color="text">
                         {`${p.ALP_Type?.toUpperCase() || 'N/A'} (${p.Achieved_Qty || 0})`}
                       </AppText>
-                    </View>
+                    </TouchableOpacity>
                   ))}
                 </View>
               </View>

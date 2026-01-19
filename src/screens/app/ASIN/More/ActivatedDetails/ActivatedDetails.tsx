@@ -2,12 +2,10 @@ import {useMutation, useQuery} from '@tanstack/react-query';
 
 import AppLayout from '../../../../../components/layout/AppLayout';
 import {AppDropdownItem} from '../../../../../components/customs/AppDropdown';
-
 import {
   ActivationDetailCard,
   CautionModal,
   Disclaimer,
-  NoDataFound,
   SearchCard,
 } from './component';
 import {handleASINApiCall} from '../../../../../utils/handleApiCall';

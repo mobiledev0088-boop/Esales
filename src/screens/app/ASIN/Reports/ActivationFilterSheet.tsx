@@ -12,6 +12,7 @@ import AppInput from '../../../../components/customs/AppInput';
 import {useLoginStore} from '../../../../stores/useLoginStore';
 import {useQuery} from '@tanstack/react-query';
 import {handleASINApiCall} from '../../../../utils/handleApiCall';
+import SheetIndicator from '../../../../components/SheetIndicator';
 
 export interface ActivationFilterPayload {
   branches?: string[];
@@ -143,13 +144,25 @@ const useGetFilterData = (masterTab: string) => {
         throw new Error('Failed to fetch activation data');
       }
       const filterData = {
-        Filter_TargetType: result.Datainfo.Filter_TargetType.map((item: any) => String(item.Target_Type)),
-        Filter_Branch: result.Datainfo.Filter_Branch.map((item: any) => String(item.BranchName)),
-        Filter_ALPType: result.Datainfo.Filter_ALPType.map((item: any) => String(item.ALP_Type)),
-        Filter_ModelName: result.Datainfo.Filter_ModelName.map((item: any) => String(item.Model_Name)),
-        Filter_CpuType: result.Datainfo.Filter_CpuType.map((item: any) => String(item.CPU_Type)),
-        Filter_GpuType: result.Datainfo.Filter_GpuType.map((item: any) => String(item.GPU_Type)),
-      }
+        Filter_TargetType: result.Datainfo.Filter_TargetType.map((item: any) =>
+          String(item.Target_Type),
+        ),
+        Filter_Branch: result.Datainfo.Filter_Branch.map((item: any) =>
+          String(item.BranchName),
+        ),
+        Filter_ALPType: result.Datainfo.Filter_ALPType.map((item: any) =>
+          String(item.ALP_Type),
+        ),
+        Filter_ModelName: result.Datainfo.Filter_ModelName.map((item: any) =>
+          String(item.Model_Name),
+        ),
+        Filter_CpuType: result.Datainfo.Filter_CpuType.map((item: any) =>
+          String(item.CPU_Type),
+        ),
+        Filter_GpuType: result.Datainfo.Filter_GpuType.map((item: any) =>
+          String(item.GPU_Type),
+        ),
+      };
       return filterData;
     },
   });
@@ -157,8 +170,17 @@ const useGetFilterData = (masterTab: string) => {
 
 export default function ActivationFilterSheet() {
   const payload = (useSheetPayload?.() || {}) as ActivationFilterPayload;
-  const {data: filterData, isLoading: isLoadingFilterData} = useGetFilterData(payload.masterTab || '');
-  const {Filter_Branch,Filter_TargetType,Filter_ModelName,Filter_ALPType,Filter_CpuType,Filter_GpuType} = filterData || {};
+  const {data: filterData, isLoading: isLoadingFilterData} = useGetFilterData(
+    payload.masterTab || '',
+  );
+  const {
+    Filter_Branch,
+    Filter_TargetType,
+    Filter_ModelName,
+    Filter_ALPType,
+    Filter_CpuType,
+    Filter_GpuType,
+  } = filterData || {};
 
   // Filter state for each group
   const [branches, setBranches] = useState<string[]>(payload.branches ?? []);
@@ -169,7 +191,9 @@ export default function ActivationFilterSheet() {
   const [gpu, setGpu] = useState<string[]>(payload.gpu ?? []);
 
   // Active group state - default to 'model' if territory is provided (since branches will be hidden)
-  const [group, setGroup] = useState<Group>(payload.territory ? 'model' : 'branches');
+  const [group, setGroup] = useState<Group>(
+    payload.territory ? 'model' : 'branches',
+  );
 
   // Search state for each group
   const [branchesSearch, setBranchesSearch] = useState('');
@@ -191,30 +215,12 @@ export default function ActivationFilterSheet() {
   const isDark = AppTheme === 'dark';
 
   // Get data from API response
-  const allBranches = useMemo(
-    () => Filter_Branch || [],
-    [Filter_Branch],
-  );
-  const allModels = useMemo(
-    () => Filter_ModelName || [],
-    [Filter_ModelName],
-  );
-  const allTypes = useMemo(
-    () => Filter_TargetType || [],
-    [Filter_TargetType],
-  );
-  const allALPs = useMemo(
-    () => Filter_ALPType || [],
-    [Filter_ALPType],
-  );
-  const allCPUs = useMemo(
-    () => Filter_CpuType || [],
-    [Filter_CpuType],
-  );
-  const allGPUs = useMemo(
-    () => Filter_GpuType || [],
-    [Filter_GpuType],
-  );
+  const allBranches = useMemo(() => Filter_Branch || [], [Filter_Branch]);
+  const allModels = useMemo(() => Filter_ModelName || [], [Filter_ModelName]);
+  const allTypes = useMemo(() => Filter_TargetType || [], [Filter_TargetType]);
+  const allALPs = useMemo(() => Filter_ALPType || [], [Filter_ALPType]);
+  const allCPUs = useMemo(() => Filter_CpuType || [], [Filter_CpuType]);
+  const allGPUs = useMemo(() => Filter_GpuType || [], [Filter_GpuType]);
 
   // Filtered data based on search
   const filteredBranches = useMemo(() => {
@@ -254,63 +260,61 @@ export default function ActivationFilterSheet() {
   }, [dGpuSearch, allGPUs]);
 
   // Calculate active filter count (exclude branches if territory is provided)
+  const hasItems = (arr?: any[]) => (arr?.length ? 1 : 0);
   const activeCount = useMemo(() => {
-    const branchCount = payload.territory ? 0 : branches.length;
+    const branchCount = payload.territory ? 0 : hasItems(branches);
     return (
       branchCount +
-      model.length +
-      type.length +
-      alp.length +
-      cpu.length +
-      gpu.length
+      hasItems(model) +
+      hasItems(type) +
+      hasItems(alp) +
+      hasItems(cpu) +
+      hasItems(gpu)
     );
   }, [branches, model, type, alp, cpu, gpu, payload.territory]);
 
   // Define groups for left panel
-  const groups = useMemo(
-    () => {
-      const allGroups = [
-        {
-          key: 'branches' as const,
-          label: 'Branches',
-          hasValue: branches.length > 0,
-        },
-        {
-          key: 'model' as const,
-          label: 'Model',
-          hasValue: model.length > 0,
-        },
-        {
-          key: 'type' as const,
-          label: 'Type',
-          hasValue: type.length > 0,
-        },
-        {
-          key: 'alp' as const,
-          label: 'ALP',
-          hasValue: alp.length > 0,
-        },
-        {
-          key: 'cpu' as const,
-          label: 'CPU',
-          hasValue: cpu.length > 0,
-        },
-        {
-          key: 'gpu' as const,
-          label: 'GPU',
-          hasValue: gpu.length > 0,
-        },
-      ];
-      
-      // If territory is provided, exclude branches filter
-      if (payload.territory) {
-        return allGroups.filter(g => g.key !== 'branches');
-      }
-      
-      return allGroups;
-    },
-    [branches, model, type, alp, cpu, gpu, payload.territory],
-  );
+  const groups = useMemo(() => {
+    const allGroups = [
+      {
+        key: 'branches' as const,
+        label: 'Branches',
+        hasValue: branches.length > 0,
+      },
+      {
+        key: 'model' as const,
+        label: 'Model',
+        hasValue: model.length > 0,
+      },
+      {
+        key: 'type' as const,
+        label: 'Type',
+        hasValue: type.length > 0,
+      },
+      {
+        key: 'alp' as const,
+        label: 'ALP',
+        hasValue: alp.length > 0,
+      },
+      {
+        key: 'cpu' as const,
+        label: 'CPU',
+        hasValue: cpu.length > 0,
+      },
+      {
+        key: 'gpu' as const,
+        label: 'GPU',
+        hasValue: gpu.length > 0,
+      },
+    ];
+
+    // If territory is provided, exclude branches filter
+    if (payload.territory) {
+      return allGroups.filter(g => g.key !== 'branches');
+    }
+
+    return allGroups;
+  }, [branches, model, type, alp, cpu, gpu, payload.territory]);
 
   // Toggle selection for checkbox items
   const toggleSelection = useCallback(
@@ -567,10 +571,7 @@ export default function ActivationFilterSheet() {
           backgroundColor: isDark ? '#1f2937' : '#ffffff',
         }}>
         {/* Indicator */}
-        <View className="flex-row justify-center">
-          <View className="w-[50px] h-[4px] rounded-full bg-gray-300 dark:bg-slate-600 my-3" />
-        </View>
-
+        <SheetIndicator />
         <FilterSheet
           title="Activation Filters"
           activeCount={activeCount}
@@ -600,8 +601,10 @@ export default function ActivationFilterSheet() {
 
 export const showActivationFilterSheet = (
   props: ActivationFilterPayload = {},
-) => SheetManager.show('ActivationFilterSheet', {
-    payload: props});
+) =>
+  SheetManager.show('ActivationFilterSheet', {
+    payload: props,
+  });
 
 export const hideActivationFilterSheet = () =>
   SheetManager.hide('ActivationFilterSheet');

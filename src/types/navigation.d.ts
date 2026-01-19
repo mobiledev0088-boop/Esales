@@ -122,7 +122,7 @@ type AppNavigationParamList = {
     Territory?: string;
   };
   TargetSummary: {masterTab: string; Quarter: string, button: 'seemore' | 'disti',wise: 'POD' | 'SELL'};
-  VerticalASE_HO: {Year: string; Month: string; AlpType: string};
+  VerticalASE_HO: {Year: string; Month: string; AlpType: string, Branch?: string};
   TargetSummaryAMBranch: {Year: string; Month: string; masterTab: string};
   // Other Screens
   Banners: {Banner_Group_SeqNum: string};

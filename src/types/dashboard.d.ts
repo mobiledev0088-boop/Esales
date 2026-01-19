@@ -27,6 +27,8 @@ export interface ActivationData {
   Act_Cnt: string | number;
   NonAct_Cnt: string | number;
   Hit_Rate?: number;
+  CSE_Name?: string;
+  Partner_Type?: string;
 }
 
 export interface ActivationPerformanceData {

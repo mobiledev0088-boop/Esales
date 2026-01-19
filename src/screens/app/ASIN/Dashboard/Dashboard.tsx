@@ -519,8 +519,7 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
     const quarterNum = Number(quarter.slice(4));
     const currentMonth = moment().month() + 1; // month() is zero-based
     const lastMonthOfQuarter = quarterNum * 3;
-    const MonthNum =
-      currentMonth < lastMonthOfQuarter ? currentMonth : lastMonthOfQuarter;
+    const MonthNum = currentMonth < lastMonthOfQuarter ? currentMonth : lastMonthOfQuarter;
     const onPress = () => {
       navigation.push('VerticalASE_HO', {
         Year: year.toString(),

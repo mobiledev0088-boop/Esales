@@ -96,7 +96,7 @@ export const getPastMonths = (
   startFrom?: string,
 ): {label: string; value: string}[] => {
   const months: {label: string; value: string}[] = [];
-  const baseDate = startFrom ? moment(startFrom, 'YYYYM').subtract(15, 'days') : moment().subtract(15, 'days');
+  const baseDate = startFrom ? moment(startFrom, 'YYYYM') : moment().subtract(15, 'days');
   if (isForward) {
     for (let i = 0; i < count; i++) {
       months.push({
@@ -344,5 +344,7 @@ export const getMimeTypeFromUrl = (url: string): string => {
   return mimeTypes[extension] || 'application/octet-stream';
 };
 
-
-
+export const isEmptyData = (data:any)=>{
+  if(data === null || data === undefined || data === '') return true;
+  return false;
+}
