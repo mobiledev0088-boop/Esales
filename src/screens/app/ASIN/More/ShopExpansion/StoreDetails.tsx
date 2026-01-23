@@ -1,5 +1,5 @@
 import {Text, View, ScrollView, TouchableOpacity, FlatList} from 'react-native';
-import {useMemo, useState} from 'react';
+import {useMemo, useState, useRef} from 'react';
 import {useRoute} from '@react-navigation/native';
 import {useLoginStore} from '../../../../../stores/useLoginStore';
 import useEmpStore from '../../../../../stores/useEmpStore';
@@ -18,6 +18,7 @@ import {AppColors} from '../../../../../config/theme';
 import ImageSlider, {SwiperItem} from '../../../../../components/ImageSlider';
 import AppTabBar, {TabItem} from '../../../../../components/CustomTabBar';
 import GalleryReview from './GalleryReview/GalleryReview';
+import Swiper from 'react-native-swiper';
 
 interface PartnerDetails {
   PS_ID: number;
@@ -169,7 +170,10 @@ const SectionHeader = ({
         color={AppColors.primary}
       />
     </View>
-    <AppText size="lg" weight="bold" className="text-gray-800 dark:text-gray-100">
+    <AppText
+      size="lg"
+      weight="bold"
+      className="text-gray-800 dark:text-gray-100">
       {title}
     </AppText>
   </View>
@@ -187,7 +191,10 @@ const InfoRow = ({
     <AppText size="sm" className="text-gray-500 dark:text-gray-400 mb-1">
       {label}
     </AppText>
-    <AppText size="base" weight="bold" className="text-gray-900 dark:text-gray-100">
+    <AppText
+      size="base"
+      weight="bold"
+      className="text-gray-900 dark:text-gray-100">
       {value || 'N/A'}
     </AppText>
   </View>
@@ -211,12 +218,15 @@ const PartnerDetailsSection = ({
   };
 
   if (!partner) return null;
-
   return (
     <>
       <Card className="mb-4">
-        <SectionHeader title="Partner Details" icon="store" iconType="materialIcons" />
-        
+        <SectionHeader
+          title="Partner Details"
+          icon="store"
+          iconType="materialIcons"
+        />
+
         <View className="flex-row flex-wrap">
           <View className="w-1/2 pr-2">
             <InfoRow label="Store Name" value={partner.StoreName} />
@@ -256,13 +266,21 @@ const PartnerDetailsSection = ({
         {/* Store Designs */}
         {(partner.three_d_design || partner.two_d_design) && (
           <View className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <AppText size="base" weight="semibold" className="mb-3 text-gray-800 dark:text-gray-100">
+            <AppText
+              size="base"
+              weight="semibold"
+              className="mb-3 text-gray-800 dark:text-gray-100">
               Store Designs
             </AppText>
             <View className="flex-row gap-3">
               {partner.three_d_design && (
                 <TouchableOpacity
-                  onPress={() => handleViewPdf(partner.three_d_design, '3D Store Layout')}
+                  onPress={() =>
+                    handleViewPdf(
+                      partner.MediaUrl + partner.three_d_design,
+                      '3D Store Layout',
+                    )
+                  }
                   className="flex-1 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-700"
                   activeOpacity={0.7}>
                   <View className="items-center">
@@ -284,7 +302,12 @@ const PartnerDetailsSection = ({
 
               {partner.two_d_design && (
                 <TouchableOpacity
-                  onPress={() => handleViewPdf(partner.two_d_design, '2D Store Layout')}
+                  onPress={() =>
+                    handleViewPdf(
+                      partner.MediaUrl + partner.two_d_design,
+                      '2D Store Layout',
+                    )
+                  }
                   className="flex-1 bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-700"
                   activeOpacity={0.7}>
                   <View className="items-center">
@@ -319,7 +342,12 @@ const PartnerDetailsSection = ({
           </AppText>
           <Pdf
             source={{cache: true, uri: selectedPdf.url}}
-            style={{flex: 1, borderWidth: 0.5, borderColor: '#ccc', borderRadius: 8}}
+            style={{
+              flex: 1,
+              borderWidth: 0.5,
+              borderColor: '#ccc',
+              borderRadius: 8,
+            }}
             trustAllCerts={false}
             onLoadComplete={pages =>
               console.log(`PDF loaded with ${pages} pages`)
@@ -342,18 +370,22 @@ const AssetDetailsSection = ({
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedImages, setSelectedImages] = useState<SwiperItem[]>([]);
+  const swiperRef = useRef<any>(null);
 
   if (!assets || assets.length === 0) return null;
 
   // Group images by ImageType
-  const groupedAssets = assets.reduce((acc, asset) => {
-    const type = asset.ImageType;
-    if (!acc[type]) {
-      acc[type] = [];
-    }
-    acc[type].push(asset);
-    return acc;
-  }, {} as Record<string, Table1[]>);
+  const groupedAssets = assets.reduce(
+    (acc, asset) => {
+      const type = asset.ImageType;
+      if (!acc[type]) {
+        acc[type] = [];
+      }
+      acc[type].push(asset);
+      return acc;
+    },
+    {} as Record<string, Table1[]>,
+  );
 
   // Split into two rows for better layout
   const imageTypes = Object.keys(groupedAssets);
@@ -376,10 +408,17 @@ const AssetDetailsSection = ({
     })) as SwiperItem[];
 
     return (
-      <View key={imageType} className="mr-3" style={{width: screenWidth * 0.45}}>
+      <View
+        key={imageType}
+        className="mr-3"
+        style={{width: screenWidth * 0.45}}>
         <Card className="p-3">
           <View className="flex-row items-center justify-between mb-2">
-            <AppText size="sm" weight="bold" className="text-gray-800 dark:text-gray-100 flex-1" numberOfLines={1}>
+            <AppText
+              size="sm"
+              weight="bold"
+              className="text-gray-800 dark:text-gray-100 flex-1"
+              numberOfLines={1}>
               {imageType}
             </AppText>
             <View className="bg-primary/10 px-2 py-1 rounded-full">
@@ -388,7 +427,7 @@ const AssetDetailsSection = ({
               </AppText>
             </View>
           </View>
-          
+
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => handleImagePress(images)}>
@@ -411,6 +450,11 @@ const AssetDetailsSection = ({
       </View>
     );
   };
+  const handlePress = (isLeft: boolean) => {
+    if (swiperRef.current) {
+      swiperRef.current.scrollBy(isLeft ? -1 : 1, true);
+    }
+  };
 
   return (
     <>
@@ -418,7 +462,6 @@ const AssetDetailsSection = ({
         <View className="px-3">
           <SectionHeader title="Asset Details" icon="image" />
         </View>
-        
         {/* Combined ScrollView with both rows */}
         <ScrollView
           horizontal
@@ -434,32 +477,76 @@ const AssetDetailsSection = ({
 
             {/* Row 2 */}
             {row2.length > 0 && (
-              <View className="flex-row">
-                {row2.map(renderImageTypeGroup)}
-              </View>
+              <View className="flex-row">{row2.map(renderImageTypeGroup)}</View>
             )}
           </View>
         </ScrollView>
       </View>
-
       {/* Image Slider Modal */}
       <AppModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         showCloseButton>
         <View style={{height: screenHeight * 0.6}}>
-          <AppText weight="semibold" className="mb-3 text-lg">
+          <AppText weight="semibold" className="text-lg">
             Asset Images
           </AppText>
-          <ImageSlider
-            data={selectedImages}
-            width={screenWidth * 0.9}
-            height={screenHeight * 0.5}
-            onPress={() => {}}
-            show={true}
+          <Swiper
+            ref={swiperRef}
             autoplay={false}
-            resizeMode="contain"
-          />
+            autoplayTimeout={3}
+            showsPagination
+            dotColor="#ccc"
+            activeDotColor="#000"
+            removeClippedSubviews={false}>
+            {selectedImages.map((item, index) => (
+              <View key={index} >
+                <AppImage
+                  source={{uri: item.image}}
+                  style={{width: screenWidth * 0.8, height: screenHeight * 0.5}}
+                  resizeMode={'contain'}
+                  enableModalZoom
+                />
+                {item.helperText && (
+                  <View className="absolute bottom-2 left-2 bg-black/60 px-3 py-1 rounded-md">
+                    <AppText size="xs" className="text-white">
+                      {item.helperText}
+                    </AppText>
+                  </View>
+                )}
+              </View>
+            ))}
+          </Swiper>
+          <View>
+            <View className="flex-row justify-between items-center mt-2">
+              {/* Right Chevron Button to Control Scroll */}
+              <TouchableOpacity
+              onPress={()=>handlePress(true)}
+              className='w-7 h-7 bg-gray-400 rounded-full justify-center items-center'>
+                <AppIcon
+                  name="chevron-left"
+                  type="material-community"
+                  color="#fff"
+                />
+              </TouchableOpacity>
+              {/* helper Text */}
+              <AppText size="sm" className="text-gray-500">
+                Use Button to navigate images
+              </AppText>
+              {/* Left Button */}
+
+              <TouchableOpacity 
+              onPress={()=>handlePress(false)}
+              className='w-7 h-7 bg-gray-400 rounded-full justify-center items-center'>
+                <AppIcon
+                  name="chevron-right"
+                  type="material-community"
+                  color="#fff"
+                  style={{left:1}}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </AppModal>
     </>
@@ -471,9 +558,7 @@ const toCamelCase = (str: string): string => {
   return str
     .toLowerCase()
     .split(/[_\s]+/)
-    .map((word, index) => 
-      word.charAt(0).toUpperCase() + word.slice(1)
-    )
+    .map((word, index) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 };
 
@@ -488,14 +573,17 @@ const KVDetailsSection = ({
   if (!kvData || kvData.length === 0) return null;
 
   // Group by KVType
-  const groupedKV = kvData.reduce((acc, kv) => {
-    const type = kv.KVType;
-    if (!acc[type]) {
-      acc[type] = [];
-    }
-    acc[type].push(kv);
-    return acc;
-  }, {} as Record<string, Table2[]>);
+  const groupedKV = kvData.reduce(
+    (acc, kv) => {
+      const type = kv.KVType;
+      if (!acc[type]) {
+        acc[type] = [];
+      }
+      acc[type].push(kv);
+      return acc;
+    },
+    {} as Record<string, Table2[]>,
+  );
 
   // Create tabs for each KVType with Camel Case labels
   const tabs: TabItem[] = Object.entries(groupedKV).map(([kvType, items]) => ({
@@ -521,25 +609,38 @@ const KVDetailsSection = ({
                         size={16}
                         color={AppColors.primary}
                       />
-                      <AppText size="sm" weight="bold" className="text-gray-800 dark:text-gray-100 ml-2">
+                      <AppText
+                        size="sm"
+                        weight="bold"
+                        className="text-gray-800 dark:text-gray-100 ml-2">
                         {item.Name || 'N/A'}
                       </AppText>
                     </View>
 
                     <View className="mb-2">
-                      <AppText size="xs" className="text-gray-500 dark:text-gray-400">
+                      <AppText
+                        size="xs"
+                        className="text-gray-500 dark:text-gray-400">
                         Dimension
                       </AppText>
-                      <AppText size="sm" weight="bold" className="text-gray-900 dark:text-gray-100">
+                      <AppText
+                        size="sm"
+                        weight="bold"
+                        className="text-gray-900 dark:text-gray-100">
                         {item.Dimension || 'N/A'}
                       </AppText>
                     </View>
 
                     <View>
-                      <AppText size="xs" className="text-gray-500 dark:text-gray-400">
+                      <AppText
+                        size="xs"
+                        className="text-gray-500 dark:text-gray-400">
                         Quarter
                       </AppText>
-                      <AppText size="sm" weight="bold" className="text-gray-900 dark:text-gray-100">
+                      <AppText
+                        size="sm"
+                        weight="bold"
+                        className="text-gray-900 dark:text-gray-100">
                         {item.KVQtr ? `Q${item.KVQtr} ${item.KVYear}` : 'N/A'}
                       </AppText>
                     </View>
@@ -571,7 +672,7 @@ const KVDetailsSection = ({
       <View className="px-3">
         <SectionHeader title="KV Details" icon="layers" />
       </View>
-      
+
       <View style={{minHeight: 400}}>
         <AppTabBar tabs={tabs} />
       </View>
@@ -592,7 +693,7 @@ const SignboardDetailsSection = ({
   return (
     <Card className="mb-4">
       <SectionHeader title="Signboard Details" icon="award" />
-      
+
       <FlatList
         data={signboards}
         scrollEnabled={false}
@@ -612,34 +713,52 @@ const SignboardDetailsSection = ({
                     size={16}
                     color={AppColors.primary}
                   />
-                  <AppText size="sm" weight="bold" className="text-gray-800 dark:text-gray-100 ml-2">
+                  <AppText
+                    size="sm"
+                    weight="bold"
+                    className="text-gray-800 dark:text-gray-100 ml-2">
                     {item.SignBoardType || 'Signboard'}
                   </AppText>
                 </View>
 
                 <View className="mb-2">
-                  <AppText size="xs" className="text-gray-500 dark:text-gray-400">
+                  <AppText
+                    size="xs"
+                    className="text-gray-500 dark:text-gray-400">
                     Size
                   </AppText>
-                  <AppText size="sm" weight="bold" className="text-gray-900 dark:text-gray-100">
+                  <AppText
+                    size="sm"
+                    weight="bold"
+                    className="text-gray-900 dark:text-gray-100">
                     {item.Size || 'N/A'}
                   </AppText>
                 </View>
 
                 <View className="mb-2">
-                  <AppText size="xs" className="text-gray-500 dark:text-gray-400">
+                  <AppText
+                    size="xs"
+                    className="text-gray-500 dark:text-gray-400">
                     Logo Size
                   </AppText>
-                  <AppText size="sm" weight="bold" className="text-gray-900 dark:text-gray-100">
+                  <AppText
+                    size="sm"
+                    weight="bold"
+                    className="text-gray-900 dark:text-gray-100">
                     {item.LogoSize || 'N/A'}
                   </AppText>
                 </View>
 
                 <View>
-                  <AppText size="xs" className="text-gray-500 dark:text-gray-400">
+                  <AppText
+                    size="xs"
+                    className="text-gray-500 dark:text-gray-400">
                     Color
                   </AppText>
-                  <AppText size="sm" weight="bold" className="text-gray-900 dark:text-gray-100">
+                  <AppText
+                    size="sm"
+                    weight="bold"
+                    className="text-gray-900 dark:text-gray-100">
                     {item.Color || 'N/A'}
                   </AppText>
                 </View>
@@ -674,7 +793,9 @@ const EmptyState = ({message}: {message: string}) => (
       size={48}
       color="#9CA3AF"
     />
-    <AppText size="base" className="text-gray-500 dark:text-gray-400 mt-3 text-center">
+    <AppText
+      size="base"
+      className="text-gray-500 dark:text-gray-400 mt-3 text-center">
       {message}
     </AppText>
   </Card>
@@ -711,7 +832,7 @@ const ShopExpansion = ({
   const mediaUrl = data.MediaUrl || '';
 
   return (
-    <ScrollView 
+    <ScrollView
       className="flex-1 bg-lightBg-base dark:bg-darkBg-base"
       showsVerticalScrollIndicator={false}>
       <View className="p-3">
@@ -732,8 +853,13 @@ export default function StoreDetails() {
   };
   const {data: storeDetails, isLoading} = useGetStoreDetails(PartnerCode);
   const asstesKey = useMemo(() => {
-    if(!storeDetails || !storeDetails.Table1 || !storeDetails.Table1.length) return [];
-    return [...new Set(storeDetails.Table1.map((item:{ImageType:string}) => item.ImageType))] as string[];
+    if (!storeDetails || !storeDetails.Table1 || !storeDetails.Table1.length)
+      return [];
+    return [
+      ...new Set(
+        storeDetails.Table1.map((item: {ImageType: string}) => item.ImageType),
+      ),
+    ] as string[];
   }, [storeDetails]);
   return (
     <AppLayout title="Store Details" needBack needPadding>
@@ -749,7 +875,12 @@ export default function StoreDetails() {
           {
             name: 'Gallery Review',
             label: 'Gallery Review',
-            component: <GalleryReview data={{PartnerCode, StoreType}} assetsKey={asstesKey} />,
+            component: (
+              <GalleryReview
+                data={{PartnerCode, StoreType}}
+                assetsKey={asstesKey}
+              />
+            ),
           },
         ]}
       />

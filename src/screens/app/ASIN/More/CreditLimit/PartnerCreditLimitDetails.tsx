@@ -318,6 +318,12 @@ export default function PartnerCreditLimitDetails() {
               </View>
             ) : (
               <>
+              <AppText
+                  size="xs"
+                  color="gray"
+                  className="mt-3 leading-4 opacity-80">
+                  Tap on bars to view exact values.
+                </AppText>
                 <BarChart
                   data={interactiveData}
                   barWidth={16}

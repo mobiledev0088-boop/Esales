@@ -505,24 +505,24 @@ export default function ShopExpansion() {
   const {data: shopData = [], isLoading} = useGetShopExpData(selectedRegion);
 
   // Handle Android back button
-  useEffect(() => {
-    const backAction = () => {
-      if (selectedStoreType) {
-        setSelectedStoreType(null);
-        return true;
-      } else if (selectedBranch) {
-        setSelectedBranch(null);
-        return true;
-      } else if (selectedRegion) {
-        setSelectedRegion(null);
-        return true;
-      }
-      return false;
-    };
+  // useEffect(() => {
+  //   const backAction = () => {
+  //     if (selectedStoreType) {
+  //       setSelectedStoreType(null);
+  //       return true;
+  //     } else if (selectedBranch) {
+  //       setSelectedBranch(null);
+  //       return true;
+  //     } else if (selectedRegion) {
+  //       setSelectedRegion(null);
+  //       return true;
+  //     }
+  //     return false;
+  //   };
 
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-    return () => backHandler.remove();
-  }, [selectedRegion, selectedBranch, selectedStoreType]);
+  //   const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+  //   return () => backHandler.remove();
+  // }, [selectedRegion, selectedBranch, selectedStoreType]);
 
   // Group data by region, branch, and store type
   const groupedData = useMemo(() => {

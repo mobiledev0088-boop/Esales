@@ -21,16 +21,20 @@ import AppTabBar from '../../../../components/CustomTabBar';
 import useEmpStore from '../../../../stores/useEmpStore';
 import {ASUS} from '../../../../utils/constant';
 import clsx from 'clsx';
+import {useNavigation} from '@react-navigation/native';
+import {AppNavigationProp} from '../../../../types/navigation';
+import { useLoginStore } from '../../../../stores/useLoginStore';
+import AppButton from '../../../../components/customs/AppButton';
 
 // Map an array to a standardized top-N shape
-const mapTopFive = (
-  items: any[] | undefined,
-  limit: number,
-  nameKey: string,
-) =>
-  items?.length
-    ? items.slice(0, limit).map(item => ({...item, name: item[nameKey]}))
-    : [];
+// const mapTopFive = (
+//   items: any[] | undefined,
+//   limit: number,
+//   nameKey: string,
+// ) =>
+//   items?.length
+//     ? items.slice(0, limit).map(item => ({...item, name: item[nameKey]}))
+//     : [];
 
 // Enhanced Universal Progress Component
 interface DataItem {
@@ -371,22 +375,29 @@ const NoDataAvailable = () => (
 );
 
 export default function Dashboard_Partner({
-  noBanner,
   DifferentEmployeeCode,
+  noBanner,
   noPadding,
   noAnalytics,
+  needSeeDemo,
+  employeeType
 }: {
-  noBanner?: boolean;
   DifferentEmployeeCode?: string;
+  noBanner?: boolean;
   noPadding?: boolean;
   noAnalytics?: boolean;
+  needSeeDemo?: boolean;
+  employeeType?: string | null;
 }) {
-  
+  const navigation = useNavigation<AppNavigationProp>();
   const quarters = useMemo(getPastQuarters, []); // Static quarter list
+  const {EMP_Type} = useLoginStore(s =>s.userInfo)
   const empInfo = useEmpStore(s => s.empInfo);
 
-  const [selectedQuarter, setSelectedQuarter] = useState<AppDropdownItem | null>(quarters[0] || null);
-  const [selectedSubCode, setSelectedSubCode] = useState<AppDropdownItem | null>(null);
+  const [selectedQuarter, setSelectedQuarter] =
+    useState<AppDropdownItem | null>(quarters[0] || null);
+  const [selectedSubCode, setSelectedSubCode] =
+    useState<AppDropdownItem | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Fetch dashboard data for selected quarter
@@ -412,25 +423,64 @@ export default function Dashboard_Partner({
     [dashboardData],
   );
 
+  const [tabLabels, transformedData] = useMemo(() => {
+    const ORDER = ['Branch', 'ALP', 'Model', 'AGP', 'ASP', 'Disti'];
+
+    if (!dashboardData) return [[], {}];
+
+    const topKeys = Object.keys(dashboardData).filter(key =>
+      key.toLowerCase().startsWith('top'),
+    );
+
+    const labels = topKeys
+      .map(key => key.replace(/top5/i, ''))
+      .sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b));
+
+    const transformedData = topKeys.reduce(
+      (acc, key) => {
+        const items = dashboardData[key];
+        if (items && Array.isArray(items) && items.length > 0) {
+          acc[key === 'TOP5ALP' ? 'Top5ALP' : key] = items
+            .slice(0, 5)
+            .map((item: any) => ({
+              ...item,
+              name:
+                key === 'Top5Branch'
+                  ? item['Top_Branch_Territory']
+                  : key === 'Top5AGP'
+                    ? `${item[`Top_5_${key.replace(/top5/i, '')}`]} \n-(${item.AGP_Code || 'N/A'})`
+                    : key === 'TOP5ALP'
+                      ? `${item[`Top_5_${key.replace(/top5/i, '')}`]} \n-(${item.ALP_Code || 'N/A'})`
+                      : item[`Top_5_${key.replace(/top5/i, '')}`],
+              SO_Cnt: item.SO_Cnt || item.SellOut_Qty || '0',
+            }));
+        }
+        return acc;
+      },
+      {} as Record<string, any[]>,
+    );
+    return [labels, transformedData];
+  }, [dashboardData]);
+
   // Activation data grouping (Top models & AGP for AWP)
-  const activationDataObj = useMemo(
-    () => ({
-      Top5Model: mapTopFive(dashboardData?.Top5Model, 5, 'Top_5_Model'),
-      ...(empInfo?.EMP_Type === ASUS.PARTNER_TYPE.T2.AWP && {
-        Top5AGP: mapTopFive(dashboardData?.Top5AGP, 5, 'Top_5_AGP'),
-      }),
-    }),
-    [dashboardData, empInfo?.EMP_Type],
-  );
+  // const activationDataObj = useMemo(
+  //   () => ({
+  //     Top5Model: mapTopFive(dashboardData?.Top5Model, 5, 'Top_5_Model'),
+  //     ...(empInfo?.EMP_Type === ASUS.PARTNER_TYPE.T2.AWP && {
+  //       Top5AGP: mapTopFive(dashboardData?.Top5AGP, 5, 'Top_5_AGP'),
+  //     }),
+  //   }),
+  //   [dashboardData, empInfo?.EMP_Type],
+  // );
 
   // Tabs for activation performance component
-  const activeTabsArray = useMemo(
-    () =>
-      empInfo?.EMP_Type === ASUS.PARTNER_TYPE.T2.AWP
-        ? ['Model', 'AGP']
-        : ['Model'],
-    [empInfo?.EMP_Type],
-  );
+  // const activeTabsArray = useMemo(
+  //   () =>
+  //     empInfo?.EMP_Type === ASUS.PARTNER_TYPE.T2.AWP
+  //       ? ['Model', 'AGP']
+  //       : ['Model'],
+  //   [empInfo?.EMP_Type],
+  // );
 
   // Pull-to-refresh handler
   const handleRefresh = useCallback(async () => {
@@ -444,8 +494,19 @@ export default function Dashboard_Partner({
     }
   }, [refetchDashboard]);
 
-  const isDataEmpty = !isLoading && !dashboardData;
+  const handleSeeMore = () => {
+    const dataToSend = {
+      fromPartnerScreen: !DifferentEmployeeCode,
+      ...Object.fromEntries(
+        Object.entries(dashboardData).filter(([key]) =>
+          key.toLowerCase().startsWith('top'),
+        ),
+      ),
+    };
+    navigation.push('ActPerformance', dataToSend);
+  };
 
+  const isDataEmpty = !isLoading && !dashboardData;
   return (
     <ScrollView
       className={clsx(
@@ -541,9 +602,7 @@ export default function Dashboard_Partner({
           )}
         </View>
       )}
-      {/* SubCode selection info ends */}
 
-      {/*  */}
       {isDataEmpty ? (
         <NoDataAvailable />
       ) : (
@@ -556,23 +615,35 @@ export default function Dashboard_Partner({
             monthlyData={dashboardData?.TRGTSummaryMonth}
           />
           <ActivationPerformanceComponent
-            tabs={activeTabsArray}
-            data={activationDataObj}
+            tabs={tabLabels}
+            data={transformedData}
             isLoading={isLoading}
             error={dashboardError}
             onRetry={refetchDashboard}
             name="Total"
             quarter={selectedQuarter?.value || ''}
+            handleSeeMore={handleSeeMore}
           />
           {!noAnalytics && (
             <PartnerAnalytics
               dashboardData={dashboardData}
               isLoading={isLoading}
-              partnerType={empInfo?.EMP_Type}
+              partnerType={employeeType || EMP_Type}
               isSubCodeSelected={!!selectedSubCode?.value}
             />
           )}
-
+          {needSeeDemo && (
+            <View className="">
+              <AppButton
+              title="See Demo Data"
+              // onPress={() => navigation.push('DemoPartnerDashboard')}
+              onPress={()=>{}}
+              className='rounded-lg bg-white border border-slate-200 dark:border-slate-700'
+              color='primary'
+              weight='extraBold'
+              />
+            </View>
+          )}
         </>
       )}
     </ScrollView>

@@ -18,6 +18,7 @@ import {useThemeStore} from '../../../../stores/useThemeStore';
 import Skeleton from '../../../../components/skeleton/skeleton';
 import {screenWidth} from '../../../../utils/constant';
 import moment from 'moment';
+import {AppNavigationProp} from '../../../../types/navigation';
 
 // ---------------- Types ----------------
 export interface CSEStat {
@@ -25,6 +26,7 @@ export interface CSEStat {
   active: number;
   sleeping: number;
   inactive: number;
+  data : PartnerUnderCSEData[];
 }
 export interface Territory {
   name: string;
@@ -32,6 +34,7 @@ export interface Territory {
   sleeping: number;
   inactive: number;
   CSE?: CSEStat[];
+  tm_name?: string;
 }
 export interface BranchBlock {
   branch: string;
@@ -98,6 +101,16 @@ export interface BuildBranchBlocksResult {
   partnerTypeList: string[];
 }
 
+export interface PartnerUnderCSEData {
+  ACM_ShopName: string;
+  ACM_ChannelMapCode: string;
+  Year_On_Year_Status: string;
+  Quarter_On_Quarter_Status: string;
+  Month_On_Month_Status: string;
+  Sellout_Date: string | null;
+  GST_Number?: string | null;
+}
+
 export function buildBranchBlocks(
   rows: RawRow[],
   mode: StatusMode,
@@ -112,12 +125,19 @@ export function buildBranchBlocks(
         string,
         {
           name: string;
+          tm_name: string;
           active: number;
           sleeping: number;
           inactive: number;
           CSE: Map<
             string,
-            {name: string; active: number; sleeping: number; inactive: number}
+            {
+              name: string;
+              active: number;
+              sleeping: number;
+              inactive: number;
+              data: PartnerUnderCSEData[];
+            }
           >;
         }
       >;
@@ -150,6 +170,7 @@ export function buildBranchBlocks(
     if (!terrEntry) {
       terrEntry = {
         name: territoryName,
+        tm_name: r.TM_Name || ''.trim(),
         active: 0,
         sleeping: 0,
         inactive: 0,
@@ -162,10 +183,19 @@ export function buildBranchBlocks(
     if (cseName) {
       let cseEntry = terrEntry.CSE.get(cseName);
       if (!cseEntry) {
-        cseEntry = {name: cseName, active: 0, sleeping: 0, inactive: 0};
+        cseEntry = {name: cseName, active: 0, sleeping: 0, inactive: 0, data: []};
         terrEntry.CSE.set(cseName, cseEntry);
       }
       cseEntry[bucket] += 1;
+      cseEntry.data.push({
+        ACM_ShopName: r.ACM_ShopName,
+        ACM_ChannelMapCode: r.ACM_ChannelMapCode,
+        Year_On_Year_Status: r.Year_On_Year_Status,
+        Quarter_On_Quarter_Status: r.Quarter_On_Quarter_Status,
+        Month_On_Month_Status: r.Month_On_Month_Status,
+        Sellout_Date: r.Sellout_Date,
+        GST_Number: r.GST_Number,
+      });
     }
     // Collect unique ACM_BranchName & ACM_Partner_Type if present (trim + non-empty)
     const acmBranch = (r.ACM_BranchName || '').toString().trim();
@@ -186,12 +216,17 @@ export function buildBranchBlocks(
       })),
     }),
   );
+
   branchBlocks.sort((a, b) => a.branch.localeCompare(b.branch));
   branchBlocks.forEach(r =>
     r.territories.sort((a, b) => a.name.localeCompare(b.name)),
   );
-  const branchList = Array.from(branchSet.values()).sort((a, b) => a.localeCompare(b));
-  const partnerTypeList = Array.from(partnerTypeSet.values()).sort((a, b) => a.localeCompare(b));
+  const branchList = Array.from(branchSet.values()).sort((a, b) =>
+    a.localeCompare(b),
+  );
+  const partnerTypeList = Array.from(partnerTypeSet.values()).sort((a, b) =>
+    a.localeCompare(b),
+  );
   return {data: branchBlocks, branchList, partnerTypeList};
 }
 
@@ -285,6 +320,7 @@ export interface TerritoryRowProps {
   toggle: () => void;
   last: boolean;
   searchQuery?: string;
+  handlePressCSE: (cse: string) => void;
 }
 
 export const CSE_COLUMNS: CSEColumn[] = [
@@ -324,7 +360,8 @@ export const CSETable: React.FC<{
   rows: CSERow[];
   territoryTotals: {active: number; sleeping: number; inactive: number};
   searchQuery?: string;
-}> = ({rows, searchQuery}) => {
+  handlePressCSE: (cseName: string) => void;
+}> = ({rows, searchQuery, handlePressCSE}) => {
   if (!rows.length)
     return (
       <View className="bg-slate-50 rounded-xl border border-dashed border-slate-300 py-8 items-center justify-center">
@@ -384,6 +421,7 @@ export const CSETable: React.FC<{
         <TouchableOpacity
           key={r.name + rowIdx}
           activeOpacity={0.85}
+          onPress={() => handlePressCSE(r.name)}
           className={twMerge(
             'flex-row',
             rowIdx % 2 === 1 ? 'bg-slate-50' : 'bg-white',
@@ -448,11 +486,9 @@ export const TerritoryRow: React.FC<TerritoryRowProps> = ({
   toggle,
   last,
   searchQuery,
+  handlePressCSE,
 }) => (
-  <View
-    className={twMerge(
-      !last && !expanded && 'border-b border-slate-100',
-    )}>
+  <View className={twMerge(!last && !expanded && 'border-b border-slate-100')}>
     <TouchableOpacity
       accessibilityRole="button"
       onPress={toggle}
@@ -493,6 +529,7 @@ export const TerritoryRow: React.FC<TerritoryRowProps> = ({
             inactive: t.inactive,
           }}
           searchQuery={searchQuery}
+          handlePressCSE={handlePressCSE}
         />
       </View>
     )}
@@ -503,7 +540,9 @@ export const BranchCard: React.FC<{
   block: BranchBlock;
   searchQuery?: string;
   collapseSignal?: number;
-}> = ({block, searchQuery, collapseSignal}) => {
+  activeTab: number;
+  navigation: AppNavigationProp;
+}> = ({block, searchQuery, collapseSignal, activeTab, navigation}) => {
   const [expandedTerritories, setExpandedTerritories] = useState<Set<string>>(
     new Set(),
   );
@@ -532,7 +571,27 @@ export const BranchCard: React.FC<{
     },
     {active: 0, sleeping: 0, inactive: 0},
   );
-  const branchTotal = block.total || totals.active + totals.sleeping + totals.inactive;
+  const branchTotal =
+    block.total || totals.active + totals.sleeping + totals.inactive;
+
+  const handlePressCSE = (cseName: string) => {
+    // navigate to CSE details screen
+    const territory = block.territories.find(t =>t.CSE?.find(c => c.name === cseName));
+    const CSE = territory?.CSE?.find(c => c.name === cseName);
+    const branchName = block.branch;
+    const territoryName = territory?.name || 'N/A';
+    const tm_name = territory?.tm_name || 'N/A';
+    const CSEName = CSE?.name || 'N/A';
+    const data = (CSE?.data) || [];
+    navigation.push('WOD_Partners', {
+      branchName,
+      territoryName,
+      tm_name,
+      CSEName,
+      data,
+      activeTab,
+    });
+  };
   return (
     <Card className="p-0 overflow-hidden rounded-xl border border-slate-200">
       <View className="px-4 py-4 border-b border-slate-100">
@@ -559,7 +618,7 @@ export const BranchCard: React.FC<{
               size="xs"
               weight="medium"
               className="text-[10px] text-slate-400 ml-1">
-              Partners:{" "}
+              Partners:{' '}
             </AppText>
             <AppText
               size="md"
@@ -585,6 +644,7 @@ export const BranchCard: React.FC<{
           }
           last={idx === block.territories.length - 1}
           searchQuery={searchQuery}
+          handlePressCSE={handlePressCSE}
         />
       ))}
     </Card>

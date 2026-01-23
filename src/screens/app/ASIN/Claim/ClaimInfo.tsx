@@ -15,7 +15,9 @@ import moment from 'moment';
 import {handleASINApiCall} from '../../../../utils/handleApiCall';
 import {AppNavigationProp} from '../../../../types/navigation';
 import {ClaimDataSkeleton} from './components';
-import AppDropdown, {AppDropdownItem} from '../../../../components/customs/AppDropdown';
+import AppDropdown, {
+  AppDropdownItem,
+} from '../../../../components/customs/AppDropdown';
 
 type RouteParams = {
   SchemeCategory: string;
@@ -30,7 +32,7 @@ interface ClaimCaseItem {
   claimcode: string;
   caseId: string;
   application_count: number;
-  Status: string; 
+  Status: string;
   total_amount: number;
 }
 
@@ -38,7 +40,7 @@ interface ClaimApplicationItem {
   claimcode: string;
   caseId: string;
   Distributor: string;
-  ClaimStatus: string; 
+  ClaimStatus: string;
   ApplicationNo: string;
   DistiCN_Date: string | null;
   PartnerCode: number;
@@ -57,12 +59,14 @@ const useGetClaimData = (
   YearMonth: string,
   PartnerType: string,
 ) => {
-  const MonthAPI = YearMonth ? moment(YearMonth, 'MMM-YYYY').format('YYYYMM') : '';
+  const MonthAPI = YearMonth
+    ? moment(YearMonth, 'MMM-YYYY').format('YYYYMM')
+    : '';
 
   const userInfo = useLoginStore((state: any) => state.userInfo);
   const employeeCode = userInfo?.EMP_Code || '';
   const roleId = userInfo?.EMP_RoleId || '';
-  return useQuery<ClaimDataResponse | []>({
+  return useQuery({
     queryKey: [
       'getClaimData',
       employeeCode,
@@ -82,21 +86,24 @@ const useGetClaimData = (
         YearMonth: MonthAPI,
         SelectedClaimCode: null,
       };
-      console.log('Request Payload:', dataToSend);
       const res = await handleASINApiCall(
         '/ClaimMaster/GetClaimDashboardCaseIdWise',
         dataToSend,
       );
       const result = res.DashboardData;
-      if (!result?.Status) return [];
-      const {
-        ClaimDashboardDetailsApplicationNoWise,
-        ClaimDashboardDetailsCaseIdWise,
-      } = result.Datainfo;
-      return {
-        ClaimDashboardDetailsApplicationNoWise,
-        ClaimDashboardDetailsCaseIdWise,
-      };
+      if (!result?.Status) {
+        return {
+          ClaimDashboardDetailsApplicationNoWise: [],
+          ClaimDashboardDetailsCaseIdWise: [],
+        };
+      } else {
+        return {
+          ClaimDashboardDetailsApplicationNoWise:
+            result.Datainfo?.ClaimDashboardDetailsApplicationNoWise,
+          ClaimDashboardDetailsCaseIdWise:
+            result.Datainfo?.ClaimDashboardDetailsCaseIdWise,
+        };
+      }
     },
   });
 };
@@ -134,6 +141,7 @@ const MetaItem: React.FC<{
 );
 
 export default function ClaimInfo() {
+   const navigation = useNavigation<AppNavigationProp>();
   const {params} = useRoute();
   const {
     SchemeCategory,
@@ -144,8 +152,6 @@ export default function ClaimInfo() {
     type,
   } = params as RouteParams;
 
-
-
   // Fetch claim data
   const {data, isLoading, isError, refetch} = useGetClaimData(
     SchemeCategory,
@@ -155,14 +161,10 @@ export default function ClaimInfo() {
   );
 
   type StatusFilter = 'all' | 'processed' | 'underProcess';
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(type);
 
-  const apiCaseData: ClaimCaseItem[] = Array.isArray(data)
-    ? []
-    : data?.ClaimDashboardDetailsCaseIdWise || [];
-  const apiApplicationData: ClaimApplicationItem[] = Array.isArray(data)
-    ? []
-    : data?.ClaimDashboardDetailsApplicationNoWise || [];
+  const apiCaseData: ClaimCaseItem[] = data?.ClaimDashboardDetailsCaseIdWise || [];
+  const apiApplicationData: ClaimApplicationItem[] = data?.ClaimDashboardDetailsApplicationNoWise || [];
 
   const classification = useMemo(() => {
     const childrenGrouped: Record<string, ClaimApplicationItem[]> = {};
@@ -180,7 +182,9 @@ export default function ClaimInfo() {
 
     for (const caseItem of apiCaseData) {
       const children = childrenGrouped[caseItem.caseId] || [];
-      const isProcessed = !!children.length && children.every(c => c.ClaimStatus === PROCESSED_CLAIM_STATUS);
+      const isProcessed =
+        !!children.length &&
+        children.every(c => c.ClaimStatus === PROCESSED_CLAIM_STATUS);
       caseProcessedMap[caseItem.caseId] = isProcessed;
       if (isProcessed) {
         processedCases.push(caseItem);
@@ -217,7 +221,8 @@ export default function ClaimInfo() {
   const filteredCaseData = useMemo(() => {
     let base: ClaimCaseItem[];
     if (statusFilter === 'processed') base = classification.processedCases;
-    else if (statusFilter === 'underProcess') base = classification.underProcessCases;
+    else if (statusFilter === 'underProcess')
+      base = classification.underProcessCases;
     else base = apiCaseData;
 
     if (!selectedClaimCode) return base;
@@ -252,18 +257,16 @@ export default function ClaimInfo() {
                 className={twMerge(
                   'flex-1 mx-1 py-2 rounded-xl border items-center justify-center',
                   'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700',
-                  active && 'bg-primary border-primary'
-                )}
-              >
+                  active && 'bg-primary border-primary',
+                )}>
                 <AppText
                   size="xs"
                   weight={active ? 'bold' : 'semibold'}
                   className={twMerge(
                     'text-gray-600 dark:text-gray-300',
-                    active && 'text-white'
+                    active && 'text-white',
                   )}
-                  numberOfLines={1}
-                >
+                  numberOfLines={1}>
                   {opt.label}
                 </AppText>
               </TouchableOpacity>
@@ -382,17 +385,12 @@ export default function ClaimInfo() {
     );
   };
 
-  type ParentItem = ClaimCaseItem;
-  type ChildItem = ClaimApplicationItem;
-
-  const navigation = useNavigation<AppNavigationProp>();
-
   const ChildCard: React.FC<{
-    item: ChildItem;
+    item: ClaimApplicationItem;
     index: number;
     last: boolean;
   }> = memo(({item, last}) => {
-  const isClaimPassed = item.ClaimStatus === PROCESSED_CLAIM_STATUS;
+    const isClaimPassed = item.ClaimStatus === PROCESSED_CLAIM_STATUS;
     const statusColor = isClaimPassed ? 'text-success' : 'text-warning';
     const handlePress = () =>
       navigation.push('ClaimApplicationDetails', {
@@ -440,7 +438,7 @@ export default function ClaimInfo() {
           )}
         </View>
         <View className="flex-row flex-wrap">
-          <View className="w-1/2 mb-3 pr-2">
+          <View className="w-1/3 mb-3 pr-2">
             <AppText
               size="xs"
               className="text-gray-500 dark:text-gray-400"
@@ -451,7 +449,7 @@ export default function ClaimInfo() {
               {convertToASINUnits(item.After_Tax_FinalAmt)}
             </AppText>
           </View>
-          <View className="w-1/2 mb-3 pr-2">
+          <View className="w-1/3 mb-3 pr-2">
             <AppText
               size="xs"
               className="text-gray-500 dark:text-gray-400"
@@ -462,7 +460,18 @@ export default function ClaimInfo() {
               {item.ApplicationNo}
             </AppText>
           </View>
-          <View className="w-1/2 mb-1 pr-2">
+          <View className="w-1/3 mb-3 pr-2">
+            <AppText
+              size="xs"
+              className="text-gray-500 dark:text-gray-400"
+              weight="medium">
+              Total
+            </AppText>
+            <AppText size="xs" weight="semibold" numberOfLines={1}>
+              {item.PartnerCode}
+            </AppText>
+          </View>
+          <View className="w-1/3 mb-1 pr-2">
             <AppText
               size="xs"
               className="text-gray-500 dark:text-gray-400"
@@ -473,7 +482,7 @@ export default function ClaimInfo() {
               {item.DistiCN_Date ?? '-'}
             </AppText>
           </View>
-          <View className="w-1/2 mb-1 pr-2">
+          <View className="w-1/3 mb-1 pr-2">
             <AppText
               size="xs"
               className="text-gray-500 dark:text-gray-400"
@@ -493,8 +502,8 @@ export default function ClaimInfo() {
     );
   });
 
-  const ParentCard: React.FC<{item: ParentItem}> = memo(({item}) => {
-  const children = classification.childrenGrouped[item.caseId] || [];
+  const ParentCard: React.FC<{item: ClaimCaseItem}> = memo(({item}) => {
+    const children = classification.childrenGrouped[item.caseId] || [];
 
     const {processed, underProcess} = useMemo(() => {
       return children.reduce<{processed: number; underProcess: number}>(
@@ -564,7 +573,7 @@ export default function ClaimInfo() {
           <MetaItem
             icon="trending-up"
             label="Total Amount"
-            value={convertToASINUnits(item.total_amount)}
+            value={convertToASINUnits(item.total_amount, false, true)}
             valueClassName="text-primary"
           />
           <MetaItem
@@ -621,9 +630,11 @@ export default function ClaimInfo() {
     );
   });
 
-  const renderParent = useCallback(({item}: {item: ParentItem}) => <ParentCard item={item} />, [classification]);
+  const renderParent = useCallback(
+    ({item}: {item: ClaimCaseItem}) => <ParentCard item={item} />,
+    [classification],
+  );
 
-  const listData = filteredCaseData;
   return (
     <AppLayout title="Claim Information" needBack>
       {isError && (
@@ -641,19 +652,19 @@ export default function ClaimInfo() {
         </View>
       )}
       <View className="flex-row gap-3 px-3 mt-4">
-            <AppDropdown
-              label="Select Claim Code"
-              data={claimCodeOptions}
-              mode="dropdown"
-              allowClear
-              placeholder="Choose claim code"
-              selectedValue={selectedClaimCode?.value || null}
-              onSelect={item => setSelectedClaimCode(item)}
-              onClear={() => setSelectedClaimCode(null)}
-            />
-        </View>
+        <AppDropdown
+          label="Select Claim Code"
+          data={claimCodeOptions}
+          mode="dropdown"
+          allowClear
+          placeholder="Choose claim code"
+          selectedValue={selectedClaimCode?.value || null}
+          onSelect={item => setSelectedClaimCode(item)}
+          onClear={() => setSelectedClaimCode(null)}
+        />
+      </View>
       <FlatList
-        data={listData}
+        data={filteredCaseData}
         keyExtractor={(item: any, index) => item?.caseId || `sk-${index}`}
         ListHeaderComponent={<SummaryParamsSection />}
         ListEmptyComponent={isLoading ? <ClaimDataSkeleton /> : null}
@@ -666,4 +677,4 @@ export default function ClaimInfo() {
       />
     </AppLayout>
   );
-};
+}

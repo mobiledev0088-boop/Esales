@@ -404,6 +404,6 @@ export const useEditAgpMutation = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({queryKey: ['AGPDetails']});
-    }
+    },
   });
 }

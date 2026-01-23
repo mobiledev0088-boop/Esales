@@ -1,5 +1,5 @@
 import {memo, useMemo} from 'react';
-import {Linking, ScrollView, TouchableOpacity,View} from 'react-native';
+import {Linking, ScrollView, TouchableOpacity, View} from 'react-native';
 import {
   AGPBasicInfoProps,
   AGPCompetitionInfoProps,
@@ -171,7 +171,7 @@ export const BasicInfo = memo<BasicInfoProps>(({alpDetails}) => {
 
           <View className="w-1/2 mb-2">
             <InfoRow
-              label="Contact Person"
+              label="Owner Name"
               value={alpDetails.PM_Person}
               icon="user"
               iconType="feather"
@@ -445,7 +445,9 @@ export const ListSkeleton = memo(() => (
 ));
 
 export const ALPDetailsLoadingSkeleton = memo(() => (
-  <ScrollView className="flex-1 pt-4" showsVerticalScrollIndicator={false}>
+  <ScrollView
+    className="flex-1 pt-4 bg-lightBg-base dark:bg-darkBg-base px-3"
+    showsVerticalScrollIndicator={false}>
     <View className="px-1">
       <View className="flex-row mb-4 gap-x-2">
         <Skeleton
@@ -526,242 +528,272 @@ export const ErrorState = memo<{message: string}>(({message}) => (
   </View>
 ));
 
-export const AGPBasicInfo = memo<AGPBasicInfoProps>(({agpDetails}) => {
-  return (
-    <View>
-      {/* Shop Information Card */}
-      <Card className="mb-4">
-        <SectionHeader title="Shop Information" icon="shopping-bag" />
-        <View className="flex-row flex-wrap">
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="Shop Name"
-              value={agpDetails.Shop_Name}
-              icon="store"
-              iconType="materialIcons"
-            />
+export const AGPBasicInfo = memo<AGPBasicInfoProps>(
+  ({agpDetails, showEditButton, handlePress}) => {
+    return (
+      <View>
+        {/* Shop Information Card */}
+        <Card className="mb-4">
+          <View className="flex-row">
+            <SectionHeader title="Shop Information" icon="shopping-bag" />
+            <View className="flex-1">
+              {showEditButton && (
+                <TouchableOpacity
+                  className="p-2 self-end flex-row items-center gap-x-2"
+                  onPress={handlePress}>
+                  <AppIcon
+                    type="feather"
+                    name="edit"
+                    size={20}
+                    color="#2563eb"
+                  />
+                  <AppText className="underline" color="primary">
+                    Edit Info
+                  </AppText>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
+          <View className="flex-row flex-wrap">
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="Shop Name"
+                value={agpDetails.Shop_Name}
+                icon="store"
+                iconType="materialIcons"
+              />
+            </View>
 
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="GST No"
-              value={agpDetails.GST_No}
-              icon="file-text"
-              iconType="feather"
-            />
-          </View>
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="Address"
-              value={agpDetails.ShopAddress}
-              icon="map-pin"
-              iconType="feather"
-            />
-          </View>
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="Pin Code"
-              value={String(agpDetails.Pin_Code)}
-              icon="map-pin"
-              iconType="feather"
-            />
-          </View>
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="GST No"
+                value={agpDetails.GST_No}
+                icon="file-text"
+                iconType="feather"
+              />
+            </View>
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="Address"
+                value={agpDetails.ShopAddress}
+                icon="map-pin"
+                iconType="feather"
+              />
+            </View>
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="Pin Code"
+                value={String(agpDetails.Pin_Code)}
+                icon="map-pin"
+                iconType="feather"
+              />
+            </View>
 
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="Owner Name"
-              value={agpDetails.Owner_Name}
-              icon="user"
-              iconType="feather"
-            />
-          </View>
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="Owner Name"
+                value={agpDetails.Owner_Name}
+                icon="user"
+                iconType="feather"
+              />
+            </View>
 
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="Owner Number"
-              value={String(agpDetails.Owner_Number)}
-              icon="phone"
-              iconType="feather"
-              isPhoneNumber={true}
-            />
-          </View>
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="Owner Number"
+                value={String(agpDetails.Owner_Number)}
+                icon="phone"
+                iconType="feather"
+                isPhoneNumber={true}
+              />
+            </View>
 
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="Key Person"
-              value={agpDetails.KeyPersonName}
-              icon="user-check"
-              iconType="feather"
-            />
-          </View>
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="Key Person"
+                value={agpDetails.KeyPersonName}
+                icon="user-check"
+                iconType="feather"
+              />
+            </View>
 
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="Key Person Designation"
-              value={agpDetails.KeyPersonDesignation}
-              icon="briefcase"
-              iconType="feather"
-            />
-          </View>
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="Key Person Designation"
+                value={agpDetails.KeyPersonDesignation}
+                icon="briefcase"
+                iconType="feather"
+              />
+            </View>
 
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="Key Person Email"
-              value={agpDetails.KeyPersonMailID}
-              icon="mail"
-              iconType="feather"
-            />
-          </View>
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="Key Person Email"
+                value={agpDetails.KeyPersonMailID}
+                icon="mail"
+                iconType="feather"
+              />
+            </View>
 
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="Key Person Number"
-              value={String(agpDetails.KeyPersonNumber)}
-              icon="phone"
-              iconType="feather"
-              isPhoneNumber={true}
-            />
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="Key Person Number"
+                value={String(agpDetails.KeyPersonNumber)}
+                icon="phone"
+                iconType="feather"
+                isPhoneNumber={true}
+              />
+            </View>
           </View>
-        </View>
-      </Card>
+        </Card>
 
-      {/* ASUS Information Card */}
-      <Card className="mb-6">
-        <SectionHeader
-          title="ASUS Information"
-          icon="domain"
-          iconType="materialIcons"
-        />
+        {/* ASUS Information Card */}
+        <Card className="mb-6">
+          <SectionHeader
+            title="ASUS Information"
+            icon="domain"
+            iconType="materialIcons"
+          />
 
-        <View className="flex-row flex-wrap">
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="ASIN Code"
-              value={agpDetails.ASIN_Code}
-              icon="hash"
-              iconType="feather"
-            />
-          </View>
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="E-Commerce ID"
-              value={agpDetails.ECommerceId || 'N/A'}
-              icon="shopping-cart"
-              iconType="feather"
-            />
-          </View>
+          <View className="flex-row flex-wrap">
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="ASIN Code"
+                value={agpDetails.ASIN_Code}
+                icon="hash"
+                iconType="feather"
+              />
+            </View>
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="E-Commerce ID"
+                value={agpDetails.ECommerceId || 'N/A'}
+                icon="shopping-cart"
+                iconType="feather"
+              />
+            </View>
 
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="Is Active"
-              value={agpDetails.IsActive === 'A' ? 'Active' : 'Inactive'}
-              icon="activity"
-              iconType="feather"
-            />
-          </View>
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="Is Active"
+                value={agpDetails.IsActive === 'A' ? 'Active' : 'Inactive'}
+                icon="activity"
+                iconType="feather"
+              />
+            </View>
 
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="Login Created"
-              value={agpDetails.IsLoginCreated === 'Y' ? 'Yes' : 'No'}
-              icon="lock"
-              iconType="feather"
-            />
-          </View>
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="Login Created"
+                value={agpDetails.IsLoginCreated === 'Y' ? 'Yes' : 'No'}
+                icon="lock"
+                iconType="feather"
+              />
+            </View>
 
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="Business Type"
-              value={agpDetails.Business_Type}
-              icon="briefcase"
-              iconType="feather"
-            />
-          </View>
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="Business Type"
+                value={agpDetails.Business_Type}
+                icon="briefcase"
+                iconType="feather"
+              />
+            </View>
 
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="Branch"
-              value={agpDetails.Branch_Name}
-              icon="git-branch"
-              iconType="feather"
-            />
-          </View>
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="Branch"
+                value={agpDetails.Branch_Name}
+                icon="git-branch"
+                iconType="feather"
+              />
+            </View>
 
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="Territory"
-              value={agpDetails.Territory}
-              icon="earth"
-              iconType="ionicons"
-            />
-          </View>
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="Territory Manager"
-              value={agpDetails.Territory_Manager}
-              icon="account-tie"
-              iconType="material-community"
-            />
-          </View>
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="Territory"
+                value={agpDetails.Territory}
+                icon="earth"
+                iconType="ionicons"
+              />
+            </View>
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="Territory Manager"
+                value={agpDetails.Territory_Manager}
+                icon="account-tie"
+                iconType="material-community"
+              />
+            </View>
 
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="CSE Code"
-              value={agpDetails.CSE_Code}
-              icon="credit-card"
-              iconType="feather"
-            />
-          </View>
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="CSE Name"
+                value={agpDetails.CSE_Code}
+                icon="credit-card"
+                iconType="feather"
+              />
+            </View>
 
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="Channel Map Code"
-              value={agpDetails.ChannelMapCode}
-              icon="map"
-              iconType="feather"
-            />
-          </View>
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="Channel Map Code"
+                value={agpDetails.ChannelMapCode}
+                icon="map"
+                iconType="feather"
+              />
+            </View>
 
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="P-Kiosk"
-              value={agpDetails.Pkiosk || 'N/A'}
-              icon="monitor"
-              iconType="feather"
-            />
-          </View>
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="P-Kiosk"
+                value={agpDetails.Pkiosk || 'N/A'}
+                icon="monitor"
+                iconType="feather"
+              />
+            </View>
 
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="P-Kiosk Count"
-              value={agpDetails.Pkiosk_Cnt || 'N/A'}
-              icon="hash"
-              iconType="feather"
-            />
-          </View>
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="P-Kiosk Count"
+                value={agpDetails.Pkiosk_Cnt || 'N/A'}
+                icon="hash"
+                iconType="feather"
+              />
+            </View>
 
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="ROG Kiosk"
-              value={agpDetails.ROG_Kiosk || 'N/A'}
-              icon="monitor"
-              iconType="feather"
-            />
-          </View>
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="ROG Kiosk"
+                value={agpDetails.ROG_Kiosk || 'N/A'}
+                icon="monitor"
+                iconType="feather"
+              />
+            </View>
 
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="ROG Kiosk Count"
-              value={agpDetails.ROG_Kiosk_Cnt || 'N/A'}
-              icon="hash"
-              iconType="feather"
-            />
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="ROG Kiosk Count"
+                value={agpDetails.ROG_Kiosk_Cnt || 'N/A'}
+                icon="hash"
+                iconType="feather"
+              />
+            </View>
+
+            <View className="w-1/2 mb-2">
+              <InfoRow
+                label="P-Kiosk ROG Kiosk"
+                value={agpDetails.Pkiosk_ROG_Kiosk || 'N/A'}
+                icon="monitor"
+                iconType="feather"
+              />
+            </View>
           </View>
-        </View>
-      </Card>
-    </View>
-  );
-});
+        </Card>
+      </View>
+    );
+  },
+);
 
 export const AGPCompetitionInfo = memo<AGPCompetitionInfoProps>(
   ({agpDetails}) => {
@@ -1131,7 +1163,7 @@ export const AGPCompetitionInfo = memo<AGPCompetitionInfoProps>(
               </View>
               <View className="w-1/2 mb-2">
                 <InfoRow
-                  label="White Brand Monthly"
+                  label="White Brand"
                   value={String(agpDetails.CDT_White_Brand_Monthly_No)}
                   icon="box"
                   iconType="feather"
@@ -1439,21 +1471,11 @@ export const LFRBasicInfo = memo<LFRBasicInfoProps>(({lfrDetails}) => {
               iconType="feather"
             />
           </View>
-
           <View className="w-1/2 mb-2">
             <InfoRow
-              label="Address"
-              value={lfrDetails.ShopAddress}
-              icon="map-pin"
-              iconType="feather"
-            />
-          </View>
-
-          <View className="w-1/2 mb-2">
-            <InfoRow
-              label="Pin Code"
-              value={String(lfrDetails.Pin_Code)}
-              icon="map-pin"
+              label="Owner Number"
+              value={lfrDetails.Task_Owner_Name}
+              icon="user"
               iconType="feather"
             />
           </View>
@@ -1495,7 +1517,7 @@ export const LFRBasicInfo = memo<LFRBasicInfoProps>(({lfrDetails}) => {
             />
           </View>
 
-          <View className="w-1/2 mb-2">
+          <View className="w-1/2">
             <InfoRow
               label="Key Person Number"
               value={String(lfrDetails.KeyPersonNumber)}
@@ -1505,11 +1527,27 @@ export const LFRBasicInfo = memo<LFRBasicInfoProps>(({lfrDetails}) => {
             />
           </View>
 
-          <View className="w-1/2 mb-2">
+          <View className="w-1/2">
             <InfoRow
               label="Key Person Email"
               value={lfrDetails.KeyPersonMailID}
               icon="mail"
+              iconType="feather"
+            />
+          </View>
+             <View className="w-full">
+            <InfoRow
+              label="Pin code"
+              value={String(lfrDetails.Pin_Code)}
+              icon="map-pin"
+              iconType="feather"
+            />
+          </View>
+          <View className="w-full">
+            <InfoRow
+              label="Address"
+              value={lfrDetails.ShopAddress}
+              icon="map"
               iconType="feather"
             />
           </View>
@@ -1581,7 +1619,7 @@ export const LFRBasicInfo = memo<LFRBasicInfoProps>(({lfrDetails}) => {
 
           <View className="w-1/2 mb-2">
             <InfoRow
-              label="CSE Name"
+              label="ASE Name"
               value={lfrDetails.CSE_Name || 'N/A'}
               icon="account"
               iconType="material-community"
@@ -1638,6 +1676,15 @@ export const LFRBasicInfo = memo<LFRBasicInfoProps>(({lfrDetails}) => {
               label="Login Created"
               value={lfrDetails.IsLoginCreated === 'Y' ? 'Yes' : 'No'}
               icon="lock"
+              iconType="feather"
+            />
+          </View>
+
+                    <View className="w-1/2 mb-2">
+            <InfoRow
+              label="P-Kiosk ROG Kiosk"
+              value={lfrDetails.Pkiosk_ROG_Kiosk || 'N/A'}
+              icon="monitor"
               iconType="feather"
             />
           </View>

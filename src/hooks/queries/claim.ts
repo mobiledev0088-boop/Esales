@@ -177,8 +177,6 @@ export const useClaimDashboardData = (params: UseClaimDashboardParams) => {
         StartYearMonth: startMonth,
         EndYearMonth: endMonth,
       };
-      // eslint-disable-next-line no-console
-      console.log('[ClaimDashboard][Unified] Request Payload:', payload);
       const res = await handleASINApiCall(
         '/ClaimMaster/GetClaimDashboardDetails',
         payload,

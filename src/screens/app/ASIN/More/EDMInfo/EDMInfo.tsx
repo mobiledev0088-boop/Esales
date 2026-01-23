@@ -18,6 +18,7 @@ import { Platform, TouchableOpacity, TouchableWithoutFeedback, View } from 'reac
 import AppIcon from '../../../../../components/customs/AppIcon';
 import AppModal from '../../../../../components/customs/AppModal';
 import { useLoginStore } from '../../../../../stores/useLoginStore';
+import { downloadFile } from '../../../../../utils/services';
 
 interface EDMModel {
   label: string;
@@ -57,8 +58,8 @@ const useGetEDMModels = (isAPAC: boolean,Country: string) => {
 
 const ImageModal = ({isOpen,onClose,selectedModel}:{isOpen:boolean,onClose:()=>void,selectedModel:EDMModel|null}) => {
   return (
-    <AppModal isOpen={isOpen} onClose={onClose} animationType="slide" noCard >
-      <View style={{width:screenWidth,height:screenHeight,justifyContent:'center',alignItems:'center'}}>
+    <AppModal isOpen={isOpen} onClose={onClose} animationType="slide" noCard>
+      <View style={{width:screenWidth,height:screenHeight,justifyContent:'center',alignItems:'center', backgroundColor: 'rgba(0, 0, 0, 0.7)'}}>
         <TouchableWithoutFeedback onPress={onClose}>
           <View style={{position: 'absolute', top: 50, right: 20, padding:5,borderRadius:50, backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 9999}}>
             <AppIcon type="feather" name="x" size={24} color="#fff" />
@@ -108,24 +109,17 @@ export default function EDMInfo() {
       setLoading(true);
 
       const fileName = selectedModel.path.split('/').pop();
-      const downloadsDir = Platform.select({
-        ios: `${RNFS.DocumentDirectoryPath}/Downloads/`,
-        android: `${RNFS.DownloadDirectoryPath}/${ASUS.APP_NAME}`,
-      }) as string;
 
-      await ensureFolderExists(downloadsDir);
-      const localPath = `${downloadsDir}/${fileName}`;
-
-      const result = await RNFS.downloadFile({
-        fromUrl: selectedModel.path,
-        toFile: localPath,
-      }).promise;
-
-      if (result.statusCode === 200) {
-        showToast('EDM image saved to Esales folder in Downloads.');
-      } else {
-        console.warn('Failed to download image');
-      }
+      await downloadFile({
+        url: selectedModel.path,
+        fileName: fileName || 'EDM_Image.jpg',
+        autoOpen: true,
+      })
+      // if (result.statusCode === 200) {
+      //   // showToast('EDM image saved to Esales folder in Downloads.');
+      // } else {
+      //   console.warn('Failed to download image');
+      // }
     } catch (error) {
       console.error('Error downloading image:', error);
     } finally {

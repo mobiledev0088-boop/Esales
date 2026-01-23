@@ -38,7 +38,7 @@ import AppButton from '../../../../components/customs/AppButton';
 import AppIcon from '../../../../components/customs/AppIcon';
 import Card from '../../../../components/Card';
 import moment from 'moment';
-import {showToast} from '../../../../utils/commonFunctions';
+import {convertToASINUnits, showToast} from '../../../../utils/commonFunctions';
 import RNCB from '@react-native-clipboard/clipboard';
 import {handleASINApiCall} from '../../../../utils/handleApiCall';
 import {useLoginStore} from '../../../../stores/useLoginStore';
@@ -76,6 +76,8 @@ interface Scheme {
   Scheme_Month?: number;
   ActivatedTillDate?: number;
   ActivatedWithinPeriod?: number;
+  Old_SRP?: number;
+  New_SRP?: number;
 }
 
 interface PaginationEnvelope {
@@ -86,10 +88,16 @@ interface PaginationEnvelope {
   __page: number;
 }
 
+interface ModelSchemesByCategory {
+  ongoing: Scheme[];
+  lapsed: Scheme[];
+}
+
 interface SchemeCardProps {
   scheme: Scheme;
   category: SchemeCategory;
   onDownload?: (s: string) => void;
+  isModelSearch?: boolean;
 }
 
 interface PartnersListProps {
@@ -292,9 +300,19 @@ const SchemeCardInner: React.FC<SchemeCardProps> = ({
   scheme,
   category,
   onDownload,
+  isModelSearch = false,
 }) => {
+  console.log('Rendering SchemeCard for', scheme);
   const [copied, setCopied] = useState(false);
   const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const price = scheme?.Old_SRP || 0;
+  const displayPrice = scheme?.New_SRP || price || 0;
+  const hasPrice = displayPrice != null;
+  const percentageDiscount = useMemo(() => {
+    if (!hasPrice || !scheme.Old_SRP || !scheme.New_SRP) return 0;
+    const discount = ((scheme.Old_SRP - scheme.New_SRP) / scheme.Old_SRP) * 100;
+    return Math.round(discount);
+  }, [hasPrice, scheme.Old_SRP, scheme.New_SRP]);
 
   const copyClaim = useCallback(() => {
     if (!scheme?.Claim_Code) {
@@ -401,6 +419,47 @@ const SchemeCardInner: React.FC<SchemeCardProps> = ({
             </Pressable>
           )}
         />
+        {isModelSearch && hasPrice && (
+          <View className="mt-1 self-start px-3 py-1.5 rounded-2xl bg-emerald-50 dark:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-700">
+            {scheme?.New_SRP ? (
+              <View className="flex-row items-baseline">
+                {scheme?.Old_SRP && (
+                  <AppText
+                    weight="medium"
+                    className="mr-1 text-gray-500 dark:text-gray-400 line-through">
+                    {convertToASINUnits(price, true, true)}
+                  </AppText>
+                )}
+                <AppText
+                  size="lg"
+                  weight="bold"
+                  className="text-emerald-700 dark:text-emerald-300">
+                  {convertToASINUnits(displayPrice, true, true)}
+                </AppText>
+                <View className="ml-2 px-2 py-0.5 rounded-full bg-emerald-500/90 dark:bg-emerald-500 items-center justify-center">
+                  <AppText weight="bold" className="text-white">
+                    {percentageDiscount}% Off
+                  </AppText>
+                </View>
+              </View>
+            ) : (
+              <AppText
+                size="lg"
+                weight="bold"
+                className="text-emerald-700 dark:text-emerald-300">
+                {convertToASINUnits(displayPrice, true, true)}
+              </AppText>
+            )}
+          </View>
+        )}
+
+        {isModelSearch && (
+          <InfoRow
+            icon={{type: 'feather', name: 'upload'}}
+            label="Category"
+            value={scheme?.Scheme_Category || '—'}
+          />
+        )}
         <InfoRow
           icon={{type: 'feather', name: 'calendar'}}
           label="Event Period"
@@ -420,7 +479,7 @@ const SchemeCardInner: React.FC<SchemeCardProps> = ({
         <TouchableOpacity
           onPress={() => Linking.openURL('https://asuspromo.in/terms')}
           className="items-end">
-          <AppText color="primary" className="underline">
+          <AppText color="primary" className="underline" weight="extraBold">
             Promo Link
           </AppText>
         </TouchableOpacity>
@@ -478,8 +537,8 @@ const SchemeBanner = memo(
       () =>
         banners
           ? [
-              banners?.find((banner: any) =>
-                banner?.image?.includes?.('SUMMARY'),
+              banners?.find((banner: {image: string}) =>
+                banner?.image?.toLowerCase()?.includes('summary'),
               ),
             ].filter(Boolean)
           : [],
@@ -690,7 +749,9 @@ const AnimatedFAB: React.FC<{
 const SchemeCard = memo(
   SchemeCardInner,
   (prev, next) =>
-    prev.scheme === next.scheme && prev.category === next.category,
+    prev.scheme === next.scheme &&
+    prev.category === next.category &&
+    prev.isModelSearch === next.isModelSearch,
 );
 
 // Main Component
@@ -705,9 +766,13 @@ export default function Schemes() {
   const SCROLL_THRESHOLD = 350; // px
   // Model search lifted state
   const [modelLoading, setModelLoading] = useState(false);
-  const [modelSchemes, setModelSchemes] = useState<Scheme[]>([]);
+  const [modelSchemes, setModelSchemes] = useState<ModelSchemesByCategory>({
+    ongoing: [],
+    lapsed: [],
+  });
   const [modelSearchActive, setModelSearchActive] = useState(false);
   const [selectedModelName, setSelectedModelName] = useState('');
+  const [modelTabIndex, setModelTabIndex] = useState(0); // 0 = ongoing, 1 = lapsed
 
   // Coerce roleId to a number defensively (userInfo shape may be loosely typed)
   const roleId = useMemo<number>(() => {
@@ -798,8 +863,10 @@ export default function Schemes() {
   const {selectedData, hasMore, loadingMore, loadNext, onRefresh} =
     useMemo(() => {
       if (modelSearchActive) {
+        const searchData =
+          modelTabIndex === 0 ? modelSchemes.ongoing : modelSchemes.lapsed;
         return {
-          selectedData: modelSchemes,
+          selectedData: searchData,
           hasMore: false,
           loadingMore: modelLoading,
           loadNext: () => {},
@@ -848,11 +915,12 @@ export default function Schemes() {
       modelSearchActive,
       modelSchemes,
       modelLoading,
+      modelTabIndex,
     ]);
 
   // Derived category for each row
   const currentCategory = deriveCategory(activeTabidx);
-  const searchCategory: SchemeCategory = ONGOING; // fallback category for searched schemes
+  const searchCategory: SchemeCategory = modelTabIndex === 0 ? ONGOING : LAPSED; // category for searched schemes
 
   // Download link handler with basic validation fallback
   const handleDownload = useCallback(async (url: string) => {
@@ -860,12 +928,12 @@ export default function Schemes() {
       showToast('File not available');
       return;
     }
-    console.log('Downloading scheme file from', url);
+    const fileName = url.split('/').pop() || 'Scheme_File';
     try {
       showToast('Downloading file...');
       await downloadFile({
         url: url,
-        fileName: 'Report_Jan.xlsx',
+        fileName: fileName,
         autoOpen: true,
       });
     } catch (e) {
@@ -881,6 +949,7 @@ export default function Schemes() {
         scheme={item}
         category={modelSearchActive ? searchCategory : currentCategory}
         onDownload={handleDownload}
+        isModelSearch={modelSearchActive}
       />
     ),
     [currentCategory, handleDownload, modelSearchActive, searchCategory],
@@ -915,12 +984,14 @@ export default function Schemes() {
   const ListHeader = useMemo(
     () => (
       <View className="pb-3">
-        <SchemeBanner
-          banners={banners}
-          queryError={queryError}
-          refetch={refetch}
-          isLoading={bannersLoading}
-        />
+        {!selectedModelName && (
+          <SchemeBanner
+            banners={banners}
+            queryError={queryError}
+            refetch={refetch}
+            isLoading={bannersLoading}
+          />
+        )}
         <View className="flex-row items-center pl-1 pt-4 mb-1">
           <View className="w-9 h-9 rounded-full bg-violet-100 dark:bg-violet-900/40 items-center justify-center mr-2">
             <AppIcon type="feather" name="layers" size={18} color="#7c3aed" />
@@ -934,7 +1005,16 @@ export default function Schemes() {
               : 'Schemes'}
           </AppText>
         </View>
-        {!modelSearchActive && (
+        {modelSearchActive ? (
+          <TabHeader
+            tabs={[
+              `Ongoing (${modelSchemes.ongoing.length})`,
+              `Lapsed (${modelSchemes.lapsed.length})`,
+            ]}
+            activeIndex={modelTabIndex}
+            onChange={setModelTabIndex}
+          />
+        ) : (
           <TabHeader
             tabs={[
               `Ongoing (${ongoingList.length})`,
@@ -959,6 +1039,9 @@ export default function Schemes() {
       refetch,
       modelSearchActive,
       selectedModelName,
+      modelSchemes.ongoing.length,
+      modelSchemes.lapsed.length,
+      modelTabIndex,
     ],
   );
 
@@ -1022,7 +1105,9 @@ export default function Schemes() {
         <AppIcon type="feather" name="inbox" size={40} color="#94a3b8" />
         <AppText size="sm" className="text-slate-500 mt-3" weight="medium">
           {modelSearchActive
-            ? 'No schemes found for selected model'
+            ? modelTabIndex === 0
+              ? 'No ongoing schemes found for selected model'
+              : 'No lapsed schemes found for selected model'
             : activeTabidx === TabIndex.UPCOMING
               ? 'No upcoming schemes currently'
               : activeTabidx === TabIndex.EXPIRED
@@ -1031,7 +1116,7 @@ export default function Schemes() {
         </AppText>
       </View>
     ),
-    [activeTabidx, modelSearchActive],
+    [activeTabidx, modelSearchActive, modelTabIndex],
   );
 
   const keyExtractor = useCallback(
@@ -1050,17 +1135,23 @@ export default function Schemes() {
   return (
     <View className="flex-1 bg-slate-50 dark:bg-black">
       <SchemeSearch
+        selectedModelName={selectedModelName}
         onModelLoading={setModelLoading}
-        onModelSchemes={(schemes, modelName) => {
-          setModelSchemes(schemes as Scheme[]);
+        onModelSchemes={(schemesByCategory, modelName) => {
+          setModelSchemes({
+            ongoing: (schemesByCategory.ongoing ?? []) as Scheme[],
+            lapsed: (schemesByCategory.lapsed ?? []) as Scheme[],
+          });
           setModelSearchActive(true);
           setSelectedModelName(modelName);
+          setModelTabIndex(0);
         }}
         onClearSearch={() => {
           setModelSearchActive(false);
-          setModelSchemes([]);
+          setModelSchemes({ongoing: [], lapsed: []});
           setSelectedModelName('');
           setModelLoading(false);
+          setModelTabIndex(0);
         }}
       />
       <FlatList

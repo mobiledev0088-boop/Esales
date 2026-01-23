@@ -10,7 +10,6 @@ import Swiper from 'react-native-swiper';
 import {ASUS, screenHeight} from '../../../../utils/constant';
 import {Watermark} from '../../../../components/Watermark';
 import {useLoginStore} from '../../../../stores/useLoginStore';
-import useEmpStore from '../../../../stores/useEmpStore';
 import {
   AppNavigationParamList,
   AppNavigationProp,
@@ -184,14 +183,13 @@ const getAPEXOptions = (countryId?: string): Option[] => {
 };
 
 const MoreSheet = () => {
-  const empInfo = useEmpStore(state => state.empInfo);
   const userInfo = useLoginStore(state => state.userInfo);
   const AppTheme = useThemeStore(state => state.AppTheme);
   const navigation = useNavigation<AppNavigationProp>();
 
   const roleId = userInfo.EMP_RoleId;
   const empType = userInfo.EMP_Type ?? '';
-  const empCode = empInfo?.EMP_Code ?? '';
+  const empCode = userInfo?.EMP_Code ?? '';
   const countryId = userInfo?.EMP_CountryID;
 
   const options: Option[] = useMemo(() => {

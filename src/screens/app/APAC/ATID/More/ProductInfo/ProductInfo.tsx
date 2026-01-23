@@ -616,7 +616,7 @@ export default function ProductInfo() {
                   placeholder="Search Product"
                   value={searchQuery}
                   setValue={setSearchQuery}
-                  inputWapperStyle={{
+                  inputWrapperStyle={{
                     backgroundColor: AppColors[AppTheme].bgSurface,
                   }}
                   onSubmitEditing={getProductsList}

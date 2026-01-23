@@ -64,12 +64,12 @@ export const EachClaim = ({values, needBorder}: any) => {
       {/* Amount Section */}
       <View className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-4">
         <View className="flex-row space-x-4">
-          <AmountItem label="Pre Tax Amt" amount={values.Tax_Amt} />
-          <AmountItem
+          {values.Tax_Amt && <AmountItem label="Pre Tax Amt" amount={values.Tax_Amt} />}
+          {values.FinalAmt && <AmountItem
             label="Final Amt"
             amount={values.FinalAmt}
             isFinal={true}
-          />
+          />}
         </View>
       </View>
     </View>
@@ -80,10 +80,10 @@ export function ClaimSchemeInfo({data}: {data: any[]}) {
   const [expanded, setExpanded] = useState(false);
   
   return (
-    <Card className={`p-0 overflow-hidden`}>
+    <Card className={'p-0 overflow-hidden border border-slate-200 dark:border-slate-700'}>
       <Header name="Claim/Scheme Related Info" icon="receipt-long" />
       <View>
-        {data.length === 0 ? (
+        {data.length === 0 || data[0].ErrorMessage ? (
           <AppText className="text-gray-500 dark:text-gray-400 text-center py-4">
             No Claim/Scheme Related Info Available
           </AppText>
@@ -91,7 +91,7 @@ export function ClaimSchemeInfo({data}: {data: any[]}) {
           <>
             {expanded ? (
               data.map((item, index) => (
-                <EachClaim key={index} values={item} needBorder={index} />
+                <EachClaim key={index} values={item} needBorder={index !== 0} />
               ))
             ) : (
               <EachClaim values={data[0]} />

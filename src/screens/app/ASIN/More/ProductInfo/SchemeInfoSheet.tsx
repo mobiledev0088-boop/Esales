@@ -4,16 +4,21 @@ import ActionSheet, {
   SheetManager,
   useSheetPayload,
 } from 'react-native-actions-sheet';
-import AppText from './customs/AppText';
-import AppIcon from './customs/AppIcon';
-import {useThemeStore} from '../stores/useThemeStore';
-import {AppColors} from '../config/theme';
-import Card from './Card';
-import AppButton from './customs/AppButton';
+import AppText from '../../../../../components/customs/AppText';
+import AppIcon from '../../../../../components/customs/AppIcon';
+import {useThemeStore} from '../../../../../stores/useThemeStore';
+import {AppColors} from '../../../../../config/theme';
+import Card from '../../../../../components/Card';
+import AppButton from '../../../../../components/customs/AppButton';
 import moment from 'moment';
-import {showToast} from '../utils/commonFunctions';
+import {
+  convertToASINUnits,
+  showToast,
+} from '../../../../../utils/commonFunctions';
 import RNCB from '@react-native-clipboard/clipboard';
 import {Linking} from 'react-native';
+import SheetIndicator from '../../../../../components/SheetIndicator';
+import {downloadFile} from '../../../../../utils/services';
 
 interface SchemeInfo {
   Model_Info_Ongoing?: any[];
@@ -36,6 +41,8 @@ interface Scheme {
   Scheme_Month?: number;
   ActivatedTillDate?: number;
   ActivatedWithinPeriod?: number;
+  Old_SRP?: number;
+  New_SRP?: number;
 }
 
 const safeFormatDate = (dateStr?: string, format = 'DD MMM, YYYY') => {
@@ -95,19 +102,19 @@ const CountdownBadge: React.FC<{endDate: string}> = ({endDate}) => {
   }, [endDate]);
   const [now, setNow] = useState(Date.now());
   const isLapsed = endTs ? endTs <= now : false;
-  
+
   useEffect(() => {
     if (!endTs || isLapsed) return;
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, [endTs, isLapsed]);
-  
+
   const label = !endTs
     ? '—'
     : isLapsed
       ? 'Event Ended'
       : `Event ends in ${formatCountdown(endTs - now)}`;
-      
+
   return (
     <View className="mt-2 self-start flex-row items-center px-2 py-1 rounded-full bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700">
       <AppIcon
@@ -158,6 +165,14 @@ const PartnersList: React.FC<{partners: string[]; type?: 'odd' | 'even'}> = ({
 const SchemeCard: React.FC<{scheme: Scheme}> = ({scheme}) => {
   const [copied, setCopied] = useState(false);
   const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const price = scheme?.Old_SRP || 0;
+  const displayPrice = scheme?.New_SRP || price || 0;
+  const hasPrice = displayPrice != null;
+  const percentageDiscount = useMemo(() => {
+    if (!hasPrice || !scheme.Old_SRP || !scheme.New_SRP) return 0;
+    const discount = ((scheme.Old_SRP - scheme.New_SRP) / scheme.Old_SRP) * 100;
+    return Math.round(discount);
+  }, [hasPrice, scheme.Old_SRP, scheme.New_SRP]);
 
   const copyClaim = useCallback(() => {
     if (!scheme?.Claim_Code) {
@@ -207,12 +222,11 @@ const SchemeCard: React.FC<{scheme: Scheme}> = ({scheme}) => {
       return;
     }
     try {
-      const can = await Linking.canOpenURL(url);
-      if (!can) {
-        showToast('Invalid download link');
-        return;
-      }
-      await Linking.openURL(url);
+      await downloadFile({
+        url: url,
+        fileName: `Scheme_${scheme?.Claim_Code || 'Unknown'}.pdf`,
+        autoOpen: true,
+      });
     } catch (e) {
       console.log('Open URL error', e);
       showToast('Unable to open link');
@@ -229,9 +243,7 @@ const SchemeCard: React.FC<{scheme: Scheme}> = ({scheme}) => {
           numberOfLines={2}>
           {scheme?.Claim_name || 'Untitled Scheme'}
         </AppText>
-        {!!scheme?.End_Date && (
-          <CountdownBadge endDate={scheme.End_Date} />
-        )}
+        {!!scheme?.End_Date && <CountdownBadge endDate={scheme.End_Date} />}
       </View>
       <ScrollView
         horizontal
@@ -243,6 +255,40 @@ const SchemeCard: React.FC<{scheme: Scheme}> = ({scheme}) => {
           <PartnersList partners={partners} type="even" />
         </View>
       </ScrollView>
+
+      {hasPrice && (
+        <View className="mt-1 self-start px-3 py-1.5 rounded-2xl bg-emerald-50 dark:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-700">
+          {scheme?.New_SRP ? (
+            <View className="flex-row items-baseline">
+              {scheme?.Old_SRP && (
+                <AppText
+                  weight="medium"
+                  className="mr-1 text-gray-500 dark:text-gray-400 line-through">
+                  {convertToASINUnits(price, true, true)}
+                </AppText>
+              )}
+              <AppText
+                size="lg"
+                weight="bold"
+                className="text-emerald-700 dark:text-emerald-300">
+                {convertToASINUnits(displayPrice, true, true)}
+              </AppText>
+              <View className="ml-2 px-2 py-0.5 rounded-full bg-emerald-500/90 dark:bg-emerald-500 items-center justify-center">
+                <AppText weight="bold" className="text-white">
+                  {percentageDiscount}% Off
+                </AppText>
+              </View>
+            </View>
+          ) : (
+            <AppText
+              size="lg"
+              weight="bold"
+              className="text-emerald-700 dark:text-emerald-300">
+              {convertToASINUnits(displayPrice, true, true)}
+            </AppText>
+          )}
+        </View>
+      )}
 
       <View className="mt-1">
         <InfoRow
@@ -280,6 +326,13 @@ const SchemeCard: React.FC<{scheme: Scheme}> = ({scheme}) => {
             value={activatedValue}
           />
         )}
+                <TouchableOpacity
+          onPress={() => Linking.openURL('https://asuspromo.in/terms')}
+          className="items-end">
+          <AppText color="primary" className="underline" weight='extraBold'>
+            Promo Link
+          </AppText>
+        </TouchableOpacity>
       </View>
 
       <AppButton
@@ -301,7 +354,7 @@ const SchemeCard: React.FC<{scheme: Scheme}> = ({scheme}) => {
   );
 };
 
-const SchemeInfoSheet: React.FC = () => {
+export default function SchemeInfoSheet() {
   const payload = useSheetPayload('SchemeInfoSheet') as
     | {schemeData?: SchemeInfo}
     | undefined;
@@ -331,6 +384,7 @@ const SchemeInfoSheet: React.FC = () => {
     );
   };
 
+  console.log('schemeData in SchemeInfoSheet:', schemeData);
   return (
     <View>
       <ActionSheet
@@ -341,10 +395,10 @@ const SchemeInfoSheet: React.FC = () => {
           borderTopLeftRadius: 24,
           borderTopRightRadius: 24,
           paddingHorizontal: 16,
-          paddingTop: 16,
         }}>
+        <SheetIndicator />
         {/* Header */}
-        <View className="flex-row items-center justify-between mb-4">
+        <View className="flex-row items-center justify-between mb-4 mt-4">
           <View className="flex-row items-center">
             <View className="bg-primary/10 dark:bg-primary-dark/10 p-2 rounded-lg mr-2">
               <AppIcon
@@ -397,6 +451,4 @@ const SchemeInfoSheet: React.FC = () => {
       </ActionSheet>
     </View>
   );
-};
-
-export default SchemeInfoSheet;
+}

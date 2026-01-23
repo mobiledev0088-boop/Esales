@@ -8,6 +8,7 @@ import {AppColors} from '../../../../config/theme';
 import Skeleton from '../../../../components/skeleton/skeleton';
 import {screenWidth} from '../../../../utils/constant';
 import Card from '../../../../components/Card';
+import { Watermark } from '../../../../components/Watermark';
 
 interface SchemeStatProps {
   label: string;
@@ -223,17 +224,17 @@ export const MonthRangeCard: React.FC<{
 
 export const FilterButton: React.FC<{onPress: () => void}> = ({onPress}) => {
   return (
-      <TouchableOpacity
-        onPress={onPress}
-        activeOpacity={0.4}
-        className="flex-row items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 bg-lightBg-surface dark:bg-darkBg-surface px-4 shadow-sm ml-2 h-[56px] w-[55px]">
-        <AppIcon
-          type="material-community"
-          name="tune-variant"
-          size={22}
-          color={AppColors.primary}
-        />
-      </TouchableOpacity>
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.4}
+      className="flex-row items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 bg-lightBg-surface dark:bg-darkBg-surface px-4 shadow-sm ml-2 h-[56px] w-[55px]">
+      <AppIcon
+        type="material-community"
+        name="tune-variant"
+        size={22}
+        color={AppColors.primary}
+      />
+    </TouchableOpacity>
   );
 };
 
@@ -265,32 +266,30 @@ export const MonthProductRow: React.FC<MonthProductRowProps> = memo(
           </AppText>
         </View>
         <View className="flex-row flex-1 gap-2">
-          {processed > 0 && (
-            <TouchableOpacity
-              onPress={onPressProcessed}
-              activeOpacity={0.75}
-              className={variantStyles.emerald.container}>
-              <AppText
-                size="sm"
-                weight="semibold"
-                className={variantStyles.emerald.text}>
-                {processed}
-              </AppText>
-            </TouchableOpacity>
-          )}
-          {underProcess > 0 && (
-            <TouchableOpacity
-              onPress={onPressUnderProcess}
-              activeOpacity={0.75}
-              className={variantStyles.orange.container}>
-              <AppText
-                size="sm"
-                weight="semibold"
-                className={variantStyles.orange.text}>
-                {underProcess}
-              </AppText>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            disabled={processed === 0}
+            onPress={onPressProcessed}
+            activeOpacity={0.75}
+            className={variantStyles.emerald.container}>
+            <AppText
+              size="sm"
+              weight="semibold"
+              className={variantStyles.emerald.text}>
+              {processed}
+            </AppText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            disabled={underProcess === 0}
+            onPress={onPressUnderProcess}
+            activeOpacity={0.75}
+            className={variantStyles.orange.container}>
+            <AppText
+              size="sm"
+              weight="semibold"
+              className={variantStyles.orange.text}>
+              {underProcess || '-'}
+            </AppText>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -300,97 +299,101 @@ export const MonthProductRow: React.FC<MonthProductRowProps> = memo(
 export const GroupAccordion: React.FC<GroupedAccordionProps> = memo(
   ({group: g, onNavigate}) => {
     return (
-      <Card className='p-0 rounded'>
-      <Accordion
-        key={g.Scheme_Category}
-        header={
-          <View className="flex-1 pr-2">
-            <AppText size="md" weight="semibold" className="text-gray-900 mb-2">
-              {g.Scheme_Category}
-            </AppText>
-            <View className="border-b border-gray-200 mb-2 border-dashed" />
-            <View className="flex-row items-center">
-              <SchemeStat
-                label="Total Claims"
-                value={g.Totals.total}
-                color="primary"
-                icon="layers"
-              />
-              <SchemeStat
-                label="Processed"
-                value={g.Totals.processed}
-                color="emerald"
-                icon="check-circle"
-              />
-              <SchemeStat
-                label="Under Process"
-                value={g.Totals.under_Processed}
-                color="orange"
-                icon="clock"
-              />
+      <Card className="p-0 rounded" >
+        <Accordion
+          key={g.Scheme_Category}
+          header={
+            <View className="flex-1 pr-2">
+              <Watermark/>
+              <AppText
+                size="md"
+                weight="semibold"
+                className="text-gray-900 mb-2">
+                {g.Scheme_Category}
+              </AppText>
+              <View className="border-b border-gray-200 mb-2 border-dashed" />
+              <View className="flex-row items-center">
+                <SchemeStat
+                  label="Total Claims"
+                  value={g.Totals.total}
+                  color="primary"
+                  icon="layers"
+                />
+                <SchemeStat
+                  label="Processed"
+                  value={g.Totals.processed}
+                  color="emerald"
+                  icon="check-circle"
+                />
+                <SchemeStat
+                  label="Under Process"
+                  value={g.Totals.under_Processed}
+                  color="orange"
+                  icon="clock"
+                />
+              </View>
             </View>
+          }
+          headerClassName="py-2"
+          containerClassName="rounded border border-gray-200 dark:border-[#374151] "
+          contentClassName="px-0"
+          needBottomBorder={false}>
+          <View className="px-1 pb-3 pt-1">
+            <View className="border-b border-gray-200 mt-2 mb-2 border-dashed" />
+            <View className="flex-row items-center mb-2 px-2">
+              <AppText
+                size="sm"
+                weight="semibold"
+                className="w-[90px] text-gray-500">
+                Month
+              </AppText>
+              <AppText
+                size="sm"
+                weight="semibold"
+                className="flex-1 text-gray-500">
+                Product Name
+              </AppText>
+              <AppText
+                size="sm"
+                weight="semibold"
+                className="text-emerald-600 mr-4">
+                Processed
+              </AppText>
+              <AppText size="sm" weight="semibold" className="text-orange-600">
+                Under Process
+              </AppText>
+            </View>
+            {g.Months.map((month, idx) => (
+              <MonthProductRow
+                // combining month + product line ensures stable uniqueness
+                key={month.MonthYear + '_' + month.Product_Line + '_' + idx}
+                displayMonth={month.MonthYear}
+                productLineName={month.Product_Line_Name}
+                productCode={month.Product_Line}
+                processed={month.processed}
+                underProcess={month.under_Processed}
+                onPressProcessed={() =>
+                  onNavigate({
+                    scheme: g.Scheme_Category,
+                    month,
+                    productLine: month.Product_Line,
+                    Product_Line_Name: month.Product_Line_Name,
+                    type: 'processed',
+                  })
+                }
+                onPressUnderProcess={() =>
+                  onNavigate({
+                    scheme: g.Scheme_Category,
+                    month,
+                    productLine: month.Product_Line,
+                    Product_Line_Name: month.Product_Line_Name,
+                    type: 'underProcess',
+                  })
+                }
+              />
+            ))}
           </View>
-        }
-        headerClassName="py-2"
-        containerClassName="bg-lightBg-surface dark:bg-darkBg-surface rounded border border-gray-200 dark:border-[#374151] "
-        contentClassName="px-0"
-        needBottomBorder={false}>
-        <View className="px-1 pb-3 pt-1">
-          <View className="border-b border-gray-200 mt-2 mb-2 border-dashed" />
-          <View className="flex-row items-center mb-2 px-2">
-            <AppText
-              size="sm"
-              weight="semibold"
-              className="w-[90px] text-gray-500">
-              Month
-            </AppText>
-            <AppText
-              size="sm"
-              weight="semibold"
-              className="flex-1 text-gray-500">
-              Product Name
-            </AppText>
-            <AppText
-              size="sm"
-              weight="semibold"
-              className="text-emerald-600 mr-4">
-              Processed
-            </AppText>
-            <AppText size="sm" weight="semibold" className="text-orange-600">
-              Under Process
-            </AppText>
-          </View>
-          {g.Months.map((month, idx) => (
-            <MonthProductRow
-              // combining month + product line ensures stable uniqueness
-              key={month.MonthYear + '_' + month.Product_Line + '_' + idx}
-              displayMonth={month.MonthYear}
-              productLineName={month.Product_Line_Name}
-              productCode={month.Product_Line}
-              processed={month.processed}
-              underProcess={month.under_Processed}
-              onPressProcessed={() =>
-                onNavigate({
-                  scheme: g.Scheme_Category,
-                  month,
-                  productLine: month.Product_Line,
-                  Product_Line_Name: month.Product_Line_Name,
-                  type: 'processed',
-                })
-              }
-              onPressUnderProcess={() =>
-                onNavigate({
-                  scheme: g.Scheme_Category,
-                  month,
-                  productLine: month.Product_Line,
-                  Product_Line_Name: month.Product_Line_Name,
-                  type: 'underProcess',
-                })
-              }
-            />
-          ))}
-        </View>
-      </Accordion>
+        </Accordion>
       </Card>
     );
   },

@@ -533,7 +533,7 @@ export default function AddRollingFunnel() {
                 setValue={() => {}}
                 editable={false}
                 showClearButton={false}
-                inputWapperStyle={{backgroundColor: '#F3F4F6'}}
+                inputWrapperStyle={{backgroundColor: '#F3F4F6'}}
                 inputClassName="text-gray-900 font-manropeBold ml-1"
                 textSize={16}
               />

@@ -9,6 +9,8 @@ import AppText from './customs/AppText';
 import AppIcon from './customs/AppIcon';
 import { AppColors } from '../config/theme';
 import { useThemeStore } from '../stores/useThemeStore';
+import { useLoginStore } from '../stores/useLoginStore';
+import { convertSnakeCaseToSentence } from '../utils/commonFunctions';
 
 type CardProps = {
   children?: React.ReactNode;
@@ -79,7 +81,7 @@ const Card: React.FC<CardProps> = ({
             textWeight={watermarkTextWeight}
             rowGap={watermarkRowGap}
             columnGap={watermarkColumnGap}
-            containerClassName={'top-8'}
+            // containerClassName={'top-8'}
             // containerClassName={''}
           />
         )}

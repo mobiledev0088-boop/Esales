@@ -4,6 +4,7 @@ import {useMutation, useQuery} from '@tanstack/react-query';
 import {handleASINApiCall} from '../../../../utils/handleApiCall';
 import {useLoginStore} from '../../../../stores/useLoginStore';
 import React from 'react';
+import SearchableDropdown from '../../../../components/customs/SearchableDropdown';
 
 interface RawModel {
   Model_Name?: string | null;
@@ -11,16 +12,24 @@ interface RawModel {
 
 // Shape of each scheme returned when searching by model name (based on GetModelInfo Datainfo keys)
 interface ModelInfoResponse {
-  Scheme_List?: any[]; // We'll keep it generic; parent will cast / adapt
+  Model_Info_Historic?: any[];
+  Model_Info_Ongoing?: any[];
+}
+
+interface ModelSchemesByCategory {
+  ongoing: any[];
+  lapsed: any[];
 }
 
 interface SchemeSearchProps {
+  selectedModelName: string;
   onModelLoading?: (loading: boolean) => void;
-  onModelSchemes?: (schemes: any[], modelName: string) => void;
+  onModelSchemes?: (schemesByCategory: ModelSchemesByCategory, modelName: string) => void;
   onClearSearch?: () => void;
 }
 
 export default function SchemeSearch({
+  selectedModelName,
   onModelLoading,
   onModelSchemes,
   onClearSearch,
@@ -64,13 +73,19 @@ export default function SchemeSearch({
       if (!result.Status) {
         throw new Error('Failed to fetch model info');
       }
-      console.log('Model Info Response:', result);
       return result.Datainfo as ModelInfoResponse;
     },
     onSuccess: (data) => {
-      const schemes = data?.Scheme_List ?? [];
+      // Separate historic (lapsed) and ongoing schemes for model search
+      const lapsed = Array.isArray(data?.Model_Info_Historic)
+        ? data.Model_Info_Historic
+        : [];
+      const ongoing = Array.isArray(data?.Model_Info_Ongoing)
+        ? data.Model_Info_Ongoing
+        : [];
+
       if (onModelSchemes && currentModelNameRef.current) {
-        onModelSchemes(schemes, currentModelNameRef.current);
+        onModelSchemes({ongoing, lapsed}, currentModelNameRef.current);
       }
     },
     onSettled: () => {
@@ -98,20 +113,24 @@ export default function SchemeSearch({
     console.log('Error fetching model list');
     return null;
   }
+  console.log('Selected Model Data:', selectedModelName);
   // Debug logs can be retained or removed as needed
-  console.log('Selected Model:', data, isSelectingModel);
   return (
     <View className="px-3 pt-4 pb-2 ">
-      <AppDropdown
+      <SearchableDropdown
         data={modelOptions ?? []}
-        mode="autocomplete"
         placeholder={isLoadingModels ? "Loading..." : "Search Model Number"}
         onSelect={handleSelect}
-        label="Model Number"
-        labelIcon="search"
-        allowClear
-        needIndicator
-        listHeight={250}
+        onClear={() => {
+          currentModelNameRef.current = '';
+          onClearSearch?.();
+        }}
+        defaultValue={selectedModelName}
+        // label="Model Number"
+        // labelIcon="search"
+        // allowClear
+        // needIndicator
+        // listHeight={250}
       />
     </View>
   );

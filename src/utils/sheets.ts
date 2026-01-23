@@ -6,7 +6,7 @@ import {FilterActionSheet} from '../screens/app/ASIN/More/ActivatedDetails/compo
 import DemoFilterSheet from '../screens/app/ASIN/Demo/DemoFilterSheet';
 import ClaimFilterSheet from '../screens/app/ASIN/Claim/ClaimFilterSheet';
 import WODFilterSheet from '../screens/app/ASIN/WOD/WODFilterSheet';
-import SchemeInfoSheet from '../components/SchemeInfoSheet';
+import SchemeInfoSheet from '../screens/app/ASIN/More/ProductInfo/SchemeInfoSheet';
 import ActivationFilterSheet from '../screens/app/ASIN/Reports/ActivationFilterSheet';
 import {
   DemoDetailsSheet,

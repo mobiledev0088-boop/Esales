@@ -311,6 +311,8 @@ export interface BrandData {
 
 export interface AGPBasicInfoProps {
   agpDetails: AGPDetails;
+  showEditButton?: boolean;
+  handlePress?: () => void;
 }
 
 export interface AGPCompetitionInfoProps {

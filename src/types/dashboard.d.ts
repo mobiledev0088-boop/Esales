@@ -103,6 +103,7 @@ export interface ActivationPerformanceProps {
   name: string;
   tabs?: string[];
   quarter: string;
+  handleSeeMore?: () => void;
 }
 
 export interface ASEDataProps {

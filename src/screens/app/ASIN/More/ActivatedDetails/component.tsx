@@ -1,6 +1,6 @@
 import {useMemo, useState} from 'react';
 import AppModal from '../../../../../components/customs/AppModal';
-import {FlatList, Pressable, ScrollView, TouchableOpacity, View} from 'react-native';
+import {FlatList, TouchableOpacity, View} from 'react-native';
 import AppText from '../../../../../components/customs/AppText';
 import AppIcon from '../../../../../components/customs/AppIcon';
 import Card from '../../../../../components/Card';
@@ -9,13 +9,6 @@ import ActionSheet, {
   useSheetPayload,
 } from 'react-native-actions-sheet';
 import {useThemeStore} from '../../../../../stores/useThemeStore';
-import {
-  DatePickerInput,
-  DatePickerState,
-} from '../../../../../components/customs/AppDatePicker';
-import AppDropdown, {
-  AppDropdownItem,
-} from '../../../../../components/customs/AppDropdown';
 import AppButton from '../../../../../components/customs/AppButton';
 import Accordion from '../../../../../components/Accordion';
 import {AppTable} from '../../../../../components/customs/AppTable';
@@ -36,7 +29,7 @@ interface FilterActionSheetProps {
 }
 
 export const CautionModal = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   return (
     <AppModal isOpen={isOpen} onClose={() => setIsOpen(false)}>
       <View className="flex-row justify-center mb-4">
@@ -125,92 +118,6 @@ export const NoDataFound = () => {
   );
 };
 
-export const SearchCard = ({
-  dateRange,
-  maximumDate,
-  minimumDate,
-  partnerList,
-  handleStoreSelect,
-  selectedStore,
-  setDateRange,
-  handleChange,
-  handleReset,
-}: {
-  dateRange: DatePickerState;
-  maximumDate: Date;
-  minimumDate: Date;
-  partnerList: AppDropdownItem[];
-  handleStoreSelect: (store: AppDropdownItem | null) => void;
-  selectedStore: AppDropdownItem | null;
-  setDateRange: (dateRange: DatePickerState) => void;
-  handleChange: (
-    dateRange: DatePickerState,
-    partner: AppDropdownItem | null,
-  ) => void;
-  handleReset: () => void;
-}) => {
-  // in andorid drop down picker not work inside Card until you remove shadow
-  return (
-    <Card className="mb-4 ">
-      <View className="flex-row items-center mb-4">
-        <AppIcon
-          type="ionicons"
-          name="search-outline"
-          size={20}
-          color="#3B82F6"
-          style={{marginRight: 8}}
-        />
-        <AppText
-          size="lg"
-          weight="semibold"
-          className="text-gray-800 dark:text-gray-100">
-          Search Activation Details
-        </AppText>
-      </View>
-
-      <DatePickerInput
-        mode="dateRange"
-        initialStartDate={dateRange.start}
-        initialEndDate={dateRange.end}
-        initialDate={maximumDate}
-        maximumDate={maximumDate}
-        minimumDate={minimumDate}
-        onDateRangeSelect={(startDate, endDate) =>
-          setDateRange({start: startDate, end: endDate})
-        }
-        label="Date Range"
-        required
-      />
-      <AppDropdown
-        data={partnerList || []}
-        onSelect={handleStoreSelect}
-        selectedValue={selectedStore?.value}
-        mode="autocomplete"
-        placeholder="Select store"
-        label="Store Location"
-        required
-        listHeight={300}
-        zIndex={30000}
-        needIndicator
-      />
-      <View className="flex-row gap-3 mt-5">
-        <AppButton
-          title="Reset"
-          iconName="refresh-ccw"
-          className="flex-1 bg-gray-500"
-          onPress={handleReset}
-        />
-        <AppButton
-          title="Search"
-          iconName="search"
-          className="flex-1"
-          onPress={() => handleChange(dateRange, selectedStore)}
-        />
-      </View>
-    </Card>
-  );
-};
-
 export const ActivationDetailCard = ({
   serialNumbersData,
 }: {
@@ -294,13 +201,13 @@ export const ActivationDetailCard = ({
   );
 
   return (
-    <Card className="mb-10 ">
+    <Card className="mb-10 border border-slate-200 dark:border-slate-700" noshadow>
       {/* Header */}
       <View className="flex-row items-center justify-between mb-4">
         <View className="flex-row items-center gap-3">
           <AppIcon
             type="ionicons"
-            name="list-outline"
+            name="list-outline" 
             size={24}
             color="#3B82F6"
           />

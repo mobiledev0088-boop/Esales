@@ -31,7 +31,7 @@ interface CustomInputProps extends TextInputProps {
     readOnly?: boolean;
     variant?: 'border' | 'underline' | 'pill';
     size?: 'sm' | 'md' | 'lg';
-    inputWapperStyle?: ViewStyle;
+    inputWrapperStyle?: ViewStyle;
 }
 
 const AppInput = forwardRef<TextInput, CustomInputProps>(({
@@ -57,7 +57,7 @@ const AppInput = forwardRef<TextInput, CustomInputProps>(({
     readOnly = false,
     variant = 'border',
     size = 'md',
-    inputWapperStyle,
+    inputWrapperStyle,
     ...props
 }, ref) => {
      const appTheme = useThemeStore(state => state.AppTheme);
@@ -85,7 +85,7 @@ const AppInput = forwardRef<TextInput, CustomInputProps>(({
             paddingHorizontal: variant === 'pill' ? 14 : 0,
             backgroundColor: variant === 'pill' ? '#F1F5F9' : 'transparent'
         };
-        const flattenedStyle = StyleSheet.flatten(inputWapperStyle) as ViewStyle;
+        const flattenedStyle = StyleSheet.flatten(inputWrapperStyle) as ViewStyle;
 
         return variant === 'underline'
             ? {
@@ -110,7 +110,7 @@ const AppInput = forwardRef<TextInput, CustomInputProps>(({
                 borderBottomWidth: 1.5,
                 borderRadius: 8,
             };
-    }, [borderColor, variant, inputWapperStyle, height]);
+    }, [borderColor, variant, inputWrapperStyle, height]);
 
     const handleClear = useCallback(() => {
         if (isDisabled) return;
@@ -137,12 +137,15 @@ const AppInput = forwardRef<TextInput, CustomInputProps>(({
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
                     className={twMerge('flex-1 text-gray-900 dark:text-gray-100 font-manropeMedium ', isDisabled && 'text-gray-400', inputClassName)}
-                    style={{fontSize, height: '100%'}}
                     editable={!isDisabled}
                     // for screen readers
                     accessibilityLabel={label}
                     accessibilityHint={helpText}
                     {...props}
+                    style={[
+                        { fontSize, height: '100%', textAlignVertical: props.multiline ? 'top' : 'center' },
+                        props.style,
+                    ]}
                 />
 
                 {isPassword && !isDisabled && (

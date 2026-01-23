@@ -982,6 +982,8 @@ export default function ActPerformanceBranchWise() {
     );
     return [labels, transformedData];
   }, [data]);
+  console.log('Tab Labels:', tabLabels);
+  console.log('Transformed Data:', transformedData);
 
   const CSEList = useMemo(() => {
     const branchData = transformedData['Top5AGP'] || [];

@@ -1,22 +1,27 @@
 import {useMutation, useQuery} from '@tanstack/react-query';
 
 import AppLayout from '../../../../../components/layout/AppLayout';
-import {AppDropdownItem} from '../../../../../components/customs/AppDropdown';
+import AppDropdown, {AppDropdownItem} from '../../../../../components/customs/AppDropdown';
 import {
   ActivationDetailCard,
   CautionModal,
   Disclaimer,
-  SearchCard,
 } from './component';
 import {handleASINApiCall} from '../../../../../utils/handleApiCall';
 import {useLoginStore} from '../../../../../stores/useLoginStore';
 import useEmpStore from '../../../../../stores/useEmpStore';
 import moment from 'moment';
 import {EmpInfo, UserInfo} from '../../../../../types/user';
-import {DatePickerState} from '../../../../../components/customs/AppDatePicker';
+import {DatePickerInput, DatePickerState} from '../../../../../components/customs/AppDatePicker';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {ASUS} from '../../../../../utils/constant';
 import {useLoaderStore} from '../../../../../stores/useLoaderStore';
+import useQuarterHook from '../../../../../hooks/useQuarterHook';
+import Card from '../../../../../components/Card';
+import { View } from 'react-native';
+import AppIcon from '../../../../../components/customs/AppIcon';
+import AppText from '../../../../../components/customs/AppText';
+import AppButton from '../../../../../components/customs/AppButton';
 
 interface ApiResponse {
   DashboardData?: {
@@ -31,30 +36,23 @@ interface ApiResponse {
   };
 }
 
-const usePartnerListQuery = (
-  userInfo: UserInfo | null,
-  empInfo: EmpInfo | null,
-) => {
-  const enabled = Boolean(
-    userInfo?.EMP_Code && userInfo?.EMP_RoleId && empInfo?.Year_Qtr,
-  );
+const usePartnerListQuery = (YearQtr: string) => {
+  const {EMP_Code: employeeCode, EMP_RoleId: RoleId} = useLoginStore(state => state.userInfo);
+  const isPartner = RoleId === ASUS.ROLE_ID.PARTNERS;
   return useQuery({
-    queryKey: [
-      'partnerList',
-      userInfo?.EMP_Code,
-      userInfo?.EMP_RoleId,
-      empInfo?.Year_Qtr,
-    ],
+    queryKey: ['partnerList', employeeCode, RoleId, YearQtr],
     queryFn: async () => {
       try {
         const response: ApiResponse = await handleASINApiCall(
           '/Information/GetActivationReport_List',
           {
-            employeeCode: userInfo?.EMP_Code,
-            RoleId: userInfo?.EMP_RoleId,
-            YearQtr: empInfo?.Year_Qtr,
+            employeeCode,
+            RoleId,
+            YearQtr,
           },
-        );
+          {},
+          true
+          );
         const result = response?.DashboardData;
         if (!result?.Status) {
           console.error('API returned status false:', result);
@@ -79,16 +77,39 @@ const usePartnerListQuery = (
         throw error;
       }
     },
-    enabled,
+    enabled: !isPartner
   });
 };
 
 const useSSNInfoMutation = () => {
+  const {
+    EMP_Code: employeeCode,
+    EMP_RoleId: RoleId,
+    EMP_Type: employeeType,
+  } = useLoginStore(state => state.userInfo);
   return useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async ({
+      StartDate,
+      EndDate,
+      PartnerCode,
+    }: {
+      StartDate: string;
+      EndDate: string;
+      PartnerCode?: string;
+    }) => {
+      const dataToSend = {
+        StartDate,
+        EndDate,
+        PartnerCode : PartnerCode || employeeCode,
+        employeeCode,
+        RoleId,
+        isAWP: employeeType === ASUS.PARTNER_TYPE.T2.AWP,
+      };
       const response = await handleASINApiCall(
         '/Information/GetActivationReport_Info',
-        data,
+        dataToSend,
+        {},
+        true
       );
       const result = response?.DashboardData;
       if (!result?.Status)
@@ -113,7 +134,7 @@ const useSSNInfoMutation = () => {
             {
               Serial_No: item.Serial_No,
               Model_Name: item.Model_Name,
-              AGP_Name: data.isAWP
+              AGP_Name: dataToSend.isAWP
                 ? item.AGP_Name || 'N/A'
                 : ASUS.PARTNER_TYPE.END_CUSTOMER,
             },
@@ -127,13 +148,13 @@ const useSSNInfoMutation = () => {
 };
 
 export default function ActivatedDetails() {
-  //store state
-  const userInfo = useLoginStore(state => state.userInfo);
+  const {selectedQuarter} = useQuarterHook();
+  const {EMP_RoleId} = useLoginStore(state => state.userInfo);
   const empInfo = useEmpStore(state => state.empInfo);
-  const setGlobalLoading = useLoaderStore(state => state.setGlobalLoading);
+  const isPartner =  EMP_RoleId === ASUS.ROLE_ID.PARTNERS;
 
   // custom hooks
-  const {data: partnerList, isLoading} = usePartnerListQuery(userInfo, empInfo);
+  const {data: partnerList, isLoading} = usePartnerListQuery(empInfo?.Year_Qtr || selectedQuarter?.value || '');
   const {mutate, data: SSNINFO, reset} = useSSNInfoMutation();
 
   // State
@@ -141,8 +162,8 @@ export default function ActivatedDetails() {
     null,
   );
   const [dateRange, setDateRange] = useState<DatePickerState>({
-    start: undefined,
-    end: undefined,
+    start: moment().subtract(7, 'days').toDate(),
+    end: new Date(),
   });
 
   const handleStoreSelect = useCallback(
@@ -159,19 +180,9 @@ export default function ActivatedDetails() {
       const EndDate = moment(dateRange?.end).format('DD/MM/YYYY');
       const PartnerCode = partner?.value;
 
-      mutate({
-        StartDate,
-        EndDate,
-        PartnerCode,
-        employeeCode: userInfo?.EMP_Code || '',
-        RoleID: userInfo?.EMP_RoleId || '',
-        isAWP:
-          (userInfo?.EMP_RoleId === ASUS.ROLE_ID.PARTNERS
-            ? userInfo?.EMP_Type
-            : '') === ASUS.PARTNER_TYPE.T2.AWP,
-      });
+      mutate({StartDate, EndDate, PartnerCode});
     },
-    [mutate, userInfo],
+    [mutate],
   );
 
   // memo values
@@ -179,28 +190,82 @@ export default function ActivatedDetails() {
   const minimumDate = useMemo(() => moment().subtract(5, 'years').toDate(), []);
   const serialNumbersData = useMemo(() => SSNINFO?.[0] || {}, [SSNINFO]);
 
-  useEffect(() => setGlobalLoading(isLoading), [isLoading]);
-
   const handleReset = useCallback(() => {
-      setSelectedStore(null);
-      setDateRange({start: undefined, end: undefined});
-      reset();
+    setSelectedStore(null);
+    setDateRange({start: undefined, end: undefined});
+    reset();
   }, [reset]);
+
+  useEffect(() => {
+    if (isPartner && empInfo) {
+      const StartDate = moment().subtract(7, 'days').format('DD/MM/YYYY');
+      const EndDate = moment().format('DD/MM/YYYY');
+      mutate({StartDate, EndDate});
+    } 
+  }, []);
 
   return (
     <AppLayout title="Activation Details" needBack needPadding needScroll>
       <Disclaimer />
-      <SearchCard
-        dateRange={dateRange}
-        maximumDate={maximumDate}
-        minimumDate={minimumDate}
-        partnerList={partnerList || []}
-        handleStoreSelect={handleStoreSelect}
-        selectedStore={selectedStore}
-        setDateRange={setDateRange}
-        handleChange={handleChange}
-        handleReset={handleReset}
-      />
+      <Card className="mb-4 ">
+        <View className="flex-row items-center mb-4">
+          <AppIcon
+            type="ionicons"
+            name="search-outline"
+            size={20}
+            color="#3B82F6"
+            style={{marginRight: 8}}
+          />
+          <AppText
+            size="lg"
+            weight="semibold"
+            className="text-gray-800 dark:text-gray-100">
+            Search Activation Details
+          </AppText>
+        </View>
+
+        <DatePickerInput
+          mode="dateRange"
+          initialStartDate={dateRange.start}
+          initialEndDate={dateRange.end}
+          initialDate={maximumDate}
+          maximumDate={maximumDate}
+          minimumDate={minimumDate}
+          onDateRangeSelect={(startDate, endDate) =>
+            setDateRange({start: startDate, end: endDate})
+          }
+          label="Date Range"
+          required
+        />
+        {!isPartner && (
+          <AppDropdown
+            data={partnerList || []}
+            onSelect={handleStoreSelect}
+            selectedValue={selectedStore?.value}
+            mode="autocomplete"
+            placeholder="Select store"
+            label="Store Location"
+            required
+            listHeight={300}
+            zIndex={30000}
+            needIndicator
+          />
+        )}
+        <View className="flex-row gap-3 mt-5">
+          <AppButton
+            title="Reset"
+            iconName="refresh-ccw"
+            className="flex-1 bg-gray-500"
+            onPress={handleReset}
+          />
+          <AppButton
+            title="Search"
+            iconName="search"
+            className="flex-1"
+            onPress={() => handleChange(dateRange, selectedStore)}
+          />
+        </View>
+      </Card>
       {Object.keys(serialNumbersData).length > 0 && (
         <ActivationDetailCard serialNumbersData={serialNumbersData as any} />
       )}

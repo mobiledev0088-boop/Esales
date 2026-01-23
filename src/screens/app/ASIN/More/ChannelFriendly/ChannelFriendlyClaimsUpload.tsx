@@ -526,7 +526,7 @@ const EshopEducationProgram = ({
       <AppInput
         value={studentEmail}
         setValue={setStudentEmail}
-        inputWapperStyle={{backgroundColor: 'white'}}
+        inputWrapperStyle={{backgroundColor: 'white'}}
         label="Student Email ID"
         placeholder="Enter Student Email ID"
         keyboardType="email-address"

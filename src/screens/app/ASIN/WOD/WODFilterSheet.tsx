@@ -13,10 +13,12 @@ import AppInput from '../../../../components/customs/AppInput';
 export interface WODFilterPayload {
   branch?: string[];
   partnerType?: string[];
-
+  category?: string;
+  subCategory?: string;
   // dynamic sources
   allBranches?: string[];
   allPartnerTypes?: string[];
+  allCategories?: {category: string; subCategories: string[]}[];
   // callbacks
   onApply?: (res: WODFilterResult) => void;
   onReset?: () => void;
@@ -25,9 +27,11 @@ export interface WODFilterPayload {
 export interface WODFilterResult {
   branch: string[];
   partnerType: string[];
+  category: string;
+  subCategory: string;
 }
 
-type Group = 'branch' | 'partnerType';
+type Group = 'branch' | 'partnerType' | 'category' | 'subCategory';
 
 const CheckboxRow = React.memo(
   ({
@@ -91,9 +95,10 @@ const WODFilterSheet: React.FC = () => {
   const payload = (useSheetPayload?.() || {}) as WODFilterPayload;
 
   const [branch, setBranch] = useState<string[]>(payload.branch ?? []);
-  const [partnerType, setPartnerType] = useState<string[]>(
-    payload.partnerType ?? [],
-  );
+  const [partnerType, setPartnerType] = useState<string[]>(payload.partnerType ?? []);
+  const [category, setCategory] = useState<string>(payload.category || '');
+  const [subCategory, setSubCategory] = useState<string>(payload.subCategory || '');
+
   const [group, setGroup] = useState<Group>('branch');
   const [branchSearch, setBranchSearch] = useState('');
   const [partnerSearch, setPartnerSearch] = useState('');
@@ -112,6 +117,21 @@ const WODFilterSheet: React.FC = () => {
     [payload.allPartnerTypes],
   );
 
+  const allCategories = useMemo(
+    () => payload.allCategories || [],
+    [payload.allCategories],
+  );
+
+  const selectedCategoryObj = useMemo(
+    () => allCategories.find(c => c.category === category),
+    [allCategories, category],
+  );
+
+  const subCategories = useMemo(
+    () => selectedCategoryObj?.subCategories || [],
+    [selectedCategoryObj],
+  );
+
   const filteredBranches = useMemo(() => {
     const q = dBranchSearch.trim().toLowerCase();
     if (!q) return branches;
@@ -125,8 +145,13 @@ const WODFilterSheet: React.FC = () => {
   }, [dPartnerSearch, partnerTypes]);
 
   const activeCount = useMemo(() => {
-    return branch.length + partnerType.length;
-  }, [branch, partnerType]);
+    return (
+      branch.length +
+      partnerType.length +
+      (category ? 1 : 0) +
+      (subCategory ? 1 : 0)
+    );
+  }, [branch, partnerType, category, subCategory]);
 
   const groups = useMemo(
     () => [
@@ -140,9 +165,17 @@ const WODFilterSheet: React.FC = () => {
         label: 'Partner Type',
         hasValue: partnerType.length > 0,
       },
-    ],
-    [branch, partnerType],
-  );
+      {
+        key: 'category' as const,
+        label: 'Category',
+        hasValue: category !== '',
+      },
+      {
+        key: 'subCategory' as const,
+        label: 'Sub-Category',
+        hasValue: subCategory !== '',
+      },
+    ],[branch, partnerType, category, subCategory]);
 
   const toggleSelection = useCallback(
     (item: string) => {
@@ -199,26 +232,103 @@ const WODFilterSheet: React.FC = () => {
         </View>
       );
     }
+    if (group === 'partnerType') {
+      return (
+        <View className="flex-1">
+          <AppInput
+            value={partnerSearch}
+            setValue={setPartnerSearch}
+            placeholder="Search Partner Type"
+            leftIcon="search"
+          />
+          <FlatList
+            data={filteredPartnerTypes}
+            keyExtractor={i => i}
+            renderItem={renderCheckbox}
+            keyboardShouldPersistTaps="handled"
+            style={{flex: 1}}
+            initialNumToRender={20}
+            maxToRenderPerBatch={25}
+            windowSize={10}
+            removeClippedSubviews
+            contentContainerStyle={{paddingBottom: 40}}
+          />
+        </View>
+      );
+    }
+
+    if (group === 'category') {
+      return (
+        <View className="flex-1">
+          <FlatList
+            data={allCategories}
+            keyExtractor={i => i.category}
+            renderItem={({item}) => (
+              <CheckboxRow
+                label={item.category || '—'}
+                selected={category === item.category}
+                onPress={() => {
+                  setCategory(prev =>
+                    prev === item.category ? '' : item.category,
+                  );
+                  setSubCategory('');
+                }}
+              />
+            )}
+            keyboardShouldPersistTaps="handled"
+            style={{flex: 1}}
+            initialNumToRender={20}
+            maxToRenderPerBatch={25}
+            windowSize={10}
+            removeClippedSubviews
+            contentContainerStyle={{paddingBottom: 40}}
+          />
+        </View>
+      );
+    }
+
+    if (group === 'subCategory') {
+      if (!category) {
+        return (
+          <View className="flex-1 items-center justify-center px-4">
+            <AppText size="sm" className="text-slate-500 dark:text-slate-400 text-center">
+              Please select a Category first to see its Sub-Categories.
+            </AppText>
+          </View>
+        );
+      }
+
+      return (
+        <View className="flex-1">
+          <FlatList
+            data={subCategories}
+            keyExtractor={i => i}
+            renderItem={({item}) => (
+              <CheckboxRow
+                label={item || '—'}
+                selected={subCategory === item}
+                onPress={() => {
+                  setSubCategory(prev => (prev === item ? '' : item));
+                }}
+              />
+            )}
+            keyboardShouldPersistTaps="handled"
+            style={{flex: 1}}
+            initialNumToRender={20}
+            maxToRenderPerBatch={25}
+            windowSize={10}
+            removeClippedSubviews
+            contentContainerStyle={{paddingBottom: 40}}
+          />
+        </View>
+      );
+    }
+
     return (
       <View className="flex-1">
-        <AppInput
-          value={partnerSearch}
-          setValue={setPartnerSearch}
-          placeholder="Search Partner Type"
-          leftIcon="search"
-        />
-        <FlatList
-          data={filteredPartnerTypes}
-          keyExtractor={i => i}
-          renderItem={renderCheckbox}
-          keyboardShouldPersistTaps="handled"
-          style={{flex: 1}}
-          initialNumToRender={20}
-          maxToRenderPerBatch={25}
-          windowSize={10}
-          removeClippedSubviews
-          contentContainerStyle={{paddingBottom: 40}}
-        />
+        <AppText size="sm" className="text-slate-500 dark:text-slate-400 text-center">
+          No filters available.
+        </AppText>
       </View>
     );
   }, [
@@ -228,11 +338,17 @@ const WODFilterSheet: React.FC = () => {
     filteredBranches,
     filteredPartnerTypes,
     renderCheckbox,
+    allCategories,
+    category,
+    subCategories,
+    subCategory,
   ]);
 
   const handleReset = () => {
     setBranch([]);
     setPartnerType([]);
+    setCategory('');
+    setSubCategory('');
     payload.onReset?.();
   };
 
@@ -240,6 +356,8 @@ const WODFilterSheet: React.FC = () => {
     payload.onApply?.({
       branch,
       partnerType,
+      category,
+      subCategory,
     });
     SheetManager.hide('WODFilterSheet');
   };
@@ -269,6 +387,12 @@ const WODFilterSheet: React.FC = () => {
           onRightPanelClear={() => {
             if (group === 'branch') setBranch([]);
             else if (group === 'partnerType') setPartnerType([]);
+            else if (group === 'category') {
+              setCategory('');
+              setSubCategory('');
+            } else if (group === 'subCategory') {
+              setSubCategory('');
+            }
           }}
           leftContent={
             <View>

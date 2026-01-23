@@ -1,5 +1,5 @@
 import {View, ScrollView} from 'react-native';
-import {useState, useMemo} from 'react';
+import {useState, useMemo, useCallback} from 'react';
 import AppLayout from '../../../../../components/layout/AppLayout';
 import MaterialTabBar from '../../../../../components/MaterialTabBar';
 import SearchableDropdown from '../../../../../components/customs/SearchableDropdown';
@@ -9,7 +9,7 @@ import {AppDropdownItem} from '../../../../../components/customs/AppDropdown';
 import AppTabBar from '../../../../../components/CustomTabBar';
 import Dashboard_Partner from '../../Dashboard/Dashboard_Partner';
 import AppButton from '../../../../../components/customs/AppButton';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import {AppNavigationProp} from '../../../../../types/navigation';
 import {
   useGetAGPDetails,
@@ -40,9 +40,7 @@ import {
 const ALPInfo = () => {
   const userInfo = useLoginStore(state => state.userInfo);
   const navigation = useNavigation<AppNavigationProp>();
-  const [selectedItem, setSelectedItem] = useState<AppDropdownItem | null>(
-    null,
-  );
+  const [selectedItem, setSelectedItem] = useState<AppDropdownItem | null>(null);
 
   const {data: listData, isLoading, error} = useGetALPList();
   const {
@@ -76,6 +74,7 @@ const ALPInfo = () => {
             noBanner
             DifferentEmployeeCode={selectedItem?.value}
             noPadding
+            employeeType={alpDetails.PQT_PartnerType}
           />
         ),
         label: 'Results',
@@ -97,7 +96,6 @@ const ALPInfo = () => {
       ASUS.ROLE_ID.BPM,
     ].includes(userInfo.EMP_RoleId as any) ||
     ['KN2200052', 'KN1800037', 'KN2500069'].includes(userInfo?.EMP_Code || '');
-
   return (
     <View className="flex-1 bg-lightBg-base px-1">
       <SearchableDropdown
@@ -149,11 +147,20 @@ const ALPInfo = () => {
   );
 };
 
-const AGPInfo = () => {
+const AGPInfo = ({
+  AGP_PartnerCode,
+  AGP_PartnerName,
+}: {
+  AGP_PartnerCode?: string;
+  AGP_PartnerName?: string;
+}) => {
   const navigation = useNavigation<AppNavigationProp>();
   const userInfo = useLoginStore(state => state.userInfo);
+  const selectedValue = AGP_PartnerCode
+    ? {label: AGP_PartnerName || '', value: AGP_PartnerCode}
+    : null;
   const [selectedItem, setSelectedItem] = useState<AppDropdownItem | null>(
-    null,
+    selectedValue,
   );
 
   const {data: listData, isLoading, error} = useGetAGPList();
@@ -168,13 +175,42 @@ const AGPInfo = () => {
     [data],
   );
 
+  const showButton =
+    [
+      ASUS.ROLE_ID.BSM,
+      ASUS.ROLE_ID.TM,
+      ASUS.ROLE_ID.SALES_REPS,
+      ASUS.ROLE_ID.BPM,
+    ].includes(userInfo.EMP_RoleId as any) ||
+    [
+      'KN1500008',
+      'KN2300021',
+      'KN1500142',
+      'KN1800037',
+      'KN2200052',
+      'KN2500069',
+    ].includes(userInfo?.EMP_Code || '');
+
+  const handlePress = useCallback(() => {
+    navigation.push('ChannelMapEditAGP', {
+      // AGPpartnerCode: selectedItem.value,
+      initialData: selectedItem?.value,
+    });
+  }, [navigation, selectedItem?.value]);
+
   const tabs = useMemo(() => {
     if (!agpDetails) return [];
 
     return [
       {
         name: 'Basic Information',
-        component: () => <AGPBasicInfo agpDetails={agpDetails} />,
+        component: () => (
+          <AGPBasicInfo
+            agpDetails={agpDetails}
+            showEditButton={showButton && selectedItem?.value !== ''}
+            handlePress={handlePress}
+          />
+        ),
         label: 'Basic Info',
       },
       {
@@ -186,9 +222,11 @@ const AGPInfo = () => {
         name: 'Results',
         component: () => (
           <Dashboard_Partner
+          DifferentEmployeeCode={selectedItem?.value}
             noBanner
-            DifferentEmployeeCode={selectedItem?.value}
             noPadding
+            noAnalytics
+            needSeeDemo
           />
         ),
         label: 'Results',
@@ -196,28 +234,17 @@ const AGPInfo = () => {
     ];
   }, [agpDetails, selectedItem?.value]);
 
-  if (isLoading) return <ListSkeleton />;
-
+  if (isLoading && !selectedItem?.value) return <ALPDetailsLoadingSkeleton />;
   if (error)
     return <ErrorState message="Error loading AGP data. Please try again." />;
-
-  const showButton =
-    [
-      ASUS.ROLE_ID.BSM,
-      ASUS.ROLE_ID.TM,
-      ASUS.ROLE_ID.SALES_REPS,
-      ASUS.ROLE_ID.BPM,
-    ].includes(userInfo.EMP_RoleId as any) ||
-    ['KN2200052', 'KN1800037', 'KN2500069'].includes(userInfo?.EMP_Code || '');
-    // console.log("Finance data", data?.Table1[0]);
-    console.log("agpDetails", agpDetails);
-    return (
+  return (
     <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base px-1">
       <SearchableDropdown
         data={listData || []}
-        placeholder="Select AGP Channel Map Data"
+        placeholder={isLoading ? 'Loading....' : 'Select AGP Channel Map Data'}
         onSelect={setSelectedItem}
         onClear={() => setSelectedItem(null)}
+        defaultValue={selectedValue?.value}
       />
       {selectedItem?.value ? (
         detailsLoading ? (
@@ -228,11 +255,7 @@ const AGPInfo = () => {
           <ScrollView
             className="flex-1 pt-4"
             showsVerticalScrollIndicator={false}>
-            <AppTabBar
-              tabs={tabs}
-              containerStyle={{marginLeft: 0, marginRight: 0}}
-              contentContainerStyle={{paddingTop: 16}}
-            />
+            <AppTabBar tabs={tabs} contentContainerStyle={{paddingTop: 16}} />
           </ScrollView>
         ) : (
           <AGPNoDetailsState />
@@ -240,25 +263,26 @@ const AGPInfo = () => {
       ) : (
         <AGPEmptySelectionState />
       )}
-      {showButton && selectedItem?.value ? (
-        <View className="flex-row justify-between items-center pt-3">
-          <AppButton
-            title="Edit Partner"
-            iconName="edit"
-            className="rounded-lg py-4  bg-secondary mb-2"
-            onPress={()=> navigation.push('ChannelMapEditAGP',{
-              // AGPpartnerCode: selectedItem.value,
-              initialData: selectedItem?.value,
-            })}
-          />
-          <AppButton
-            title="Add Partner"
-            iconName="plus-circle"
-            className="rounded-lg py-4 bg-secondary mb-2"
-            onPress={() => navigation.push('ChannelMapAddAGP')}
-          />
-        </View>
-      ) : (
+      {/* // <View className="flex-row justify-between items-center pt-3">
+        //   <AppButton
+        //     title="Edit Partner"
+        //     iconName="edit"
+        //     className="rounded-lg py-4  bg-secondary mb-2"
+            onPress={() =>
+              navigation.push('ChannelMapEditAGP', {
+                  // AGPpartnerCode: selectedItem.value,
+                  initialData: selectedItem?.value,
+                })
+              }
+          //   />
+          //   <AppButton
+          //     title="Add Partner"
+          //     iconName="plus-circle"
+          //     className="rounded-lg py-4 bg-secondary mb-2"
+          //     onPress={() => navigation.push('ChannelMapAddAGP')}
+          //   />
+          // </View> */}
+      {showButton && (
         <AppButton
           title="Add New Partner"
           iconName="plus-circle"
@@ -345,6 +369,14 @@ const LFRInfo = () => {
 };
 
 export default function ChannelMap() {
+  const {params = {}} = useRoute();
+  const {activeTab, AGP_PartnerName, AGP_PartnerCode} = params as {
+    activeTab?: number;
+    AGP_PartnerName?: string;
+    AGP_PartnerCode?: string;
+  };
+  const initialRouteName =
+    activeTab === 1 ? 'AGP' : activeTab === 2 ? 'LFR' : 'ALP';
   return (
     <AppLayout title="Channel Map" needBack needPadding>
       <MaterialTabBar
@@ -356,7 +388,12 @@ export default function ChannelMap() {
           },
           {
             name: 'AGP',
-            component: AGPInfo,
+            component: (
+              <AGPInfo
+                AGP_PartnerCode={AGP_PartnerCode}
+                AGP_PartnerName={AGP_PartnerName}
+              />
+            ),
             label: 'AGP',
           },
           {
@@ -366,6 +403,7 @@ export default function ChannelMap() {
           },
         ]}
         tabPadding={10}
+        initialRouteName={initialRouteName}
       />
     </AppLayout>
   );

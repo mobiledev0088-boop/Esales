@@ -59,8 +59,10 @@ export const validateField = (
       const gstError = false; // Temporary bypass for GST validation
       if (gstError) return gstError;
     } else if (field.keyboardType === 'phone-pad') {
-      const phoneError = validationRules.phone(value);
-      if (phoneError) return phoneError;
+      if(field.required == true){
+        const phoneError = validationRules.phone(value);
+        if (phoneError) return phoneError;
+      }
     }
   }
 

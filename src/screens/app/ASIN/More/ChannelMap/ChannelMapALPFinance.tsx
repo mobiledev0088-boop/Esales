@@ -312,7 +312,7 @@ const FinancerExistingInput: React.FC<{
         setValue={() => {}}
         placeholder="Type Dealer Code"
         inputClassName='ml-3'
-        inputWapperStyle={{backgroundColor}}
+        inputWrapperStyle={{backgroundColor}}
         isOptional
         readOnly={!isEditable}
         showClearButton={false}

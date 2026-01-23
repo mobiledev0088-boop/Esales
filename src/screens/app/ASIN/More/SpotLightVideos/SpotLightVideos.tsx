@@ -20,7 +20,7 @@ interface SpotlightVideoItem {
 
 const getYouTubeVideoId = (url: string) => {
   if (!url) return null;
-  const regex = /youtu\.be\/([a-zA-Z0-9_-]{11})/;
+  const regex = /(?:youtu\.be\/|youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/;
   const match = url.match(regex);
   return match ? match[1] : null;
 };
@@ -207,6 +207,8 @@ export default function SpotLightVideos() {
     }
     return null;
   }, [videosLoading, videosError, refetchVideos, isEmpty]);
+
+  console.log('Spotlight videos data:', videos);
 
   return (
     <AppLayout title="SpotLight Videos" needBack needPadding>

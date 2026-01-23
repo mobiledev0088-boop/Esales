@@ -166,9 +166,9 @@ const AddFeedback: React.FC = () => {
           setValue={setFeedbackText}
           placeholder="Enter your feedback"
           multiline
-          style={{ minHeight: screenHeight*0.2, alignItems:'flex-start' }}
-          inputContainerClassName='bg-white dark:bg-darkBg-surface border-gray-200 dark:border-gray-700'
+          inputWrapperStyle={{backgroundColor: AppTheme === 'dark' ? '#1E293B' : '#FFFFFF', height:100,alignItems:'flex-start'}}
           className='p-2 text-lg w-full text-gray-900 dark:text-gray-100'
+          textSize={16}
           showClearButton={false}
           label='Feedback'
         />

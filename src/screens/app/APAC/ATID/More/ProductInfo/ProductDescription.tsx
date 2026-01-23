@@ -140,13 +140,13 @@ export default function ProductDescription() {
     // Add your enquire stock logic here
   };
 
-  const handleOpenSchemeSheet = () => {
-    SheetManager.show('SchemeInfoSheet', {
-      payload: {
-        schemeData: modelSchemeData,
-      },
-    });
-  };
+  // const handleOpenSchemeSheet = () => {
+  //   SheetManager.show('SchemeInfoSheet', {
+  //     payload: {
+  //       schemeData: modelSchemeData,
+  //     },
+  //   });
+  // };
   return (
    <AppLayout title='Product Description' needBack needPadding>
     <ScrollView className='flex-1' contentContainerClassName='flex-grow py-4' showsVerticalScrollIndicator={false}>

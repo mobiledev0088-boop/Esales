@@ -348,13 +348,13 @@ export const DatePickerInput = ({
         disabled={disabled}
         className={`
           flex-row items-center justify-between
-          px-4 py-3.5 rounded border
+          px-4 py-2.5 rounded-md border
           ${
             disabled
               ? 'opacity-50 bg-gray-100 dark:bg-gray-800'
               : isDarkTheme
                 ? 'bg-gray-800 border-gray-600 active:border-blue-500'
-                : 'bg-white border-2 border-gray-300 active:border-blue-500'
+                : 'bg-white border-1 border-slate-300 active:border-blue-500'
           }
           ${error ? 'border-red-500' : 'focus:border-blue-500'}
           shadow-sm

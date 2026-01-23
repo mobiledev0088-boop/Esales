@@ -65,10 +65,10 @@ export const AppColors = {
   gridHeader: 'rgba(148, 154, 159, 0.44)',
 
   // Utility
-  // utilColor1: '#3ebc5c',
-  utilColor1: '#0EA473',
-  // utilColor2: '#2d7abc', //'#ffe169',//'#ffec78',//'rgb(123, 91, 199)',//
-  utilColor2: '#0076ff', //'#ffe169',//'#ffec78',//'rgb(123, 91, 199)',//
+  utilColor1: '#3ebc5c',
+  // utilColor1: '#0EA473',
+  utilColor2: '#2d7abc', //'#ffe169',//'#ffec78',//'rgb(123, 91, 199)',//
+  // utilColor2: '#0076ff', //'#ffe169',//'#ffec78',//'rgb(123, 91, 199)',//
   utilColor3: '#ee4949',
   utilColor4: '#f3c12a',
   utilColor5: '#5bc0de',

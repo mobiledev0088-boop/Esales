@@ -25,6 +25,7 @@ import {
 } from '../../../../../../hooks/queries/channelMap';
 import MaterialTabBar from '../../../../../../components/MaterialTabBar';
 import {ChannelMapInfoProps, FinanceMapProps} from '../ChannelMapTypes';
+import { ScrollView } from 'react-native-gesture-handler';
 
 // Utility to merge API data into section template, ensuring strings
 function mergeSection<T extends Record<string, string>>(
@@ -519,7 +520,7 @@ export default function ChannelMapEditAGP() {
       leftIcon: 'phone',
       keyboardType: 'phone-pad',
       placeholder: 'Enter landline number',
-      required: true,
+      required: false,
       width: 'full',
     },
     {
@@ -1582,8 +1583,8 @@ export default function ChannelMapEditAGP() {
   }
 
   return (
-    <AppLayout title="Edit AGP" needBack needPadding needScroll>
-      <View className="mt-2 pb-6">
+    <AppLayout title="Edit AGP" needBack needPadding>
+      <View className="mt-2 pb-6 flex-1">
         {/* Required Fields Notice */}
         <View
           className={`flex-row items-start bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 border rounded-xl px-4 py-3.5 mb-4`}>
@@ -1647,7 +1648,6 @@ export default function ChannelMapEditAGP() {
             },
           ]}
         />
-
         {/* Shop Information Section */}
       </View>
     </AppLayout>
@@ -1683,7 +1683,7 @@ const ChannelMapInfoComponent = (props: ChannelMapInfoProps) => {
     handleSubmit,
   } = props;
   return (
-    <View className="flex-1">
+    <ScrollView className="flex-1 bg-lightBg-base dark:bg-darkBg-base" showsVerticalScrollIndicator={false} >
       <FormSection
         title="Shop Information"
         icon="shopping-bag"
@@ -1695,7 +1695,6 @@ const ChannelMapInfoComponent = (props: ChannelMapInfoProps) => {
         isOpen={openAccordion === 'shopInfo'}
         onToggle={() => handleAccordionToggle('shopInfo')}
       />
-
       {/* ASUS Information Section */}
       <FormSection
         title="ASUS Information"
@@ -1785,11 +1784,11 @@ const ChannelMapInfoComponent = (props: ChannelMapInfoProps) => {
           weight="bold"
         />
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
-const FinanceInfo = () => {
+const FinanceInfo = (props:any) => {
   // const { financeFields, financeInfo, updateFinanceInfo, validationErrors, openAccordion, handleAccordionToggle } = props;
   return <View className="flex-1">
       {/* <FormSection

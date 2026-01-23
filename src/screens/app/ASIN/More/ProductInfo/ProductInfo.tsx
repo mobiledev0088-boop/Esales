@@ -16,7 +16,7 @@ import {useThemeStore} from '../../../../../stores/useThemeStore';
 import AppImage from '../../../../../components/customs/AppImage';
 import {useMutation} from '@tanstack/react-query';
 import {handleASINApiCall} from '../../../../../utils/handleApiCall';
-import {showToast} from '../../../../../utils/commonFunctions';
+import {convertToASINUnits, showToast} from '../../../../../utils/commonFunctions';
 import Card from '../../../../../components/Card';
 import {useNavigation} from '@react-navigation/native';
 import {AppNavigationProp} from '../../../../../types/navigation';
@@ -296,6 +296,15 @@ const ProductInfoCard = memo(
     const cpu = item?.PD_processor || '—';
     const ff = item?.PD_form_factor || '—';
     const isIndia = item?.PD_Made_In_India === 'Y';
+    const SRP = item?.SRP; // actual value
+    const Supported_SRP = item?.Supported_SRP; // discounted value
+    const price = Supported_SRP || SRP;
+    const hasPrice = price != null; // check for both null and undefined
+    // how much percentage discount is there
+    const percentageDiscount =
+      SRP && Supported_SRP
+        ? Math.round(((SRP - Supported_SRP) / SRP) * 100)
+        : 0;
 
     const onPress = () => {
       if (compareMode) {
@@ -344,13 +353,54 @@ const ProductInfoCard = memo(
                 color={AppColors[AppTheme].heading}
               />
             </View>
-            <View className="flex-1">
+            <View className="flex-1 mr-2">
               <AppText size="xs" color="gray">
                 Sales Model Name
               </AppText>
-              <AppText weight="semibold" size="base" className="text-text">
+              <AppText
+                weight="semibold"
+                size="base"
+                className="text-text"
+                numberOfLines={2}>
                 {item?.PD_sales_model_name || 'Unknown Model'}
               </AppText>
+              {hasPrice && (
+                <View className="mt-1 self-start px-3 py-1.5 rounded-2xl bg-emerald-50 dark:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-700">
+                  {Supported_SRP ? (
+                    <View className="flex-row items-baseline">
+                      {SRP && (
+                        <AppText
+                          size="xs"
+                          weight="medium"
+                          className="mr-1 text-gray-500 dark:text-gray-400 line-through">
+                          {convertToASINUnits(SRP, true, true)}
+                        </AppText>
+                      )}
+                      <AppText
+                        size="base"
+                        weight="bold"
+                        className="text-emerald-700 dark:text-emerald-300">
+                        {convertToASINUnits(Supported_SRP, true, true)}
+                      </AppText>
+                      <View className="ml-2 px-2 py-0.5 rounded-full bg-emerald-500/90 dark:bg-emerald-500 items-center justify-center">
+                        <AppText
+                          size="xs"
+                          weight="bold"
+                          className="text-white">
+                          {percentageDiscount}% Off
+                        </AppText>
+                      </View>
+                    </View>
+                  ) : (
+                    <AppText
+                      size="base"
+                      weight="bold"
+                      className="text-emerald-700 dark:text-emerald-300">
+                      {convertToASINUnits(price, true, true)}
+                    </AppText>
+                  )}
+                </View>
+              )}
             </View>
             {!compareMode && (
               <View className="ml-2 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 items-center justify-center">
@@ -601,6 +651,7 @@ export default function ProductInfo() {
     }
   }, [searchQuery, onlyIndia, expandableRAM, expandableStorage, hasSearched]);
 
+  console.log('displayedData',displayedData);
   return (
     <AppLayout needBack title="Product Info">
       <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base ">
@@ -741,7 +792,7 @@ export default function ProductInfo() {
                     placeholder="Search Product"
                     value={searchQuery}
                     setValue={setSearchQuery}
-                    inputWapperStyle={{
+                    inputWrapperStyle={{
                       backgroundColor: AppColors[AppTheme].bgSurface,
                     }}
                     onSubmitEditing={getProductsList}

@@ -28,6 +28,8 @@ import {
   BuildBranchBlocksResult,
 } from './components';
 import {showWODFilterSheet} from './WODFilterSheet';
+import { useNavigation } from '@react-navigation/native';
+import { AppNavigationProp } from '../../../../types/navigation';
 
 const useGetWODData = (ModelName = '') => {
   const userInfo = useLoginStore((state: any) => state.userInfo);
@@ -36,7 +38,7 @@ const useGetWODData = (ModelName = '') => {
   return useQuery<string[]>({
     queryKey: ['getWODData', employeeCode, roleId, ModelName],
     queryFn: async () => {
-      console.log('Calling WOD API...',employeeCode, roleId, ModelName);
+      console.log('Calling WOD API...', employeeCode, roleId, ModelName);
       const res = await handleASINApiCall(
         '/Information/GetChannelmapDashboardInfoModelWise',
         {
@@ -53,21 +55,69 @@ const useGetWODData = (ModelName = '') => {
     },
   });
 };
+const useGetCategories = () => {
+  return useQuery({
+    queryKey: ['getWODCategories'],
+    queryFn: async () => {
+      const res = await handleASINApiCall(
+        '/Information/GetChannelmap_PartnerStatus_CategoryList',
+      );
+      const result = res.DashboardData;
+      if (!result?.Status) return [];
+      const raw = result?.Datainfo?.Channelmap_CategoryList || [];
+      return raw;
+    },
+    select: (data: {Category: string,SubCategory: string}[]) => {
+      // merge all subcategories into their categories
+      const categoryMap: Record<string, Set<string>> = {};
+      data.forEach(item => {
+        const category = item.Category;
+        const subCategory = item.SubCategory;
+        if (!categoryMap[category]) {
+          categoryMap[category] = new Set();
+        }
+        categoryMap[category].add(subCategory);
+      });
+      // convert to array of objects
+      const categories = Object.entries(categoryMap).map(([category, subCats]) => ({
+        category,
+        subCategories: Array.from(subCats),
+      }));
+      return categories;
+    },
+  });
+};
+
+const IntialFilterState = {
+  branch: [] as string[],
+  partnerType: [] as string[],
+  category: '',
+  subCategory: '',
+};
 
 // Main Screen Component
 export default function WOD() {
+  const navigation = useNavigation<AppNavigationProp>();
+  const isFocused = navigation.isFocused();
   const [activeTab, setActiveTab] = useState(0);
-  const activeMode = useMemo(() => (activeTab === 0 ? 'YoY' : activeTab === 1 ? 'QoQ' : 'MoM'),[activeTab]);
-  
+  const activeMode = useMemo(
+    () => (activeTab === 0 ? 'YoY' : activeTab === 1 ? 'QoQ' : 'MoM'),
+    [activeTab],
+  );
+
   const [searchText, setSearchText] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  
-  const {data: wodRaw = [], isLoading, refetch, isRefetching} = useGetWODData('');
+  const [filter, setFilter] = useState(IntialFilterState);
+
+  const {
+    data: wodRaw = [],
+    isLoading,
+    refetch,
+    isRefetching,
+  } = useGetWODData(filter.subCategory);
+  const {data: categories = [], isLoading: isCategoriesLoading} =useGetCategories();
 
   // Filter states
-  const [selectedBranches, setSelectedBranches] = useState<string[]>([]);
-  const [selectedPartnerTypes, setSelectedPartnerTypes] = useState<string[]>([]);
-
   useEffect(() => {
     const id = setTimeout(() => setDebouncedSearch(searchText.trim()), 300);
     return () => clearTimeout(id);
@@ -78,7 +128,12 @@ export default function WOD() {
     branchList,
     partnerTypeList,
   }: BuildBranchBlocksResult = useMemo(
-    () => wodRaw.length ? buildBranchBlocks(wodRaw as any, activeMode) : {data: [], branchList: [], partnerTypeList: []},[wodRaw, activeMode]);
+    () =>
+      wodRaw.length
+        ? buildBranchBlocks(wodRaw as any, activeMode)
+        : {data: [], branchList: [], partnerTypeList: []},
+    [wodRaw, activeMode],
+  );
   const summary = useMemo(() => {
     return branchBlocks.reduce(
       (acc: {active: number; sleeping: number; inactive: number}, r) => {
@@ -98,19 +153,17 @@ export default function WOD() {
     let result = branchBlocks;
 
     // Apply branch and partner type filters
-    if (selectedBranches.length > 0 || selectedPartnerTypes.length > 0) {
+    if (filter.branch.length > 0 || filter.partnerType.length > 0) {
       // Create a map of CSE names that match the filter criteria
       const validCSENames = new Set<string>();
 
       (wodRaw as any[]).forEach((row: any) => {
         const matchesBranch =
-          selectedBranches.length === 0 ||
-          selectedBranches.includes(
-            (row.ACM_BranchName || '').toString().trim(),
-          );
+          filter.branch.length === 0 ||
+          filter.branch.includes((row.ACM_BranchName || '').toString().trim());
         const matchesPartnerType =
-          selectedPartnerTypes.length === 0 ||
-          selectedPartnerTypes.includes(
+          filter.partnerType.length === 0 ||
+          filter.partnerType.includes(
             (row.ACM_Partner_Type || '').toString().trim(),
           );
 
@@ -181,12 +234,10 @@ export default function WOD() {
   }, [
     branchBlocks,
     debouncedSearch,
-    selectedBranches,
-    selectedPartnerTypes,
+    filter.branch,
+    filter.partnerType,
     wodRaw,
   ]);
-
-  const visibleBranches = filteredBranchBlocks;
 
   const [collapseVersion, setCollapseVersion] = useState(0);
 
@@ -202,11 +253,12 @@ export default function WOD() {
         block={item}
         searchQuery={debouncedSearch}
         collapseSignal={collapseVersion}
+        navigation={navigation}
+        activeTab={activeTab}
       />
     ),
-    [debouncedSearch, collapseVersion],
+    [debouncedSearch, collapseVersion, activeTab, navigation],
   );
-
   const keyExtractor = useCallback((item: BranchBlock) => item.branch, []);
 
   const ListEmpty = !isLoading ? (
@@ -229,34 +281,58 @@ export default function WOD() {
   // Filter handlers
   const handleOpenFilterSheet = useCallback(() => {
     showWODFilterSheet({
-      branch: selectedBranches,
-      partnerType: selectedPartnerTypes,
+      branch: filter.branch,
+      partnerType: filter.partnerType,
+      category: filter.category,
+      subCategory: filter.subCategory,
       allBranches: branchList,
       allPartnerTypes: partnerTypeList,
+      allCategories: categories || [],
       onApply: result => {
-        setSelectedBranches(result.branch);
-        setSelectedPartnerTypes(result.partnerType);
+        setFilter(prev => ({
+          ...prev,
+          branch: result.branch,
+          partnerType: result.partnerType,
+          category: result.category,
+          subCategory: result.subCategory,
+        }));
       },
       onReset: () => {
-        setSelectedBranches([]);
-        setSelectedPartnerTypes([]);
+        setFilter(IntialFilterState);
       },
     });
-  }, [selectedBranches, selectedPartnerTypes, branchList, partnerTypeList]);
+  }, [
+    filter.branch,
+    filter.partnerType,
+    filter.category,
+    filter.subCategory,
+    branchList,
+    partnerTypeList,
+    categories,
+  ]);
 
   const [showStatusInfo, setShowStatusInfo] = useState(false);
   const hasOpenedOnceRef = useRef(false);
 
   useEffect(() => {
-    if (!isLoading && !hasOpenedOnceRef.current) {
+    if (!isLoading && !hasOpenedOnceRef.current && isFocused) {
       hasOpenedOnceRef.current = true;
       setShowStatusInfo(true);
     }
   }, [isLoading]);
 
   const handleOpenStatusInfo = useCallback(() => setShowStatusInfo(true), []);
-  const handleCloseStatusInfo = useCallback(() => setShowStatusInfo(false), []);
-  const reopenStatusInfo = handleOpenStatusInfo; // alias for header button
+  const handleCloseStatusInfo = useCallback(() => setShowStatusInfo(false), []); 
+
+  const activeCount = useMemo(() => {
+    const isActive = false;
+    if (filter.branch.length > 0 || filter.partnerType.length > 0) {
+      return true;
+    } else if (filter.category || filter.subCategory) {
+      return true;
+    }
+    return isActive;
+  }, [filter.branch, filter.partnerType, filter.category, filter.subCategory]);
 
   const ListHeader = (
     <View>
@@ -274,7 +350,7 @@ export default function WOD() {
           containerClassName="w-5/6 bg-lightBg-surface dark:bg-darkBg-surface"
           onClear={() => {
             setSearchText('');
-            setCollapseVersion(v => v + 1); 
+            setCollapseVersion(v => v + 1);
           }}
         />
         {/* Filter */}
@@ -289,7 +365,7 @@ export default function WOD() {
             size={22}
             color={'#475569'}
           />
-          {(selectedBranches.length > 0 || selectedPartnerTypes.length > 0) && (
+          {activeCount && (
             <View className="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary items-center justify-center" />
           )}
         </TouchableOpacity>
@@ -304,7 +380,7 @@ export default function WOD() {
         <View className="flex-row items-center mb-4 border-b border-slate-200  pb-3 pl-3">
           <TouchableOpacity
             activeOpacity={0.75}
-            onPress={reopenStatusInfo}
+            onPress={handleOpenStatusInfo}
             className="w-10 h-10 rounded-full items-center justify-center bg-blue-100 mr-4">
             <AppIcon
               type="materialIcons"
@@ -367,13 +443,13 @@ export default function WOD() {
 
   if (isLoading) return <WODSkeleton />;
   return (
-    <View className='bg-lightBg-base dark:bg-darkBg-base flex-1'>
+    <View className="bg-lightBg-base dark:bg-darkBg-base flex-1">
       <StatusInfoModal
         visible={showStatusInfo}
         onClose={handleCloseStatusInfo}
       />
       <FlatList
-        data={visibleBranches}
+        data={filteredBranchBlocks}
         renderItem={renderBranchCard}
         keyExtractor={keyExtractor}
         showsVerticalScrollIndicator={false}

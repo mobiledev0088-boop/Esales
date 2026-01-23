@@ -501,7 +501,7 @@ export const LeaveWeekOffModal = ({
           multiline
           numberOfLines={3}
           textAlignVertical="top"
-          inputWapperStyle={{alignItems: 'flex-start'}}
+          inputWrapperStyle={{alignItems: 'flex-start'}}
           inputClassName="pt-2"
           error={error ?? undefined}
         />

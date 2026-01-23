@@ -277,7 +277,7 @@ export const BannerComponent = () => {
 
 export const ActivationPerformanceComponent: React.FC<
   ActivationPerformanceProps
-> = ({data, isLoading, error, onRetry, name, tabs,quarter}) => {
+> = ({data, isLoading, error, onRetry, name, tabs,quarter,handleSeeMore}) => {
   const {
     mutate,
     data: activationData,
@@ -300,6 +300,7 @@ export const ActivationPerformanceComponent: React.FC<
     start: getQuarterDateRange(quarter).startDate,
     end: moment().toDate(),
   });
+
   const maximumDate = useMemo(() => new Date(), []);
   const minimumDate = useMemo(() => moment().subtract(5, 'years').toDate(), []);
   const tabItems: TabItem[] = useMemo(
@@ -324,6 +325,10 @@ export const ActivationPerformanceComponent: React.FC<
   );
 
     const onPress = () => {
+      if (handleSeeMore) {
+        handleSeeMore();
+        return;
+      }
       let dataToSend = {
         masterTab: name,
         StartDate: moment(dateRange.start).format('YYYY-MM-DD'),
@@ -352,6 +357,11 @@ export const ActivationPerformanceComponent: React.FC<
       navigation.push('ActPerformanceBranchWise', dataToSend);
     };
 
+
+    useEffect(() => {
+  const { startDate, endDate } = getQuarterDateRange(quarter);
+  setDateRange({ start: startDate, end: endDate });
+}, [quarter]);
   if (error) {
     return (
       <View className="px-3 py-3">

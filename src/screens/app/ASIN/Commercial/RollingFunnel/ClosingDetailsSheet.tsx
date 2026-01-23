@@ -278,7 +278,7 @@ const ClosingDetailsSheet: React.FC = () => {
                   variant="border"
                   size="md"
                   containerClassName="bg-white dark:bg-gray-800"
-                  inputWapperStyle={{height: 100, alignItems: 'flex-start'}}
+                  inputWrapperStyle={{height: 100, alignItems: 'flex-start'}}
                   style={{textAlignVertical: 'top'}}
                 />
               </View>

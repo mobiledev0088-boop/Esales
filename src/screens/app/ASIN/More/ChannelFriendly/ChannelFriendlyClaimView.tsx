@@ -704,12 +704,12 @@ export default function ChannelFriendlyClaimView() {
               icon="file-document"
             />
             <ImageCard
-              title="Photo Copy"
+              title="End Customer"
               imageUrl={data.Photo_Copy}
               icon="camera"
             />
             <ImageCard
-              title="Screenshot"
+              title="Online Screenshot"
               imageUrl={data.Screenshot_Copy}
               icon="monitor-screenshot"
             />

@@ -434,7 +434,10 @@ const MaterialTabBar: React.FC<AppTabBarsProps> = ({
     <View style={[styles.container, containerStyle]}>
       <Tab.Navigator
         initialRouteName={initialRouteName || validTabs[0]?.name}
-        screenOptions={screenOptions}
+        screenOptions={{
+          ...screenOptions,
+        }}
+        backBehavior='none'
         tabBar={props => (
           <CustomTabBar
             {...props}

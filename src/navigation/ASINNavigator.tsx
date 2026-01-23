@@ -49,6 +49,9 @@ import ChannelMapEditAGP from '../screens/app/ASIN/More/ChannelMap/ChanelMapAGP/
 import ChannelFriendlyClaimsUpload from '../screens/app/ASIN/More/ChannelFriendly/ChannelFriendlyClaimsUpload';
 import Attendance_HO from '../screens/app/ASIN/User/Attendance/Attendance_HO';
 import UploadGalleryReview from '../screens/app/ASIN/More/ShopExpansion/GalleryReview/UploadGalleryReview';
+import TargetSummaryPartner from '../screens/app/ASIN/Reports/TargetSummaryPartner';
+import WOD_Partners from '../screens/app/ASIN/WOD/WOD_Partners';
+import ActPerformance from '../screens/app/ASIN/Reports/ActPerformance';
 
 type Screen = {
   name: string;
@@ -74,6 +77,8 @@ const screens: Screen[] = [
   {name: 'ClaimInfo', component: ClaimInfo},
   {name: 'ClaimApplicationDetails', component: ClaimApplicationDetails},
   {name: 'ClaimInfoPartner', component: ClaimInfoPartner},
+  // WOD Screens
+  {name: 'WOD_Partners', component: WOD_Partners},
   // More Screens
   {name: 'ActivatedDetails', component: ActivatedDetails},
   {name: 'EDMInfo', component: EDMInfo},
@@ -117,7 +122,9 @@ const screens: Screen[] = [
   {name: 'FeedbackDetails', component: FeedbackDetails},
   //Reposts Screens
   {name: 'ActPerformanceBranchWise', component: ActPerformanceBranchWise},
+  {name: 'ActPerformance', component: ActPerformance},
   {name: 'TargetSummary', component: TargetSummary},
+  {name: 'TargetSummaryPartner', component: TargetSummaryPartner},
   {name: 'VerticalASE_HO', component: VerticalASE_HO},
   {name: 'TargetSummaryAMBranch', component: TargetSummaryAMBranch},
   // Commercial Screens
