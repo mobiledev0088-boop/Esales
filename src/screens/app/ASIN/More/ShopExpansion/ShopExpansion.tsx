@@ -6,7 +6,7 @@ import AppText from '../../../../../components/customs/AppText';
 import Card from '../../../../../components/Card';
 import Skeleton from '../../../../../components/skeleton/skeleton';
 import {useLoginStore} from '../../../../../stores/useLoginStore';
-import useEmpStore from '../../../../../stores/useEmpStore';
+import {useUserStore} from '../../../../../stores/useUserStore';
 import {handleASINApiCall} from '../../../../../utils/handleApiCall';
 import AppIcon from '../../../../../components/customs/AppIcon';
 import { useNavigation } from '@react-navigation/native';
@@ -100,7 +100,7 @@ const useGetShopExpData = (selectedRegion: Region | null) => {
   const {EMP_Code: employeeCode = '', EMP_RoleId: RoleId = ''} = useLoginStore(
     state => state.userInfo,
   );
-  const empInfo = useEmpStore(state => state.empInfo);
+  const empInfo = useUserStore(state => state.empInfo);
   const payload = {
     employeeCode,
     RoleId,

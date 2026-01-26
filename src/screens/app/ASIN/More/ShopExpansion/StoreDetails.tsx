@@ -2,7 +2,7 @@ import {Text, View, ScrollView, TouchableOpacity, FlatList} from 'react-native';
 import {useMemo, useState, useRef} from 'react';
 import {useRoute} from '@react-navigation/native';
 import {useLoginStore} from '../../../../../stores/useLoginStore';
-import useEmpStore from '../../../../../stores/useEmpStore';
+import {useUserStore} from '../../../../../stores/useUserStore';
 import {useQuery} from '@tanstack/react-query';
 import {handleASINApiCall} from '../../../../../utils/handleApiCall';
 import AppLayout from '../../../../../components/layout/AppLayout';
@@ -124,7 +124,7 @@ const useGetStoreDetails = (PartnerCode: string) => {
   const {EMP_Code: employeeCode = '', EMP_RoleId: RoleId = ''} = useLoginStore(
     state => state.userInfo,
   );
-  const empInfo = useEmpStore(state => state.empInfo);
+  const empInfo = useUserStore(state => state.empInfo);
   const payload = {
     employeeCode,
     RoleId,

@@ -14,7 +14,7 @@ import {
 } from '../../../../../components/skeleton/DashboardSkeleton';
 import {ASUS, screenWidth} from '../../../../../utils/constant';
 import {useLoginStore} from '../../../../../stores/useLoginStore';
-import useEmpStore from '../../../../../stores/useEmpStore';
+import {useUserStore} from '../../../../../stores/useUserStore';
 import {LinearProgressBar} from '../../../../../components/customs/AppChart';
 import {
   applyOpacityHex,
@@ -838,7 +838,7 @@ export default function Dashboard_Partner({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const {quarters, selectedQuarter, setSelectedQuarter} = useQuarterHook();
   const userInfo = useLoginStore(state => state.userInfo);
-  const empInfo = useEmpStore(state => state.empInfo);
+  const empInfo = useUserStore(state => state.empInfo);
 
   const {
     data: dashboardData,

@@ -11,7 +11,7 @@ import AppText from '../../../../../components/customs/AppText';
 import FAB from '../../../../../components/FAB';
 import {useInfiniteQuery} from '@tanstack/react-query';
 import {useLoginStore} from '../../../../../stores/useLoginStore';
-import useEmpStore from '../../../../../stores/useEmpStore';
+import {useUserStore} from '../../../../../stores/useUserStore';
 import {handleASINApiCall} from '../../../../../utils/handleApiCall';
 import AppInput from '../../../../../components/customs/AppInput';
 import AppIcon from '../../../../../components/customs/AppIcon';
@@ -41,7 +41,7 @@ const initialFliter: RollingFunnelFilter = {
 // api hook
 const useGetRollingFunnelData = (filter: RollingFunnelFilter) => {
   const {EMP_Code: EmpCode = ''} = useLoginStore(state => state.userInfo);
-  const empInfo = useEmpStore(state => state.empInfo);
+  const empInfo = useUserStore(state => state.empInfo);
 
   const {
     selectedFunneltype = '',

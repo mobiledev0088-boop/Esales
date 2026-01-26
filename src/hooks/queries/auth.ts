@@ -1,67 +1,62 @@
-import useEmpStore from '../../stores/useEmpStore';
-
 import {useMutation} from '@tanstack/react-query';
 import {useLoginStore} from '../../stores/useLoginStore';
 import {handleAPACApiCall, handleASINApiCall} from '../../utils/handleApiCall';
 import {showToast} from '../../utils/commonFunctions';
 import {useNavigation} from '@react-navigation/native';
 import {AuthNavigationProp} from '../../types/navigation';
+import { useUserStore } from '../../stores/useUserStore';
 
 const loginApi = (data: any) => handleASINApiCall('/Auth/Login_new', data);
 const APACloginApi = (data: any) => handleAPACApiCall('/Auth/Login_new', data);
-const resetPasswordApi = (data: any) =>
-  handleASINApiCall('/Auth/ResetPassword', data);
-const getEmpInfoApi = (EMP_Code: string) =>
-  handleASINApiCall('/Auth/EmpInfo', {employeeCode: EMP_Code});
-const getAPACEmpInfoApi = (EMP_Code: string) =>
-  handleAPACApiCall('/Auth/EmpInfo', {employeeCode: EMP_Code});
+const resetPasswordApi = (data: any) => handleASINApiCall('/Auth/ResetPassword', data);
+const getEmpInfoApi = (EMP_Code: string) => handleASINApiCall('/Auth/EmpInfo', {employeeCode: EMP_Code});
+const getAPACEmpInfoApi = (EMP_Code: string) => handleAPACApiCall('/Auth/EmpInfo', {employeeCode: EMP_Code});
 
 export const useLoginMutation = () => {
   const setAuthData = useLoginStore(state => state.setAuthData);
-  const setEmpInfo = useEmpStore(state => state.setEmpInfo);
+  const setEmpInfo = useUserStore(state => state.setEmpInfo);
 
   return useMutation({
-    mutationFn: async (dataToSend: any) => {
-      const response = await loginApi(dataToSend);
-      let loginData = response?.login;
+    mutationFn: async (payload: any) => {
+      let loginResponse = await loginApi(payload);
+      let loginData = loginResponse?.login;
+      let isAPAC = false;
 
-      // Fallback to APAC if first login fails
       if (!loginData?.Status) {
-        const apacResponse = await APACloginApi(dataToSend);
-        loginData = {
-          ...apacResponse?.login,
-          isAPAC: true,
-        };
+        const apacResponse = await APACloginApi(payload);
+        loginData = apacResponse?.login;
+        isAPAC = true;
+      }
+      
+      if (!loginData?.Status) {
+        throw new Error(loginData?.Message || 'Login failed');
       }
 
-      if (loginData?.Status) {
-        const EMP_Code = loginData?.Datainfo?.[0]?.EMP_Code;
-        let empInfo = null;
+      const EMP_Code = loginData?.Datainfo?.[0]?.EMP_Code;
 
-        if (EMP_Code) {
-          // Fetch Emp Info based on which API succeeded
-          const empRes = loginData.isAPAC
-            ? await getAPACEmpInfoApi(EMP_Code)
-            : await getEmpInfoApi(EMP_Code);
-          empInfo = empRes?.login?.Datainfo?.[0];
-          if (empInfo) setEmpInfo(empInfo);
-        }
-        return loginData; // Return everything as one object
+      let empInfo = null;
+      if (EMP_Code) {
+        const empRes = isAPAC
+          ? await getAPACEmpInfoApi(EMP_Code)
+          : await getEmpInfoApi(EMP_Code);
+
+        empInfo = empRes?.login?.Datainfo?.[0] ?? null;
       }
-
-      throw new Error(loginData?.Message || 'Login failed');
+      return {
+        loginData,
+        empInfo,
+        isAPAC,
+      };
     },
-    onSuccess: loginData => {
-      // Update stores simultaneously
-      setAuthData(loginData?.Token, loginData?.Datainfo?.[0]);
+    onSuccess: ({loginData, empInfo}) => {
+      setAuthData(loginData.Token, loginData.Datainfo?.[0]);
+      if (empInfo) {
+        setEmpInfo(empInfo);
+      }
       showToast('Login successful');
     },
-    onError: (error: any) => {
-      const message =
-        error?.response?.data?.login?.Message ||
-        error.message ||
-        'Login failed';
-      showToast(message);
+    onError: (error: Error) => {
+      showToast(error.message || 'Login failed');
       console.error('Login error:', error);
     },
   });

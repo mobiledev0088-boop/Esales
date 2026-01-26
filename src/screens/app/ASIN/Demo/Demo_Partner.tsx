@@ -26,7 +26,7 @@ import ActionSheet, {
 } from 'react-native-actions-sheet';
 import moment from 'moment';
 import Skeleton from '../../../../components/skeleton/skeleton';
-import useEmpStore from '../../../../stores/useEmpStore';
+import {useUserStore} from '../../../../stores/useUserStore';
 
 // ===== Types & Interfaces ==========
 interface PartnerDemoData {
@@ -189,7 +189,7 @@ const useGetDemoHubDetails = (Serial_No: string, YearQtr: string) => {
 // ===== Logic Hook ========
 const usePartnerDemoLogic = (childrenCode?: string) => {
   const navigation = useNavigation<AppNavigationProp>();
-  const empInfo = useEmpStore(state => state.empInfo);
+  const empInfo = useUserStore(state => state.empInfo);
   const IsAWP = empInfo?.EMP_Type === ASUS.PARTNER_TYPE.T2.AWP;
   const {quarters, selectedQuarter, setSelectedQuarter} = useQuarterHook();
 
@@ -866,7 +866,7 @@ const EmptyView = memo(() => (
 
 // ================= Main Component =======================
 export default function Demo_Partner() {
-  const empInfo = useEmpStore(state => state.empInfo);
+  const empInfo = useUserStore(state => state.empInfo);
   const {data: subCodes, isLoading: isLoadingChildren} = useGetSubCode(!!(empInfo?.IsParentCode)) 
   const [selectedChildren, setSelectedChildren] = useState<AppDropdownItem | null>(null);
   const logic = usePartnerDemoLogic(selectedChildren?.value);

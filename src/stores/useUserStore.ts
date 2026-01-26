@@ -47,7 +47,7 @@ const initialEmpInfo: EmpInfo = {
   Inventory_Sync_Date: '',
 };
 
-export const useEmpStore = create<EmpState>()(
+export const useUserStore = create<EmpState>()(
   persist(
     set => ({
       empInfo: initialEmpInfo,
@@ -61,13 +61,11 @@ export const useEmpStore = create<EmpState>()(
       resetEmpInfo: () => set({empInfo: initialEmpInfo}),
     }),
     {
-      name: 'emp-store',
+      name: 'user-store',
       storage: createMMKVStorage<EmpState>(),
       onRehydrateStorage: () => () => {
-        console.log('✅ Zustand rehydrated from MMKV empStore :');
+        console.log('✅ Zustand rehydrated from MMKV userStore :');
       },
     },
   ),
 );
-
-export default useEmpStore;

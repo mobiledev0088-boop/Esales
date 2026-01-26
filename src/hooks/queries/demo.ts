@@ -1,5 +1,5 @@
 import {useQuery} from '@tanstack/react-query';
-import useEmpStore from '../../stores/useEmpStore';
+import {useUserStore} from '../../stores/useUserStore';
 import {useLoginStore} from '../../stores/useLoginStore';
 import {handleAPACApiCall, handleASINApiCall} from '../../utils/handleApiCall';
 import {formatUnique} from '../../utils/commonFunctions';
@@ -20,7 +20,7 @@ export const useGetDemoDataReseller = (
   const {EMP_Code: employeeCode = '', EMP_RoleId: RoleId = ''} = useLoginStore(
     state => state.userInfo,
   );
-  const empInfo = useEmpStore(state => state.empInfo);
+  const empInfo = useUserStore(state => state.empInfo);
   const queryPayload = {
     YearQtr,
     RoleId,
@@ -56,7 +56,7 @@ export const useGetDemoDataRetailer = (
   const {EMP_Code: employeeCode = '', EMP_RoleId: RoleId = ''} = useLoginStore(
     state => state.userInfo,
   );
-  const empInfo = useEmpStore(state => state.empInfo);
+  const empInfo = useUserStore(state => state.empInfo);
   const queryPayload = {
     YearQtr,
     RoleId,
@@ -89,7 +89,7 @@ export const useGetDemoDataLFR = (
   const {EMP_Code: employeeCode = '', EMP_RoleId: RoleId = ''} = useLoginStore(
     state => state.userInfo,
   );
-  const empInfo = useEmpStore(state => state.empInfo);
+  const empInfo = useUserStore(state => state.empInfo);
   const queryPayload = {
     YearQtr,
     RoleId,

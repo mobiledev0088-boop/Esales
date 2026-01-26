@@ -4,10 +4,12 @@ import AppImage from './customs/AppImage';
 
 import {View} from 'react-native';
 import AppModal from './customs/AppModal';
+import useNetworkStatus from '../hooks/useNetworkStatus';
 
-const CheckInternet = () => {
+export default function CheckInternet() {
+  const isConnected = useNetworkStatus();
   return (
-    <AppModal isOpen={true} onClose={() => {}} modalWidth={"70%"}>
+    <AppModal isOpen={!isConnected} onClose={() => {}} modalWidth={"70%"}>
       <View className="py-5 items-center">
         <AppImage
           source={require('../assets/images/no-internet.png')}
@@ -24,5 +26,3 @@ const CheckInternet = () => {
     </AppModal>
   );
 };
-
-export default CheckInternet;

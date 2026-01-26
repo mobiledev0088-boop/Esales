@@ -25,14 +25,14 @@ export default function DynamicSplash({onFinish}: {onFinish: () => void}) {
 
   useEffect(() => {
     if (!isLoading) {
+      let timer = splashImageUrl ? 2000 : 1000;
       const timeout = setTimeout(() => {
         onFinish();
-      }, 1000);
+      }, timer);
 
       return () => clearTimeout(timeout);
     }
   }, [isLoading]);
-
   return (
     <View style={styles.container}>
       {splashImageUrl ? (

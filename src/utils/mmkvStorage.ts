@@ -27,11 +27,14 @@ async function loadEncryptionKey(): Promise<string> {
 
 // Must be called before using MMKV
 export async function initializeMMKV(): Promise<void> {
-  const key = await loadEncryptionKey();
+  if (mmkvInstance) return; // Already initialized 
+  // const key = await loadEncryptionKey();
+  const key = '$5K#wP9!rT2@nQx' // Static key for testing purposes only
   mmkvInstance = new MMKV({
     id: 'secure-storage',
     encryptionKey: key,
   });
+  console.log('✅ MMKV initialized with encryption key.');
 }
 
 // Ensure MMKV is initialized before usage

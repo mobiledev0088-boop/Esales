@@ -425,6 +425,8 @@ const MaterialTabBar: React.FC<AppTabBarsProps> = ({
     return null;
   }
 
+  const hasMultipleTabs = validTabs.length > 1;
+
   const screenOptions = useMemo(() => ({
     swipeEnabled,
     tabBarPosition,
@@ -439,26 +441,28 @@ const MaterialTabBar: React.FC<AppTabBarsProps> = ({
         }}
         backBehavior='none'
         tabBar={props => (
-          <CustomTabBar
-            {...props}
-            theme={theme}
-            animation={animation}
-            tabSpacing={tabSpacing}
-            tabPadding={tabPadding}
-            showShadow={showShadow}
-            shadowIntensity={shadowIntensity}
-            onTabPress={onTabPress}
-            renderBadge={renderBadge}
-            tabStyle={tabStyle}
-            labelStyle={labelStyle}
-            activeTabStyle={activeTabStyle}
-            activeLabelStyle={activeLabelStyle}
-            minTabWidth={minTabWidth}
-            maxTabWidth={maxTabWidth}
-            bounces={bounces}
-            pressAnimationEnabled={pressAnimationEnabled}
-            tabs={validTabs}
-          />
+          hasMultipleTabs ? (
+            <CustomTabBar
+              {...props}
+              theme={theme}
+              animation={animation}
+              tabSpacing={tabSpacing}
+              tabPadding={tabPadding}
+              showShadow={showShadow}
+              shadowIntensity={shadowIntensity}
+              onTabPress={onTabPress}
+              renderBadge={renderBadge}
+              tabStyle={tabStyle}
+              labelStyle={labelStyle}
+              activeTabStyle={activeTabStyle}
+              activeLabelStyle={activeLabelStyle}
+              minTabWidth={minTabWidth}
+              maxTabWidth={maxTabWidth}
+              bounces={bounces}
+              pressAnimationEnabled={pressAnimationEnabled}
+              tabs={validTabs}
+            />
+          ) : null
         )}>
         {validTabs.map((tab) => {
           const useRenderProp = React.isValidElement(tab.component) || !!tab.componentProps;

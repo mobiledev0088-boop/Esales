@@ -19,7 +19,7 @@ import {useNavigation} from '@react-navigation/native';
 import {handleASINApiCall} from '../../../../../utils/handleApiCall';
 import {useLoginStore} from '../../../../../stores/useLoginStore';
 import useQuarterHook from '../../../../../hooks/useQuarterHook';
-import useEmpStore from '../../../../../stores/useEmpStore';
+import {useUserStore} from '../../../../../stores/useUserStore';
 import {AppColors} from '../../../../../config/theme';
 import {useThemeStore} from '../../../../../stores/useThemeStore';
 import {AppNavigationProp} from '../../../../../types/navigation';
@@ -224,7 +224,7 @@ const useGetChannelFriendlyClaims = (YearQtr: string, PartnerCode: string) => {
 
 export default function ChannelFriendlyClaimListPartner() {
   const {EMP_Code} = useLoginStore(state => state.userInfo);
-  const {IsParentCode} = useEmpStore(state => state.empInfo);
+  const {IsParentCode} = useUserStore(state => state.empInfo);
   const {quarters, selectedQuarter, setSelectedQuarter} = useQuarterHook();
   const [partnerCode, setPartnerCode] = useState<string>(EMP_Code);
 

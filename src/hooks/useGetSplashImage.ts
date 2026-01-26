@@ -2,7 +2,7 @@ import {useState, useEffect} from 'react';
 import {getMMKV} from '../utils/mmkvStorage';
 import {handleASINApiCall} from '../utils/handleApiCall';
 import {getDeviceId} from 'react-native-device-info';
-import { useLoginStore } from '../stores/useLoginStore';
+import {useLoginStore} from '../stores/useLoginStore';
 
 interface SplashImageCache {
   imageUrl: string;
@@ -26,74 +26,71 @@ const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
  */
 export const useGetSplashImage = (
   enabled: boolean = true,
-  employeeCode: string = ''
+  employeeCode: string = '',
 ): UseGetSplashImageReturn => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
 
+  const fetchSplashImage = async (isMounted: boolean) => {
+    try {
+      const storage = getMMKV();
+      const cachedData = storage.getString(CACHE_KEY);
+
+      if (cachedData) {
+        // Parse existing cache
+        const parsedCache: SplashImageCache = JSON.parse(cachedData);
+        const cacheAge = Date.now() - parsedCache.timestamp;
+
+        // Cache is fresh (< 24 hours) - use it and exit
+        // if (cacheAge < CACHE_DURATION) {
+        //   if (isMounted) {
+        //     setImageUrl(parsedCache.imageUrl);
+        //     setIsLoading(false);
+        //   }
+        //   return;
+        // }
+
+        // Cache is stale (> 24 hours) - show old image while updating in background
+        if (isMounted) {
+          setImageUrl(parsedCache.imageUrl);
+          setIsLoading(false);
+          setIsUpdating(true);
+        }
+
+        // Fetch fresh image in background
+        await fetchAndCacheImage(employeeCode, storage, isMounted);
+
+        if (isMounted) {
+          setIsUpdating(false);
+        }
+      } else {
+        // No cache exists - fetch and cache for next time (don't show yet)
+        await fetchAndCacheImage(employeeCode, storage, isMounted);
+
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    } catch (error) {
+      console.error('Error in useGetSplashImage:', error);
+      if (isMounted) {
+        setIsLoading(false);
+        setIsUpdating(false);
+      }
+    }
+  };
+
   useEffect(() => {
     // Exit early if hook is disabled
     if (!enabled) return;
-
     let isMounted = true;
-
-    const fetchSplashImage = async () => {
-      try {
-        const storage = getMMKV();
-        const cachedData = storage.getString(CACHE_KEY);
-
-        if (cachedData) {
-          // Parse existing cache
-          const parsedCache: SplashImageCache = JSON.parse(cachedData);
-          const cacheAge = Date.now() - parsedCache.timestamp;
-
-          // Cache is fresh (< 24 hours) - use it and exit
-          if (cacheAge < CACHE_DURATION) {
-            if (isMounted) {
-              setImageUrl(parsedCache.imageUrl);
-              setIsLoading(false);
-            }
-            return;
-          }
-
-          // Cache is stale (> 24 hours) - show old image while updating in background
-          if (isMounted) {
-            setImageUrl(parsedCache.imageUrl);
-            setIsLoading(false);
-            setIsUpdating(true);
-          }
-
-          // Fetch fresh image in background
-          await fetchAndCacheImage(employeeCode, storage, isMounted);
-
-          if (isMounted) {
-            setIsUpdating(false);
-          }
-        } else {
-          // No cache exists - fetch and cache for next time (don't show yet)
-          await fetchAndCacheImage(employeeCode, storage, isMounted);
-
-          if (isMounted) {
-            setIsLoading(false);
-          }
-        }
-      } catch (error) {
-        console.error('Error in useGetSplashImage:', error);
-        if (isMounted) {
-          setIsLoading(false);
-          setIsUpdating(false);
-        }
-      }
-    };
-
     // Only fetch if employeeCode is provided
     if (employeeCode) {
-      void fetchSplashImage();
+      void fetchSplashImage(isMounted);
     } else {
       setIsLoading(false);
     }
-
     // Cleanup: Prevent state updates after unmount
     return () => {
       isMounted = false;
@@ -110,7 +107,7 @@ export const useGetSplashImage = (
 async function fetchAndCacheImage(
   employeeCode: string,
   storage: ReturnType<typeof getMMKV>,
-  isMounted: boolean
+  isMounted: boolean,
 ): Promise<void> {
   try {
     const deviceId = getDeviceId();
@@ -120,10 +117,13 @@ async function fetchAndCacheImage(
     });
 
     const result = response?.login;
-
+    console.log(
+      'Fetched splash image data from API:',
+      result?.Datainfo?.[0]?.FestiveAnimation,
+    );
     // Validate response has splash image
     if (result?.Status) {
-      if(result?.Datainfo?.[0]?.FestiveAnimation){
+      if (result?.Datainfo?.[0]?.FestiveAnimation) {
         const freshImageUrl = result.Datainfo[0].FestiveAnimation;
         // Cache the image with timestamp
         const cacheData: SplashImageCache = {
@@ -135,12 +135,15 @@ async function fetchAndCacheImage(
       }
       const Latitude = result.Datainfo[0].Latitude;
       const Longitude = result.Datainfo[0].Longitude;
-      console.log('Fetched fresh location from splash image  API:', Latitude, Longitude);
+      console.log(
+        'Fetched fresh location from splash image  API:',
+        Latitude,
+        Longitude,
+      );
       // const Year_Qtr = result.Datainfo[0].Year_Qtr;
       const setUserInfo = useLoginStore.getState().setUserInfo;
-      setUserInfo({ Latitude, Longitude });
-    }
-    else {
+      setUserInfo({Latitude, Longitude});
+    } else {
       console.log('No splash image found in API response');
     }
   } catch (error) {

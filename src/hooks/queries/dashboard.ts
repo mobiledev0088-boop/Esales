@@ -1,14 +1,14 @@
 import {useQuery, useMutation, UseQueryResult} from '@tanstack/react-query';
 import {handleAPACApiCall, handleASINApiCall} from '../../utils/handleApiCall';
 import {useLoginStore} from '../../stores/useLoginStore';
-import useEmpStore from '../../stores/useEmpStore';
 import {ActivationPerformanceData} from '../../types/dashboard';
 import { AppDropdownItem } from '../../components/customs/AppDropdown';
+import { useUserStore } from '../../stores/useUserStore';
 
 // Reusable selectors for better performance
 const getUserCredentials = () => {
   const {userInfo} = useLoginStore.getState();
-  const {empInfo} = useEmpStore.getState();
+  const {empInfo} = useUserStore.getState();
 
   return {
     employeeCode: userInfo?.EMP_Code || '',

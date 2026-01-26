@@ -56,7 +56,7 @@ export const initBackgroundFetchService = async () => {
       requiredNetworkType: BackgroundFetch.NETWORK_TYPE_ANY,
     },
     async taskId => {
-      console.log('[BackgroundFetch] Event received: ', taskId);
+      // console.log('[BackgroundFetch] Event received: ', taskId);
       await checkUserInsideRadius();
       // Finish the background fetch needed for it to work correctly
       BackgroundFetch.finish(taskId);

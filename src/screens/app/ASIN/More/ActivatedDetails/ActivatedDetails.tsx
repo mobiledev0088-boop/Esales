@@ -9,13 +9,11 @@ import {
 } from './component';
 import {handleASINApiCall} from '../../../../../utils/handleApiCall';
 import {useLoginStore} from '../../../../../stores/useLoginStore';
-import useEmpStore from '../../../../../stores/useEmpStore';
+import {useUserStore} from '../../../../../stores/useUserStore';
 import moment from 'moment';
-import {EmpInfo, UserInfo} from '../../../../../types/user';
 import {DatePickerInput, DatePickerState} from '../../../../../components/customs/AppDatePicker';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {ASUS} from '../../../../../utils/constant';
-import {useLoaderStore} from '../../../../../stores/useLoaderStore';
 import useQuarterHook from '../../../../../hooks/useQuarterHook';
 import Card from '../../../../../components/Card';
 import { View } from 'react-native';
@@ -150,7 +148,7 @@ const useSSNInfoMutation = () => {
 export default function ActivatedDetails() {
   const {selectedQuarter} = useQuarterHook();
   const {EMP_RoleId} = useLoginStore(state => state.userInfo);
-  const empInfo = useEmpStore(state => state.empInfo);
+  const empInfo = useUserStore(state => state.empInfo);
   const isPartner =  EMP_RoleId === ASUS.ROLE_ID.PARTNERS;
 
   // custom hooks

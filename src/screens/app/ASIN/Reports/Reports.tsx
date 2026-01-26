@@ -7,7 +7,7 @@ import AppIcon from '../../../../components/customs/AppIcon';
 import {handleASINApiCall} from '../../../../utils/handleApiCall';
 import {useQuery} from '@tanstack/react-query';
 import {useLoginStore} from '../../../../stores/useLoginStore';
-import useEmpStore from '../../../../stores/useEmpStore';
+import {useUserStore} from '../../../../stores/useUserStore';
 import AppModal from '../../../../components/customs/AppModal';
 import Pdf from 'react-native-pdf';
 import {screenHeight, screenWidth} from '../../../../utils/constant';
@@ -46,7 +46,7 @@ export default function Reports() {
   const [pdfUrl, setPdfUrl] = useState<string>('');
 
   const userInfo = useLoginStore(state => state.userInfo);
-  const empInfo = useEmpStore(state => state.empInfo);
+  const empInfo = useUserStore(state => state.empInfo);
 
   const [RoleId = 0, employeeCode = '', YearQtr = ''] = [
     userInfo?.EMP_RoleId,

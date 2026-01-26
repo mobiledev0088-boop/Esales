@@ -1,4 +1,4 @@
-import useEmpStore from '../../../../stores/useEmpStore';
+import {useUserStore} from '../../../../stores/useUserStore';
 import AppText from '../../../../components/customs/AppText';
 import AppLayout from '../../../../components/layout/AppLayout';
 import AppButton from '../../../../components/customs/AppButton';
@@ -31,7 +31,7 @@ const fetchEDMModels = async (empCode: string): Promise<FeedbackItem[]> => {
 };
 
 export default function Feedback(){
-  const empInfo = useEmpStore(state => state.empInfo);
+  const empInfo = useUserStore(state => state.empInfo);
   const userInfo = useLoginStore(state => state.userInfo);
   const navigation = useNavigation<AppNavigationProp>();
   const closeFeedbackMutation = useCloseFeedbackMutation();

@@ -18,7 +18,7 @@ import {
 } from './components';
 import {PartnerAnalyticsSkeleton} from '../../../../components/skeleton/DashboardSkeleton';
 import AppTabBar from '../../../../components/CustomTabBar';
-import useEmpStore from '../../../../stores/useEmpStore';
+import {useUserStore} from '../../../../stores/useUserStore';
 import {ASUS} from '../../../../utils/constant';
 import clsx from 'clsx';
 import {useNavigation} from '@react-navigation/native';
@@ -392,7 +392,7 @@ export default function Dashboard_Partner({
   const navigation = useNavigation<AppNavigationProp>();
   const quarters = useMemo(getPastQuarters, []); // Static quarter list
   const {EMP_Type} = useLoginStore(s =>s.userInfo)
-  const empInfo = useEmpStore(s => s.empInfo);
+  const empInfo = useUserStore(s => s.empInfo);
 
   const [selectedQuarter, setSelectedQuarter] =
     useState<AppDropdownItem | null>(quarters[0] || null);

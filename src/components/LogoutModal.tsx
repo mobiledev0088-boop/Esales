@@ -62,7 +62,6 @@ const LogoutModal = ({
             className="py-3 bg-error"
             weight="bold"
             title="Log out"
-            noLoading
           />
           <TouchableOpacity
             activeOpacity={0.7}

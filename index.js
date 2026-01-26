@@ -1,7 +1,3 @@
-/**
- * @format
- */
-
 import App from './App';
 import BackgroundFetch from 'react-native-background-fetch';
 
@@ -20,7 +16,6 @@ const MyHeadlessTask = async (event) => {
   BackgroundFetch.finish(taskId);
 }
 
-
 setBackgroundMessageHandler(messagingInstance,async remoteMessage => {
   console.log('Message handled in the background!', remoteMessage);
 });
@@ -34,7 +29,8 @@ notifee.onBackgroundEvent(async ({ type, detail }) => {
     }
   }
 });
-// Register the headless task
-AppRegistry.registerComponent(appName, () => App);
 
+// Register the headless task
 BackgroundFetch.registerHeadlessTask(MyHeadlessTask);
+
+AppRegistry.registerComponent(appName, () => App);

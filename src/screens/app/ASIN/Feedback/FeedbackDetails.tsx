@@ -9,7 +9,7 @@ import Card from '../../../../components/Card'
 import moment from 'moment'
 import { STATUS_CONFIG, ICON_COLORS, FeedbackItem } from './constants'
 import { showConfirmationSheet } from '../../../../components/ConfirmationSheet'
-import useEmpStore from '../../../../stores/useEmpStore'
+import {useUserStore} from '../../../../stores/useUserStore'
 import { useLoginStore } from '../../../../stores/useLoginStore'
 import { AppNavigationProp } from '../../../../types/navigation'
 import { useThemeStore } from '../../../../stores/useThemeStore'
@@ -18,7 +18,7 @@ const FeedbackDetails = () => {
   const route = useRoute()
   const navigation = useNavigation<AppNavigationProp>();
 
-  const empInfo = useEmpStore(state => state.empInfo);
+  const empInfo = useUserStore(state => state.empInfo);
   const userInfo = useLoginStore(state => state.userInfo);
   const closeFeedbackMutation = useCloseFeedbackMutation();
   const AppTheme = useThemeStore(state => state.AppTheme);

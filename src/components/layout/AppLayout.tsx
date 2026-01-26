@@ -1,4 +1,3 @@
-import useEmpStore from '../../stores/useEmpStore';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import MCIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AppText from '../customs/AppText';
@@ -12,7 +11,7 @@ import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {memo, useRef, useImperativeHandle, forwardRef, useState} from 'react';
 import {EmpInfo} from '../../types/user';
 import LogoutModal from '../LogoutModal';
-import {getMMKV} from '../../utils/mmkvStorage';
+import { useUserStore } from '../../stores/useUserStore';
 
 type ScrollToOptions = {
   x?: number;
@@ -161,7 +160,7 @@ const AppLayout = forwardRef<AppLayoutRef, AppLayoutProps>(
     const navigation = useNavigation<DrawerNavigationProp>();
     const stackNavigation = useNavigation<AppNavigationProp>();
     const userInfo = useLoginStore(state => state.userInfo);
-    const empInfo = useEmpStore(state => state.empInfo);
+    const empInfo = useUserStore(state => state.empInfo);
     const name = userInfo?.EMP_Name?.split('_')[0] || '----';
 
     const scrollViewRef = useRef<KeyboardAwareScrollView>(null);

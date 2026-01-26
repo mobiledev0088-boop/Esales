@@ -58,9 +58,8 @@ import clsx from 'clsx';
 import {useNavigation} from '@react-navigation/native';
 import {AppNavigationProp} from '../../../../types/navigation';
 import moment from 'moment';
-import useEmpStore from '../../../../stores/useEmpStore';
+import {useUserStore} from '../../../../stores/useUserStore';
 import {useThemeStore} from '../../../../stores/useThemeStore';
-import AppButton from '../../../../components/customs/AppButton';
 
 // Static fallback tabs to prevent recreation
 const STATIC_DASHBOARD_TABS = [
@@ -161,7 +160,7 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
   quarter,
 }) => {
   const userInfo = useLoginStore(state => state.userInfo);
-  const empInfo = useEmpStore(state => state.empInfo);
+  const empInfo = useUserStore(state => state.empInfo);
   const navigation = useNavigation<AppNavigationProp>();
   const AppTheme = useThemeStore(state => state.AppTheme);
   const darkMode = AppTheme === 'dark';

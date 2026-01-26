@@ -1,5 +1,5 @@
 import AppLayout from '../../../../../components/layout/AppLayout';
-import useEmpStore from '../../../../../stores/useEmpStore';
+import {useUserStore} from '../../../../../stores/useUserStore';
 
 import {View} from 'react-native';
 import {useMemo} from 'react';
@@ -22,7 +22,7 @@ const Account = (props: {noHeader?: boolean}) => {
   const noHeader =
     props.noHeader ?? (route.params && (route.params as any).noHeader);
   const currentUser = useLoginStore(state => state.userInfo);
-  const employeeDetails = useEmpStore(state => state.empInfo);
+  const employeeDetails = useUserStore(state => state.empInfo);
 
   // Determine special access permissions for the user
   const specialAccessPermissions: SpecialFunctionsAccess = useMemo(() => {

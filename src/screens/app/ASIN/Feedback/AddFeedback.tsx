@@ -17,7 +17,7 @@ import { showToast } from '../../../../utils/commonFunctions';
 import { useNavigation } from '@react-navigation/native';
 import { AppNavigationProp } from '../../../../types/navigation';
 import { queryClient } from '../../../../stores/providers/QueryProvider';
-import useEmpStore from '../../../../stores/useEmpStore';
+import {useUserStore} from '../../../../stores/useUserStore';
 import { EXPERIENCE_OPTIONS } from './constants';
 import clsx from 'clsx';
 import { useThemeStore } from '../../../../stores/useThemeStore';
@@ -72,7 +72,7 @@ const AddFeedback: React.FC = () => {
   const [appExperience, setAppExperience] = useState<string | null>(null);
 
   const userInfo = useLoginStore((state) => state.userInfo);
-  const empInfo = useEmpStore(state => state.empInfo);
+  const empInfo = useUserStore(state => state.empInfo);
   const empCode = empInfo?.EMP_Code ?? '';
   const AppTheme = useThemeStore(state => state.AppTheme);
 
