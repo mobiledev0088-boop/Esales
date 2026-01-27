@@ -287,6 +287,7 @@ const buildTabItems = (
   sortConfigs: Record<string, {key: string; direction: 'asc' | 'desc'} | null>,
   handleSort: (tabId: string, columnKey: string) => void,
   needNavigation: boolean,
+  filters: Record<string, string | null>,
 ): TabItem[] => {
   return labels.map(label => {
     const id = TAB_LABEL_TO_ID[label];
@@ -295,6 +296,17 @@ const buildTabItems = (
     const sortConfig = sortConfigs[id] || null;
 
     let tabData = getActivationTabData(data, id);
+    
+    // Apply filter if one is selected for this tab
+    const selectedFilter = filters[id];
+    if (selectedFilter && tabData) {
+      tabData = tabData.filter(
+        (item: ActivationData) =>
+          String(item.name ?? '').toLowerCase() ===
+          String(selectedFilter).toLowerCase(),
+      );
+    }
+    
     // Determine the display label based on branch filter
     let displayLabel = label;
     return {
@@ -385,6 +397,7 @@ const ActivationPerformanceView = ({
         sortConfigs,
         handleSort,
         needNavigation,
+        filters,
       ),
     [
       providedTabs,
@@ -393,60 +406,27 @@ const ActivationPerformanceView = ({
       sortConfigs,
       handleSort,
       needNavigation,
+      filters,
     ],
   );
 
+  // Get the current tab's data (filtered if applicable) to calculate max items
   const activeTabData = useMemo(() => {
     if (!activeTabId) return [];
-    const key = ACTIVATION_ID_TO_DATA_KEY[activeTabId];
-    const rawData = data?.[key] || [];
-
-    // Apply dropdown filter by name if selected
+    let tabData = getActivationTabData(data, activeTabId) || [];
+    
+    // Apply filter if selected
     const selectedFilter = filters[activeTabId];
-    let filteredData = rawData;
     if (selectedFilter) {
-      filteredData = rawData.filter(
+      tabData = tabData.filter(
         (item: ActivationData) =>
           String(item.name ?? '').toLowerCase() ===
           String(selectedFilter).toLowerCase(),
       );
     }
-
-    // Apply sorting if sort config exists
-    const config = getCurrentTabConfig(activeTabId, false);
-
-    const sortConfig = sortConfigs[activeTabId];
-    if (!sortConfig) return filteredData;
-
-    return [...filteredData].sort((a: ActivationData, b: ActivationData) => {
-      const column = config.columns.find(col => col.key === sortConfig.key);
-      if (!column) return 0;
-
-      const aValue = a[column.dataKey];
-      const bValue = b[column.dataKey];
-
-      // Handle null/undefined values
-      if (aValue === null || aValue === undefined) return 1;
-      if (bValue === null || bValue === undefined) return -1;
-
-      // Determine if this is the name column (alphabetical sort)
-      const isNameColumn = column.key === 'name';
-
-      if (isNameColumn) {
-        // Alphabetical sorting
-        const aStr = String(aValue).toLowerCase();
-        const bStr = String(bValue).toLowerCase();
-        return sortConfig.direction === 'asc'
-          ? aStr.localeCompare(bStr)
-          : bStr.localeCompare(aStr);
-      } else {
-        // Numerical sorting
-        const aNum = Number(aValue) || 0;
-        const bNum = Number(bValue) || 0;
-        return sortConfig.direction === 'asc' ? aNum - bNum : bNum - aNum;
-      }
-    });
-  }, [data, activeTabId, sortConfigs, filters]);
+    
+    return tabData;
+  }, [data, activeTabId, filters]);
 
   const activeTabMaxItems = activeTabData.length;
   const activeTabVisibleCount = visibleCounts[activeTabId] || 10;
@@ -496,6 +476,7 @@ const ActivationPerformanceView = ({
 
   const handleFilterChange = useCallback(
     (item: AppDropdownItem | null) => {
+      console.log('Filter changed:', item,activeTabId);
       if (!activeTabId) return;
       setFilters(prev => ({
         ...prev,
@@ -520,6 +501,7 @@ const ActivationPerformanceView = ({
         }
         mode="autocomplete"
         allowClear
+        onClear={() => handleFilterChange(null)}
         style={{marginBottom: 10}}
       />
       <Card

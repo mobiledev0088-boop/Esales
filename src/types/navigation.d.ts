@@ -112,6 +112,7 @@ type AppNavigationParamList = {
     storeCode: string;
     referenceImages: any[];
   };
+  MarketingDispatchTracker: undefined;
   // Account Screen
   ChangePassword: undefined;
   // Attendance Screen

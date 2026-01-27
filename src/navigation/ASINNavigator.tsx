@@ -53,6 +53,7 @@ import TargetSummaryPartner from '../screens/app/ASIN/Reports/TargetSummaryPartn
 import WOD_Partners from '../screens/app/ASIN/WOD/WOD_Partners';
 import ActPerformance from '../screens/app/ASIN/Reports/ActPerformance';
 import LMSListAWP from '../screens/app/ASIN/More/LMS/LMSListAWP';
+import MarketingDispatchTracker from '../screens/app/ASIN/More/MarketingDispatchTracker/MarketingDispatchTracker';
 
 type Screen = {
   name: string;
@@ -115,6 +116,7 @@ const screens: Screen[] = [
   {name: 'ShopExpansion', component: ShopExpansion},
   {name: 'StoreDetails', component: StoreDetails},
   {name: 'UploadGalleryReview', component: UploadGalleryReview},
+  {name: 'MarketingDispatchTracker', component: MarketingDispatchTracker},
 
   // Notification Screen
   {name: 'Notification', component: Notification},

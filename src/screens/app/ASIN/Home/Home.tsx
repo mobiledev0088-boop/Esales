@@ -91,23 +91,16 @@ const Home: React.FC = () => {
     // Demo
     if (userInfo?.EMP_Btype !== ASUS.BUSINESS_TYPES.COMMERCIAL) {
       if (
-        userInfo?.EMP_RoleId === ASUS.ROLE_ID.LFR_HO ||
-        userInfo?.EMP_RoleId === ASUS.ROLE_ID.ONLINE_HO
+        userInfo?.EMP_RoleId === ASUS.ROLE_ID.DISTRIBUTORS ||
+        userInfo?.EMP_RoleId === ASUS.ROLE_ID.DISTI_HO ||
+        userInfo?.EMP_RoleId === ASUS.ROLE_ID.ESHOP_HO
       ) {
-        // Demo for LFR HO and ONLINE HO
-      } else if (userInfo?.EMP_RoleId === ASUS.ROLE_ID.ASE) {
-        // Demo for Asus Solution Expert
-      } else if (userInfo?.EMP_RoleId === ASUS.ROLE_ID.AM) {
-        // Demo for Area Manager
-      } else if (userInfo?.EMP_RoleId === ASUS.ROLE_ID.PARTNERS) {
-        // Demo for PARTNERS
+        // No Demo for DISTRIBUTORS and Disti HO and ESHOP HO
+      } else if (userInfo?.EMP_RoleId === ASUS.ROLE_ID.PARTNERS || userInfo?.EMP_RoleId === ASUS.ROLE_ID.ASE) {
+        // Demo for PARTNERS and ASE
         arr.push({name: 'Demo', component: Demo_Partner, icon: 'laptop'});
-      } else if (
-        userInfo?.EMP_RoleId !== ASUS.ROLE_ID.DISTRIBUTORS &&
-        userInfo?.EMP_RoleId !== ASUS.ROLE_ID.DISTI_HO &&
-        userInfo?.EMP_RoleId !== ASUS.ROLE_ID.ESHOP_HO
-      ) {
-        // Demo for DISTRIBUTORS and Disti HO and ESHOP HO
+      } else {
+        // Demo for all other roles
         arr.push({
           name: 'Demo',
           component: Demo,

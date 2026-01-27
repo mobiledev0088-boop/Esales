@@ -24,6 +24,7 @@ import ClaimViewMoreSheet from '../screens/app/APAC/ATID/Claim/ClaimViewMoreShee
 import DemoFilterSheetAPAC from '../screens/app/APAC/ATID/Demo/DemoFilterSheetAPAC';
 import DropdownActionSheet from '../screens/app/ASIN/More/ChannelMap/ChanelMapAGP/DropdownActionSheet';
 import SourceOptionSheet from '../components/SourceOptionSheet';
+import DiscontinuedProductsSheet from '../screens/app/ASIN/Demo/DiscontinuedProductsSheet';
 
 registerSheet('MoreSheet', MoreSheet);
 registerSheet('ConfirmationSheet', ConfirmationSheet);
@@ -47,6 +48,7 @@ registerSheet('ClaimFilterSheetAPAC', ClaimFilterSheetAPAC);
 registerSheet('ClaimViewMoreSheet', ClaimViewMoreSheet);
 registerSheet('DemoFilterSheetAPAC', DemoFilterSheetAPAC);
 registerSheet('DropdownActionSheet', DropdownActionSheet);
+registerSheet('DiscontinuedProductsSheet', DiscontinuedProductsSheet);
 
 // We extend some of the types here to give us great intellisense
 // across the app for all registered sheets.

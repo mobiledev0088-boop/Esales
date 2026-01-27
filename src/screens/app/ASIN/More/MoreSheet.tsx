@@ -1,4 +1,4 @@
-import {View, TouchableOpacity} from 'react-native';
+import {View, TouchableOpacity, Linking} from 'react-native';
 import {useMemo} from 'react';
 
 import AppText from '../../../../components/customs/AppText';
@@ -22,6 +22,7 @@ type Option = {
   iconName: string;
   iconType: IconType;
   navigateTo?: keyof AppNavigationParamList;
+  linkTo?: string;
 };
 
 const chunkArray = <T,>(array: T[], size: number): T[][] =>
@@ -72,8 +73,8 @@ const getASINOptions = (
     (roleId === 6 && ['AWP', 'T3Partner'].includes(empType))
   ) {
     let navigateTo = 'LMSList_HO' as keyof AppNavigationParamList;
-      if (roleId === 6 && empType === 'AWP') navigateTo = 'LMSListAWP';
-      // if (roleId === 6 && empType === 'T3Partner') navigateTo = 'LMS_Menu';
+    if (roleId === 6 && empType === 'AWP') navigateTo = 'LMSListAWP';
+    // if (roleId === 6 && empType === 'T3Partner') navigateTo = 'LMS_Menu';
     options.push({
       label: 'LMS',
       iconName: 'package',
@@ -148,6 +149,30 @@ const getASINOptions = (
       navigateTo: 'CreditLimit',
     });
   }
+  if (roleId === 24) {
+    options.push({
+      label: 'DSR Upload',
+      iconName: 'upload-file',
+      iconType: 'material-community',
+      linkTo:
+        'https://docs.google.com/forms/d/e/1FAIpQLSc5zEQbYhcOBHoACNbndMv1t4AjcAcsUO9Iex7x1PuZ9wNA5w/viewform',
+    });
+  }
+  if (![24, 29].includes(roleId)) {
+    options.push({
+      label: 'DSR Report',
+      iconName: 'file-download-outline',
+      iconType: 'material-community',
+      linkTo:
+        'https://asus-my.sharepoint.com/:x:/p/salim_shaikh/IQAgf2shltq2Q5dk6hp1dfqAAe72T4AWWmMVFj-FUqGXccA?e=1b7Pev',
+    });
+  }
+  options.push({
+    label: 'Marketing Dispatch Tracker',
+    iconName: 'truck-fast-outline',
+    iconType: 'material-community',
+    navigateTo: 'MarketingDispatchTracker',
+  });
   return options;
 };
 
@@ -200,19 +225,25 @@ const MoreSheet = () => {
   }, [roleId, empType, empCode, countryId]);
 
   const chunkedOptions = useMemo(() => chunkArray(options, 9), [options]);
-  const handlePress = (whereTo: keyof AppNavigationParamList) => {
-    navigation.navigate(whereTo as any);
+  const handlePress = (item: Option) => {
+    if (item.navigateTo) {
+      navigation.navigate(item.navigateTo as any);
+    } else if (item.linkTo) {
+      Linking.openURL(item.linkTo);
+    }
     SheetManager.hide('MoreSheet');
   };
 
   return (
     <View>
       <ActionSheet
-        zIndex={100}
+        id="MoreSheet"
         gestureEnabled
         containerStyle={{
           backgroundColor: AppColors[AppTheme].bgBase,
-        }}>
+        }}
+        indicatorStyle={{ backgroundColor: AppColors.formLabel }}
+        >
         {/* Create Indicator */}
         <View
           style={{height: screenHeight / 2}}
@@ -231,11 +262,7 @@ const MoreSheet = () => {
                       label={item.label}
                       iconName={item.iconName}
                       iconType={item.iconType}
-                      onPress={() => {
-                        if (item.navigateTo) {
-                          handlePress(item.navigateTo);
-                        }
-                      }}
+                      onPress={() => handlePress(item)}
                     />
                   </View>
                 ))}

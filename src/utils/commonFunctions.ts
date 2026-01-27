@@ -7,6 +7,7 @@ import {AppColors} from '../config/theme';
 import {useLoginStore} from '../stores/useLoginStore';
 import {ASUS} from './constant';
 import { Platform } from 'react-native';
+import { useUserStore } from '../stores/useUserStore';
 
 export const getPlatformVersion = () => {
   const v = Platform.Version;
@@ -120,7 +121,8 @@ export const getPastQuarters = (
   isForward?: boolean,
 ): {label: string; value: string}[] => {
   const quarters: {label: string; value: string}[] = [];
-  const baseDate = moment().subtract(15, 'days');
+  const {Year_Qtr} = useUserStore.getState().empInfo;
+  const baseDate = moment(Year_Qtr || undefined, 'YYYY-[Q]Q');
   if (isForward) {
     for (let i = 0; i < count; i++) {
       const date = baseDate.clone().add(i, 'quarters');

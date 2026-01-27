@@ -1,4 +1,4 @@
-import {useMemo, useState} from 'react';
+import React, {useMemo, useState, useCallback} from 'react';
 import AppModal from '../../../../../components/customs/AppModal';
 import {FlatList, TouchableOpacity, View} from 'react-native';
 import AppText from '../../../../../components/customs/AppText';
@@ -13,6 +13,8 @@ import AppButton from '../../../../../components/customs/AppButton';
 import Accordion from '../../../../../components/Accordion';
 import {AppTable} from '../../../../../components/customs/AppTable';
 import {screenWidth} from '../../../../../utils/constant';
+import FilterSheet from '../../../../../components/FilterSheet';
+import AppInput from '../../../../../components/customs/AppInput';
 
 export interface ActivationDetail {
   serialNumber: string;
@@ -23,9 +25,15 @@ export interface ActivationDetail {
 }
 
 interface FilterActionSheetProps {
-  data: {label: string; value: string}[];
-  selectedValues: string[];
-  onApplyFilter: (selectedValues: string[]) => void;
+  data: {
+    serial_list: {label: string; value: string}[];
+    agp_list: {label: string; value: string}[];
+  };
+  selectedValues: {
+    serialNumbers: string[];
+    agpNames: string[];
+  };
+  onApplyFilter: (selectedValues: {serialNumbers: string[]; agpNames: string[]}) => void;
 }
 
 export const CautionModal = () => {
@@ -126,19 +134,26 @@ export const ActivationDetailCard = ({
   const [selectedSerialNumbers, setSelectedSerialNumbers] = useState<string[]>(
     [],
   );
+  const [selectedAgpNames, setSelectedAgpNames] = useState<string[]>([]);
 
-  // Filter data based on selected serial numbers
+  // Filter data based on selected serial numbers and AGP names
   const filteredSerialNumbersData = useMemo(() => {
-    if (selectedSerialNumbers.length === 0) {
+    if (selectedSerialNumbers.length === 0 && selectedAgpNames.length === 0) {
       return serialNumbersData; // Show all data if no filter applied
     }
 
     const filtered: Record<string, any[]> = {};
 
     Object.keys(serialNumbersData).forEach(date => {
-      const filteredItems = serialNumbersData[date].filter(item =>
-        selectedSerialNumbers.includes(item.Serial_No),
-      );
+      const filteredItems = serialNumbersData[date].filter(item => {
+        const serialMatch =
+          selectedSerialNumbers.length === 0 ||
+          selectedSerialNumbers.includes(item.Serial_No);
+        const agpMatch =
+          selectedAgpNames.length === 0 ||
+          selectedAgpNames.includes(item.AGP_Name);
+        return serialMatch && agpMatch;
+      });
 
       if (filteredItems.length > 0) {
         filtered[date] = filteredItems;
@@ -146,21 +161,50 @@ export const ActivationDetailCard = ({
     });
 
     return filtered;
-  }, [serialNumbersData, selectedSerialNumbers]);
+  }, [serialNumbersData, selectedSerialNumbers, selectedAgpNames]);
 
-  const allSerialNumber = useMemo(() => {
-    const filterData = Object.keys(serialNumbersData).flatMap(date => {
-      return serialNumbersData[date].map(item => item.Serial_No);
+  const allSerialNumbers = useMemo(() => {
+    const uniqueSerials = new Set<string>();
+    Object.keys(serialNumbersData).forEach(date => {
+      serialNumbersData[date].forEach(item => {
+        if (item.Serial_No) {
+          uniqueSerials.add(item.Serial_No);
+        }
+      });
     });
-    const response = filterData.map(f => ({label: f, value: f}));
-    return response;
+    return Array.from(uniqueSerials)
+      .sort()
+      .map(serial => ({label: serial, value: serial}));
+  }, [serialNumbersData]);
+
+  const allAgpNames = useMemo(() => {
+    const uniqueAgps = new Set<string>();
+    Object.keys(serialNumbersData).forEach(date => {
+      serialNumbersData[date].forEach(item => {
+        if (item.AGP_Name) {
+          uniqueAgps.add(item.AGP_Name);
+        }
+      });
+    });
+    return Array.from(uniqueAgps)
+      .sort()
+      .map(agp => ({label: agp, value: agp}));
   }, [serialNumbersData]);
 
   const handleFilterPress = () => {
     showFilterActionSheet({
-      data: allSerialNumber,
-      selectedValues: selectedSerialNumbers,
-      onApplyFilter: setSelectedSerialNumbers,
+      data: {
+        serial_list: allSerialNumbers,
+        agp_list: allAgpNames,
+      },
+      selectedValues: {
+        serialNumbers: selectedSerialNumbers,
+        agpNames: selectedAgpNames,
+      },
+      onApplyFilter: ({serialNumbers, agpNames}) => {
+        setSelectedSerialNumbers(serialNumbers);
+        setSelectedAgpNames(agpNames);
+      },
     });
   };
   const renderItem = ({item}: {item: string}) => (
@@ -232,8 +276,8 @@ export const ActivationDetailCard = ({
               weight="medium"
               className="text-blue-700 dark:text-blue-300">
               Filter{' '}
-              {selectedSerialNumbers.length > 0
-                ? `(${selectedSerialNumbers.length})`
+              {selectedSerialNumbers.length + selectedAgpNames.length > 0
+                ? `(${selectedSerialNumbers.length + selectedAgpNames.length})`
                 : ''}
             </AppText>
           </TouchableOpacity>
@@ -259,68 +303,241 @@ export const ActivationDetailCard = ({
   );
 };
 
+type FilterGroup = 'serialNumber' | 'agpName';
+
+const CheckboxRow = React.memo(
+  ({
+    label,
+    selected,
+    onPress,
+  }: {
+    label: string;
+    selected: boolean;
+    onPress: () => void;
+  }) => (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.7}
+      className="flex-row items-center py-3 px-3 border-b border-slate-100 dark:border-slate-600">
+      <View
+        className={`w-5 h-5 rounded border-2 mr-3 items-center justify-center ${
+          selected
+            ? 'border-blue-600 bg-blue-600'
+            : 'border-slate-400 dark:border-slate-500'
+        }`}>
+        {selected && (
+          <AppIcon name="check" type="feather" size={14} color="#ffffff" />
+        )}
+      </View>
+      <AppText
+        size="sm"
+        className={`flex-1 ${
+          selected
+            ? 'text-blue-600 dark:text-blue-400'
+            : 'text-slate-700 dark:text-slate-200'
+        }`}>
+        {label}
+      </AppText>
+    </TouchableOpacity>
+  ),
+);
+
+const GroupItem = React.memo(
+  ({
+    label,
+    active,
+    hasValue,
+    onPress,
+  }: {
+    label: string;
+    active: boolean;
+    hasValue: boolean;
+    onPress: () => void;
+  }) => (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.6}
+      className={`px-3 py-3 rounded-md mb-1 flex-row items-center ${
+        active ? 'bg-blue-50 dark:bg-blue-900/40' : 'bg-transparent'
+      }`}>
+      <View className="flex-1">
+        <AppText
+          size="sm"
+          weight={active ? 'semibold' : 'regular'}
+          className={`${
+            active
+              ? 'text-blue-700 dark:text-blue-300'
+              : 'text-slate-600 dark:text-slate-300'
+          }`}>
+          {label}
+        </AppText>
+      </View>
+      {hasValue && <View className="w-2 h-2 rounded-full bg-blue-500" />}
+    </TouchableOpacity>
+  ),
+);
+
 export const FilterActionSheet: React.FC = () => {
   const payload = useSheetPayload() as FilterActionSheetProps;
-  const {data = [], selectedValues = [], onApplyFilter} = payload || {};
+  const {data, selectedValues, onApplyFilter} = payload || {};
 
-  const [tempSelectedValues, setTempSelectedValues] =
-    useState<string[]>(selectedValues);
-  const AppTheme = useThemeStore(state => state.AppTheme);
-  const isDarkMode = AppTheme === 'dark';
+  const [serialNumbers, setSerialNumbers] = useState<string[]>(
+    selectedValues?.serialNumbers || [],
+  );
+  const [agpNames, setAgpNames] = useState<string[]>(
+    selectedValues?.agpNames || [],
+  );
+  const [group, setGroup] = useState<FilterGroup>('serialNumber');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const toggleSelection = (value: string) => {
-    setTempSelectedValues(prev =>
-      prev.includes(value)
-        ? prev.filter(item => item !== value)
-        : [...prev, value],
+  const {AppTheme} = useThemeStore();
+  const isDark = AppTheme === 'dark';
+
+  const serialList = useMemo(() => data?.serial_list || [], [data]);
+  const agpList = useMemo(() => data?.agp_list || [], [data]);
+
+  const filteredSerialList = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return serialList;
+    return serialList.filter(item =>
+      item.label.toLowerCase().includes(query),
     );
-  };
+  }, [searchQuery, serialList]);
 
-  const handleSelectAll = () => {
-    if (tempSelectedValues.length === data.length) {
-      setTempSelectedValues([]);
-    } else {
-      setTempSelectedValues(
-        data.map((item: {label: string; value: string}) => item.value),
+  const filteredAgpList = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return agpList;
+    return agpList.filter(item => item.label.toLowerCase().includes(query));
+  }, [searchQuery, agpList]);
+
+  const activeCount = useMemo(() => {
+    return serialNumbers.length + agpNames.length;
+  }, [serialNumbers, agpNames]);
+
+  const groups = useMemo(
+    () => [
+      {
+        key: 'serialNumber' as const,
+        label: 'Serial Number',
+        hasValue: serialNumbers.length > 0,
+      },
+      {
+        key: 'agpName' as const,
+        label: 'AGP Name',
+        hasValue: agpNames.length > 0,
+      },
+    ],
+    [serialNumbers, agpNames],
+  );
+
+  const toggleSelection = useCallback(
+    (item: string) => {
+      if (group === 'serialNumber') {
+        setSerialNumbers(prev =>
+          prev.includes(item)
+            ? prev.filter(s => s !== item)
+            : [...prev, item],
+        );
+      } else {
+        setAgpNames(prev =>
+          prev.includes(item)
+            ? prev.filter(a => a !== item)
+            : [...prev, item],
+        );
+      }
+    },
+    [group],
+  );
+
+  const renderCheckbox = useCallback(
+    ({item}: {item: {label: string; value: string}}) => (
+      <CheckboxRow
+        label={item.label || '—'}
+        selected={
+          group === 'serialNumber'
+            ? serialNumbers.includes(item.value)
+            : agpNames.includes(item.value)
+        }
+        onPress={() => toggleSelection(item.value)}
+      />
+    ),
+    [group, serialNumbers, agpNames, toggleSelection],
+  );
+
+  const rightPane = useMemo(() => {
+    const currentList =
+      group === 'serialNumber' ? filteredSerialList : filteredAgpList;
+
+    if (currentList.length === 0) {
+      return (
+        <View className="flex-1 items-center justify-center px-4">
+          <AppIcon
+            type="ionicons"
+            name="search-outline"
+            size={32}
+            color="#9CA3AF"
+            style={{marginBottom: 12}}
+          />
+          <AppText
+            size="sm"
+            className="text-slate-500 dark:text-slate-400 text-center">
+            {searchQuery
+              ? 'No results found for your search.'
+              : `No ${group === 'serialNumber' ? 'serial numbers' : 'AGP names'} available.`}
+          </AppText>
+        </View>
       );
     }
+
+    return (
+      <View className="flex-1">
+        <View className="mb-2">
+          <AppInput
+            value={searchQuery}
+            setValue={setSearchQuery}
+            placeholder={`Search ${group === 'serialNumber' ? 'Serial Number' : 'AGP Name'}`}
+            leftIcon="search"
+          />
+        </View>
+        <FlatList
+          data={currentList}
+          keyExtractor={item => item.value}
+          renderItem={renderCheckbox}
+          keyboardShouldPersistTaps="handled"
+          style={{flex: 1}}
+          initialNumToRender={20}
+          maxToRenderPerBatch={25}
+          windowSize={10}
+          removeClippedSubviews
+          contentContainerStyle={{paddingBottom: 40}}
+        />
+      </View>
+    );
+  }, [
+    group,
+    filteredSerialList,
+    filteredAgpList,
+    searchQuery,
+    renderCheckbox,
+  ]);
+
+  const handleReset = () => {
+    setSerialNumbers([]);
+    setAgpNames([]);
+    setSearchQuery('');
   };
 
   const handleApply = () => {
-    onApplyFilter?.(tempSelectedValues);
+    onApplyFilter?.({
+      serialNumbers,
+      agpNames,
+    });
     SheetManager.hide('FilterActionSheet');
   };
 
-  const handleCancel = () => {
-    setTempSelectedValues(selectedValues);
-    SheetManager.hide('FilterActionSheet');
-  };
-
-  const renderItem = ({item}: {item: {label: string; value: string}}) => {
-    const isSelected = tempSelectedValues.includes(item.value);
-
-    return (
-      <TouchableOpacity
-        activeOpacity={0.7}
-        onPress={() => toggleSelection(item.value)}
-        className="flex-row items-center justify-between py-3 px-4 border-b border-gray-100 dark:border-gray-700">
-        <AppText
-          size="base"
-          className={`flex-1 mr-3 ${isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}`}>
-          {item.label}
-        </AppText>
-        <View
-          className={`w-6 h-6 rounded border-2 items-center justify-center ${
-            isSelected
-              ? 'bg-blue-600 border-blue-600'
-              : 'border-gray-300 dark:border-gray-600'
-          }`}>
-          {isSelected && (
-            <AppIcon type="ionicons" name="checkmark" size={16} color="white" />
-          )}
-        </View>
-      </TouchableOpacity>
-    );
+  const handleGroupChange = (newGroup: FilterGroup) => {
+    setGroup(newGroup);
+    setSearchQuery('');
   };
 
   return (
@@ -328,69 +545,47 @@ export const FilterActionSheet: React.FC = () => {
       <ActionSheet
         id="FilterActionSheet"
         useBottomSafeAreaPadding
+        keyboardHandlerEnabled={false}
+        gestureEnabled={false}
         containerStyle={{
           borderTopLeftRadius: 24,
           borderTopRightRadius: 24,
-          backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
-          maxHeight: '80%',
-        }}
-        indicatorStyle={{
-          backgroundColor: isDarkMode ? '#6b7280' : '#d1d5db',
-          width: 50,
-          height: 4,
-          borderRadius: 2,
-          marginTop: 8,
+          backgroundColor: isDark ? '#1f2937' : '#ffffff',
         }}>
-        <View style={{paddingHorizontal: 24, paddingVertical: 16}}>
-          {/* Header */}
-          <View className="flex-row items-center justify-between mb-4">
-            <AppText size="lg" weight="bold">
-              Filter Serial Numbers
-            </AppText>
-            <TouchableOpacity onPress={handleSelectAll}>
-              <AppText
-                size="sm"
-                weight="medium"
-                className="text-blue-600 dark:text-blue-400">
-                {tempSelectedValues.length === data.length
-                  ? 'Deselect All'
-                  : 'Select All'}
-              </AppText>
-            </TouchableOpacity>
-          </View>
-
-          {/* Selected Count */}
-          <View className="bg-blue-50 dark:bg-blue-900/30 px-3 py-2 rounded-lg mb-4">
-            <AppText size="sm" className="text-blue-700 dark:text-blue-300">
-              {tempSelectedValues.length} of {data.length} selected
-            </AppText>
-          </View>
-          {/* List */}
-          <View style={{maxHeight: 300}}>
-            <FlatList
-              data={data}
-              renderItem={renderItem}
-              keyExtractor={item => item.value}
-              showsVerticalScrollIndicator={false}
-              nestedScrollEnabled={true}
-            />
-          </View>
-
-          {/* Actions */}
-          <View className="flex-row gap-3 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <AppButton
-              title="Cancel"
-              onPress={handleCancel}
-              color="black"
-              className="bg-gray-200 dark:bg-gray-700 flex-1"
-            />
-            <AppButton
-              title={`Apply (${tempSelectedValues.length})`}
-              onPress={handleApply}
-              className="flex-1"
-            />
-          </View>
+        {/* Indicator */}
+        <View className="flex-row justify-center">
+          <View className="w-[50px] h-[4px] rounded-full bg-gray-300 dark:bg-slate-600 my-3" />
         </View>
+
+        <FilterSheet
+          title="Filters"
+          activeCount={activeCount}
+          onApply={handleApply}
+          onClearAll={activeCount > 0 ? handleReset : undefined}
+          onClose={() => SheetManager.hide('FilterActionSheet')}
+          onRightPanelClear={() => {
+            if (group === 'serialNumber') {
+              setSerialNumbers([]);
+            } else {
+              setAgpNames([]);
+            }
+            setSearchQuery('');
+          }}
+          leftContent={
+            <View>
+              {groups.map(g => (
+                <GroupItem
+                  key={g.key}
+                  label={g.label}
+                  active={group === g.key}
+                  hasValue={g.hasValue}
+                  onPress={() => handleGroupChange(g.key)}
+                />
+              ))}
+            </View>
+          }
+          rightContent={rightPane}
+        />
       </ActionSheet>
     </View>
   );

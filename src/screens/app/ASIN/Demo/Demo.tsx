@@ -37,20 +37,22 @@ import {
 import FilterButton from '../../../../components/FilterButton';
 import {showDemoFilterSheet} from './DemoFilterSheet';
 import {DataStateView} from '../../../../components/DataStateView';
+import {useLoginStore} from '../../../../stores/useLoginStore';
+import {ASUS} from '../../../../utils/constant';
 
 const Reseller = () => {
   const quarters = useMemo(() => getPastQuarters(), []);
-  const [selectedQuarter, setSelectedQuarter] =
-    useState<AppDropdownItem | null>(quarters?.[0] ?? null);
-  const [selectedPartnerName, setSelectedPartnerName] =
-    useState<AppDropdownItem | null>(null);
-
+  const [selectedQuarter, setSelectedQuarter] =useState<AppDropdownItem | null>(quarters?.[0] ?? null);
+  const [selectedPartnerName, setSelectedPartnerName] = useState<AppDropdownItem | null>(null);
   const [filters, setFilters] = useState<ResellerFilterType>({
     category: 'All',
     pKiosk: 0,
     rogKiosk: 0,
     partnerType: '',
   });
+  const {EMP_RoleId: role_id} = useLoginStore(state => state.userInfo);
+  const {LFR_HO,ONLINE_HO,AM,TM,SALES_REPS} = ASUS.ROLE_ID
+  const noTerritoryButton = [LFR_HO,ONLINE_HO,AM,TM,SALES_REPS].includes(role_id as any);
 
   const {data, isLoading, error, refetch} = useGetDemoDataReseller(
     selectedQuarter?.value ?? '',
@@ -164,11 +166,11 @@ const Reseller = () => {
           premiumKiosk={filters.pKiosk ?? null}
           rogKiosk={filters.rogKiosk ?? null}
           partnerType={filters.partnerType ?? null}
-          tab="reseller"
+          noTerritoryButton={noTerritoryButton}
         />
       );
     },
-    [summaryData, selectedQuarter, filters],
+    [summaryData, selectedQuarter, filters,noTerritoryButton],
   );
 
   const stats = useMemo(
@@ -238,40 +240,40 @@ const Reseller = () => {
     refetch();
   }, [refetch]);
   return (
-    <DataStateView
-      isLoading={isLoading}
-      isError={!!error}
-      isEmpty={!isLoading && !error && transformedData.length === 0}
-      onRetry={handleRetry}
-      LoadingComponent={<DemoSkeleton />}>
-      <View className="flex-1 bg-lightBg-base">
-        <View className="flex-row items-center gap-x-1 px-3 pt-2 mb-3">
-          <View className="w-[30%]">
-            <AppDropdown
-              mode="dropdown"
-              data={quarters}
-              selectedValue={selectedQuarter?.value}
-              onSelect={setSelectedQuarter}
-              placeholder="Select Quarter"
-            />
-          </View>
-          <View className="flex-1">
-            <AppDropdown
-              mode="autocomplete"
-              data={PartnerNameList}
-              selectedValue={selectedPartnerName?.value}
-              onSelect={setSelectedPartnerName}
-              placeholder="Select Partner Name"
-              allowClear
-              onClear={() => setSelectedPartnerName(null)}
-            />
-          </View>
-          <FilterButton
-            onPress={handleFilter}
-            containerClassName="p-3 border border-[#ccc] dark:border-[#444] rounded-lg"
-            noShadow
+    <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
+      <View className="flex-row items-center gap-x-1 px-3 pt-2 mb-3">
+        <View className="w-[30%]">
+          <AppDropdown
+            mode="dropdown"
+            data={quarters}
+            selectedValue={selectedQuarter?.value}
+            onSelect={setSelectedQuarter}
+            placeholder="Select Quarter"
           />
         </View>
+        <View className="flex-1">
+          <AppDropdown
+            mode="autocomplete"
+            data={PartnerNameList}
+            selectedValue={selectedPartnerName?.value}
+            onSelect={setSelectedPartnerName}
+            placeholder="Select Partner Name"
+            allowClear
+            onClear={() => setSelectedPartnerName(null)}
+          />
+        </View>
+        <FilterButton
+          onPress={handleFilter}
+          containerClassName="p-3 border border-[#ccc] dark:border-[#444] rounded-lg"
+          noShadow
+        />
+      </View>
+      <DataStateView
+        isLoading={isLoading}
+        isError={!!error}
+        isEmpty={!isLoading && !error && transformedData.length === 0}
+        onRetry={handleRetry}
+        LoadingComponent={<DemoSkeleton />}>
         <FlatList
           data={filteredData}
           renderItem={renderBranch}
@@ -288,8 +290,8 @@ const Reseller = () => {
             />
           }
         />
-      </View>
-    </DataStateView>
+      </DataStateView>
+    </View>
   );
 };
 
@@ -309,6 +311,11 @@ const Retailer = () => {
     compulsory: 'bonus', // nopenalty
     partnerType: '',
   });
+
+    const {EMP_RoleId: role_id} = useLoginStore(state => state.userInfo);
+  const {LFR_HO,ONLINE_HO,AM,TM,SALES_REPS} = ASUS.ROLE_ID
+  const noTerritoryButton = [LFR_HO,ONLINE_HO,AM,TM,SALES_REPS].includes(role_id as any);
+  console.log('Reseller noTerritoryButton', noTerritoryButton, role_id);
 
   const {data, isLoading, error, refetch} = useGetDemoDataRetailer(
     selectedQuarter?.value || '',
@@ -372,9 +379,10 @@ const Retailer = () => {
         partnerType={filters.partnerType}
         category={filters.category || 'All'}
         IsCompulsory={filters.compulsory || ''}
+        noTerritoryButton={noTerritoryButton}
       />
     ),
-    [summaryData, selectedQuarter, filters],
+    [summaryData, selectedQuarter, filters,noTerritoryButton],
   );
 
   const partnerNameList = useMemo(() => {
@@ -482,40 +490,40 @@ const Retailer = () => {
     refetch();
   }, [refetch]);
   return (
-    <DataStateView
-      isLoading={isLoading}
-      isError={!!error}
-      isEmpty={!isLoading && !error && transformedData.length === 0}
-      onRetry={handleRetry}
-      LoadingComponent={<DemoSkeleton />}>
-      <View className="flex-1 bg-slate-50">
-        <View className="flex-row items-center gap-x-1 px-3 pt-2 mb-3">
-          <View className="w-[30%]">
-            <AppDropdown
-              mode="dropdown"
-              data={quarters}
-              selectedValue={selectedQuarter?.value}
-              onSelect={setSelectedQuarter}
-              placeholder="Select Quarter"
-            />
-          </View>
-          <View className="flex-1">
-            <AppDropdown
-              mode="autocomplete"
-              data={partnerNameList}
-              selectedValue={selectedPartnerName?.value}
-              onSelect={setSelectedPartnerName}
-              placeholder="Select Partner Name"
-              allowClear
-              onClear={() => setSelectedPartnerName(null)}
-            />
-          </View>
-          <FilterButton
-            onPress={handleFilter}
-            containerClassName="p-3 border border-[#ccc] dark:border-[#444] rounded-lg"
-            noShadow
+    <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
+      <View className="flex-row items-center gap-x-1 px-3 pt-2 mb-3">
+        <View className="w-[30%]">
+          <AppDropdown
+            mode="dropdown"
+            data={quarters}
+            selectedValue={selectedQuarter?.value}
+            onSelect={setSelectedQuarter}
+            placeholder="Select Quarter"
           />
         </View>
+        <View className="flex-1">
+          <AppDropdown
+            mode="autocomplete"
+            data={partnerNameList}
+            selectedValue={selectedPartnerName?.value}
+            onSelect={setSelectedPartnerName}
+            placeholder="Select Partner Name"
+            allowClear
+            onClear={() => setSelectedPartnerName(null)}
+          />
+        </View>
+        <FilterButton
+          onPress={handleFilter}
+          containerClassName="p-3 border border-[#ccc] dark:border-[#444] rounded-lg"
+          noShadow
+        />
+      </View>
+      <DataStateView
+        isLoading={isLoading}
+        isError={!!error}
+        isEmpty={!isLoading && !error && transformedData.length === 0}
+        onRetry={handleRetry}
+        LoadingComponent={<DemoSkeleton />}>
         <FlatList
           data={transformedData}
           keyExtractor={keyExtractor}
@@ -533,8 +541,8 @@ const Retailer = () => {
             />
           }
         />
-      </View>
-    </DataStateView>
+      </DataStateView>
+    </View>
   );
 };
 
@@ -552,11 +560,12 @@ const LFR = () => {
     lfrType: '',
     partnerName: '',
   });
-
+  console.log('LFR filters', selectedQuarter, filters);
   const {data, isLoading, error, refetch} = useGetDemoDataLFR(
     selectedQuarter?.value || '',
     'All',
   );
+  console.log('LFR data', data, isLoading);
 
   const filteredData = useMemo(() => {
     if (!data) return null;
@@ -711,41 +720,42 @@ const LFR = () => {
   const handleRetry = useCallback(() => {
     refetch();
   }, [refetch]);
+
   return (
-    <DataStateView
-      isLoading={isLoading}
-      isError={!!error}
-      isEmpty={!isLoading && !error && transformedData.length === 0}
-      onRetry={handleRetry}
-      LoadingComponent={<DemoSkeleton />}>
-      <View className="flex-1 bg-slate-50">
-        <View className="flex-row items-center gap-x-1 px-3 pt-2 mb-3">
-          <View className="w-[30%]">
-            <AppDropdown
-              mode="dropdown"
-              data={quarters}
-              selectedValue={selectedQuarter?.value}
-              onSelect={setSelectedQuarter}
-              placeholder="Select Quarter"
-            />
-          </View>
-          <View className="flex-1">
-            <AppDropdown
-              mode="autocomplete"
-              data={partnerNameList}
-              selectedValue={selectedPartnerName?.value}
-              onSelect={setSelectedPartnerName}
-              placeholder="Select Partner Name"
-              allowClear
-              onClear={() => setSelectedPartnerName(null)}
-            />
-          </View>
-          <FilterButton
-            onPress={handleFilter}
-            containerClassName="p-3 border border-[#ccc] dark:border-[#444] rounded-lg"
-            noShadow
+    <View className="flex-1 bg-slate-50">
+      <View className="flex-row items-center gap-x-1 px-3 pt-2 mb-3">
+        <View className="w-[30%]">
+          <AppDropdown
+            mode="dropdown"
+            data={quarters}
+            selectedValue={selectedQuarter?.value}
+            onSelect={setSelectedQuarter}
+            placeholder="Select Quarter"
           />
         </View>
+        <View className="flex-1">
+          <AppDropdown
+            mode="autocomplete"
+            data={partnerNameList}
+            selectedValue={selectedPartnerName?.value}
+            onSelect={setSelectedPartnerName}
+            placeholder="Select Partner Name"
+            allowClear
+            onClear={() => setSelectedPartnerName(null)}
+          />
+        </View>
+        <FilterButton
+          onPress={handleFilter}
+          containerClassName="p-3 border border-[#ccc] dark:border-[#444] rounded-lg"
+          noShadow
+        />
+      </View>
+      <DataStateView
+        isLoading={isLoading}
+        isError={!!error}
+        isEmpty={!isLoading && !error && transformedData.length === 0}
+        onRetry={handleRetry}
+        LoadingComponent={<DemoSkeleton />}>
         <FlatList
           data={transformedData}
           keyExtractor={keyExtractor}
@@ -763,8 +773,8 @@ const LFR = () => {
             />
           }
         />
-      </View>
-    </DataStateView>
+      </DataStateView>
+    </View>
   );
 };
 
@@ -963,93 +973,101 @@ const ROI = () => {
     categoriesData,
   ]);
   return (
-    <View className="flex-1 bg-slate-50">
+    <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
+      <View className="flex-row items-center gap-x-1 px-3 pt-2 mb-3">
+        <View className="w-[30%]">
+          <AppDropdown
+            mode="dropdown"
+            data={quarters}
+            selectedValue={selectedQuarter?.value}
+            onSelect={setSelectedQuarter}
+            placeholder="Select Quarter"
+          />
+        </View>
+        <View className="flex-1">
+          <AppDropdown
+            mode="autocomplete"
+            data={partnerNameList}
+            selectedValue={selectedPartnerName?.value}
+            onSelect={setSelectedPartnerName}
+            placeholder="Select Partner Name"
+            allowClear
+            onClear={() => setSelectedPartnerName(null)}
+          />
+        </View>
+        <FilterButton
+          onPress={handleFilter}
+          containerClassName="p-3 border border-[#ccc] dark:border-[#444] rounded-lg"
+          noShadow
+        />
+      </View>
       <DataStateView
         isLoading={isLoading}
         isError={!!error}
         isEmpty={!isLoading && !error && transformedData.length === 0}
         onRetry={handleRetry}
         LoadingComponent={<DemoSkeleton />}>
-        <View className="flex-1">
-          <View className="flex-row items-center gap-x-1 px-3 pt-2 mb-3">
-            <View className="w-[30%]">
-              <AppDropdown
-                mode="dropdown"
-                data={quarters}
-                selectedValue={selectedQuarter?.value}
-                onSelect={setSelectedQuarter}
-                placeholder="Select Quarter"
-              />
-            </View>
-            <View className="flex-1">
-              <AppDropdown
-                mode="autocomplete"
-                data={partnerNameList}
-                selectedValue={selectedPartnerName?.value}
-                onSelect={setSelectedPartnerName}
-                placeholder="Select Partner Name"
-                allowClear
-                onClear={() => setSelectedPartnerName(null)}
-              />
-            </View>
-            <FilterButton
-              onPress={handleFilter}
-              containerClassName="p-3 border border-[#ccc] dark:border-[#444] rounded-lg"
-              noShadow
+        <FlatList
+          data={transformedData}
+          keyExtractor={keyExtractor}
+          renderItem={renderBranch}
+          contentContainerClassName="pt-5 pb-10 px-3"
+          showsVerticalScrollIndicator={false}
+          maxToRenderPerBatch={16}
+          ListHeaderComponent={
+            <StatsHeader
+              stats={stats}
+              counts={{
+                awp_count: null,
+                total_partners: summaryData.total_partners,
+              }}
             />
-          </View>
-          <FlatList
-            data={transformedData}
-            keyExtractor={keyExtractor}
-            renderItem={renderBranch}
-            contentContainerClassName="pt-5 pb-10 px-3"
-            showsVerticalScrollIndicator={false}
-            maxToRenderPerBatch={16}
-            ListHeaderComponent={
-              <StatsHeader
-                stats={stats}
-                counts={{
-                  awp_count: null,
-                  total_partners: summaryData.total_partners,
-                }}
-              />
-            }
-          />
-        </View>
+          }
+        />
       </DataStateView>
     </View>
   );
 };
 
+const TAB_CONFIG = {
+  retailer: {label: 'Retailer', name: 'retailer', component: Retailer},
+  lfr: {label: 'LFR', name: 'lfr', component: LFR},
+  reseller: {label: 'Reseller', name: 'reseller', component: Reseller},
+  roi: {label: 'ROI', name: 'roi', component: ROI},
+} as const;
+const ROLE_TABS = {
+  AM: ['retailer', 'lfr'], // T
+  LFR: ['lfr'],
+  TM: ['reseller', 'retailer', 'roi'], // T
+  CSE: ['reseller'], // T
+  DEFAULT: ['reseller', 'retailer', 'lfr', 'roi'], // B
+} as const;
+
 export default function Demo() {
   useGetSummaryOverviewData(); // Preload summary data
+  const {EMP_RoleId: role_id} = useLoginStore(state => state.userInfo);
+  const [isLFR, isAM, isTM, isCSE] = [
+    role_id === ASUS.ROLE_ID.LFR_HO || role_id === ASUS.ROLE_ID.ONLINE_HO,
+    role_id === ASUS.ROLE_ID.AM,
+    role_id === ASUS.ROLE_ID.TM,
+    role_id === ASUS.ROLE_ID.SALES_REPS,
+  ];
+
+  const tabs = useMemo(() => {
+    const resolveRole = () => {
+      if (isAM) return 'AM';
+      if (isLFR) return 'LFR';
+      if (isTM) return 'TM';
+      if (isCSE) return 'CSE';
+      return 'DEFAULT';
+    };
+    const roleKey = resolveRole();
+    return ROLE_TABS[roleKey].map(key => TAB_CONFIG[key]);
+  }, [isAM, isLFR, isTM, isCSE]);
+
   return (
-    <View className="flex-1 bg-lightBg-base">
-      <MaterialTabBar
-        tabs={[
-          {
-            label: 'Reseller',
-            name: 'reseller',
-            component: Reseller,
-          },
-          {
-            label: 'Retailer',
-            name: 'retailer',
-            component: Retailer,
-          },
-          {
-            label: 'LFR',
-            name: 'lfr',
-            component: LFR,
-          },
-          {
-            label: 'ROI',
-            name: 'roi',
-            component: ROI,
-          },
-        ]}
-        initialRouteName="reseller"
-      />
+    <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
+      <MaterialTabBar tabs={tabs} initialRouteName={tabs[0].name} />
     </View>
   );
 }

@@ -27,6 +27,7 @@ import ActionSheet, {
 import moment from 'moment';
 import Skeleton from '../../../../components/skeleton/skeleton';
 import {useUserStore} from '../../../../stores/useUserStore';
+import {DataStateView} from '../../../../components/DataStateView';
 
 // ===== Types & Interfaces ==========
 interface PartnerDemoData {
@@ -104,29 +105,30 @@ const formatDate = (value: string | null) => {
 };
 // ===== API Hooks  ========
 
-const useGetSubCode = (hasSubCode:boolean) => {
-    const { EMP_Code:employeeCode='' } = useLoginStore(state => state.userInfo);
-    return useQuery({
-        queryKey: ['subCodes',employeeCode],
-        queryFn: async () => {
-            const response = await handleASINApiCall(
-                '/DemoForm/GetChildCodes',
-                {employeeCode}
-            );
-            const result = response?.demoFormData;
-            if (!result?.Status) {
-                throw new Error('Failed to fetch sub codes');
-            }
-            return result?.Datainfo?.Subcode_List;
-        },
-        enabled: hasSubCode,
-        select : () => {
-
-        }
-    })
-}
-const useGetPartnerDemoData = (YearQtr: string, hasChildCode: boolean, childrenCode?: string) => {
-  const {EMP_Code } = useLoginStore(state => state.userInfo);
+const useGetSubCode = (hasSubCode: boolean) => {
+  const {EMP_Code: employeeCode = ''} = useLoginStore(state => state.userInfo);
+  return useQuery({
+    queryKey: ['subCodes', employeeCode],
+    queryFn: async () => {
+      const response = await handleASINApiCall('/DemoForm/GetChildCodes', {
+        employeeCode,
+      });
+      const result = response?.demoFormData;
+      if (!result?.Status) {
+        throw new Error('Failed to fetch sub codes');
+      }
+      return result?.Datainfo?.Subcode_List;
+    },
+    enabled: hasSubCode,
+    select: () => {},
+  });
+};
+const useGetPartnerDemoData = (
+  YearQtr: string,
+  hasChildCode: boolean,
+  childrenCode?: string,
+) => {
+  const {EMP_Code} = useLoginStore(state => state.userInfo);
   const employeeCode = childrenCode || EMP_Code || '';
   //   the employeeCode should be Parent Other wise no data will be fetched
   const enabled = Boolean(employeeCode && YearQtr) && !hasChildCode;
@@ -188,7 +190,6 @@ const useGetDemoHubDetails = (Serial_No: string, YearQtr: string) => {
 
 // ===== Logic Hook ========
 const usePartnerDemoLogic = (childrenCode?: string) => {
-  const navigation = useNavigation<AppNavigationProp>();
   const empInfo = useUserStore(state => state.empInfo);
   const IsAWP = empInfo?.EMP_Type === ASUS.PARTNER_TYPE.T2.AWP;
   const {quarters, selectedQuarter, setSelectedQuarter} = useQuarterHook();
@@ -201,11 +202,18 @@ const usePartnerDemoLogic = (childrenCode?: string) => {
     error,
     refetch,
     isRefetching,
-  } = useGetPartnerDemoData(selectedQuarter?.value || '', !!(empInfo?.IsParentCode), childrenCode);
+  } = useGetPartnerDemoData(
+    selectedQuarter?.value || '',
+    !!empInfo?.IsParentCode,
+    childrenCode,
+  );
 
   // Local filter state
-  const [selectedCategory, setSelectedCategory] = useState<AppDropdownItem | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<AppDropdownItem | null>(null);
+  const [selectedCategory, setSelectedCategory] =
+    useState<AppDropdownItem | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<AppDropdownItem | null>(
+    null,
+  );
   const [selectedAgp, setSelectedAgp] = useState<AppDropdownItem | null>(null);
 
   // Accordion open group tracking
@@ -253,12 +261,7 @@ const usePartnerDemoLogic = (childrenCode?: string) => {
       return next;
     });
   }, []);
-
-  const handleNavigate = useCallback(
-    () => navigation.push('UploadDemoData'),
-    [navigation],
-  );
-
+  console.log('Demo Partner Rendered', demoData?.groupedData);
   return {
     // Remote
     demoData,
@@ -287,7 +290,6 @@ const usePartnerDemoLogic = (childrenCode?: string) => {
     // Misc
     IsAWP,
     IsParent: !!empInfo?.IsParentCode,
-    handleNavigate,
   };
 };
 
@@ -737,19 +739,28 @@ const FiltersSummaryHeader: React.FC<{
         </AppText>
         <View className="flex-row items-center gap-x-8">
           <StatMetric
-            iconName="users"
-            iconColor="#059669"
+            iconName="check-circle"
+            iconColor="#16a34a"
             bgClass="bg-emerald-100"
-            label="Total AGP"
+            label="At Least single Demo"
             value={sections.length}
             valueColorClass="text-emerald-700"
           />
           <View className="w-px self-stretch bg-slate-200" />
           <StatMetric
-            iconName="layers"
-            iconColor="#4338ca"
+            iconName="award"
+            iconColor="#7c3aed"
             bgClass="bg-indigo-100"
-            label="Total Demo Items"
+            label="100% Demo"
+            value={totalItems}
+            valueColorClass="text-indigo-700"
+          />
+          <View className="w-px self-stretch bg-slate-200" />
+          <StatMetric
+            iconName="clock"
+            iconColor="#7c3aed"
+            bgClass="bg-indigo-100"
+            label="Pending"
             value={totalItems}
             valueColorClass="text-indigo-700"
           />
@@ -822,7 +833,7 @@ const GroupAccordion: React.FC<{
 });
 
 const LoaderView = memo(() => (
-  <View className="flex-1">
+  <View className="flex-1 ">
     <View className="flex-row flex-wrap gap-4">
       {[...Array(4)].map((_, i) => (
         <Skeleton key={i} height={40} width={screenWidth * 0.45} />
@@ -836,43 +847,17 @@ const LoaderView = memo(() => (
   </View>
 ));
 
-const ErrorView: React.FC<{message?: string; onRetry?: () => void}> = memo(
-  ({message, onRetry}) => (
-    <View className="flex-1 items-center justify-center px-6">
-      <AppText size="sm" weight="semibold" className="text-rose-600 mb-2">
-        {message || 'Something went wrong'}
-      </AppText>
-      {onRetry && (
-        <TouchableOpacity
-          onPress={onRetry}
-          activeOpacity={0.75}
-          className="px-4 py-2 bg-rose-600 rounded-full">
-          <AppText size="sm" weight="semibold" className="text-white">
-            Retry
-          </AppText>
-        </TouchableOpacity>
-      )}
-    </View>
-  ),
-);
-
-const EmptyView = memo(() => (
-  <View className="flex-1 items-center justify-center">
-    <AppText size="sm" weight="regular" className="text-slate-500">
-      No demo data found
-    </AppText>
-  </View>
-));
-
 // ================= Main Component =======================
 export default function Demo_Partner() {
+  const navigation = useNavigation<AppNavigationProp>();
   const empInfo = useUserStore(state => state.empInfo);
-  const {data: subCodes, isLoading: isLoadingChildren} = useGetSubCode(!!(empInfo?.IsParentCode)) 
+  // const {data: subCodes, isLoading: isLoadingChildren} = useGetSubCode(
+  //   !!empInfo?.IsParentCode,
+  // );
   const [selectedChildren, setSelectedChildren] = useState<AppDropdownItem | null>(null);
   const logic = usePartnerDemoLogic(selectedChildren?.value);
   const {
     IsAWP,
-    handleNavigate,
     isLoading,
     sections,
     openGroups,
@@ -900,35 +885,33 @@ export default function Demo_Partner() {
     [openGroups, toggleGroup],
   );
   const groupKeyExtractor = useCallback((i: {key: string}) => i.key, []);
-
+  const handlePress = () => navigation.push('UploadDemoData');
   return (
-    <View className="flex-1 bg-lightBg-base px-3 pt-5">
-      <View className="flex-1">
-        {isLoading && <LoaderView />}
-        {!isLoading && isError && (
-          <ErrorView message={(error as any)?.message} onRetry={refetch} />
-        )}
-        {!isLoading && !isError && !sections.length && <EmptyView />}
-        {!isLoading && !isError && sections.length > 0 && (
-          <FlatList
-            data={sections}
-            keyExtractor={groupKeyExtractor}
-            renderItem={renderGroup}
-            ListHeaderComponent={<FiltersSummaryHeader logic={logic} />}
-            initialNumToRender={8}
-            maxToRenderPerBatch={12}
-            windowSize={10}
-            removeClippedSubviews
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{paddingBottom: 90}}
-            refreshControl={
-              <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
-            }
-          />
-        )}
-      </View>
-      {!IsAWP && <FAB onPress={handleNavigate} />}
+    <View className='px-3 pt-5 bg-lightBg-base dark:bg-darkBg-base'>
+    <DataStateView
+      isLoading={isLoading}
+      isError={isError}
+      isEmpty={!sections.length}
+      onRetry={refetch}
+      LoadingComponent={<LoaderView />}>
+      <FlatList
+        data={sections}
+        keyExtractor={groupKeyExtractor}
+        renderItem={renderGroup}
+        ListHeaderComponent={<FiltersSummaryHeader logic={logic} />}
+        initialNumToRender={8}
+        maxToRenderPerBatch={12}
+        windowSize={10}
+        removeClippedSubviews
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{paddingBottom: 90}}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
+        }
+      />
+      {!IsAWP && <FAB onPress={handlePress} />}
       <PartnerDemoDetailsSheet />
+    </DataStateView>
     </View>
   );
 }

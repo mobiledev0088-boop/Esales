@@ -372,7 +372,7 @@ export const BranchCard = memo(
     rogKiosk = 0,
     partnerType,
     IsCompulsory,
-    tab,
+    noTerritoryButton,
   }: {
     item: TransformedBranchRes;
     summaryData: {
@@ -386,7 +386,7 @@ export const BranchCard = memo(
     rogKiosk?: number|null;
     partnerType: string | null;
     IsCompulsory?: string;
-    tab: 'LFR' | 'retailer' | 'reseller';
+    noTerritoryButton: boolean;
   }) => {
     const [showFront, setShowFront] = useState(true);
     const [frontCardHeight, setFrontCardHeight] = useState(0);
@@ -405,7 +405,6 @@ export const BranchCard = memo(
         item.state,
         IsCompulsory || '',
         !showFront,
-        tab,
       );
 
     // Transform and filter territory data
@@ -589,7 +588,7 @@ export const BranchCard = memo(
                   )}
                 </View>
                 {/* Progress section */}
-                <View className="mt-5 px-3 gap-3">
+                <View className={clsx("mt-5 px-3 gap-3", noTerritoryButton && "mb-4")}>
                   {item.at_least_single_demo !== null && (
                     <ProgressStat
                       label="At Least Single"
@@ -611,13 +610,13 @@ export const BranchCard = memo(
                     />
                   )}
                 </View>
-                <Pressable
+                {!noTerritoryButton && <Pressable
                   onPress={flipCard}
                   className="px-3 py-3 items-center mt-3">
                   <AppText size="sm" className="text-primary" weight="medium">
                     Tap here to view territories
                   </AppText>
-                </Pressable>
+                </Pressable>}
               </Card>
             </TouchableOpacity>
           </Animated.View>
@@ -832,6 +831,7 @@ export const BranchCardRet = memo(
     category,
     partnerType,
     IsCompulsory,
+    noTerritoryButton,
   }: {
     item: TransformedBranchRet;
     summaryData: {
@@ -843,6 +843,7 @@ export const BranchCardRet = memo(
     category: string;
     partnerType: string | null;
     IsCompulsory?: string;
+    noTerritoryButton?: boolean;
   }) => {
     const [showFront, setShowFront] = useState(true);
     const [frontCardHeight, setFrontCardHeight] = useState(0);
@@ -1007,7 +1008,7 @@ export const BranchCardRet = memo(
                   />
                 </View>
                 {/* Progress section */}
-                <View className="mt-5 px-3 gap-3">
+                <View className={clsx("mt-5 px-3 gap-3", noTerritoryButton && "pb-4")}>
                   {item.at_least_single_demo != null ? (
                     <ProgressStat
                       label="At Least Single"
@@ -1045,13 +1046,13 @@ export const BranchCardRet = memo(
                     false
                   )}
                 </View>
-                <Pressable
+               {!noTerritoryButton && <Pressable
                   onPress={flipCard}
                   className="px-3 py-3 items-center mt-3">
                   <AppText size="sm" className="text-primary" weight="medium">
                     Tap here to view territories
                   </AppText>
-                </Pressable>
+                </Pressable>}
               </Card>
             </TouchableOpacity>
           </Animated.View>

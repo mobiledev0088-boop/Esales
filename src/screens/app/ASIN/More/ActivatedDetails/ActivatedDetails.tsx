@@ -103,6 +103,7 @@ const useSSNInfoMutation = () => {
         RoleId,
         isAWP: employeeType === ASUS.PARTNER_TYPE.T2.AWP,
       };
+      console.log('SSN Info Request Data:', dataToSend);
       const response = await handleASINApiCall(
         '/Information/GetActivationReport_Info',
         dataToSend,
@@ -118,6 +119,9 @@ const useSSNInfoMutation = () => {
           const date = item.Activate_Date
             ? moment(item.Activate_Date).format('DD-MM-YYYY')
             : 'Unknown';
+          item.AGP_Name = dataToSend.isAWP
+            ? item.AGP_Name || 'N/A'
+            : ASUS.PARTNER_TYPE.END_CUSTOMER;
           if (!acc[date]) acc[date] = [];
           acc[date].push(item);
           return acc;
@@ -139,7 +143,7 @@ const useSSNInfoMutation = () => {
           ]),
         ).values(),
       );
-
+      console.log('SSN Info Response Data:', {groupedByDate, flat});
       return [groupedByDate, flat];
     },
   });

@@ -5,10 +5,10 @@ import {handleAPACApiCall, handleASINApiCall} from '../../utils/handleApiCall';
 import {formatUnique} from '../../utils/commonFunctions';
 
 interface SummaryOverviewData {
-    Vertical: string;
-    Total_Offline_Models: number;
-    Store_count: number;
-    Status: string;
+  Vertical: string;
+  Total_Offline_Models: number;
+  Store_count: number;
+  Status: string;
 }
 
 export const useGetDemoDataReseller = (
@@ -82,10 +82,7 @@ export const useGetDemoDataRetailer = (
   });
 };
 
-export const useGetDemoDataLFR = (
-  YearQtr: string,
-  Category: string,
-) => {
+export const useGetDemoDataLFR = (YearQtr: string, Category: string) => {
   const {EMP_Code: employeeCode = '', EMP_RoleId: RoleId = ''} = useLoginStore(
     state => state.userInfo,
   );
@@ -149,11 +146,8 @@ export const useGetBranchWiseDemoData = (
   branchName: string,
   IsCompulsory: string,
   enabled: boolean,
-  tab: 'LFR' | 'retailer' | 'reseller',
 ) => {
-  const {EMP_Code: employeeCode = '', EMP_RoleId: RoleId = ''} = useLoginStore(
-    state => state.userInfo,
-  );
+  const {EMP_Code: employeeCode = '', EMP_RoleId: RoleId = ''} = useLoginStore(state => state.userInfo);
   const queryPayload = {
     YearQtr,
     RoleId,
@@ -164,55 +158,21 @@ export const useGetBranchWiseDemoData = (
     IsCompulsory,
     branchName,
   };
-  if (tab === 'retailer') {
-    return useQuery({
-      queryKey: ['branchWiseDemoDataRetailer', ...Object.values(queryPayload)],
-      queryFn: async () => {
-        const response = await handleASINApiCall(
-          '/DemoForm/GetDemoFormDataRetailer_BranchWisedata',
-          queryPayload,
-        );
-        const result = response?.demoFormData;
-        if (!result?.Status) {
-          throw new Error('Failed to fetch branch-wise data');
-        }
-        return result.Datainfo || [];
-      },
-      enabled: enabled && !!branchName,
-    });
-  } else if (tab === 'LFR') {
-    return useQuery({
-      queryKey: ['branchWiseDemoDataLFR', ...Object.values(queryPayload)],
-      queryFn: async () => {
-        const response = await handleASINApiCall(
-          '/DemoForm/GetDemoFormData_LFR_BranchWisedata',
-          queryPayload,
-        );
-        const result = response?.demoFormData;
-        if (!result?.Status) {
-          throw new Error('Failed to fetch branch-wise data');
-        }
-        return result.Datainfo || [];
-      },
-      enabled: enabled && !!branchName,
-    });
-  } else {
-    return useQuery({
-      queryKey: ['branchWiseDemoData', ...Object.values(queryPayload)],
-      queryFn: async () => {
-        const response = await handleASINApiCall(
-          '/DemoForm/GetDemoFormDataReseller_BranchWisedata',
-          queryPayload,
-        );
-        const result = response?.demoFormData;
-        if (!result?.Status) {
-          throw new Error('Failed to fetch branch-wise data');
-        }
-        return result.Datainfo || [];
-      },
-      enabled: enabled && !!branchName,
-    });
-  }
+  return useQuery({
+    queryKey: ['branchWiseDemoDataRetailer', ...Object.values(queryPayload)],
+    queryFn: async () => {
+      const response = await handleASINApiCall(
+        '/DemoForm/GetDemoFormDataRetailer_BranchWisedata',
+        queryPayload,
+      );
+      const result = response?.demoFormData;
+      if (!result?.Status) {
+        throw new Error('Failed to fetch branch-wise data');
+      }
+      return result.Datainfo || [];
+    },
+    enabled: enabled && !!branchName,
+  });
 };
 
 export const useGetBranchWiseDemoDataRet = (
@@ -234,21 +194,21 @@ export const useGetBranchWiseDemoDataRet = (
     branchName,
   };
 
-    return useQuery({
-      queryKey: ['branchWiseDemoDataRetailer', ...Object.values(queryPayload)],
-      queryFn: async () => {
-        const response = await handleASINApiCall(
-          '/DemoForm/GetDemoFormDataRetailer_BranchWisedata',
-          queryPayload,
-        );
-        const result = response?.demoFormData;
-        if (!result?.Status) {
-          throw new Error('Failed to fetch branch-wise data');
-        }
-        return result.Datainfo?.DemoDetailsList || [];
-      },
-      enabled: enabled && !!branchName,
-    });
+  return useQuery({
+    queryKey: ['branchWiseDemoDataRetailer', ...Object.values(queryPayload)],
+    queryFn: async () => {
+      const response = await handleASINApiCall(
+        '/DemoForm/GetDemoFormDataRetailer_BranchWisedata',
+        queryPayload,
+      );
+      const result = response?.demoFormData;
+      if (!result?.Status) {
+        throw new Error('Failed to fetch branch-wise data');
+      }
+      return result.Datainfo?.DemoDetailsList || [];
+    },
+    enabled: enabled && !!branchName,
+  });
 };
 
 export const useGetSummaryOverviewData = () => {
@@ -343,11 +303,18 @@ export const useGetDemoFilterOptionsAPAC = (
       return result.Datainfo || {};
     },
     select: data => {
-      
       const Category = formatUnique(data?.CategoryFilter, 'Demo_Category');
-      const AGP_Filter = formatUnique(data?.AGP_Filter,'PM_Code','PM_Name');
-      const Store_filter = formatUnique(data?.Store_filter,'Store_id','Store_name');
-      const ProgramName_Filter = formatUnique(data?.ProgramName_Filter,'CM_CPORID','CM_SchemeCategory');
+      const AGP_Filter = formatUnique(data?.AGP_Filter, 'PM_Code', 'PM_Name');
+      const Store_filter = formatUnique(
+        data?.Store_filter,
+        'Store_id',
+        'Store_name',
+      );
+      const ProgramName_Filter = formatUnique(
+        data?.ProgramName_Filter,
+        'CM_CPORID',
+        'CM_SchemeCategory',
+      );
       return {
         Category,
         AGP_Filter,
