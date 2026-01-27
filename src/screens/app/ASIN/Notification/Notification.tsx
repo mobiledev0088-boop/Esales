@@ -139,7 +139,9 @@ const NotificationSkeleton = () => (
 
 // ====== EMPTY STATE ======
 const EmptyState = () => (
-  <View className="flex-1 items-center justify-center px-6" style={{minHeight: 400}}>
+  <View
+    className="flex-1 items-center justify-center px-6"
+    style={{minHeight: 400}}>
     <View className="w-20 h-20 bg-gray-100 rounded-full items-center justify-center mb-4">
       <AppIcon name="bell-off" type="feather" size={36} color="#94a3b8" />
     </View>
@@ -160,7 +162,6 @@ interface NotificationCardProps {
 
 const NotificationCard: React.FC<NotificationCardProps> = React.memo(
   ({item, onNavigate}) => {
-
     // Render clickable links in notification body
     const renderNotificationBody = (notificationBody: string) => {
       if (!notificationBody) return null;
@@ -207,10 +208,7 @@ const NotificationCard: React.FC<NotificationCardProps> = React.memo(
         {/* Content */}
         <View className="flex-1 mr-2">
           {/* Title */}
-          <AppText
-            size="sm"
-            weight="semibold"
-            className="text-gray-900 mb-1">
+          <AppText size="sm" weight="semibold" className="text-gray-900 mb-1">
             {item.Msg_Title || 'Notification'}
           </AppText>
 
@@ -300,7 +298,10 @@ const NotificationList: React.FC<NotificationListProps> = ({
 }) => {
   const renderItem = useCallback(
     ({item}: {item: NotificationItem}) => (
-      <NotificationCard item={item} onNavigate={() => onNotificationPress(item)} />
+      <NotificationCard
+        item={item}
+        onNavigate={() => onNotificationPress(item)}
+      />
     ),
     [onNotificationPress],
   );
@@ -313,8 +314,8 @@ const NotificationList: React.FC<NotificationListProps> = ({
     <FlatList
       data={notifications}
       renderItem={renderItem}
-      keyExtractor={(_,index)=>index.toString()}
-      className='bg-lightBg-base dark:bg-darkBg-base'
+      keyExtractor={(_, index) => index.toString()}
+      className="bg-lightBg-base dark:bg-darkBg-base"
       contentContainerStyle={{
         paddingHorizontal: 12,
         paddingTop: 16,
@@ -352,35 +353,40 @@ const navigateTo = (
   const empType = userInfo.EMP_Type;
 
   // Helper function to navigate with optional params
-  const navigate = (route: NavigationRoute, params?: NavigationParams) => {
-    try {
-      navigation.push(route, params);
-    } catch (error) {
-      console.error(`Navigation failed for route: ${route}`, error);
-    }
+  const navigate = (screenName: string) => {
+    navigation.navigate('Index', {
+      screen: 'Home',
+      params: {
+        screen: screenName,
+      },
+    });
+  };
+
+  const normalNavigate = (screenName: string) => {
+    navigation.push(screenName);
   };
 
   // Demo notifications
   if (notification_type.includes('Demo')) {
     const demoRoutes: Record<number, NavigationRoute> = {
-      [ASUS.ROLE_ID.LFR_HO]: 'DemoDashboardScreenLFR',
-      [ASUS.ROLE_ID.ONLINE_HO]: 'DemoDashboardScreenLFR',
-      [ASUS.ROLE_ID.ASE]: 'DemoDashboardScreenISP',
-      [ASUS.ROLE_ID.AM]: 'DemoDashboardScreenAM',
+      [ASUS.ROLE_ID.LFR_HO]: 'Demo',
+      [ASUS.ROLE_ID.ONLINE_HO]: 'Demo',
+      [ASUS.ROLE_ID.ASE]: 'Demo',
+      [ASUS.ROLE_ID.AM]: 'Demo',
     };
 
     // Check simple role-based routes first
     if (demoRoutes[roleId]) {
-      navigate(demoRoutes[roleId]);
+      navigate('Demo');
       return;
     }
 
     // Handle Partners with specific types
     if (roleId === ASUS.ROLE_ID.PARTNERS) {
       if (empType === ASUS.PARTNER_TYPE.T2.AWP) {
-        navigate('DemoDashboardScreenPartnerAWP');
+        navigate('Demo_Partner');
       } else {
-        navigate('DemoDashboardScreenPartner');
+        navigate('Demo_Partner');
       }
       return;
     }
@@ -393,7 +399,7 @@ const navigateTo = (
     ];
 
     if (!excludedDemoRoles.includes(roleId)) {
-      navigate('DemoDashboardScreen');
+      navigate('Demo');
     }
     return;
   }
@@ -411,9 +417,9 @@ const navigateTo = (
     ];
 
     if (distiRoles.includes(roleId)) {
-      navigate('DistiClaimScreenDealer');
+      navigate('Claim');
     } else if (!excludedClaimRoles.includes(roleId)) {
-      navigate('ClaimDashboardScreen');
+      navigate('Claim');
     }
     return;
   }
@@ -427,7 +433,7 @@ const navigateTo = (
       roleId === ASUS.ROLE_ID.PARTNERS &&
       empType === ASUS.PARTNER_TYPE.T3.T3
     ) {
-      navigate('LMS_Menu', {Year_Qtr: yearQtr});
+      normalNavigate('LMSList_HO');
       return;
     }
 
@@ -436,7 +442,7 @@ const navigateTo = (
       roleId === ASUS.ROLE_ID.PARTNERS &&
       empType === ASUS.PARTNER_TYPE.T2.AWP
     ) {
-      navigate('LMSListAWP', {Year_Qtr: yearQtr});
+      normalNavigate('LMSList_HO');
       return;
     }
 
@@ -454,7 +460,7 @@ const navigateTo = (
     ];
 
     if (hoRoles.includes(roleId)) {
-      navigate('LMSListHO', {Year_Qtr: yearQtr});
+      normalNavigate('LMSList_HO');
     }
     return;
   }
@@ -473,12 +479,9 @@ const navigateTo = (
 export default function Notification() {
   const navigation = useNavigation<any>();
   const userInfo = useLoginStore(state => state.userInfo);
-  
+
   // Create a minimal empInfo - only Year_Qtr is used in navigateTo
-  const empInfo = useMemo(
-    () => ({Year_Qtr: ''} as EmpInfo),
-    [],
-  );
+  const empInfo = useMemo(() => ({Year_Qtr: ''}) as EmpInfo, []);
 
   const {data, isLoading, isError, refetch} = useGetPushNotification();
   const [refreshing, setRefreshing] = useState(false);
@@ -537,7 +540,12 @@ export default function Notification() {
       <AppLayout title="Notifications" needBack>
         <View className="flex-1 items-center justify-center px-6">
           <View className="w-20 h-20 bg-red-50 rounded-full items-center justify-center mb-4">
-            <AppIcon name="alert-circle" type="feather" size={36} color="#ef4444" />
+            <AppIcon
+              name="alert-circle"
+              type="feather"
+              size={36}
+              color="#ef4444"
+            />
           </View>
           <AppText size="lg" weight="semibold" className="text-gray-800 mb-2">
             Something went wrong
@@ -559,28 +567,34 @@ export default function Notification() {
   }
 
   // No tabs available
-  if (!data?.notificationTypeTabData || data.notificationTypeTabData.length === 0) {
+  if (
+    !data?.notificationTypeTabData ||
+    data.notificationTypeTabData.length === 0
+  ) {
     return (
       <AppLayout title="Notifications" needBack>
         <EmptyState />
       </AppLayout>
     );
   }
+  console.log('Notification Tabs:', data.notificationTypeTabData);
 
   // Create tab screens dynamically
-  const tabScreens = data.notificationTypeTabData.map(tab => ({
-    name: tab.id,
-    label: tab.title.replace(/_/g, ' '),
-    component: (
-      <NotificationList
-        notifications={currentNotifications}
-        isLoading={isLoading}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-        onNotificationPress={handleNotificationPress}
-      />
-    ),
-  }));
+  const tabScreens = data.notificationTypeTabData
+    .filter(tab => Boolean(tab.title))
+    .map(tab => ({
+      name: tab.id,
+      label: tab.title.replace(/_/g, ' '),
+      component: (
+        <NotificationList
+          notifications={currentNotifications}
+          isLoading={isLoading}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          onNotificationPress={handleNotificationPress}
+        />
+      ),
+    }));
 
   return (
     <AppLayout title="Notifications" needBack>

@@ -52,6 +52,7 @@ import UploadGalleryReview from '../screens/app/ASIN/More/ShopExpansion/GalleryR
 import TargetSummaryPartner from '../screens/app/ASIN/Reports/TargetSummaryPartner';
 import WOD_Partners from '../screens/app/ASIN/WOD/WOD_Partners';
 import ActPerformance from '../screens/app/ASIN/Reports/ActPerformance';
+import LMSListAWP from '../screens/app/ASIN/More/LMS/LMSListAWP';
 
 type Screen = {
   name: string;
@@ -91,6 +92,7 @@ const screens: Screen[] = [
   {name: 'PartnerCreditLimitDetails', component: PartnerCreditLimitDetails},
   {name: 'ASEIncentive', component: ASEIncentive},
   {name: 'LMSList_HO', component: LMSList_HO},
+  {name: 'LMSListAWP', component: LMSListAWP},
   {name: 'ChannelMap', component: ChannelMap},
   {name: 'ChannelMapALPFinance', component: ChannelMapALPFinance},
   {name: 'ChannelMapAddAGP', component: ChannelMapAddAGP},

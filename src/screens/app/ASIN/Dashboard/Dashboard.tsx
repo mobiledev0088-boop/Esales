@@ -1,4 +1,4 @@
-import {useState, useMemo, useCallback, memo} from 'react';
+import {useState, useMemo, useCallback, memo, use} from 'react';
 import {View, TouchableOpacity, ScrollView, RefreshControl} from 'react-native';
 
 import {MaterialTopTabScreenProps} from '@react-navigation/material-top-tabs';
@@ -432,8 +432,14 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
   masterTab,
 }) => {
   const userInfo = useLoginStore(state => state.userInfo);
+  const empInfo = useUserStore(state => state.empInfo);
   const navigation = useNavigation<AppNavigationProp>();
   const [activeTab, setActiveTab] = useState<string>('ASE Total');
+  const isBranchManager = useMemo(() => {
+    const {BSM, BPM} = ASUS.ROLE_ID;
+    return [BSM, BPM].includes(userInfo?.EMP_RoleId as any);
+  }, [userInfo?.EMP_RoleId]);
+
   const renderMetricCard = useCallback(
     ({
       label,
@@ -518,8 +524,10 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
     const quarterNum = Number(quarter.slice(4));
     const currentMonth = moment().month() + 1; // month() is zero-based
     const lastMonthOfQuarter = quarterNum * 3;
-    const MonthNum = currentMonth < lastMonthOfQuarter ? currentMonth : lastMonthOfQuarter;
+    const MonthNum =
+      currentMonth < lastMonthOfQuarter ? currentMonth : lastMonthOfQuarter;
     const onPress = () => {
+      if (isBranchManager) return;
       navigation.push('VerticalASE_HO', {
         Year: year.toString(),
         Month: MonthNum.toString(),
@@ -546,7 +554,7 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
         })}
       </View>
     );
-  }, [channelData, renderHeadCountCard, renderMetricCard]);
+  }, [channelData, renderHeadCountCard, renderMetricCard, isBranchManager, quarter, navigation]);
 
   const ASELFRTab = useCallback(
     ({needHeader = true}: {needHeader: boolean}) => {
@@ -557,6 +565,7 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
       const MonthNum =
         currentMonth < lastMonthOfQuarter ? currentMonth : lastMonthOfQuarter;
       const onPress = () => {
+         if (isBranchManager) return;
         navigation.push('VerticalASE_HO', {
           Year: year.toString(),
           Month: MonthNum.toString(),
@@ -592,7 +601,7 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
         </View>
       );
     },
-    [lfrData, renderHeadCountCard, renderMetricCard],
+    [lfrData, renderHeadCountCard, renderMetricCard, isBranchManager, quarter, navigation],
   );
 
   if (error) {
@@ -651,6 +660,7 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
       Year: year.toString(),
       Month: MonthNum.toString(),
       masterTab,
+      branchName: empInfo?.Branch_Name || '',
     });
   };
   return (
@@ -951,6 +961,10 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
   const [selectedQuarter, setSelectedQuarter] =
     useState<AppDropdownItem | null>(quarters[0] || null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const {BSM, BPM} = ASUS.ROLE_ID
+  const isBranchManager = useMemo(() => {
+    return [BSM,BPM].includes(userInfo?.EMP_RoleId as any);
+  }, [userInfo?.EMP_RoleId]);
 
   const {
     data: dashboardData,
@@ -977,9 +991,14 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
     const allTop5Objects = Object.keys(dashboardData || {}).filter(key =>
       key.startsWith('Top5'),
     );
-    const acvTab = allTop5Objects
+    let acvTab = allTop5Objects
       .map(key => key.replace('Top5', ''))
       .sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b));
+
+    if (isBranchManager) {
+      acvTab = ['Territory', ...acvTab.filter(tab => tab !== 'Branch')];
+    }
+
     const acvTabUnArray = allTop5Objects.map(key => ({
       [key]: dashboardData?.[key] || {},
     }));
@@ -992,9 +1011,10 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
     );
     const acvTabData = Object.keys(acvTabUnManage).reduce(
       (acc, key) => {
+        const findKey =  isBranchManager && key === 'Top5Branch' ? 'Top_5_Territory'  : `Top_5_${key.replace('Top5', '')}`
         acc[key] = acvTabUnManage[key].map((item: any) => ({
           ...item,
-          name: item[`Top_5_${key.replace('Top5', '')}`],
+          name: item[findKey] || 'N/A',
           SO_Cnt: item.SO_Cnt || item.SellOut_Qty || '0',
         }));
         return acc;
@@ -1002,7 +1022,7 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
       {} as Record<string, any[]>,
     );
     return [acvTab, acvTabData];
-  }, [dashboardData]);
+  }, [dashboardData, isBranchManager]);
 
   // Process ASE data
   const aseData: ASERelatedData = useMemo(

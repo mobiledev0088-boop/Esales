@@ -75,6 +75,7 @@ type AppNavigationParamList = {
   PartnerCreditLimitDetails: {partner: any};
   ASEIncentive: undefined;
   LMSList_HO: undefined;
+  LMSListAWP: undefined;
   ChannelMap: {
     activeTab?: number;
     AGP_PartnerName?: string;
@@ -141,7 +142,7 @@ type AppNavigationParamList = {
   TargetSummary: {masterTab: string; Quarter: string, button: 'seemore' | 'disti',wise: 'POD' | 'SELL'};
   TargetSummaryPartner: {Year_Qtr:string; AlpType: string, Branch: string};
   VerticalASE_HO: {Year: string; Month: string; AlpType: string, Branch?: string};
-  TargetSummaryAMBranch: {Year: string; Month: string; masterTab: string};
+  TargetSummaryAMBranch: {Year: string; Month: string; masterTab: string, branchName?: string};
   // Other Screens
   Banners: {Banner_Group_SeqNum: string};
   

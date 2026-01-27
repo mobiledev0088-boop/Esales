@@ -3,7 +3,9 @@ import {useLoginStore} from '../../../../stores/useLoginStore';
 import {useQuery} from '@tanstack/react-query';
 import {handleASINApiCall} from '../../../../utils/handleApiCall';
 import {useNavigation, useRoute} from '@react-navigation/native';
-import AppDropdown, {AppDropdownItem} from '../../../../components/customs/AppDropdown';
+import AppDropdown, {
+  AppDropdownItem,
+} from '../../../../components/customs/AppDropdown';
 import {useCallback, useMemo, useState} from 'react';
 import {
   convertToASINUnits,
@@ -11,17 +13,16 @@ import {
   getProductConfig,
 } from '../../../../utils/commonFunctions';
 import Skeleton from '../../../../components/skeleton/skeleton';
-import {screenWidth} from '../../../../utils/constant';
+import {ASUS, screenWidth} from '../../../../utils/constant';
 import AppText from '../../../../components/customs/AppText';
 import AppLayout from '../../../../components/layout/AppLayout';
 import Accordion from '../../../../components/Accordion';
 import AppIcon from '../../../../components/customs/AppIcon';
 import {AppColors} from '../../../../config/theme';
-import { CircularProgressBar} from '../../../../components/customs/AppChart';
+import {CircularProgressBar} from '../../../../components/customs/AppChart';
 import {PieChart} from 'react-native-gifted-charts';
-import { Watermark } from '../../../../components/Watermark';
-import { AppNavigationProp } from '../../../../types/navigation';
-
+import {Watermark} from '../../../../components/Watermark';
+import {AppNavigationProp} from '../../../../types/navigation';
 
 const PARTNER_COLORS: Record<string, string> = {
   CHANNEL: '#34A853', // Green
@@ -94,22 +95,37 @@ const formatAreaManagerNames = (names: string): string => {
     .join(', ');
 };
 
-const useGetTrgtVsAchvDetail = (YearQtr: string, masterTab: string) => {
+const useGetTrgtVsAchvDetail = (
+  YearQtr: string,
+  masterTab: string,
+  branchName?: string,
+) => {
   const {EMP_Code: employeeCode = '', EMP_RoleId: RoleId = ''} = useLoginStore(
     state => state.userInfo,
   );
-
   return useQuery<APIResponse>({
-    queryKey: ['getTrgtVsAchvDetail', employeeCode, RoleId, YearQtr, masterTab],
+    queryKey: [
+      'getTrgtVsAchvDetail',
+      employeeCode,
+      RoleId,
+      YearQtr,
+      masterTab,
+      branchName,
+    ],
     queryFn: async () => {
-      const response = await handleASINApiCall(
-        '/TrgtVsAchvDetail/GetTrgtVsAchvDetailASE_MonthWise',
-        {employeeCode, RoleId, YearQtr, masterTab},
+      const isBranchManager = [ASUS.ROLE_ID.BSM, ASUS.ROLE_ID.BPM].includes(
+        RoleId as any,
       );
+      const endpoint = isBranchManager
+        ? '/TrgtVsAchvDetail/GetTrgtVsAchvTerritorywiseASE_MonthWise'
+        : '/TrgtVsAchvDetail/GetTrgtVsAchvDetailASE_MonthWise';
+      const dataToSend = {employeeCode, RoleId, YearQtr, masterTab, branchName};
+      const response = await handleASINApiCall(endpoint, dataToSend);
       const result = response?.DashboardData;
       if (!result?.Status) {
         throw new Error('Failed to fetch activation data');
       }
+      console.log('API Response:', result);
       return (
         result.Datainfo || {
           ProductCategory: [],
@@ -124,10 +140,11 @@ const useGetTrgtVsAchvDetail = (YearQtr: string, masterTab: string) => {
 export default function TargetSummaryAMBranch() {
   const route = useRoute();
   const navigation = useNavigation<AppNavigationProp>();
-  const {Year, Month, masterTab} = route.params as {
+  const {Year, Month, masterTab, branchName} = route.params as {
     Year: string;
     Month: string;
     masterTab: string;
+    branchName?: string;
   };
   const YearQtr = `${Year}${Month}`;
 
@@ -146,7 +163,11 @@ export default function TargetSummaryAMBranch() {
     isLoading,
     isError,
     refetch,
-  } = useGetTrgtVsAchvDetail(selectedMonth?.value || YearQtr, masterTab);
+  } = useGetTrgtVsAchvDetail(
+    selectedMonth?.value || YearQtr,
+    masterTab,
+    branchName,
+  );
 
   const mergeData = useMemo((): SummaryItem[] => {
     if (!trgtVsAchvDetail) return [];
@@ -154,46 +175,50 @@ export default function TargetSummaryAMBranch() {
     const {ProductCategory = [], PartnerWise = []} = trgtVsAchvDetail;
 
     if (ProductCategory.length === 0 && PartnerWise.length === 0) return [];
+    let groupedList: SummaryItem[] = [];
+    if (branchName) {
+        
+    } else {
+      const branchMap = new Map<string, SummaryItem>();
+      ProductCategory.forEach((item: ProductCategory) => {
+        const branchKey = item.Loc_Branch?.toLowerCase()?.trim();
+        if (!branchKey) return; // Skip if branch name is invalid
 
-    const branchMap = new Map<string, SummaryItem>();
-    ProductCategory.forEach((item: ProductCategory) => {
-      const branchKey = item.Loc_Branch?.toLowerCase()?.trim();
-      if (!branchKey) return; // Skip if branch name is invalid
+        if (!branchMap.has(branchKey)) {
+          branchMap.set(branchKey, {
+            BranchName: item.Loc_Branch,
+            AreaManager: item.AreaManager || 'N/A',
+            ProductCategoryType: [],
+            PartnerWiseDetails: [],
+            AchievedQty: 0,
+          });
+        }
 
-      if (!branchMap.has(branchKey)) {
-        branchMap.set(branchKey, {
-          BranchName: item.Loc_Branch,
-          AreaManager: item.AreaManager || 'N/A',
-          ProductCategoryType: [],
-          PartnerWiseDetails: [],
-          AchievedQty: 0,
-        });
-      }
+        const node = branchMap.get(branchKey)!;
+        node.ProductCategoryType.push(item);
+        node.AchievedQty += item.Achieved_Qty || 0;
+      });
+      PartnerWise.forEach((item: PartnerWise) => {
+        const branchKey = item.Branch_Name?.toLowerCase()?.trim();
+        if (!branchKey) return; // Skip if branch name is invalid
 
-      const node = branchMap.get(branchKey)!;
-      node.ProductCategoryType.push(item);
-      node.AchievedQty += item.Achieved_Qty || 0;
-    });
-    PartnerWise.forEach((item: PartnerWise) => {
-      const branchKey = item.Branch_Name?.toLowerCase()?.trim();
-      if (!branchKey) return; // Skip if branch name is invalid
+        if (!branchMap.has(branchKey)) {
+          branchMap.set(branchKey, {
+            BranchName: item.Branch_Name,
+            AreaManager: 'N/A',
+            ProductCategoryType: [],
+            PartnerWiseDetails: [],
+            AchievedQty: 0,
+          });
+        }
 
-      if (!branchMap.has(branchKey)) {
-        branchMap.set(branchKey, {
-          BranchName: item.Branch_Name,
-          AreaManager: 'N/A',
-          ProductCategoryType: [],
-          PartnerWiseDetails: [],
-          AchievedQty: 0,
-        });
-      }
-
-      const node = branchMap.get(branchKey)!;
-      node.PartnerWiseDetails.push(item);
-    });
-    const groupedList = Array.from(branchMap.values()).sort((a, b) =>
-      a.BranchName.localeCompare(b.BranchName),
-    );
+        const node = branchMap.get(branchKey)!;
+        node.PartnerWiseDetails.push(item);
+      });
+      groupedList = Array.from(branchMap.values()).sort((a, b) =>
+        a.BranchName.localeCompare(b.BranchName),
+      );
+    }
     return groupedList;
   }, [trgtVsAchvDetail]);
 
@@ -233,7 +258,8 @@ export default function TargetSummaryAMBranch() {
 
   const renderItem = useCallback(
     ({item}: {item: SummaryItem}) => {
-      const hasProducts = item.ProductCategoryType && item.ProductCategoryType.length > 0;
+      const hasProducts =
+        item.ProductCategoryType && item.ProductCategoryType.length > 0;
       const totalAchieved = item.AchievedQty || 0;
       // Build pie chart data with stable colors + percentage labels
       const totalPartnerQty = item.PartnerWiseDetails.reduce(
@@ -251,62 +277,63 @@ export default function TargetSummaryAMBranch() {
       });
       const handleLegendPress = (type: string, Branch: string) => {
         // Optional: Implement any interaction when legend is pressed
+        console.log('Legend pressed:', type, Branch);
         navigation.push('VerticalASE_HO', {
           Branch,
           Year,
           Month,
           AlpType: type || '',
         });
-      }
+      };
 
       return (
         <Accordion
           header={
             <>
-            <View className="flex-1 flex-row items-start gap-3 py-3">
-              <View className="rounded-lg p-2 bg-primary/10">
-                <AppIcon
-                  name="map-marker"
-                  size={20}
-                  color={AppColors.primary}
-                  type="material-community"
-                />
-              </View>
+              <View className="flex-1 flex-row items-start gap-3 py-3">
+                <View className="rounded-lg p-2 bg-primary/10">
+                  <AppIcon
+                    name="map-marker"
+                    size={20}
+                    color={AppColors.primary}
+                    type="material-community"
+                  />
+                </View>
 
-              <View className="flex-1 ">
-                <AppText
-                  size="md"
-                  weight="bold"
-                  color="text"
-                  numberOfLines={1}
-                  className="mb-2">
-                  {item.BranchName || 'Unknown Branch'}
-                </AppText>
-                <View className="flex-row items-center gap-1.5">
-                  <View className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                  <AppText size="sm" className="text-gray-500">
-                    Total:
-                  </AppText>
-                  <AppText size="sm" weight="semibold" color="primary">
-                    {convertToASINUnits(totalAchieved, true)}
-                  </AppText>
-                </View>
-                <View className="flex-row items-center gap-1.5 flex-1">
-                  <View className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                  <AppText size="sm" className="text-gray-500">
-                    AM:
-                  </AppText>
+                <View className="flex-1 ">
                   <AppText
-                    size="sm"
-                    weight="semibold"
-                    className="text-green-600 dark:text-green-400 flex-1"
-                    numberOfLines={1}>
-                    {formatAreaManagerNames(item.AreaManager)}
+                    size="md"
+                    weight="bold"
+                    color="text"
+                    numberOfLines={1}
+                    className="mb-2">
+                    {item.BranchName || 'Unknown Branch'}
                   </AppText>
+                  <View className="flex-row items-center gap-1.5">
+                    <View className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                    <AppText size="sm" className="text-gray-500">
+                      Total:
+                    </AppText>
+                    <AppText size="sm" weight="semibold" color="primary">
+                      {convertToASINUnits(totalAchieved, true)}
+                    </AppText>
+                  </View>
+                  <View className="flex-row items-center gap-1.5 flex-1">
+                    <View className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                    <AppText size="sm" className="text-gray-500">
+                      AM:
+                    </AppText>
+                    <AppText
+                      size="sm"
+                      weight="semibold"
+                      className="text-green-600 dark:text-green-400 flex-1"
+                      numberOfLines={1}>
+                      {formatAreaManagerNames(item.AreaManager)}
+                    </AppText>
+                  </View>
                 </View>
               </View>
-            </View>
-            <Watermark />
+              <Watermark />
             </>
           }
           needBottomBorder={false}
@@ -336,7 +363,7 @@ export default function TargetSummaryAMBranch() {
                   textColor="white"
                   // showTextBackground
                   // textBackgroundRadius={20}
-                  labelsPosition='outward'
+                  labelsPosition="outward"
                   // Add a thin separator (stroke) between slices for visual clarity
                   strokeColor="#ffffff"
                   strokeWidth={2}
@@ -348,18 +375,22 @@ export default function TargetSummaryAMBranch() {
                 <View className="flex-row flex-wrap justify-center mt-5 gap-3 px-4">
                   {item.PartnerWiseDetails.map((p, idx) => (
                     <TouchableOpacity
-                      onPress={() => handleLegendPress(p.ALP_Type, item.BranchName)}
+                      onPress={() =>
+                        handleLegendPress(p.ALP_Type, item.BranchName)
+                      }
                       key={`${p.ALP_Type}_${idx}`}
                       className="flex-row items-center rounded-full px-3 py-1"
                       style={{
-                        backgroundColor: getPartnerColor(p.ALP_Type, idx) + '15',
+                        backgroundColor:
+                          getPartnerColor(p.ALP_Type, idx) + '15',
                         borderWidth: 1,
                         borderColor: getPartnerColor(p.ALP_Type, idx) + '55',
-                      }}
-                    >
+                      }}>
                       <View
                         className="w-3 h-3 rounded-full mr-2"
-                        style={{backgroundColor: getPartnerColor(p.ALP_Type, idx)}}
+                        style={{
+                          backgroundColor: getPartnerColor(p.ALP_Type, idx),
+                        }}
                       />
                       <AppText size="xs" weight="semibold" color="text">
                         {`${p.ALP_Type?.toUpperCase() || 'N/A'} (${p.Achieved_Qty || 0})`}
@@ -469,18 +500,20 @@ export default function TargetSummaryAMBranch() {
     ),
     [isError, refetch],
   );
-
+  console.log('Merge Data:', mergeData);
   return (
     <AppLayout title="ASE Partner List" needBack needScroll={false}>
-      {!isLoading && <View className="w-36 self-end mx-3 mt-4">
-         <AppDropdown
-          data={monthOptions}
-          selectedValue={selectedMonth?.value}
-          onSelect={item => setSelectedMonth(item)}
-          placeholder="Select Month"
-          mode="dropdown"
-        />
-      </View>}
+      {!isLoading && (
+        <View className="w-36 self-end mx-3 mt-4">
+          <AppDropdown
+            data={monthOptions}
+            selectedValue={selectedMonth?.value}
+            onSelect={item => setSelectedMonth(item)}
+            placeholder="Select Month"
+            mode="dropdown"
+          />
+        </View>
+      )}
       <FlatList
         data={mergeData}
         renderItem={renderItem}

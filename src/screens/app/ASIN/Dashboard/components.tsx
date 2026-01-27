@@ -33,11 +33,27 @@ import AppDatePicker, {
 import moment from 'moment';
 import Card from '../../../../components/Card';
 import AppTabBar, {TabItem} from '../../../../components/CustomTabBar';
-import {convertToASINUnits, getDaysBetween, showToast} from '../../../../utils/commonFunctions';
+import {
+  convertToASINUnits,
+  getDaysBetween,
+  showToast,
+} from '../../../../utils/commonFunctions';
 import {CircularProgressBar} from '../../../../components/customs/AppChart';
 import {useNavigation} from '@react-navigation/native';
 import {AppNavigationProp} from '../../../../types/navigation';
-import { useLoginStore } from '../../../../stores/useLoginStore';
+import {useLoginStore} from '../../../../stores/useLoginStore';
+
+const reduceToFrstFive = (data: {[key: string]: any[]}) => {
+  return Object.entries(data).reduce(
+    (acc, [key, value]) => {
+      if (value && value?.length > 0) {
+        acc[key] = value.slice(0, 5);
+      }
+      return acc;
+    },
+    {} as Record<string, any[]>,
+  );
+};
 
 export const buildActivationTabItems = (
   labels: string[],
@@ -45,16 +61,19 @@ export const buildActivationTabItems = (
   overrideData: any,
   isAPAC: boolean,
 ): TabItem[] => {
-  const source = overrideData || baseData;
+  const reduceOverrideData = Object.keys(overrideData || {}).length
+    ? reduceToFrstFive(overrideData)
+    : null;
+  const source = reduceOverrideData || baseData;
   return labels.map(label => {
     const id = TAB_LABEL_TO_ID[label];
-    const cfg = getCurrentTabConfig(id,isAPAC);
+    const cfg = getCurrentTabConfig(id, isAPAC);
     const tabData = getActivationTabData(source, id);
     return {
       label,
       name: id,
       component: (
-        <View >
+        <View>
           <TableHeader columns={cfg.columns} />
           <DataTable data={tabData} activeTab={id} columns={cfg.columns} />
         </View>
@@ -94,7 +113,10 @@ export const DateRangeCard = ({
           </View>
         </View>
         <View className="bg-green-100 dark:bg-[#0EA473] px-3 py-1.5 rounded-full">
-          <AppText size="xs" weight="semibold" className={'dark:text-white text-green-600'}>
+          <AppText
+            size="xs"
+            weight="semibold"
+            className={'dark:text-white text-green-600'}>
             {dateRange.start && dateRange.end
               ? getDaysBetween(
                   moment(dateRange.start).format('YYYY-MM-DD'),
@@ -143,10 +165,13 @@ const TableRow = ({
         <AppText
           size="sm"
           weight={column.key === 'name' ? 'semibold' : 'bold'}
-          color={column.colorType}
-          >
+          color={column.colorType}>
           {/* {item[column.dataKey] || '0'} */}
-          {column.key === 'name'  ? item[column.dataKey] || '---' : column.key === 'h-rate' ? `${item[column.dataKey]} %` : convertToASINUnits(Number(item[column.dataKey]),true) }
+          {column.key === 'name'
+            ? item[column.dataKey] || '---'
+            : column.key === 'h-rate'
+              ? `${item[column.dataKey]} %`
+              : convertToASINUnits(Number(item[column.dataKey]), true)}
         </AppText>
       </View>
     ))}
@@ -246,7 +271,7 @@ export const BannerComponent = () => {
 
   if (queryError) {
     return (
-      <View className="w-full items-center pt-4">
+      <View className="w-full items-center pt-4 px-3">
         <ErrorDisplay
           title="Failed to Load Banners"
           message="Unable to retrieve banner information"
@@ -268,7 +293,7 @@ export const BannerComponent = () => {
         autoplay={true}
         autoplayTimeout={4}
         dotColor="#E5E7EB"
-        activeDotColor={true ? "#007BE5" : "#3B82F6"}
+        activeDotColor={true ? '#007BE5' : '#3B82F6'}
         resizeMode="cover"
       />
     </View>
@@ -277,7 +302,7 @@ export const BannerComponent = () => {
 
 export const ActivationPerformanceComponent: React.FC<
   ActivationPerformanceProps
-> = ({data, isLoading, error, onRetry, name, tabs,quarter,handleSeeMore}) => {
+> = ({data, isLoading, error, onRetry, name, tabs, quarter, handleSeeMore}) => {
   const {
     mutate,
     data: activationData,
@@ -286,14 +311,13 @@ export const ActivationPerformanceComponent: React.FC<
   } = useDashboardActivationData();
   const navigation = useNavigation<AppNavigationProp>();
   const userInfo = useLoginStore(state => state.userInfo);
-  const isAPAC = useMemo(() => userInfo?.EMP_CountryID !== ASUS.COUNTRIES.ASIN, [userInfo]);
-  const providedTabs = useMemo(
-    () => (tabs && tabs.length > 0 ? tabs : [...DEFAULT_ACTIVATION_TABS]),
-    [tabs],
+  const isAPAC = useMemo(
+    () => userInfo?.EMP_CountryID !== ASUS.COUNTRIES.ASIN,
+    [userInfo],
   );
   const initialActiveId = useMemo(
-    () => deriveInitialActiveId(providedTabs,false),
-    [providedTabs],
+    () => deriveInitialActiveId(tabs, false),
+    [tabs],
   );
   const [isVisible, setIsVisible] = useState(false);
   const [dateRange, setDateRange] = useState<DatePickerState>({
@@ -304,8 +328,8 @@ export const ActivationPerformanceComponent: React.FC<
   const maximumDate = useMemo(() => new Date(), []);
   const minimumDate = useMemo(() => moment().subtract(5, 'years').toDate(), []);
   const tabItems: TabItem[] = useMemo(
-    () => buildActivationTabItems(providedTabs, data, activationData,isAPAC),
-    [providedTabs, data, activationData,isAPAC],
+    () => buildActivationTabItems(tabs, data, activationData, isAPAC),
+    [tabs, data, activationData, isAPAC],
   );
 
   const handleActivationDataFetch = useCallback(
@@ -317,51 +341,59 @@ export const ActivationPerformanceComponent: React.FC<
           startDate: formattedStartDate,
           endDate: formattedEndDate,
           masterTab: name,
-          isAPAC: userInfo?.EMP_CountryID !== ASUS.COUNTRIES.ASIN  
+          isAPAC: userInfo?.EMP_CountryID !== ASUS.COUNTRIES.ASIN,
         });
       }
     },
     [mutate, name, userInfo],
   );
 
-    const onPress = () => {
-      if (handleSeeMore) {
-        handleSeeMore();
-        return;
-      }
-      let dataToSend = {
-        masterTab: name,
-        StartDate: moment(dateRange.start).format('YYYY-MM-DD'),
-        EndDate: moment(dateRange.end).format('YYYY-MM-DD'),
-        Product_Category: '',
-      };
-  
-      let validForManagers = [
-        ASUS.ROLE_ID.BSM,
-        ASUS.ROLE_ID.BPM,
-        ASUS.ROLE_ID.CHANNEL_MARKETING,
-        ASUS.ROLE_ID.RSM,
-      ] as number[];
-  
-      if (validForManagers.includes(userInfo.EMP_RoleId)) {
-        dataToSend = {
-          ...dataToSend,
-          masterTab: 'CHANNEL',
-        };
-      } else if (userInfo.EMP_RoleId == ASUS.ROLE_ID.TM) {
-        dataToSend = {
-          ...dataToSend,
-          masterTab: 'CHANNEL',
-        };
-      }
-      navigation.push('ActPerformanceBranchWise', dataToSend);
+  const onPress = () => {
+    if (handleSeeMore) {
+      const source = activationData
+        ? {
+            ...Object.fromEntries(
+              Object.entries(activationData).filter(
+                ([_, value]) => value.length > 0,
+              ),
+            ),
+          }
+        : null;
+      handleSeeMore(source);
+      return;
+    }
+    let dataToSend = {
+      masterTab: name,
+      StartDate: moment(dateRange.start).format('YYYY-MM-DD'),
+      EndDate: moment(dateRange.end).format('YYYY-MM-DD'),
+      Product_Category: '',
     };
 
+    let validForManagers = [
+      ASUS.ROLE_ID.BSM,
+      ASUS.ROLE_ID.BPM,
+      ASUS.ROLE_ID.CHANNEL_MARKETING,
+      ASUS.ROLE_ID.RSM,
+    ] as number[];
 
-    useEffect(() => {
-  const { startDate, endDate } = getQuarterDateRange(quarter);
-  setDateRange({ start: startDate, end: endDate });
-}, [quarter]);
+    if (validForManagers.includes(userInfo.EMP_RoleId)) {
+      dataToSend = {
+        ...dataToSend,
+        masterTab: 'CHANNEL',
+      };
+    } else if (userInfo.EMP_RoleId == ASUS.ROLE_ID.TM) {
+      dataToSend = {
+        ...dataToSend,
+        masterTab: 'CHANNEL',
+      };
+    }
+    navigation.push('ActPerformanceBranchWise', dataToSend);
+  };
+
+  useEffect(() => {
+    const {startDate, endDate} = getQuarterDateRange(quarter);
+    setDateRange({start: startDate, end: endDate});
+  }, [quarter]);
   if (error) {
     return (
       <View className="px-3 py-3">
@@ -378,7 +410,6 @@ export const ActivationPerformanceComponent: React.FC<
   if (isLoading || isMutationLoading) {
     return <ActivationPerformanceSkeleton />;
   }
-
   return (
     <View className="py-3">
       <View className="flex-row items-center justify-between mb-3">
@@ -498,14 +529,11 @@ const MonthlyDataTiles = ({data}: {data: MonthlyPerformanceItem[]}) => {
     if (!processed.length || !scrollViewRef.current) {
       return;
     }
-
     const today = moment();
-    const renderedOrder = [...processed].reverse();
-
+    const renderedOrder = [...processed]
     const index = renderedOrder.findIndex(item =>
       moment(item.month, ['MMMM YYYY', 'MMM YYYY']).isSame(today, 'month'),
     );
-
     if (index > 0) {
       // Each tile is treated as ~144px height in paging calculations
       scrollViewRef.current.scrollTo({y: index * 144, animated: false});
@@ -532,12 +560,12 @@ const MonthlyDataTiles = ({data}: {data: MonthlyPerformanceItem[]}) => {
             <View
               key={item.month}
               style={{width: screenWidth * 0.55}}
-              className="p-4 py-6 rounded bg-white border border-slate-200 shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
+              className="p-4 py-6 rounded bg-lightBg-surface border border-slate-200 dark:bg-darkBg-surface dark:border-slate-700 shadow-sm">
               <View className="flex-row items-center justify-between mb-2">
                 <AppText weight="semibold" className="text-slate-800" size="sm">
                   {item.month}
                 </AppText>
-                <View className="px-2 py-0.5 rounded-full bg-slate-100">
+                <View className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700">
                   <AppText
                     size="xs"
                     weight="semibold"
@@ -589,8 +617,7 @@ const MonthlyDataTiles = ({data}: {data: MonthlyPerformanceItem[]}) => {
                 </View>
               </View>
             </View>
-          ))
-          .reverse()}
+          ))}
       </ScrollView>
       <View className="justify-center gap-1">
         {processed.map((item, index) => (
@@ -643,8 +670,10 @@ export const TargetAchievementCard = ({
 
   const theme = getTheme();
   if (isLoading) return <TargetAchievementSkeleton />;
-  return ( 
-    <Card className="mt-4 border border-slate-200 dark:border-slate-700" noshadow>
+  return (
+    <Card
+      className="mt-4 border border-slate-200 dark:border-slate-700"
+      noshadow>
       <View className="flex-row items-center border-b border-gray-200 pb-2">
         <View
           className={`w-10 h-10 rounded-xl ${theme.bg} items-center justify-center`}>
@@ -668,14 +697,14 @@ export const TargetAchievementCard = ({
             strokeWidth={10}
             duration={1000}
           />
-          <AppText className="text-xs text-gray-500 mt-3 self-start mb-1 ml-2">
+          <AppText size="xs" className="text-gray-500 mt-3 self-start mb-1 ml-4">
             ACH / TGT
           </AppText>
           <View className="items-end flex-row">
-            <AppText className="text-lg" color="black">
+            <AppText size='lg' weight='bold'>
               {convertToASINUnits(achievement)}
             </AppText>
-            <AppText className="text-md text-gray-500">
+            <AppText size='md' className="text-gray-500">
               {' '}
               / {convertToASINUnits(target)}
             </AppText>

@@ -33,6 +33,7 @@ import AppDropdown, {
 } from '../../../../components/customs/AppDropdown';
 import clsx from 'clsx';
 import {AppNavigationProp} from '../../../../types/navigation';
+import { ASUS } from '../../../../utils/constant';
 
 const ITEMS_PER_BATCH = 10;
 interface ApiParams {
@@ -578,7 +579,6 @@ const buildTabItems = (
         );
       }
     }
-    console.log('Tab Data for', label, tabData);
     return {
       label: displayLabel,
       name: id,
@@ -907,6 +907,11 @@ export default function ActPerformanceBranchWise() {
     Product_Category = '',
     Territory = '',
   } = route.params || {};
+  const userInfo = useLoginStore(state => state.userInfo);
+    const {BSM, BPM} = ASUS.ROLE_ID
+    const isBranchManager = useMemo(() => {
+      return [BSM,BPM].includes(userInfo?.EMP_RoleId as any);
+    }, [userInfo?.EMP_RoleId]);
 
   // Date range state management
   const [dateRange, setDateRange] = useState<DatePickerState>({
@@ -955,24 +960,28 @@ export default function ActPerformanceBranchWise() {
       key.toLowerCase().startsWith('top'),
     );
 
-    const labels = topKeys
+    let labels = topKeys
       .map(key => key.replace(/top5/i, ''))
       .sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b));
+
+       if (isBranchManager) {
+      labels = ['Territory', ...labels.filter(tab => tab !== 'Branch')];
+    }
 
     const transformedData = topKeys.reduce(
       (acc, key) => {
         const items = data[key];
         if (items && Array.isArray(items) && items.length > 0) {
+          const name =  key === 'Top5Branch' ?
+            'Top_Branch_Territory' : key === 'Top5AGP' ?
+              `Top_${key.replace(/top5/i, '')}` :
+              key === 'TOP5ALP' ?
+                `Top_${key.replace(/top5/i, '')}` :
+                `Top_${key.replace(/top5/i, '')}`;
+
           acc[key === 'TOP5ALP' ? 'Top5ALP' : key] = items.map((item: any) => ({
             ...item,
-            name:
-              key === 'Top5Branch'
-                ? item['Top_Branch_Territory']
-                : key === 'Top5AGP'
-                  ? `${item[`Top_${key.replace(/top5/i, '')}`]} \n-(${item.AGP_Code || 'N/A'})`
-                  : key === 'TOP5ALP'
-                    ? `${item[`Top_${key.replace(/top5/i, '')}`]} \n-(${item.ALP_Code || 'N/A'})`
-                    : item[`Top_${key.replace(/top5/i, '')}`],
+            name: item[name],
             SO_Cnt: item.SO_Cnt || item.SellOut_Qty || '0',
           }));
         }
@@ -981,9 +990,7 @@ export default function ActPerformanceBranchWise() {
       {} as Record<string, any[]>,
     );
     return [labels, transformedData];
-  }, [data]);
-  console.log('Tab Labels:', tabLabels);
-  console.log('Transformed Data:', transformedData);
+  }, [data, isBranchManager]);
 
   const CSEList = useMemo(() => {
     const branchData = transformedData['Top5AGP'] || [];

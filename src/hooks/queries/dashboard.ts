@@ -4,6 +4,7 @@ import {useLoginStore} from '../../stores/useLoginStore';
 import {ActivationPerformanceData} from '../../types/dashboard';
 import { AppDropdownItem } from '../../components/customs/AppDropdown';
 import { useUserStore } from '../../stores/useUserStore';
+import { ASUS } from '../../utils/constant';
 
 // Reusable selectors for better performance
 const getUserCredentials = () => {
@@ -135,8 +136,10 @@ export const useDashboardActivationData = () => {
       masterTab: string;
       isAPAC?: boolean;
     }): Promise<ActivationPerformanceData> => {
+      const userInfo = useLoginStore.getState().userInfo;
+      const isBranchManager = [ASUS.ROLE_ID.BSM, ASUS.ROLE_ID.BPM].includes(userInfo?.EMP_RoleId as any); 
+      
       const {startDate, endDate, masterTab, isAPAC} = variables;
-
       const handleApi = isAPAC ? handleAPACApiCall : handleASINApiCall;
       const endPoint = isAPAC ? '/Dashboard/GetDashboardActivationData' : '/Dashboard/GetDashboardActivationData_New';
       const res = await handleApi(
@@ -180,7 +183,7 @@ export const useDashboardActivationData = () => {
         Top5Branch:
           dashboardData?.Top5Branch?.map((item: any) => ({
             ...item,
-            name: item.Top_5_Branch,
+            name: isBranchManager ? item?.Top_5_Territory : item.Top_5_Branch,
           })) || [],
         Top5Disti:
           dashboardData?.Top5Disti?.map((item: any) => ({

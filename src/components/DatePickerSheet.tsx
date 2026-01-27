@@ -7,6 +7,7 @@ import ActionSheet, {
 import AppText from './customs/AppText';
 import {useThemeStore} from '../stores/useThemeStore';
 import AppIcon from './customs/AppIcon';
+import SheetIndicator from './SheetIndicator';
 
 const {width: screenWidth} = Dimensions.get('window');
 
@@ -551,20 +552,14 @@ const DatePickerSheet: React.FC = () => {
       <ActionSheet
         id="DatePickerSheet"
         useBottomSafeAreaPadding
-        gestureEnabled
         containerStyle={{
           borderTopLeftRadius: 24,
           borderTopRightRadius: 24,
           backgroundColor: isDark ? '#1f2937' : '#ffffff',
           maxHeight: '80%',
         }}
-        indicatorStyle={{
-          backgroundColor: isDark ? '#6b7280' : '#d1d5db',
-          width: 50,
-          height: 4,
-          borderRadius: 2,
-          marginTop: 8,
-        }}>
+        >
+          <SheetIndicator/>
         <View className="px-4 py-6">
           {/* Header */}
           <View className="flex-row justify-between items-center mb-6">

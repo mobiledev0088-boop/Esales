@@ -408,6 +408,7 @@ export const DEFAULT_ACTIVATION_TABS = [
 
 export const TAB_LABEL_TO_ID: Record<string, string> = {
   Branch: 'branch',
+  Territory: 'branch',
   ALP: 'alp',
   Model: 'model',
   AGP: 'agp',

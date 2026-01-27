@@ -71,11 +71,14 @@ const getASINOptions = (
     hasRole(roleId, [1, 2, 3, 4, 9, 10, 25, 26, 29]) ||
     (roleId === 6 && ['AWP', 'T3Partner'].includes(empType))
   ) {
+    let navigateTo = 'LMSList_HO' as keyof AppNavigationParamList;
+      if (roleId === 6 && empType === 'AWP') navigateTo = 'LMSListAWP';
+      // if (roleId === 6 && empType === 'T3Partner') navigateTo = 'LMS_Menu';
     options.push({
       label: 'LMS',
       iconName: 'package',
       iconType: 'feather',
-      navigateTo: 'LMSList_HO',
+      navigateTo,
     });
   }
 
@@ -91,15 +94,12 @@ const getASINOptions = (
     iconType: 'antdesign',
     navigateTo: 'EDMInfo',
   });
-
-  if (['KN2200052', 'KN1800037', 'KN2500069'].includes(empCode)) {
-    options.push({
-      label: 'Asus SpotLight Videos',
-      iconName: 'youtube',
-      iconType: 'antdesign',
-      navigateTo: 'SpotLightVideos',
-    });
-  }
+  options.push({
+    label: 'Asus SpotLight Videos',
+    iconName: 'youtube',
+    iconType: 'antdesign',
+    navigateTo: 'SpotLightVideos',
+  });
 
   if (roleId === 24) {
     options.push({

@@ -96,14 +96,14 @@ export interface TargetVsAchievementProps {
 }
 
 export interface ActivationPerformanceProps {
+  tabs: string[];
+  name: string;
   data: ActivationPerformanceData;
   isLoading: boolean;
   error?: Error | null;
   onRetry?: () => void;
-  name: string;
-  tabs?: string[];
   quarter: string;
-  handleSeeMore?: () => void;
+  handleSeeMore?: (data: any) => void;
 }
 
 export interface ASEDataProps {

@@ -218,140 +218,6 @@ const useGetTrgtVsAchvDetail = ({
   });
 };
 
-export default function TargetSummary() {
-  const navigation = useNavigation<AppNavigationProp>();
-  const {params} = useRoute();
-  const {EMP_RoleId: roleID} = useLoginStore(state => state.userInfo);
-  console.log('Role ID in TargetSummary:', roleID);
-  const {Quarter, masterTab, button, wise} = params as {
-    Quarter: string;
-    masterTab: string;
-    button: ButtonType;
-    wise: WiseType;
-  };
-  console.log('Params in TargetSummary:', params);
-  const {BSM, RSM, BPM, CHANNEL_MARKETING, SALES_REPS} = ASUS.ROLE_ID;
-  const managerArr: number[] = [BSM, RSM, BPM, CHANNEL_MARKETING];
-
-  const isTerritory = useMemo(() => managerArr.includes(roleID), [roleID]);
-  const isPartner = useMemo(() => roleID === SALES_REPS, [roleID]);
-  console.log('isTerritory:', isTerritory, 'isPartner:', isPartner);
-
-  const quarter = useMemo(() => getPastQuarters(), []);
-  const foundQuarter = quarter.find(q => q.value === Quarter);
-  const [selectedQuarter, setSelectedQuarter] =
-    useState<AppDropdownItem | null>(foundQuarter || null);
-  const [viewMode, setViewMode] = useState<ViewMode>(
-    isTerritory ? 'territory' : 'branch',
-  );
-  const [selectedBranch, setSelectedBranch] = useState<string>('');
-
-  // Dynamic endpoint based on current view mode (not role)
-  const apiEndpoint = APIMAPPING(
-    isTerritory,
-    wise === 'POD',
-    button,
-    isPartner,
-  );
-  console.log('API Endpoint in TargetSummary:', apiEndpoint);
-
-  // Single unified hook call
-  const {data, isLoading} = useGetTrgtVsAchvDetail({
-    YearQtr: selectedQuarter?.value || '',
-    masterTab,
-    apiEndpoint,
-    BranchName: selectedBranch,
-    viewMode,
-  });
-  const {ProductCategory: demoData, PartnerWise} = data || {};
-
-  // Group data (memoized) using external utility
-  const groupedData = useMemo<GroupedData[]>(
-    () => groupDemoData(demoData, viewMode),
-    [demoData, viewMode],
-  );
-
-  const groupedPartnerWise = useMemo<GroupedPartnerWise[]>(
-    () => groupedPartnerData(PartnerWise),
-    [PartnerWise],
-  );
-
-  console.log('groupedPartnerWise', groupedPartnerWise);
-
-  // Handle view territory press
-  const handleViewTerritory = useCallback((branchName: string) => {
-    setSelectedBranch(branchName);
-    setViewMode('territory');
-  }, []);
-
-  // Handle back to branch view - optimized with instant state update
-  const handleBackToBranch = useCallback(() => {
-    setViewMode('branch');
-    setTimeout(() => setSelectedBranch(''), 0);
-  }, []);
-
-  const handlePartnerPress = useCallback((AlpType: string, Branch: string) => {
-    // Placeholder for partner press action
-    navigation.push('TargetSummaryPartner', {
-      AlpType,
-      Branch,
-      Year_Qtr: selectedQuarter?.value || '',
-        });
-  }, [navigation, selectedQuarter]);
-
-  const keyExtractor = useCallback(
-    (item: GroupedData) => getGroupKey(viewMode, item),
-    [viewMode],
-  );
-
-  return (
-    <AppLayout title="Target / Achievement" needBack needPadding>
-      <FlatList
-        data={groupedData}
-        renderItem={({item}) => {
-          const found = groupedPartnerWise.find(
-            p => p.Branch_Name === item.branchName,
-          );
-          return (
-            <GroupAccordionItem
-              group={item}
-              viewMode={viewMode}
-              button={button}
-              onViewTerritory={handleViewTerritory}
-              wise={wise}
-              PartnerWise={found}
-              handlePartnerPress={handlePartnerPress}
-            />
-          );
-        }}
-        keyExtractor={keyExtractor}
-        extraData={viewMode}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{paddingBottom: 20}}
-        maxToRenderPerBatch={16}
-        windowSize={10}
-        initialNumToRender={10}
-        ListHeaderComponent={
-          <SummaryHeader
-            isLoading={isLoading}
-            quarter={quarter}
-            selectedQuarter={selectedQuarter}
-            onSelectQuarter={item => setSelectedQuarter(item)}
-            viewMode={viewMode}
-            selectedBranch={selectedBranch}
-            groupCount={groupedData.length}
-            onBackToBranch={handleBackToBranch}
-            button={button}
-          />
-        }
-        ListEmptyComponent={
-          isLoading ? <LoadingSkeletonComponent /> : <EmptyDataComponent />
-        }
-      />
-    </AppLayout>
-  );
-}
-
 // Utility Functions
 const groupDemoData = (
   demoData: ProductItem[] | undefined,
@@ -761,3 +627,137 @@ const EmptyDataComponent = memo(() => (
     </AppText>
   </View>
 ));
+
+export default function TargetSummary() {
+  const navigation = useNavigation<AppNavigationProp>();
+  const {params} = useRoute();
+  const {EMP_RoleId: roleID} = useLoginStore(state => state.userInfo);
+  console.log('Role ID in TargetSummary:', roleID);
+  const {Quarter, masterTab, button, wise} = params as {
+    Quarter: string;
+    masterTab: string;
+    button: ButtonType;
+    wise: WiseType;
+  };
+  console.log('Params in TargetSummary:', params);
+  const {BSM, RSM, BPM, CHANNEL_MARKETING, SALES_REPS} = ASUS.ROLE_ID;
+  const managerArr: number[] = [BSM, RSM, BPM, CHANNEL_MARKETING];
+
+  const isTerritory = useMemo(() => managerArr.includes(roleID), [roleID]);
+  const isPartner = useMemo(() => roleID === SALES_REPS, [roleID]);
+  console.log('isTerritory:', isTerritory, 'isPartner:', isPartner);
+
+  const quarter = useMemo(() => getPastQuarters(), []);
+  const foundQuarter = quarter.find(q => q.value === Quarter);
+  const [selectedQuarter, setSelectedQuarter] =
+    useState<AppDropdownItem | null>(foundQuarter || null);
+  const [viewMode, setViewMode] = useState<ViewMode>(
+    isTerritory ? 'territory' : 'branch',
+  );
+  const [selectedBranch, setSelectedBranch] = useState<string>('');
+
+  // Dynamic endpoint based on current view mode (not role)
+  const apiEndpoint = APIMAPPING(
+    isTerritory,
+    wise === 'POD',
+    button,
+    isPartner,
+  );
+  console.log('API Endpoint in TargetSummary:', apiEndpoint);
+
+  // Single unified hook call
+  const {data, isLoading} = useGetTrgtVsAchvDetail({
+    YearQtr: selectedQuarter?.value || '',
+    masterTab,
+    apiEndpoint,
+    BranchName: selectedBranch,
+    viewMode,
+  });
+  const {ProductCategory: demoData, PartnerWise} = data || {};
+
+  // Group data (memoized) using external utility
+  const groupedData = useMemo<GroupedData[]>(
+    () => groupDemoData(demoData, viewMode),
+    [demoData, viewMode],
+  );
+
+  const groupedPartnerWise = useMemo<GroupedPartnerWise[]>(
+    () => groupedPartnerData(PartnerWise),
+    [PartnerWise],
+  );
+
+  console.log('groupedPartnerWise', groupedPartnerWise);
+
+  // Handle view territory press
+  const handleViewTerritory = useCallback((branchName: string) => {
+    setSelectedBranch(branchName);
+    setViewMode('territory');
+  }, []);
+
+  // Handle back to branch view - optimized with instant state update
+  const handleBackToBranch = useCallback(() => {
+    setViewMode('branch');
+    setTimeout(() => setSelectedBranch(''), 0);
+  }, []);
+
+  const handlePartnerPress = useCallback((AlpType: string, Branch: string) => {
+    // Placeholder for partner press action
+    navigation.push('TargetSummaryPartner', {
+      AlpType,
+      Branch,
+      Year_Qtr: selectedQuarter?.value || '',
+        });
+  }, [navigation, selectedQuarter]);
+
+  const keyExtractor = useCallback(
+    (item: GroupedData) => getGroupKey(viewMode, item),
+    [viewMode],
+  );
+
+  return (
+    <AppLayout title="Target / Achievement" needBack needPadding>
+      <FlatList
+        data={groupedData}
+        renderItem={({item}) => {
+          const found = groupedPartnerWise.find(
+            p => p.Branch_Name === item.branchName,
+          );
+          return (
+            <GroupAccordionItem
+              group={item}
+              viewMode={viewMode}
+              button={button}
+              onViewTerritory={handleViewTerritory}
+              wise={wise}
+              PartnerWise={found}
+              handlePartnerPress={handlePartnerPress}
+            />
+          );
+        }}
+        keyExtractor={keyExtractor}
+        extraData={viewMode}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{paddingBottom: 20}}
+        maxToRenderPerBatch={16}
+        windowSize={10}
+        initialNumToRender={10}
+        ListHeaderComponent={
+          <SummaryHeader
+            isLoading={isLoading}
+            quarter={quarter}
+            selectedQuarter={selectedQuarter}
+            onSelectQuarter={item => setSelectedQuarter(item)}
+            viewMode={viewMode}
+            selectedBranch={selectedBranch}
+            groupCount={groupedData.length}
+            onBackToBranch={handleBackToBranch}
+            button={button}
+          />
+        }
+        ListEmptyComponent={
+          isLoading ? <LoadingSkeletonComponent /> : <EmptyDataComponent />
+        }
+      />
+    </AppLayout>
+  );
+}

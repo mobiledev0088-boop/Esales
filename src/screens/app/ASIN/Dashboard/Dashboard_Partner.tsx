@@ -494,11 +494,12 @@ export default function Dashboard_Partner({
     }
   }, [refetchDashboard]);
 
-  const handleSeeMore = () => {
+  const handleSeeMore = (data:any) => {
+    const source = data || dashboardData;
     const dataToSend = {
       fromPartnerScreen: !DifferentEmployeeCode,
       ...Object.fromEntries(
-        Object.entries(dashboardData).filter(([key]) =>
+        Object.entries(source).filter(([key]) =>
           key.toLowerCase().startsWith('top'),
         ),
       ),

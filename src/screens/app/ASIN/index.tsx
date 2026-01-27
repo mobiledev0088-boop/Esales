@@ -1,17 +1,14 @@
-import CustomDrawerContent from '../../../components/drawer/CustomDrawerContent';
 import Home from './Home/Home';
-import AuditReport from './AuditReport/AuditReport';
+import Reports from './Reports/Reports';
 import Account from './User/Account/Account';
+import AuditReport from './AuditReport/AuditReport';
+import CustomDrawerContent from '../../../components/drawer/CustomDrawerContent';
 
 import {createDrawerNavigator} from '@react-navigation/drawer';
-import Reports from './Reports/Reports';
-import {useLocation} from '../../../hooks/useLocation';
 
 const Drawer = createDrawerNavigator();
 
-const Index = () => {
-  const {loading, location} = useLocation();
-
+export default function Index() {
   const drawerScreens = [
     {name: 'Home', component: Home},
     {name: 'Account', component: Account},
@@ -42,5 +39,3 @@ const Index = () => {
     </>
   );
 };
-
-export default Index;

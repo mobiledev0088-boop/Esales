@@ -12,7 +12,7 @@ export const DashboardSalesData = () => {
 }
 
 export const DashboardBannerSkeleton = () => {
-  return <Skeleton width={screenWidth - 20} height={200} borderRadius={12} />;
+  return <View className='px-3'><Skeleton width={screenWidth - 20} height={200} borderRadius={12} /></View>;
 };
 
 export const TargetVsAchievementSkeleton = () => {
