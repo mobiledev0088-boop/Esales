@@ -1416,6 +1416,7 @@ export const BranchCardROI = memo(
                 navigation.push('DemoPartners', {
                   partners: item.partners,
                   yearQtr,
+                  isROI: true
                 });
               }}>
               <Card
@@ -1459,7 +1460,7 @@ export const BranchCardROI = memo(
                 <View className="mt-5 px-3 gap-3 pb-4">
                   {item.total_demo != null ? (
                     <ProgressStat
-                      label="At Least Single"
+                      label="Total Demo"
                       percent={totalDemoPercent}
                       current={item.total_demo}
                       total={summaryData.total_demo}
@@ -1471,10 +1472,10 @@ export const BranchCardROI = memo(
                   )}
                   {item.total_act != null ? (
                     <ProgressStat
-                      label="80% Demo"
+                      label="Total Active"
                       percent={totalActPercent}
                       current={item.total_act}
-                      total={summaryData.total_demo || 0}
+                      total={summaryData.total_act || 0}
                       barTint="bg-sky-500"
                       percentTint="text-sky-600"
                     />
@@ -1483,7 +1484,7 @@ export const BranchCardROI = memo(
                   )}
                   {item.total_stock != null ? (
                     <ProgressStat
-                      label="100% Demo"
+                      label="Total Stock"
                       percent={totalStockPercent}
                       current={item.total_stock}
                       total={summaryData.total_stock}

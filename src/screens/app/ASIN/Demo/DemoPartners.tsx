@@ -26,6 +26,7 @@ import AppDropdown, {
 import Skeleton from '../../../../components/skeleton/skeleton';
 import {screenHeight, screenWidth} from '../../../../utils/constant';
 import {useThemeStore} from '../../../../stores/useThemeStore';
+import clsx from 'clsx';
 
 type PartnerTypes = {
   AGP_Code: string;
@@ -37,6 +38,12 @@ type PartnerTypes = {
   Pkiosk_Cnt: number;
   ROG_Kiosk_cnt: number;
   TotalCompulsoryDemo: number;
+  PartnerName?: string;
+  PartnerType?: string;
+  PartnerCode?: string;
+  Total_Demo_Count?: number;
+  Inventory_Count?: number;
+  Activation_count?: number;
 };
 
 type DemoSummaryItem = {
@@ -82,159 +89,12 @@ const useGetPartnerDemoSummary = (
   });
 };
 
-const PartnerCard = memo<{
-  item: PartnerTypes;
-  onPressDetails: (partner: PartnerTypes) => void;
-  onPressView: (partner: PartnerTypes) => void;
-}>(({item, onPressDetails, onPressView}) => {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-
-  // Calculate shortfall
-  const shortfall = useMemo(() => {
-    const diff = item.TotalCompulsoryDemo - item.DemoExecuted;
-    return diff >= 0 ? diff : 0;
-  }, [item.TotalCompulsoryDemo, item.DemoExecuted]);
-
-  return (
-    <Card className="mb-4 mx-0">
-      {/* Partner Name - Primary Information */}
-      <View className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
-        <View className="flex-row items-start justify-between">
-          <View className="flex-1">
-            <View className="flex-row items-center justify-between">
-              <TouchableOpacity
-                onPress={() => onPressDetails(item)}
-                activeOpacity={0.7}
-                className="flex-row items-center w-10/12 ">
-                <AppText
-                  size="md"
-                  weight="bold"
-                  className="text-secondary dark:text-secondary-dark mb-1 underline">
-                  {item.AGP_Name}
-                </AppText>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => onPressView(item)}
-                activeOpacity={0.7}
-                hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
-                <AppIcon
-                  name="eye"
-                  type="feather"
-                  size={20}
-                  color={
-                    isDark ? AppColors.dark.secondary : AppColors.secondary
-                  }
-                />
-              </TouchableOpacity>
-            </View>
-            <View className="flex-row items-center mt-1">
-              <View className="bg-primary/10 dark:bg-primary-dark/20 px-2.5 py-1 rounded-md">
-                <AppText
-                  size="xs"
-                  weight="semibold"
-                  className="text-primary dark:text-primary-dark">
-                  {item.AGP_Or_T3}
-                </AppText>
-              </View>
-            </View>
-          </View>
-        </View>
-      </View>
-
-      {/* Partner Details - All in One Row */}
-      <View className="flex-row items-center justify-between">
-        {/* Partner Code */}
-        <View className="flex-1 items-center">
-          <View className="w-10 h-10 bg-secondary/10 dark:bg-secondary-dark/20 rounded-lg items-center justify-center mb-2">
-            <AppIcon
-              name="barcode"
-              type="material-community"
-              size={20}
-              color={isDark ? AppColors.dark.secondary : AppColors.secondary}
-            />
-          </View>
-          <AppText
-            size="xs"
-            weight="medium"
-            className="text-gray-500 dark:text-gray-400 mb-1 text-center">
-            Partner Code
-          </AppText>
-          <AppText
-            size="sm"
-            weight="semibold"
-            className="text-text dark:text-text-dark text-center">
-            {item.AGP_Code}
-          </AppText>
-        </View>
-
-        {/* Demo Executed */}
-        <View className="flex-1 items-center border-l border-r border-gray-200 dark:border-gray-700">
-          <View className="w-10 h-10 bg-success/10 dark:bg-success/20 rounded-lg items-center justify-center mb-2">
-            <AppIcon
-              name="check-circle-outline"
-              type="material-community"
-              size={20}
-              color={AppColors.success}
-            />
-          </View>
-          <AppText
-            size="xs"
-            weight="medium"
-            className="text-gray-500 dark:text-gray-400 mb-1 text-center">
-            Demo Executed
-          </AppText>
-          <AppText
-            size="lg"
-            weight="bold"
-            className="text-success dark:text-success text-center">
-            {item.DemoExecuted}
-          </AppText>
-        </View>
-
-        {/* Shortfall */}
-        <View className="flex-1 items-center">
-          <View
-            className={`w-10 h-10 ${
-              shortfall > 0
-                ? 'bg-warning/10 dark:bg-warning/20'
-                : 'bg-gray-100 dark:bg-gray-800'
-            } rounded-lg items-center justify-center mb-2`}>
-            <AppIcon
-              name="alert-circle-outline"
-              type="material-community"
-              size={20}
-              color={
-                shortfall > 0
-                  ? AppColors.warning
-                  : isDark
-                    ? '#6B7280'
-                    : '#9CA3AF'
-              }
-            />
-          </View>
-          <AppText
-            size="xs"
-            weight="medium"
-            className="text-gray-500 dark:text-gray-400 mb-1 text-center">
-            Shortfall
-          </AppText>
-          <AppText
-            size="lg"
-            weight="bold"
-            className={
-              shortfall > 0
-                ? 'text-warning dark:text-warning'
-                : 'text-gray-400 dark:text-gray-500'
-            }
-            style={{textAlign: 'center'}}>
-            {shortfall}
-          </AppText>
-        </View>
-      </View>
-    </Card>
-  );
-});
+const formatDate = (value: string | null) => {
+  console.log('Formatting date value:', value);
+  if (!value) return '—';
+  const m = moment(value);
+  return m.isValid() ? m.format('YYYY/MM/DD') : value;
+};
 
 const showPartnerDetailsSheet = (partner: PartnerTypes, yearQtr: string) => {
   SheetManager.show('PartnerDetailsSheet', {
@@ -246,13 +106,6 @@ const showDemoDetailsSheet = (demo: DemoSummaryItem) => {
   SheetManager.show('DemoDetailsSheet', {
     payload: {demo},
   });
-};
-
-const formatDate = (value: string | null) => {
-  console.log('Formatting date value:', value);
-  if (!value) return '—';
-  const m = moment(value);
-  return m.isValid() ? m.format('YYYY/MM/DD') : value;
 };
 
 export const PartnerDetailsSheet: React.FC = () => {
@@ -271,10 +124,13 @@ export const PartnerDetailsSheet: React.FC = () => {
     partner?.AGP_Code || '',
     isSheetOpen && !!partner && !!yearQtr,
   );
-  
+
   // Filter states
-  const [selectedCategory, setSelectedCategory] = useState<AppDropdownItem | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<AppDropdownItem | null>(null);
+  const [selectedCategory, setSelectedCategory] =
+    useState<AppDropdownItem | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<AppDropdownItem | null>(
+    null,
+  );
 
   // Reset filters when sheet opens
   useEffect(() => {
@@ -869,12 +725,247 @@ export const DemoDetailsSheet: React.FC = () => {
   );
 };
 
+const PartnerCard = memo<{
+  item: PartnerTypes;
+  onPressDetails: (partner: PartnerTypes) => void;
+  onPressView: (partner: PartnerTypes) => void;
+  isROI?: boolean;
+}>(({item, onPressDetails, onPressView, isROI}) => {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
+  // Calculate shortfall
+  const shortfall = useMemo(() => {
+    const diff = item.TotalCompulsoryDemo - item.DemoExecuted;
+    return diff >= 0 ? diff : 0;
+  }, [item.TotalCompulsoryDemo, item.DemoExecuted]);
+
+  return (
+    <Card className="mb-4 mx-0">
+      {/* Partner Name - Primary Information */}
+      <View className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+        <View className="flex-row items-start justify-between">
+          <View className="flex-1">
+            <View className="flex-row items-center justify-between">
+              <TouchableOpacity
+                onPress={() => onPressDetails(item)}
+                activeOpacity={0.7}
+                className="flex-row items-center w-10/12 ">
+                <AppText
+                  size="md"
+                  weight="bold"
+                  className="text-secondary dark:text-secondary-dark mb-1 underline">
+                  {item.AGP_Name || item?.PartnerName || '—-'}
+                </AppText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => onPressView(item)}
+                activeOpacity={0.7}
+                hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+                <AppIcon
+                  name="eye"
+                  type="feather"
+                  size={20}
+                  color={
+                    isDark ? AppColors.dark.secondary : AppColors.secondary
+                  }
+                />
+              </TouchableOpacity>
+            </View>
+            <View className="flex-row items-center mt-1">
+              <View className="bg-primary/10 dark:bg-primary-dark/20 px-2.5 py-1 rounded-md">
+                <AppText
+                  size="xs"
+                  weight="semibold"
+                  className="text-primary dark:text-primary-dark">
+                  {item.AGP_Or_T3 || item?.PartnerType || '—-'}
+                </AppText>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+
+      {/* Partner Details - All in One Row */}
+      <View className="flex-row items-center justify-between">
+        {/* Partner Code */}
+        <View className={clsx('items-center', isROI ? 'w-1/4' : 'w-1/3')}>
+          <View className="w-10 h-10 bg-secondary/10 dark:bg-secondary-dark/20 rounded-lg items-center justify-center mb-2">
+            <AppIcon
+              name="barcode"
+              type="material-community"
+              size={20}
+              color={isDark ? AppColors.dark.secondary : AppColors.secondary}
+            />
+          </View>
+          <AppText
+            size="xs"
+            weight="medium"
+            className="text-gray-500 dark:text-gray-400 mb-1 text-center">
+            Partner Code
+          </AppText>
+          <AppText
+            size="sm"
+            weight="semibold"
+            className="text-text dark:text-text-dark text-center">
+            {item.AGP_Code || item?.PartnerCode || '—-'}
+          </AppText>
+        </View>
+        {isROI ? (
+          <View className="w-3/4 flex-row items-center justify-between">
+            {/* Total Demo */}
+            <View className="w-1/3 items-center border-l border-r border-gray-200 dark:border-gray-700">
+              <View className="w-10 h-10 bg-success/10 dark:bg-success/20 rounded-lg items-center justify-center mb-2">
+                <AppIcon
+                  name="laptop-outline"
+                  type="ionicons"
+                  size={20}
+                  color={AppColors.success}
+                />
+              </View>
+              <AppText
+                size="xs"
+                weight="medium"
+                className="text-gray-500 dark:text-gray-400 mb-1 text-center">
+                Total Demo
+              </AppText>
+              <AppText
+                size="lg"
+                weight="bold"
+                className="text-success dark:text-success text-center">
+                {item.Total_Demo_Count}
+              </AppText>
+            </View>
+            {/* Total Active */}
+            <View className="w-1/3 items-center border-l border-r border-gray-200 dark:border-gray-700">
+              <View className="w-10 h-10 bg-secondary/10 dark:bg-secondary-dark/20 rounded-lg items-center justify-center mb-2">
+                <AppIcon
+                  name="trending-up"
+                  type="feather"
+                  size={20}
+                  color={AppColors.secondary}
+                />
+              </View>
+              <AppText
+                size="xs"
+                weight="medium"
+                className="text-gray-500 dark:text-gray-400 mb-1 text-center">
+                Total Active
+              </AppText>
+              <AppText
+                size="lg"
+                weight="bold"
+                className="text-secondary dark:text-secondary text-center">
+                {item.Activation_count}
+              </AppText>
+            </View>
+            {/* Total Stock */}
+            <View className="w-1/3 items-center">
+              <View className="w-10 h-10 bg-warning/10 dark:bg-warning/20 rounded-lg items-center justify-center mb-2">
+                <AppIcon
+                  name="percent"
+                  type="feather"
+                  size={20}
+                  color={AppColors[isDark ? 'dark' : 'light'].warning}
+                />
+              </View>
+              <AppText
+                size="xs"
+                weight="medium"
+                className="text-gray-500 dark:text-gray-400 mb-1 text-center">
+                Total Stock
+              </AppText>
+              <AppText
+                size="lg"
+                weight="bold"
+                className="text-warning dark:text-warning"
+                style={{textAlign: 'center'}}>
+                {item.Inventory_Count}
+              </AppText>
+            </View>
+          </View>
+        ) : (
+          <View className="w-2/3 flex-row items-center justify-between">
+            {/* Demo Executed */}
+            <View className="w-1/2 items-center border-l border-r border-gray-200 dark:border-gray-700">
+              <View className="w-10 h-10 bg-success/10 dark:bg-success/20 rounded-lg items-center justify-center mb-2">
+                <AppIcon
+                  name="check-circle-outline"
+                  type="material-community"
+                  size={20}
+                  color={AppColors.success}
+                />
+              </View>
+              <AppText
+                size="xs"
+                weight="medium"
+                className="text-gray-500 dark:text-gray-400 mb-1 text-center">
+                Demo Executed
+              </AppText>
+              <AppText
+                size="lg"
+                weight="bold"
+                className="text-success dark:text-success text-center">
+                {item.DemoExecuted}
+              </AppText>
+            </View>
+            {/* Shortfall */}
+            <View className="w-1/2 items-center">
+              <View
+                className={`w-10 h-10 ${
+                  shortfall > 0
+                    ? 'bg-warning/10 dark:bg-warning/20'
+                    : 'bg-gray-100 dark:bg-gray-800'
+                } rounded-lg items-center justify-center mb-2`}>
+                <AppIcon
+                  name="alert-circle-outline"
+                  type="material-community"
+                  size={20}
+                  color={
+                    shortfall > 0
+                      ? AppColors.warning
+                      : isDark
+                        ? '#6B7280'
+                        : '#9CA3AF'
+                  }
+                />
+              </View>
+              <AppText
+                size="xs"
+                weight="medium"
+                className="text-gray-500 dark:text-gray-400 mb-1 text-center">
+                Shortfall
+              </AppText>
+              <AppText
+                size="lg"
+                weight="bold"
+                className={
+                  shortfall > 0
+                    ? 'text-warning dark:text-warning'
+                    : 'text-gray-400 dark:text-gray-500'
+                }
+                style={{textAlign: 'center'}}>
+                {shortfall}
+              </AppText>
+            </View>
+          </View>
+        )}
+      </View>
+    </Card>
+  );
+});
+
 export default function DemoPartners() {
   const {params} = useRoute();
   const navigation = useNavigation<AppNavigationProp>();
-  const {partners, yearQtr} = params as {
+  const {
+    partners,
+    yearQtr,
+    isROI = false,
+  } = params as {
     partners: PartnerTypes[];
     yearQtr: string;
+    isROI?: boolean;
   };
 
   // Partner selection state for filtering
@@ -885,8 +976,8 @@ export default function DemoPartners() {
   const partnerDropdownItems = useMemo(
     () =>
       (partners || []).map(p => ({
-        label: `${p.AGP_Name} (${p.AGP_Code})`,
-        value: p.AGP_Code,
+        label: `${p.AGP_Name || p?.PartnerName || '—-'} (${p.AGP_Code || p?.PartnerCode || '—-'})`,
+        value: p.AGP_Code || p?.PartnerCode || '—-',
       })),
     [partners],
   );
@@ -895,7 +986,10 @@ export default function DemoPartners() {
   const filteredPartners = useMemo(
     () =>
       selectedPartner?.value
-        ? partners.filter(p => p.AGP_Code === selectedPartner.value)
+        ? partners.filter(
+            p =>
+              (p.AGP_Code || p?.PartnerCode || '—-') === selectedPartner.value,
+          )
         : partners,
     [partners, selectedPartner],
   );
@@ -923,13 +1017,14 @@ export default function DemoPartners() {
         item={item}
         onPressDetails={handlePartnerDetails}
         onPressView={handleViewPartner}
+        isROI={isROI}
       />
     ),
     [handlePartnerDetails, handleViewPartner],
   );
 
   // Key extractor for FlatList
-  const keyExtractor = useCallback((item: PartnerTypes) => item.AGP_Code, []);
+  const keyExtractor = useCallback((_: any, idx: number) => idx.toString(), []);
 
   // Empty state component
   const renderEmptyComponent = useCallback(() => {
@@ -972,6 +1067,24 @@ export default function DemoPartners() {
         const diff = partner.TotalCompulsoryDemo - partner.DemoExecuted;
         return sum + (diff >= 0 ? diff : 0);
       }, 0) || 0;
+    const totalDemo = isROI
+      ? filteredPartners?.reduce(
+          (sum, partner) => sum + (partner.Total_Demo_Count || 0),
+          0,
+        )
+      : 0;
+    const totalActive = isROI
+      ? filteredPartners?.reduce(
+          (sum, partner) => sum + (partner.Activation_count || 0),
+          0,
+        )
+      : 0;
+    const totalStock = isROI
+      ? filteredPartners?.reduce(
+          (sum, partner) => sum + (partner.Inventory_Count || 0),
+          0,
+        )
+      : 0;
 
     return (
       <View className="mb-4">
@@ -1003,70 +1116,152 @@ export default function DemoPartners() {
           </View>
 
           {/* Demo Metrics */}
-          <View className="flex-row justify-around mt-4">
-            <View className="flex-1 items-center">
-              <View className="w-12 h-12 rounded-xl bg-teal-500 items-center justify-center mb-2 shadow-sm">
-                <AppIcon
-                  name="check-circle"
-                  type="feather"
-                  size={20}
-                  color="white"
-                />
+          {isROI ? (
+            <View className="flex-row justify-around mt-4">
+              <View className="flex-1 items-center">
+                <View className="w-12 h-12 rounded-xl bg-teal-500 items-center justify-center mb-2 shadow-sm">
+                  <AppIcon
+                    name="laptop-outline"
+                    type="ionicons"
+                    size={20}
+                    color="white"
+                  />
+                </View>
+                <AppText
+                  size="xs"
+                  weight="medium"
+                  numberOfLines={2}
+                  className="text-center leading-tight text-teal-600 dark:text-teal-400">
+                  Total Demos
+                </AppText>
+                <AppText
+                  size="lg"
+                  weight="semibold"
+                  className="mt-1 text-teal-600 dark:text-teal-400">
+                  {totalDemo}
+                </AppText>
               </View>
-              <AppText
-                size="xs"
-                weight="medium"
-                numberOfLines={2}
-                className="text-center leading-tight text-teal-600 dark:text-teal-400">
-                Demos Executed
-              </AppText>
-              <AppText
-                size="lg"
-                weight="semibold"
-                className="mt-1 text-teal-600 dark:text-teal-400">
-                {totalDemosExecuted}
-              </AppText>
-            </View>
 
-            <View className="w-px bg-slate-100 dark:bg-slate-700 mx-3" />
+              <View className="w-px bg-slate-100 dark:bg-slate-700 mx-3" />
 
-            <View className="flex-1 items-center">
-              <View
-                className={`w-12 h-12 rounded-xl items-center justify-center mb-2 shadow-sm ${
-                  totalShortfall > 0
-                    ? 'bg-amber-500'
-                    : 'bg-slate-300 dark:bg-slate-600'
-                }`}>
-                <AppIcon
-                  name="alert-circle"
-                  type="feather"
-                  size={20}
-                  color="white"
-                />
+              <View className="flex-1 items-center">
+                <View
+                  className={`w-12 h-12 rounded-xl items-center justify-center mb-2 shadow-sm bg-secondary`}>
+                  <AppIcon
+                    name="trending-up"
+                    type="feather"
+                    size={20}
+                    color="white"
+                  />
+                </View>
+                <AppText
+                  size="xs"
+                  weight="medium"
+                  numberOfLines={2}
+                  className={`text-center leading-tight text-secondary dark:text-secondary-dark`}>
+                  Total Active
+                </AppText>
+                <AppText
+                  size="lg"
+                  weight="semibold"
+                  className={`mt-1 text-secondary dark:text-secondary-dark`}>
+                  {totalActive}
+                </AppText>
               </View>
-              <AppText
-                size="xs"
-                weight="medium"
-                numberOfLines={2}
-                className={`text-center leading-tight ${
-                  totalShortfall > 0
-                    ? 'text-amber-600 dark:text-amber-400'
-                    : 'text-slate-500 dark:text-slate-400'
-                }`}>
-                Shortfall
-              </AppText>
-              <AppText
-                size="lg"
-                weight="semibold"
-                className={`mt-1 ${
-                  totalShortfall > 0
-                    ? 'text-amber-600 dark:text-amber-400'
-                    : 'text-slate-500 dark:text-slate-400'
-                }`}>
-                {totalShortfall}
-              </AppText>
+
+              <View className="w-px bg-slate-100 dark:bg-slate-700 mx-3" />
+
+              <View className="flex-1 items-center">
+                <View
+                  className={`w-12 h-12 rounded-xl items-center justify-center mb-2 shadow-sm bg-warning`}>
+                  <AppIcon
+                    name="percent"
+                    type="feather"
+                    size={20}
+                    color="white"
+                  />
+                </View>
+                <AppText
+                  size="xs"
+                  weight="medium"
+                  numberOfLines={2}
+                  className={`text-center leading-tight text-warning dark:text-warning-dark`}>
+                  Total Stock
+                </AppText>
+                <AppText
+                  size="lg"
+                  weight="semibold"
+                  className={`mt-1 text-warning dark:text-warning-dark`}>
+                  {totalStock}
+                </AppText>
+              </View>
             </View>
-          </View>
+          ) : (
+            <View className="flex-row justify-around mt-4">
+              <View className="flex-1 items-center">
+                <View className="w-12 h-12 rounded-xl bg-teal-500 items-center justify-center mb-2 shadow-sm">
+                  <AppIcon
+                    name="check-circle"
+                    type="feather"
+                    size={20}
+                    color="white"
+                  />
+                </View>
+                <AppText
+                  size="xs"
+                  weight="medium"
+                  numberOfLines={2}
+                  className="text-center leading-tight text-teal-600 dark:text-teal-400">
+                  Demos Executed
+                </AppText>
+                <AppText
+                  size="lg"
+                  weight="semibold"
+                  className="mt-1 text-teal-600 dark:text-teal-400">
+                  {totalDemosExecuted}
+                </AppText>
+              </View>
+
+              <View className="w-px bg-slate-100 dark:bg-slate-700 mx-3" />
+
+              <View className="flex-1 items-center">
+                <View
+                  className={`w-12 h-12 rounded-xl items-center justify-center mb-2 shadow-sm ${
+                    totalShortfall > 0
+                      ? 'bg-amber-500'
+                      : 'bg-slate-300 dark:bg-slate-600'
+                  }`}>
+                  <AppIcon
+                    name="alert-circle"
+                    type="feather"
+                    size={20}
+                    color="white"
+                  />
+                </View>
+                <AppText
+                  size="xs"
+                  weight="medium"
+                  numberOfLines={2}
+                  className={`text-center leading-tight ${
+                    totalShortfall > 0
+                      ? 'text-amber-600 dark:text-amber-400'
+                      : 'text-slate-500 dark:text-slate-400'
+                  }`}>
+                  Shortfall
+                </AppText>
+                <AppText
+                  size="lg"
+                  weight="semibold"
+                  className={`mt-1 ${
+                    totalShortfall > 0
+                      ? 'text-amber-600 dark:text-amber-400'
+                      : 'text-slate-500 dark:text-slate-400'
+                  }`}>
+                  {totalShortfall}
+                </AppText>
+              </View>
+            </View>
+          )}
         </Card>
       </View>
     );
@@ -1104,4 +1299,4 @@ export default function DemoPartners() {
       />
     </AppLayout>
   );
-};
+}

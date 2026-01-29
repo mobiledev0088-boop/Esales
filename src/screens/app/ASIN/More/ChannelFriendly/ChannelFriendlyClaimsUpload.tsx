@@ -945,7 +945,7 @@ export default function ChannelFriendlyClaimsUpload() {
                 source={{uri: file?.uri}}
                 style={{width: '100%', height: '100%'}}
                 className="h-full w-full"
-                resizeMode="cover"
+                resizeMode="contain"
                 enableModalZoom
               />
             ) : (

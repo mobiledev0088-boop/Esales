@@ -9,7 +9,7 @@ import {
   ImageLibraryOptions,
 } from 'react-native-image-picker';
 import {check, request, PERMISSIONS, RESULTS} from 'react-native-permissions';
-import ImageMarker, {ImageFormat, Position} from 'react-native-image-marker';
+import ImageMarker, {ImageFormat, Position, TextBackgroundType} from 'react-native-image-marker';
 
 type ImageSource = 'camera' | 'gallery';
 
@@ -127,6 +127,7 @@ async function addWatermarkIfNeeded(
     if (!watermarkText || watermarkText.trim().length === 0) {
       return uri;
     }
+    const filename = 'watermarked_image_' + Date.now();
     const watermarkedImage = await ImageMarker.markText({
       backgroundImage: {
         src: uri,
@@ -141,7 +142,7 @@ async function addWatermarkIfNeeded(
             textBackgroundStyle: {
               paddingX: 10,
               paddingY: 10,
-              color: '#00539B99', // Primary color with 60% opacity
+              color: '#ff000080',
             },
             color: '#FFFFFF',
             fontSize: 42,
@@ -154,7 +155,7 @@ async function addWatermarkIfNeeded(
           },
         },
       ],
-      filename: 'watermarked_image',
+      filename: filename,
       quality: 100,
       saveFormat: ImageFormat.jpg,
     });
@@ -284,21 +285,24 @@ export function useImagePicker(
     [quality, maxWidth, maxHeight, mediaType],
   );
 
-  const handleCropComplete = useCallback(async (croppedUri: string) => {
-    // Normalize the cropped URI for Android
-    const normalizedUri = normalizeUri(croppedUri);
-    if (watermarkText) {
-      const watermarkedUri = await addWatermarkIfNeeded(
-        normalizedUri,
-        watermarkText,
-      );
-      setImageUri(watermarkedUri);
-    } else {
-      setImageUri(normalizedUri);
-    }
-    setShowCropModal(false);
-    setTempImageUri(null);
-  }, [watermarkText]);
+  const handleCropComplete = useCallback(
+    async (croppedUri: string) => {
+      // Normalize the cropped URI for Android
+      const normalizedUri = normalizeUri(croppedUri);
+      if (watermarkText) {
+        const watermarkedUri = await addWatermarkIfNeeded(
+          normalizedUri,
+          watermarkText,
+        );
+        setImageUri(watermarkedUri);
+      } else {
+        setImageUri(normalizedUri);
+      }
+      setShowCropModal(false);
+      setTempImageUri(null);
+    },
+    [watermarkText],
+  );
 
   const handleCropCancel = useCallback(() => {
     setShowCropModal(false);

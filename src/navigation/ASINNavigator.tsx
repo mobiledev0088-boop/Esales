@@ -138,7 +138,10 @@ const screens: Screen[] = [
 ];
 
 export const ASINNavigator = () => (
-  <Stack.Navigator screenOptions={{headerShown: false}}>
+  <Stack.Navigator screenOptions={{
+    headerShown: false,
+    animation: 'slide_from_right',
+    }}>
     {screens.map(screen => (
       <Stack.Screen
         key={screen.name}

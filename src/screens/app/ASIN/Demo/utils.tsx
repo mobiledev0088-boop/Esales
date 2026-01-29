@@ -44,6 +44,14 @@ export interface DemoItemROI {
   Model_Series: string;
 }
 
+interface DemoItemROIWithMeta extends DemoItemROI {
+  model: Map<string, {
+    name: string;
+    total_demo: number;
+    total_act: number;
+    total_stock: number;
+  }>;
+}
 interface GroupROI {
   id: string;
   state: string;
@@ -51,7 +59,7 @@ interface GroupROI {
   total_demo: number;
   total_act: number;
   total_stock: number;
-  partners: Map<string, DemoItemROI>;
+  partners: Map<string, DemoItemROIWithMeta>;
 }
 
 // Reseller Demo - Unified
@@ -217,6 +225,7 @@ export const METRIC_ICON_COLOR: Record<MetricProps['tint'], string> = {
   blue: '#3b82f6',
   yellow: '#eab308',
 };
+
 
 // Reseller Demo - Unified
 export const transformDemoData = (apiData: {
@@ -541,7 +550,7 @@ export const transformDemoDataROI = (apiData: DemoItemROI[]) => {
     } = item;
 
     const groupKey = BranchName;
-    const partnerKey = `${PartnerName}-${PartnerType}-${PartnerCode}-${Model_Series}`;
+    const partnerKey = `${PartnerName}-${PartnerType}-${PartnerCode}`;
 
     /* ---------- Create group if not exists ---------- */
     let group = groupMap.get(groupKey);
@@ -565,8 +574,27 @@ export const transformDemoDataROI = (apiData: DemoItemROI[]) => {
       existingPartner.Total_Demo_Count += Total_Demo_Count;
       existingPartner.Activation_count += Activation_count;
       existingPartner.Inventory_Count += Inventory_Count;
+      // Model-wise aggregation
+      const modelData = existingPartner.model.get(Model_Series);
+      if (modelData) {
+        modelData.total_demo += Total_Demo_Count;
+        modelData.total_act += Activation_count;
+        modelData.total_stock += Inventory_Count;
+      } else {
+        existingPartner.model.set(Model_Series, {
+          name: Model_Series,
+          total_demo: Total_Demo_Count,
+          total_act: Activation_count,
+          total_stock: Inventory_Count,
+        });
+      }
     } else {
-      group.partners.set(partnerKey, { ...item });
+      group.partners.set(partnerKey, { ...item, model: new Map([[Model_Series, {
+        name: Model_Series,
+        total_demo: Total_Demo_Count,
+        total_act: Activation_count,
+        total_stock: Inventory_Count,
+      }]]) });
       group.partner_count++;
     }
 
@@ -578,7 +606,10 @@ export const transformDemoDataROI = (apiData: DemoItemROI[]) => {
 
   /* ---------- Normalize output ---------- */
   return Array.from(groupMap.values()).map(group => ({
-    ...group,
-    partners: Array.from(group.partners.values()),
-  }));
+  ...group,
+  partners: Array.from(group.partners.values()).map(p => ({
+    ...p,
+    model: Array.from(p.model.values()),
+  })),
+}));
 };

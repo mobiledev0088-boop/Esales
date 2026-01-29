@@ -18,7 +18,7 @@ type AppNavigationParamList = {
   ScanSN: undefined;
   TargetPartnerDashboard: {partner: any};
   // Demo Screen
-  DemoPartners: {partners: Array<any>; yearQtr: string};
+  DemoPartners: {partners: Array<any>; yearQtr: string,isROI?: boolean};
   UploadDemoData: undefined;
   // Claim Screen
   ClaimInfo: {

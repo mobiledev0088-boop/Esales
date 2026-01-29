@@ -133,7 +133,7 @@ export const useGetDemoDataROI = (YearQtr: string, Category: string) => {
       if (!result?.Status) {
         throw new Error('Failed to fetch activation data');
       }
-      return result.Datainfo || [];
+      return result.Datainfo?.ROI_Details|| [];
     },
   });
 };

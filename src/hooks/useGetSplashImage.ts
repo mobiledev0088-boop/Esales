@@ -3,6 +3,7 @@ import {getMMKV} from '../utils/mmkvStorage';
 import {handleASINApiCall} from '../utils/handleApiCall';
 import {getDeviceId} from 'react-native-device-info';
 import {useLoginStore} from '../stores/useLoginStore';
+import { useUserStore } from '../stores/useUserStore';
 
 interface SplashImageCache {
   imageUrl: string;
@@ -111,7 +112,7 @@ async function fetchAndCacheImage(
 ): Promise<void> {
   try {
     const deviceId = getDeviceId();
-    const response = await handleASINApiCall('/Auth/CheckLogin', {
+    const response = await handleASINApiCall('/Auth/EmpInfo', {
       employeeCode,
       deviceId,
     });
@@ -140,9 +141,11 @@ async function fetchAndCacheImage(
         Latitude,
         Longitude,
       );
-      // const Year_Qtr = result.Datainfo[0].Year_Qtr;
+      const empData = result.Datainfo[0].Year_Qtr;
       const setUserInfo = useLoginStore.getState().setUserInfo;
+      const setEmpInfo = useUserStore.getState().setEmpInfo;
       setUserInfo({Latitude, Longitude});
+      setEmpInfo(empData);
     } else {
       console.log('No splash image found in API response');
     }

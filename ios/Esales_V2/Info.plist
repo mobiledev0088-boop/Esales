@@ -35,12 +35,12 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>We need access to your camera to Scan barcodes.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>We need access to your photo library to select images.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We need access to your Location to Mark Attendance by Location.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>We need permission to save images to your photo library.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need access to your photo library to select images.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Manrope-Bold.ttf</string>

@@ -226,7 +226,7 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
                     Target
                   </AppText>
                   <AppText size="sm" weight="semibold">
-                    {convertToASINUnits(item.Target_Qty, true)}
+                    {convertToASINUnits(item.Target_Qty || 0, true)}
                   </AppText>
                 </View>
                 <View className="flex-1 items-end">
@@ -234,7 +234,7 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
                     Achieved
                   </AppText>
                   <AppText size="sm" weight="semibold">
-                    {convertToASINUnits(item.Achieved_Qty, true)}
+                    {convertToASINUnits(item.Achieved_Qty || 0, true)}
                   </AppText>
                 </View>
               </View>
@@ -554,7 +554,14 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
         })}
       </View>
     );
-  }, [channelData, renderHeadCountCard, renderMetricCard, isBranchManager, quarter, navigation]);
+  }, [
+    channelData,
+    renderHeadCountCard,
+    renderMetricCard,
+    isBranchManager,
+    quarter,
+    navigation,
+  ]);
 
   const ASELFRTab = useCallback(
     ({needHeader = true}: {needHeader: boolean}) => {
@@ -565,7 +572,7 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
       const MonthNum =
         currentMonth < lastMonthOfQuarter ? currentMonth : lastMonthOfQuarter;
       const onPress = () => {
-         if (isBranchManager) return;
+        if (isBranchManager) return;
         navigation.push('VerticalASE_HO', {
           Year: year.toString(),
           Month: MonthNum.toString(),
@@ -601,7 +608,14 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
         </View>
       );
     },
-    [lfrData, renderHeadCountCard, renderMetricCard, isBranchManager, quarter, navigation],
+    [
+      lfrData,
+      renderHeadCountCard,
+      renderMetricCard,
+      isBranchManager,
+      quarter,
+      navigation,
+    ],
   );
 
   if (error) {
@@ -961,9 +975,19 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
   const [selectedQuarter, setSelectedQuarter] =
     useState<AppDropdownItem | null>(quarters[0] || null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const {BSM, BPM} = ASUS.ROLE_ID
+  const {
+    AM,
+    BPM,
+    BSM,
+    CHANNEL_MARKETING,
+    COUNTRY_HEAD,
+    HO_EMPLOYEES,
+    DIR_HOD_MAN,
+    TM,
+    RSM,
+  } = ASUS.ROLE_ID;
   const isBranchManager = useMemo(() => {
-    return [BSM,BPM].includes(userInfo?.EMP_RoleId as any);
+    return [BSM, BPM].includes(userInfo?.EMP_RoleId as any);
   }, [userInfo?.EMP_RoleId]);
 
   const {
@@ -1011,7 +1035,10 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
     );
     const acvTabData = Object.keys(acvTabUnManage).reduce(
       (acc, key) => {
-        const findKey =  isBranchManager && key === 'Top5Branch' ? 'Top_5_Territory'  : `Top_5_${key.replace('Top5', '')}`
+        const findKey =
+          isBranchManager && key === 'Top5Branch'
+            ? 'Top_5_Territory'
+            : `Top_5_${key.replace('Top5', '')}`;
         acc[key] = acvTabUnManage[key].map((item: any) => ({
           ...item,
           name: item[findKey] || 'N/A',
@@ -1126,8 +1153,11 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
           />
         </View>
 
-        {['Total', 'CHANNEL', 'LFR'].includes(route.name) &&
-          ![ASUS.ROLE_ID.DISTI_HO, ASUS.ROLE_ID.DISTRIBUTORS].includes(
+        {([DIR_HOD_MAN, HO_EMPLOYEES, COUNTRY_HEAD].includes(
+          userInfo?.EMP_RoleId as any,
+        ) &&
+          ['Total', 'CHANNEL', 'LFR'].includes(route.name)) ||
+          ([BSM, BPM, TM, RSM, CHANNEL_MARKETING].includes(
             userInfo?.EMP_RoleId as any,
           ) && (
             <ASEDataComponent
@@ -1140,7 +1170,7 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
               quarter={selectedQuarter?.value || ''}
               masterTab={route.name}
             />
-          )}
+          ))}
 
         {['Total', 'CHANNEL'].includes(route.name) &&
           ![ASUS.ROLE_ID.DISTI_HO, ASUS.ROLE_ID.DISTRIBUTORS].includes(

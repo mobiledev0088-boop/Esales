@@ -28,7 +28,7 @@ import {useImagePicker} from '../../../../../hooks/useImagePicker';
 import ImageCropModal from '../../../../../components/ImageCropModal';
 import moment from 'moment';
 import Skeleton from '../../../../../components/skeleton/skeleton';
-import { screenWidth } from '../../../../../utils/constant';
+import {screenWidth} from '../../../../../utils/constant';
 
 interface ChannelFriendlyClaim {
   Parent_Name: string;
@@ -160,7 +160,24 @@ const ClaimCard: React.FC<{
           />
         </View>
 
-        <View className="flex-row items-center justify-between mt-4">
+        <View className="flex-row items-center justify-between mt-4 border-t pt-3 border-slate-200 dark:border-slate-700">
+          <View
+            className="flex-row items-center px-3 py-1.5 rounded-full"
+            style={{backgroundColor: statusConfig.color + '20'}}>
+            <AppIcon
+              name={statusConfig.icon}
+              type="ionicons"
+              size={16}
+              color={statusConfig.color}
+            />
+            <AppText
+              size="sm"
+              weight="semibold"
+              style={{color: statusConfig.color, marginLeft: 6}}
+              numberOfLines={1}>
+              {item.ChannelFriendlyClaim_Status || 'Pending'}
+            </AppText>
+          </View>
           <View className="flex-row items-center">
             <AppIcon
               name="time-outline"
@@ -171,23 +188,6 @@ const ClaimCard: React.FC<{
             />
             <AppText size="sm" color="gray">
               {formatDate(item.Received_Date || item.End_Cust_Invoice_Date)}
-            </AppText>
-          </View>
-          <View
-            className="flex-row items-center px-3 py-1 rounded-full"
-            style={{backgroundColor: statusConfig.color + '20'}}>
-            <AppIcon
-              name={statusConfig.icon}
-              type="ionicons"
-              size={14}
-              color={statusConfig.color}
-            />
-            <AppText
-              size="xs"
-              weight="bold"
-              style={{color: statusConfig.color, marginLeft: 6}}
-              numberOfLines={1}>
-              {item.ChannelFriendlyClaim_Status || 'Pending'}
             </AppText>
           </View>
         </View>
@@ -257,31 +257,37 @@ export default function ChannelFriendlyClaimListPartner() {
     () => (
       <View className="">
         {isLoading ? (
-          <View className='gap-y-3'>
+          <View className="gap-y-3">
             {[...Array(5)].map((_, index) => (
-              <Skeleton key={index} width={screenWidth-20} height={150} borderRadius={12} />
+              <Skeleton
+                key={index}
+                width={screenWidth - 20}
+                height={150}
+                borderRadius={12}
+              />
             ))}
           </View>
         ) : (
-          <View className='items-center border'>
-          <AppIcon
-            name="alert-circle-outline"
-            type="ionicons"
-            size={36}
-            color={theme.text}
-            style={{opacity: 0.4}}
+          <View className="items-center mt-20">
+            <AppIcon
+              name="alert-circle-outline"
+              type="ionicons"
+              size={36}
+              color={theme.text}
+              style={{opacity: 0.4}}
             />
-            <AppText color="gray" className="mt-3 text-center">No claims found for the selected quarter.</AppText>
-            </View>
+            <AppText color="gray" className="mt-3 text-center">
+              No claims found for the selected quarter.
+            </AppText>
+          </View>
         )}
-        
       </View>
     ),
     [isLoading, theme.text],
   );
 
   return (
-    <AppLayout title="Channel Friendly Claims" needBack >
+    <AppLayout title="Channel Friendly Claims" needBack>
       <View
         className={clsx(
           'flex-row items-center gap-x-2 my-4 px-3',
@@ -317,7 +323,7 @@ export default function ChannelFriendlyClaimListPartner() {
         keyExtractor={(_, index) => index.toString()}
         renderItem={renderClaim}
         ListEmptyComponent={renderEmpty}
-        contentContainerStyle={{paddingBottom: 32,paddingHorizontal: 12}}
+        contentContainerStyle={{paddingBottom: 32, paddingHorizontal: 12}}
         showsVerticalScrollIndicator={false}
       />
       <FAB onPress={() => navigation.push('ChannelFriendlyClaimsUpload')} />

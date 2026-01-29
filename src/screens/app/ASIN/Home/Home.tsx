@@ -32,6 +32,7 @@ import PowerCalculator from '../Commercial/PowerCalculator/PowerCalculator';
 import Account from '../User/Account/Account';
 import BackgroundFetch from 'react-native-background-fetch';
 import Dashboard_ASE from '../Dashboard/Dashboard_ASE';
+import AutoUpdate from '../../../../components/AutoUpdate';
 interface TabScreens {
   name: string;
   component: ComponentType<any>;
@@ -199,6 +200,7 @@ const Home: React.FC = () => {
           />
         ))}
       </Tab.Navigator>
+      <AutoUpdate />
     </AppLayout>
   );
 };

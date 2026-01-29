@@ -6,7 +6,6 @@ import AppDropdown, {
 } from '../../../../components/customs/AppDropdown';
 import {getPastQuarters} from '../../../../utils/commonFunctions';
 import {
-  DemoItemReseller,
   DemoItemRetailer,
   ResellerFilterType,
   transformDemoData,
@@ -315,7 +314,6 @@ const Retailer = () => {
     const {EMP_RoleId: role_id} = useLoginStore(state => state.userInfo);
   const {LFR_HO,ONLINE_HO,AM,TM,SALES_REPS} = ASUS.ROLE_ID
   const noTerritoryButton = [LFR_HO,ONLINE_HO,AM,TM,SALES_REPS].includes(role_id as any);
-  console.log('Reseller noTerritoryButton', noTerritoryButton, role_id);
 
   const {data, isLoading, error, refetch} = useGetDemoDataRetailer(
     selectedQuarter?.value || '',
@@ -350,6 +348,7 @@ const Retailer = () => {
         at_least_single_demo: 0,
         at_80_demo: 0,
         demo_100: 0,
+        pending: 0,
         total_partners: 0,
       };
     }
@@ -359,12 +358,14 @@ const Retailer = () => {
           acc.at_least_single_demo + branch.at_least_single_demo,
         at_80_demo: acc.at_80_demo + (branch.at_80_demo || 0),
         demo_100: acc.demo_100 + branch.demo_100,
+        pending: acc.pending + branch.pending,
         total_partners: acc.total_partners + branch.partner_count,
       }),
       {
         at_least_single_demo: 0,
         at_80_demo: 0,
         demo_100: 0,
+        pending: 0,
         total_partners: 0,
       },
     );
@@ -448,7 +449,7 @@ const Retailer = () => {
       },
       {
         label: 'Pending',
-        value: 1,
+        value: summaryData.pending,
         icon: 'pause-circle',
         iconType: 'feather',
         name: 'pause_icon',
@@ -560,12 +561,10 @@ const LFR = () => {
     lfrType: '',
     partnerName: '',
   });
-  console.log('LFR filters', selectedQuarter, filters);
   const {data, isLoading, error, refetch} = useGetDemoDataLFR(
     selectedQuarter?.value || '',
     'All',
   );
-  console.log('LFR data', data, isLoading);
 
   const filteredData = useMemo(() => {
     if (!data) return null;
@@ -791,7 +790,7 @@ const ROI = () => {
   }>({
     category: 'All',
     series: '',
-    partnerType: 'All',
+    partnerType: '',
   });
 
   const {data, isLoading, error, refetch} = useGetDemoDataROI(
@@ -804,14 +803,14 @@ const ROI = () => {
 
   const filteredData = useMemo(() => {
     if (!data) return null;
-    if (!filters.partnerType || filters.partnerType === 'All') return data;
+    if (!filters.partnerType || filters.partnerType === '') return data;
     return data.filter(
       (item: DemoItemRetailer) => item.PartnerType === filters.partnerType,
     );
   }, [data, filters.partnerType]);
 
   const transformedData = useMemo(() => {
-    if (filteredData) {
+    if (filteredData?.length) {
       return transformDemoDataROI(filteredData);
     } else {
       return [];
@@ -972,6 +971,7 @@ const ROI = () => {
     seriesList,
     categoriesData,
   ]);
+  console.log('ROI render', {selectedQuarter, filters, transformedData});
   return (
     <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
       <View className="flex-row items-center gap-x-1 px-3 pt-2 mb-3">

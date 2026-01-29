@@ -30,8 +30,42 @@ const chunkArray = <T,>(array: T[], size: number): T[][] =>
     array.slice(i * size, i * size + size),
   );
 
-const hasRole = (roleId: number | undefined, allowedRoles: number[]) =>
-  roleId !== undefined && allowedRoles.includes(roleId);
+const checkRole = (
+  roleId: number | undefined,
+  allowedRoles: number[],
+  shouldHaveRole: boolean = true,
+) => {
+  if (roleId === undefined) return false;
+
+  const hasRole = allowedRoles.includes(roleId);
+  return shouldHaveRole ? hasRole : !hasRole;
+};
+
+const {
+  AM,
+  ASE,
+  BPM,
+  BSM,
+  CHANNEL_MARKETING,
+  COUNTRY_HEAD,
+  DIR_HOD_MAN,
+  DISTI_HO,
+  DISTRIBUTORS,
+  ESHOP_HO,
+  HO_EMPLOYEES,
+  LFR_HO,
+  ONLINE_HO,
+  PARTNERS,
+  RSM,
+  SA,
+  SALES_REPS,
+  TM,
+} = ASUS.ROLE_ID;
+const {
+  T2: {AES, AWP},
+  END_CUSTOMER,
+  T3: {AGP, ASP, T3},
+} = ASUS.PARTNER_TYPE;
 
 const getASINOptions = (
   roleId: number,
@@ -40,7 +74,14 @@ const getASINOptions = (
 ): Option[] => {
   const options: Option[] = [];
 
-  if (hasRole(roleId, [1, 2, 3, 4, 9, 10, 12, 13, 14, 17, 25, 26, 29])) {
+  // if (hasRole(roleId, [1, 2, 3, 4, 9, 10, 12, 13, 14, 17, 25, 26, 29])) {
+  if (
+    checkRole(
+      roleId,
+      [PARTNERS, DISTRIBUTORS, ESHOP_HO, SA, ASE, DISTI_HO],
+      false,
+    )
+  ) {
     options.push({
       label: 'Channel Map',
       iconName: 'codesandbox',
@@ -48,9 +89,17 @@ const getASINOptions = (
       navigateTo: 'ChannelMap',
     });
   }
-  if (hasRole(roleId, [1, 2, 3, 4, 6, 9, 10, 25, 26, 29])) {
+
+  // if (checkRole(roleId, [1, 2, 3, 4, 6, 9, 10, 25, 26, 29])) {
+  if (
+    checkRole(
+      roleId,
+      [DISTRIBUTORS, LFR_HO, ONLINE_HO, ESHOP_HO, AM, SA, ASE, DISTI_HO],
+      false,
+    )
+  ) {
     let navigateTo = () =>
-      (roleId === ASUS.ROLE_ID.PARTNERS
+      (roleId === PARTNERS
         ? 'ChannelFriendlyClaimListPartner'
         : ['KN2200052', 'KN1800045', 'KN1500008'].includes(empCode)
           ? 'ChannelFriendlyClaimListALP'
@@ -68,13 +117,24 @@ const getASINOptions = (
       navigateTo: 'ActivatedDetails',
     });
   }
+  // checkRole(roleId, [1, 2, 3, 4, 9, 10, 25, 26, 29]) ||
   if (
-    hasRole(roleId, [1, 2, 3, 4, 9, 10, 25, 26, 29]) ||
-    (roleId === 6 && ['AWP', 'T3Partner'].includes(empType))
+    checkRole(roleId, [
+      DIR_HOD_MAN,
+      HO_EMPLOYEES,
+      BSM,
+      TM,
+      COUNTRY_HEAD,
+      SALES_REPS,
+      BPM,
+      RSM,
+      DISTI_HO,
+    ]) ||
+    (roleId === PARTNERS && [AWP, T3].includes(empType as any))
   ) {
     let navigateTo = 'LMSList_HO' as keyof AppNavigationParamList;
-    if (roleId === 6 && empType === 'AWP') navigateTo = 'LMSListAWP';
-    // if (roleId === 6 && empType === 'T3Partner') navigateTo = 'LMS_Menu';
+    if (roleId === PARTNERS && empType === AWP) navigateTo = 'LMSListAWP';
+    // if (roleId === PARTNERS && empType === T3) navigateTo = 'LMS_Menu'; need to create this screen
     options.push({
       label: 'LMS',
       iconName: 'package',
@@ -111,15 +171,16 @@ const getASINOptions = (
     });
   }
   if (
-    hasRole(roleId, [
-      ASUS.ROLE_ID.DIR_HOD_MAN,
-      ASUS.ROLE_ID.HO_EMPLOYEES,
-      ASUS.ROLE_ID.BSM,
-      ASUS.ROLE_ID.TM,
-      ASUS.ROLE_ID.COUNTRY_HEAD,
-      ASUS.ROLE_ID.SALES_REPS,
-      ASUS.ROLE_ID.BPM,
-      ASUS.ROLE_ID.RSM,
+    checkRole(roleId, [
+      DIR_HOD_MAN,
+      HO_EMPLOYEES,
+      BSM,
+      TM,
+      COUNTRY_HEAD,
+      SALES_REPS,
+      BPM,
+      RSM,
+      CHANNEL_MARKETING,
     ])
   ) {
     options.push({
@@ -141,7 +202,19 @@ const getASINOptions = (
       navigateTo: 'StandPOSM',
     });
   }
-  if ([1, 2, 9, 3, 7, 25, 26, 28].includes(roleId)) {
+  // if ([1, 2, 9, 3, 7, 25, 26, 28].includes(roleId)) {
+  if (
+    checkRole(roleId, [
+      DIR_HOD_MAN,
+      HO_EMPLOYEES,
+      BSM,
+      DISTRIBUTORS,
+      COUNTRY_HEAD,
+      BPM,
+      RSM,
+      DISTI_HO,
+    ])
+  ) {
     options.push({
       label: 'Credit Limit',
       iconName: 'credit-card',
@@ -149,7 +222,7 @@ const getASINOptions = (
       navigateTo: 'CreditLimit',
     });
   }
-  if (roleId === 24) {
+  if (roleId === ASE) {
     options.push({
       label: 'DSR Upload',
       iconName: 'upload-file',
@@ -158,7 +231,7 @@ const getASINOptions = (
         'https://docs.google.com/forms/d/e/1FAIpQLSc5zEQbYhcOBHoACNbndMv1t4AjcAcsUO9Iex7x1PuZ9wNA5w/viewform',
     });
   }
-  if (![24, 29].includes(roleId)) {
+  if (![ASE, CHANNEL_MARKETING].includes(roleId as any)) {
     options.push({
       label: 'DSR Report',
       iconName: 'file-download-outline',
@@ -207,76 +280,6 @@ const getAPEXOptions = (countryId?: string): Option[] => {
   return opts;
 };
 
-const MoreSheet = () => {
-  const userInfo = useLoginStore(state => state.userInfo);
-  const AppTheme = useThemeStore(state => state.AppTheme);
-  const navigation = useNavigation<AppNavigationProp>();
-
-  const roleId = userInfo.EMP_RoleId;
-  const empType = userInfo.EMP_Type ?? '';
-  const empCode = userInfo?.EMP_Code ?? '';
-  const countryId = userInfo?.EMP_CountryID;
-
-  const options: Option[] = useMemo(() => {
-    if (countryId === 'ASIN') {
-      return getASINOptions(roleId, empType, empCode);
-    }
-    return getAPEXOptions(countryId);
-  }, [roleId, empType, empCode, countryId]);
-
-  const chunkedOptions = useMemo(() => chunkArray(options, 9), [options]);
-  const handlePress = (item: Option) => {
-    if (item.navigateTo) {
-      navigation.navigate(item.navigateTo as any);
-    } else if (item.linkTo) {
-      Linking.openURL(item.linkTo);
-    }
-    SheetManager.hide('MoreSheet');
-  };
-
-  return (
-    <View>
-      <ActionSheet
-        id="MoreSheet"
-        gestureEnabled
-        containerStyle={{
-          backgroundColor: AppColors[AppTheme].bgBase,
-        }}
-        indicatorStyle={{ backgroundColor: AppColors.formLabel }}
-        >
-        {/* Create Indicator */}
-        <View
-          style={{height: screenHeight / 2}}
-          className="bg-lightBg-base dark:bg-darkBg-base">
-          <Watermark />
-          <Swiper
-            loop={false}
-            showsPagination={true}
-            height={300}
-            dotColor={AppColors.formLabel}>
-            {chunkedOptions.map((chunk, pageIndex) => (
-              <View key={pageIndex} className="mt-5 flex-row flex-wrap">
-                {chunk.map((item, index) => (
-                  <View key={index} className="w-1/3 mb-5">
-                    <EachMoreOption
-                      label={item.label}
-                      iconName={item.iconName}
-                      iconType={item.iconType}
-                      onPress={() => handlePress(item)}
-                    />
-                  </View>
-                ))}
-              </View>
-            ))}
-          </Swiper>
-        </View>
-      </ActionSheet>
-    </View>
-  );
-};
-
-export default MoreSheet;
-
 const EachMoreOption = ({
   label,
   iconName,
@@ -317,4 +320,70 @@ const EachMoreOption = ({
   );
 };
 
+export default function MoreSheet() {
+  const userInfo = useLoginStore(state => state.userInfo);
+  const AppTheme = useThemeStore(state => state.AppTheme);
+  const navigation = useNavigation<AppNavigationProp>();
+
+  const roleId = userInfo.EMP_RoleId;
+  const empType = userInfo.EMP_Type ?? '';
+  const empCode = userInfo?.EMP_Code ?? '';
+  const countryId = userInfo?.EMP_CountryID;
+
+  const options: Option[] = useMemo(() => {
+    if (countryId === 'ASIN') {
+      return getASINOptions(roleId, empType, empCode);
+    }
+    return getAPEXOptions(countryId);
+  }, [roleId, empType, empCode, countryId]);
+
+  const chunkedOptions = useMemo(() => chunkArray(options, 9), [options]);
+  const handlePress = (item: Option) => {
+    if (item.navigateTo) {
+      navigation.navigate(item.navigateTo as any);
+    } else if (item.linkTo) {
+      Linking.openURL(item.linkTo);
+    }
+    SheetManager.hide('MoreSheet');
+  };
+
+  return (
+    <View>
+      <ActionSheet
+        id="MoreSheet"
+        gestureEnabled
+        containerStyle={{
+          backgroundColor: AppColors[AppTheme].bgBase,
+        }}
+        indicatorStyle={{backgroundColor: AppColors.formLabel}}>
+        {/* Create Indicator */}
+        <View
+          style={{height: screenHeight / 2}}
+          className="bg-lightBg-base dark:bg-darkBg-base">
+          <Watermark />
+          <Swiper
+            loop={false}
+            showsPagination={true}
+            height={300}
+            dotColor={AppColors.formLabel}>
+            {chunkedOptions.map((chunk, pageIndex) => (
+              <View key={pageIndex} className="mt-5 flex-row flex-wrap">
+                {chunk.map((item, index) => (
+                  <View key={index} className="w-1/3 mb-5">
+                    <EachMoreOption
+                      label={item.label}
+                      iconName={item.iconName}
+                      iconType={item.iconType}
+                      onPress={() => handlePress(item)}
+                    />
+                  </View>
+                ))}
+              </View>
+            ))}
+          </Swiper>
+        </View>
+      </ActionSheet>
+    </View>
+  );
+}
 //   <View className="w-1/6 h-2 rounded bg-gray-700 dark:bg-white self-center my-2" />

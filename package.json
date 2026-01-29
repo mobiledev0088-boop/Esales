@@ -17,7 +17,6 @@
   "dependencies": {
     "@d11/react-native-fast-image": "^8.10.0",
     "@notifee/react-native": "^9.1.8",
-    "@pushpendersingh/react-native-scanner": "^1.5.0",
     "@react-native-clipboard/clipboard": "^1.16.3",
     "@react-native-community/netinfo": "^11.4.1",
     "@react-native-firebase/app": "^22.4.0",
