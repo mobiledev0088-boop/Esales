@@ -465,9 +465,6 @@ export const getQuarterDateRange = (quarter: string) => {
     .startOf('quarter')
     .toDate();
   const endDate = moment()
-    .year(year)
-    .quarter(quarterNum)
-    .endOf('quarter')
     .toDate();
 
   return {startDate:startDate, endDate: endDate};

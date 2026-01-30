@@ -1035,6 +1035,7 @@ const TAB_CONFIG = {
   reseller: {label: 'Reseller', name: 'reseller', component: Reseller},
   roi: {label: 'ROI', name: 'roi', component: ROI},
 } as const;
+
 const ROLE_TABS = {
   AM: ['retailer', 'lfr'], // T
   LFR: ['lfr'],
@@ -1046,12 +1047,8 @@ const ROLE_TABS = {
 export default function Demo() {
   useGetSummaryOverviewData(); // Preload summary data
   const {EMP_RoleId: role_id} = useLoginStore(state => state.userInfo);
-  const [isLFR, isAM, isTM, isCSE] = [
-    role_id === ASUS.ROLE_ID.LFR_HO || role_id === ASUS.ROLE_ID.ONLINE_HO,
-    role_id === ASUS.ROLE_ID.AM,
-    role_id === ASUS.ROLE_ID.TM,
-    role_id === ASUS.ROLE_ID.SALES_REPS,
-  ];
+  const {LFR_HO,ONLINE_HO,AM,TM,SALES_REPS} = ASUS.ROLE_ID;
+  const [isLFR, isAM, isTM, isCSE] = [role_id === LFR_HO || role_id === ONLINE_HO,role_id === AM,role_id === TM,role_id === SALES_REPS];
 
   const tabs = useMemo(() => {
     const resolveRole = () => {

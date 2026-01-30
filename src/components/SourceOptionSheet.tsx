@@ -27,7 +27,6 @@ export default function SourceOptionSheet() {
 
   const handleSelect = (source: ImageSourceType) => {
     onSelect?.(source);
-    SheetManager.hide('SourceOptionSheet');
   };
 
   const handleCancel = () => {

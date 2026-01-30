@@ -5,14 +5,14 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
-import React, {useState, useCallback, useMemo} from 'react';
+import {useState, useCallback, useMemo, memo, useEffect} from 'react';
 import AppLayout from '../../../../components/layout/AppLayout';
 import {useQuery} from '@tanstack/react-query';
 import {handleASINApiCall} from '../../../../utils/handleApiCall';
 import {useLoginStore} from '../../../../stores/useLoginStore';
 import AppText from '../../../../components/customs/AppText';
 import {ASUS, screenWidth} from '../../../../utils/constant';
-import {EmpInfo, UserInfo} from '../../../../types/user';
+import {UserInfo} from '../../../../types/user';
 import Card from '../../../../components/Card';
 import AppIcon from '../../../../components/customs/AppIcon';
 import MaterialTabBar from '../../../../components/MaterialTabBar';
@@ -21,8 +21,9 @@ import moment from 'moment';
 import {useNavigation} from '@react-navigation/native';
 import {AppColors} from '../../../../config/theme';
 import Accordion from '../../../../components/Accordion';
+import {DataStateView} from '../../../../components/DataStateView';
 
-// Types
+// interfaces
 interface NotificationItem {
   Notification_Type: string;
   Employee_Code: string;
@@ -33,21 +34,31 @@ interface NotificationItem {
   Token_Id: string;
   Unique_key: string;
 }
-
 interface NotificationTabItem {
   title: string;
   id: string;
 }
-
 interface NotificationData {
   notificationTypeTabData: NotificationTabItem[];
   groupByNotificationType: Record<string, NotificationItem[]>;
 }
+interface NotificationCardProps {
+  item: NotificationItem;
+  onNavigate: () => void;
+}
+interface NotificationListProps {
+  notifications: NotificationItem[];
+  isLoading: boolean;
+  refreshing: boolean;
+  onRefresh: () => void;
+  onNotificationPress: (item: NotificationItem) => void;
+}
+type NavigationRoute = string;
 
+// API HOOK
 const useGetPushNotification = () => {
   const userInfo = useLoginStore(state => state.userInfo);
   const employeeCode = userInfo?.EMP_Code || '';
-
   return useQuery({
     queryKey: ['push-notification', employeeCode],
     queryFn: async (): Promise<NotificationData> => {
@@ -58,28 +69,19 @@ const useGetPushNotification = () => {
         );
 
         // Early return for invalid response structure
-        if (
-          !res?.claimMasterData?.Status ||
-          !res?.claimMasterData?.Datainfo?.Info
-        ) {
+        if (!res?.claimMasterData?.Status ||!res?.claimMasterData?.Datainfo?.Info) {
           return {
             notificationTypeTabData: [],
             groupByNotificationType: {},
           };
         }
-        const notificationsData = res.claimMasterData.Datainfo
-          .Info as NotificationItem[];
-
-        if (
-          !Array.isArray(notificationsData) ||
-          notificationsData.length === 0
-        ) {
+        const notificationsData = res.claimMasterData.Datainfo.Info as NotificationItem[];
+        if (!Array.isArray(notificationsData) ||notificationsData.length === 0) {
           return {
             notificationTypeTabData: [],
             groupByNotificationType: {},
           };
         }
-
         // Use Set to track unique notification types (more efficient)
         const uniqueTypes = new Set<string>();
         const notificationTypeTabData: NotificationTabItem[] = [];
@@ -122,7 +124,139 @@ const useGetPushNotification = () => {
     enabled: !!employeeCode, // Don't fetch if no employee code
   });
 };
+// Navigation route mapping types
+const navigateTo = (
+  notification_type: string,
+  navigation: any,
+  userInfo: UserInfo,
+): void => {
+  // Early return for commercial business type
+  if (userInfo.EMP_Btype === ASUS.BUSINESS_TYPES.COMMERCIAL) return;
 
+  const roleId = userInfo.EMP_RoleId;
+  const empType = userInfo.EMP_Type;
+
+  // Helper function to navigate with optional params
+  const navigate = (screenName: string) => {
+    navigation.navigate('Index', {
+      screen: 'Home',
+      params: {
+        screen: screenName,
+      },
+    });
+  };
+
+  const normalNavigate = (screenName: string) => {
+    navigation.push(screenName);
+  };
+
+  // Demo notifications
+  if (notification_type.includes('Demo')) {
+    const demoRoutes: Record<number, NavigationRoute> = {
+      [ASUS.ROLE_ID.LFR_HO]: 'Demo',
+      [ASUS.ROLE_ID.ONLINE_HO]: 'Demo',
+      [ASUS.ROLE_ID.ASE]: 'Demo',
+      [ASUS.ROLE_ID.AM]: 'Demo',
+    };
+
+    // Check simple role-based routes first
+    if (demoRoutes[roleId]) {
+      navigate('Demo');
+      return;
+    }
+
+    // Handle Partners with specific types
+    if (roleId === ASUS.ROLE_ID.PARTNERS) {
+      if (empType === ASUS.PARTNER_TYPE.T2.AWP) {
+        navigate('Demo_Partner');
+      } else {
+        navigate('Demo_Partner');
+      }
+      return;
+    }
+
+    // Roles that should NOT navigate for Demo
+    const excludedDemoRoles: number[] = [
+      ASUS.ROLE_ID.DISTRIBUTORS,
+      ASUS.ROLE_ID.ESHOP_HO,
+      ASUS.ROLE_ID.DISTI_HO,
+    ];
+
+    if (!excludedDemoRoles.includes(roleId)) {
+      navigate('Demo');
+    }
+    return;
+  }
+
+  // Claim notifications
+  if (notification_type.includes('Claim')) {
+    const distiRoles: readonly number[] = [
+      ASUS.ROLE_ID.DISTRIBUTORS,
+      ASUS.ROLE_ID.DISTI_HO,
+    ];
+    const excludedClaimRoles: readonly number[] = [
+      ASUS.ROLE_ID.ESHOP_HO,
+      ASUS.ROLE_ID.AM,
+      ASUS.ROLE_ID.ASE,
+    ];
+
+    if (distiRoles.includes(roleId)) {
+      navigate('Claim');
+    } else if (!excludedClaimRoles.includes(roleId)) {
+      navigate('Claim');
+    }
+    return;
+  }
+
+  // LMS notifications
+  if (notification_type.includes('LMS')) {
+    // Partners - T3
+    if (
+      roleId === ASUS.ROLE_ID.PARTNERS &&
+      empType === ASUS.PARTNER_TYPE.T3.T3
+    ) {
+      normalNavigate('LMSList_HO');
+      return;
+    }
+
+    // Partners - AWP
+    if (
+      roleId === ASUS.ROLE_ID.PARTNERS &&
+      empType === ASUS.PARTNER_TYPE.T2.AWP
+    ) {
+      normalNavigate('LMSList_HO');
+      return;
+    }
+
+    // HO roles
+    const hoRoles: readonly number[] = [
+      ASUS.ROLE_ID.DIR_HOD_MAN,
+      ASUS.ROLE_ID.HO_EMPLOYEES,
+      ASUS.ROLE_ID.BSM,
+      ASUS.ROLE_ID.TM,
+      ASUS.ROLE_ID.COUNTRY_HEAD,
+      ASUS.ROLE_ID.SALES_REPS,
+      ASUS.ROLE_ID.BPM,
+      ASUS.ROLE_ID.RSM,
+      ASUS.ROLE_ID.CHANNEL_MARKETING,
+    ];
+
+    if (hoRoles.includes(roleId)) {
+      normalNavigate('LMSList_HO');
+    }
+    return;
+  }
+
+  // Scheme notifications
+  if (notification_type.includes('Scheme')) {
+    const excludedSchemeRoles: number[] = [
+      ASUS.ROLE_ID.DISTRIBUTORS,
+      ASUS.ROLE_ID.DISTI_HO,
+    ];
+
+    if (!excludedSchemeRoles.includes(roleId)) navigate('Schemes');
+  }
+};
 // ====== SKELETON LOADER ======
 const NotificationSkeleton = () => (
   <View className="px-3 mt-4">
@@ -136,7 +270,6 @@ const NotificationSkeleton = () => (
     ))}
   </View>
 );
-
 // ====== EMPTY STATE ======
 const EmptyState = () => (
   <View
@@ -153,14 +286,8 @@ const EmptyState = () => (
     </AppText>
   </View>
 );
-
 // ====== NOTIFICATION CARD ======
-interface NotificationCardProps {
-  item: NotificationItem;
-  onNavigate: () => void;
-}
-
-const NotificationCard: React.FC<NotificationCardProps> = React.memo(
+const NotificationCard: React.FC<NotificationCardProps> = memo(
   ({item, onNavigate}) => {
     // Render clickable links in notification body
     const renderNotificationBody = (notificationBody: string) => {
@@ -263,32 +390,20 @@ const NotificationCard: React.FC<NotificationCardProps> = React.memo(
 
     return (
       <View className="mb-3">
-        <Card className="p-0 overflow-hidden">
           <Accordion
             header={accordionHeader}
             headerClassName="py-3 px-3"
             contentClassName="px-0"
-            containerClassName="rounded-lg"
+            containerClassName="bg-white rounded-lg border border-slate-200 dark:border-slate-700"
             needBottomBorder={false}
-            arrowSize={20}
-            duration={300}>
+            >
             {accordionContent}
           </Accordion>
-        </Card>
       </View>
     );
   },
 );
-
 // ====== NOTIFICATION LIST COMPONENT ======
-interface NotificationListProps {
-  notifications: NotificationItem[];
-  isLoading: boolean;
-  refreshing: boolean;
-  onRefresh: () => void;
-  onNotificationPress: (item: NotificationItem) => void;
-}
-
 const NotificationList: React.FC<NotificationListProps> = ({
   notifications,
   isLoading,
@@ -320,7 +435,6 @@ const NotificationList: React.FC<NotificationListProps> = ({
         paddingHorizontal: 12,
         paddingTop: 16,
         paddingBottom: 20,
-        flexGrow: 1,
       }}
       showsVerticalScrollIndicator={false}
       ListEmptyComponent={<EmptyState />}
@@ -332,156 +446,16 @@ const NotificationList: React.FC<NotificationListProps> = ({
           tintColor={AppColors.primary}
         />
       }
+      initialNumToRender={20}
+      maxToRenderPerBatch={10}
+      windowSize={21}
     />
   );
 };
-
-// Navigation route mapping types
-type NavigationRoute = string;
-type NavigationParams = {Year_Qtr?: string};
-
-const navigateTo = (
-  notification_type: string,
-  navigation: any,
-  userInfo: UserInfo,
-  empInfo: EmpInfo,
-): void => {
-  // Early return for commercial business type
-  if (userInfo.EMP_Btype === ASUS.BUSINESS_TYPES.COMMERCIAL) return;
-
-  const roleId = userInfo.EMP_RoleId;
-  const empType = userInfo.EMP_Type;
-
-  // Helper function to navigate with optional params
-  const navigate = (screenName: string) => {
-    navigation.navigate('Index', {
-      screen: 'Home',
-      params: {
-        screen: screenName,
-      },
-    });
-  };
-
-  const normalNavigate = (screenName: string) => {
-    navigation.push(screenName);
-  };
-
-  // Demo notifications
-  if (notification_type.includes('Demo')) {
-    const demoRoutes: Record<number, NavigationRoute> = {
-      [ASUS.ROLE_ID.LFR_HO]: 'Demo',
-      [ASUS.ROLE_ID.ONLINE_HO]: 'Demo',
-      [ASUS.ROLE_ID.ASE]: 'Demo',
-      [ASUS.ROLE_ID.AM]: 'Demo',
-    };
-
-    // Check simple role-based routes first
-    if (demoRoutes[roleId]) {
-      navigate('Demo');
-      return;
-    }
-
-    // Handle Partners with specific types
-    if (roleId === ASUS.ROLE_ID.PARTNERS) {
-      if (empType === ASUS.PARTNER_TYPE.T2.AWP) {
-        navigate('Demo_Partner');
-      } else {
-        navigate('Demo_Partner');
-      }
-      return;
-    }
-
-    // Roles that should NOT navigate for Demo
-    const excludedDemoRoles: number[] = [
-      ASUS.ROLE_ID.DISTRIBUTORS,
-      ASUS.ROLE_ID.ESHOP_HO,
-      ASUS.ROLE_ID.DISTI_HO,
-    ];
-
-    if (!excludedDemoRoles.includes(roleId)) {
-      navigate('Demo');
-    }
-    return;
-  }
-
-  // Claim notifications
-  if (notification_type.includes('Claim')) {
-    const distiRoles: readonly number[] = [
-      ASUS.ROLE_ID.DISTRIBUTORS,
-      ASUS.ROLE_ID.DISTI_HO,
-    ];
-    const excludedClaimRoles: readonly number[] = [
-      ASUS.ROLE_ID.ESHOP_HO,
-      ASUS.ROLE_ID.AM,
-      ASUS.ROLE_ID.ASE,
-    ];
-
-    if (distiRoles.includes(roleId)) {
-      navigate('Claim');
-    } else if (!excludedClaimRoles.includes(roleId)) {
-      navigate('Claim');
-    }
-    return;
-  }
-
-  // LMS notifications
-  if (notification_type.includes('LMS')) {
-    const yearQtr = empInfo?.Year_Qtr;
-
-    // Partners - T3
-    if (
-      roleId === ASUS.ROLE_ID.PARTNERS &&
-      empType === ASUS.PARTNER_TYPE.T3.T3
-    ) {
-      normalNavigate('LMSList_HO');
-      return;
-    }
-
-    // Partners - AWP
-    if (
-      roleId === ASUS.ROLE_ID.PARTNERS &&
-      empType === ASUS.PARTNER_TYPE.T2.AWP
-    ) {
-      normalNavigate('LMSList_HO');
-      return;
-    }
-
-    // HO roles
-    const hoRoles: readonly number[] = [
-      ASUS.ROLE_ID.DIR_HOD_MAN,
-      ASUS.ROLE_ID.HO_EMPLOYEES,
-      ASUS.ROLE_ID.BSM,
-      ASUS.ROLE_ID.TM,
-      ASUS.ROLE_ID.COUNTRY_HEAD,
-      ASUS.ROLE_ID.SALES_REPS,
-      ASUS.ROLE_ID.BPM,
-      ASUS.ROLE_ID.RSM,
-      ASUS.ROLE_ID.CHANNEL_MARKETING,
-    ];
-
-    if (hoRoles.includes(roleId)) {
-      normalNavigate('LMSList_HO');
-    }
-    return;
-  }
-
-  // Scheme notifications
-  if (notification_type.includes('Scheme')) {
-    const excludedSchemeRoles: number[] = [
-      ASUS.ROLE_ID.DISTRIBUTORS,
-      ASUS.ROLE_ID.DISTI_HO,
-    ];
-
-    if (!excludedSchemeRoles.includes(roleId)) navigate('Schemes');
-  }
-};
-
+// ===== MAIN NOTIFICATION SCREEN ======
 export default function Notification() {
   const navigation = useNavigation<any>();
   const userInfo = useLoginStore(state => state.userInfo);
-
-  // Create a minimal empInfo - only Year_Qtr is used in navigateTo
-  const empInfo = useMemo(() => ({Year_Qtr: ''}) as EmpInfo, []);
 
   const {data, isLoading, isError, refetch} = useGetPushNotification();
   const [refreshing, setRefreshing] = useState(false);
@@ -498,19 +472,13 @@ export default function Notification() {
   const handleNotificationPress = useCallback(
     (item: NotificationItem) => {
       if (!userInfo) return;
-      navigateTo(item.Notification_Type, navigation, userInfo, empInfo);
+      navigateTo(item.Notification_Type, navigation, userInfo);
     },
-    [navigation, userInfo, empInfo],
+    [navigation, userInfo],
   );
 
-  // Get filtered notifications for current tab
-  const currentNotifications = useMemo(() => {
-    if (!data?.groupByNotificationType || !selectedTab) return [];
-    return data.groupByNotificationType[selectedTab] || [];
-  }, [data, selectedTab]);
-
   // Set initial tab when data loads
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       data?.notificationTypeTabData &&
       data.notificationTypeTabData.length > 0 &&
@@ -520,74 +488,15 @@ export default function Notification() {
     }
   }, [data, selectedTab]);
 
-  // Handle tab change
-  const handleTabPress = useCallback((tabName: string) => {
-    setSelectedTab(tabName);
-  }, []);
-
-  // Show skeleton on initial load
-  if (isLoading && !data) {
-    return (
-      <AppLayout title="Notifications" needBack>
-        <NotificationSkeleton />
-      </AppLayout>
-    );
-  }
-
-  // Error state
-  if (isError) {
-    return (
-      <AppLayout title="Notifications" needBack>
-        <View className="flex-1 items-center justify-center px-6">
-          <View className="w-20 h-20 bg-red-50 rounded-full items-center justify-center mb-4">
-            <AppIcon
-              name="alert-circle"
-              type="feather"
-              size={36}
-              color="#ef4444"
-            />
-          </View>
-          <AppText size="lg" weight="semibold" className="text-gray-800 mb-2">
-            Something went wrong
-          </AppText>
-          <AppText size="sm" className="text-gray-500 text-center mb-4">
-            Unable to load notifications. Please try again.
-          </AppText>
-          <TouchableOpacity
-            onPress={onRefresh}
-            className="bg-primary px-6 py-3 rounded-lg"
-            activeOpacity={0.8}>
-            <AppText size="sm" weight="semibold" className="text-white">
-              Retry
-            </AppText>
-          </TouchableOpacity>
-        </View>
-      </AppLayout>
-    );
-  }
-
-  // No tabs available
-  if (
-    !data?.notificationTypeTabData ||
-    data.notificationTypeTabData.length === 0
-  ) {
-    return (
-      <AppLayout title="Notifications" needBack>
-        <EmptyState />
-      </AppLayout>
-    );
-  }
-  console.log('Notification Tabs:', data.notificationTypeTabData);
-
   // Create tab screens dynamically
-  const tabScreens = data.notificationTypeTabData
+  const tabScreens = data?.notificationTypeTabData
     .filter(tab => Boolean(tab.title))
     .map(tab => ({
       name: tab.id,
       label: tab.title.replace(/_/g, ' '),
       component: (
         <NotificationList
-          notifications={currentNotifications}
+          notifications={data?.groupByNotificationType?.[tab.id] || []}
           isLoading={isLoading}
           refreshing={refreshing}
           onRefresh={onRefresh}
@@ -598,11 +507,15 @@ export default function Notification() {
 
   return (
     <AppLayout title="Notifications" needBack>
-      <MaterialTabBar
-        tabs={tabScreens}
-        onTabPress={handleTabPress}
-        tabPadding={10}
-      />
+      <DataStateView
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={onRefresh}
+        isEmpty={data?.notificationTypeTabData?.length === 0}
+        EmptyComponent={<EmptyState />}
+        LoadingComponent={<NotificationSkeleton />}>
+        <MaterialTabBar tabs={tabScreens || []} />
+      </DataStateView>
     </AppLayout>
   );
 }

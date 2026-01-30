@@ -206,6 +206,7 @@ export default function ActivatedDetails() {
     } 
   }, []);
 
+  console.log('Rendered ActivatedDetails with:', isLoading)
   return (
     <AppLayout title="Activation Details" needBack needPadding needScroll>
       <Disclaimer />

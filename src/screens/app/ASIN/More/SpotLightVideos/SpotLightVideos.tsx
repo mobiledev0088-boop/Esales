@@ -173,6 +173,9 @@ export default function SpotLightVideos() {
   const isEmpty = !videosLoading && !videosError && videos.length === 0;
 
   const listEmpty = useCallback(() => {
+    if(videosLoading){
+      return <SpotlightVideoScreenSkeleton />;
+    }
     if (videosError) {
       return (
         <View className="mt-10 items-center">
@@ -206,15 +209,11 @@ export default function SpotLightVideos() {
       );
     }
     return null;
-  }, [videosLoading, videosError, refetchVideos, isEmpty]);
+  }, [videosLoading, videosError, refetchVideos, isEmpty, modelName]);
 
-  console.log('Spotlight videos data:', videos);
 
   return (
     <AppLayout title="SpotLight Videos" needBack needPadding>
-      {videosLoading ? (
-        <SpotlightVideoScreenSkeleton />
-      ) : (
         <View className="flex-1 bg-slate-50">
           <View className="pt-5 pb-5">
             <AppDropdown
@@ -256,7 +255,6 @@ export default function SpotLightVideos() {
             onRefresh={refetchVideos}
           />
         </View>
-      )}
     </AppLayout>
   );
 }

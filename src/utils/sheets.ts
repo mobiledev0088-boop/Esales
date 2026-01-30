@@ -10,10 +10,11 @@ import SchemeInfoSheet from '../screens/app/ASIN/More/ProductInfo/SchemeInfoShee
 import ActivationFilterSheet from '../screens/app/ASIN/Reports/ActivationFilterSheet';
 import {
   DemoDetailsSheet,
+  DemoROISheet,
   PartnerDetailsSheet,
 } from '../screens/app/ASIN/Demo/DemoPartners';
 import {LMSBranchDetailsSheet} from '../screens/app/ASIN/More/LMS/LMSList_HO';
-import {PartnerDemoDetailsSheet} from '../screens/app/ASIN/Demo/Demo_Partner';
+import {PartnerDemoDetailsSheet} from '../screens/app/ASIN/Demo/DemoAWPPartners';
 import ClosingDetailsSheet from '../screens/app/ASIN/Commercial/RollingFunnel/ClosingDetailsSheet';
 import {RollingFunnelData} from '../screens/app/ASIN/Commercial/RollingFunnel/types';
 import RollingFilterSheet from '../screens/app/ASIN/Commercial/RollingFunnel/RollingFilterSheet';
@@ -37,6 +38,7 @@ registerSheet('SchemeInfoSheet', SchemeInfoSheet);
 registerSheet('SourceOptionSheet', SourceOptionSheet);
 registerSheet('ActivationFilterSheet', ActivationFilterSheet);
 registerSheet('PartnerDetailsSheet', PartnerDetailsSheet);
+registerSheet('DemoROISheet', DemoROISheet);
 registerSheet('DemoDetailsSheet', DemoDetailsSheet);
 registerSheet('LMSBranchDetailsSheet', LMSBranchDetailsSheet);
 registerSheet('PartnerDemoDetailsSheet', PartnerDemoDetailsSheet);
@@ -65,6 +67,9 @@ declare module 'react-native-actions-sheet' {
     ActivationFilterSheet: SheetDefinition;
     PartnerDetailsSheet: SheetDefinition<{
       payload: {partner: any; yearQtr: string};
+    }>;
+    DemoROISheet: SheetDefinition<{
+      payload: {partner: any};
     }>;
     LMSBranchDetailsSheet: SheetDefinition<{
       payload: {

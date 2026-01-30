@@ -1,39 +1,28 @@
-import FAB from '../../../../components/FAB';
+import {FlatList, TouchableOpacity, View} from 'react-native';
+import React, {memo, useCallback, useMemo, useState} from 'react';
+import {DataStateView} from '../../../../components/DataStateView';
+import {useLoginStore} from '../../../../stores/useLoginStore';
+import {useQuery} from '@tanstack/react-query';
+import {handleASINApiCall} from '../../../../utils/handleApiCall';
 import useQuarterHook from '../../../../hooks/useQuarterHook';
+import {useUserStore} from '../../../../stores/useUserStore';
+import Skeleton from '../../../../components/skeleton/skeleton';
+import {screenWidth} from '../../../../utils/constant';
+import {SheetManager} from 'react-native-actions-sheet';
+import {RefreshControl} from 'react-native-gesture-handler';
+import FAB from '../../../../components/FAB';
+import {useNavigation} from '@react-navigation/native';
+import {AppNavigationProp} from '../../../../types/navigation';
+import AppText from '../../../../components/customs/AppText';
+import moment from 'moment';
 import AppDropdown, {
   AppDropdownItem,
 } from '../../../../components/customs/AppDropdown';
-import {
-  View,
-  FlatList,
-  TouchableOpacity,
-  ScrollView,
-  RefreshControl,
-} from 'react-native';
-import Accordion from '../../../../components/Accordion';
-import AppText from '../../../../components/customs/AppText';
 import AppIcon from '../../../../components/customs/AppIcon';
-import {useNavigation} from '@react-navigation/native';
-import {AppNavigationProp} from '../../../../types/navigation';
-import {useQuery} from '@tanstack/react-query';
-import {handleASINApiCall} from '../../../../utils/handleApiCall';
-import {useLoginStore} from '../../../../stores/useLoginStore';
-import {ASUS, screenHeight, screenWidth} from '../../../../utils/constant';
-import {memo, useCallback, useMemo, useState} from 'react';
-import ActionSheet, {
-  SheetManager,
-  useSheetPayload,
-} from 'react-native-actions-sheet';
-import moment from 'moment';
-import Skeleton from '../../../../components/skeleton/skeleton';
-import {useUserStore} from '../../../../stores/useUserStore';
-import {DataStateView} from '../../../../components/DataStateView';
+import {Watermark} from '../../../../components/Watermark';
 
-// ===== Types & Interfaces ==========
 interface PartnerDemoData {
   YearQtr: string;
-  AGP_Code: string;
-  AGP_Name: string | null;
   ALPType: string | null;
   Category: string | null;
   Series: string | null;
@@ -49,13 +38,13 @@ interface PartnerDemoData {
   LastUnRegisteredDate: string | null;
   DurationDays: number | null;
 }
-
-interface PartnerDemoSummary {
-  categories: AppDropdownItem[];
-  demoStatuses: AppDropdownItem[];
-  groupedData: Record<string, PartnerDemoData[]>;
+interface InfoPairProps {
+  label: string;
+  value: string | null | undefined;
+  containerClassName?: string;
+  labelClassName?: string;
+  valueClassName?: string;
 }
-
 interface StatMetricProps {
   iconName: string;
   iconColor: string;
@@ -65,72 +54,14 @@ interface StatMetricProps {
   valueColorClass: string;
 }
 
-interface InfoPairProps {
-  label: string;
-  value: string | null | undefined;
-  containerClassName?: string;
-  labelClassName?: string;
-  valueClassName?: string;
-}
-
-interface DemoHubType {
-  Demo_Hub_Date: string;
-  Hours: string;
-}
-
-// ===== Constants =====================
-const getStatusColors = (status: string | null) => {
-  const base = {container: 'bg-slate-200', text: 'text-slate-700'};
-  if (!status) return base;
-  const normalized = status.trim().toLowerCase();
-  if (/(^|\b)pending(s)?\b/.test(normalized)) {
-    return {container: 'bg-amber-100', text: 'text-amber-700'}; // Pending => Yellow
-  }
-  if (/(^|\b)(done|complete|completed)\b/.test(normalized)) {
-    return {container: 'bg-emerald-100', text: 'text-emerald-700'}; // Done/Complete => Green
-  }
-  if (/(progress|running)/.test(normalized)) {
-    return {container: 'bg-blue-100', text: 'text-blue-700'};
-  }
-  if (/(failed|fail|cancel|canceled|cancelled|error)/.test(normalized)) {
-    return {container: 'bg-rose-100', text: 'text-rose-700'};
-  }
-  return base;
-};
-
-// ===== Utility Functions ========
-const formatDate = (value: string | null) => {
-  if (!value) return '—';
-  return moment(value).isValid() ? moment(value).format('YYYY-MM-DD') : value;
-};
-// ===== API Hooks  ========
-
-const useGetSubCode = (hasSubCode: boolean) => {
-  const {EMP_Code: employeeCode = ''} = useLoginStore(state => state.userInfo);
-  return useQuery({
-    queryKey: ['subCodes', employeeCode],
-    queryFn: async () => {
-      const response = await handleASINApiCall('/DemoForm/GetChildCodes', {
-        employeeCode,
-      });
-      const result = response?.demoFormData;
-      if (!result?.Status) {
-        throw new Error('Failed to fetch sub codes');
-      }
-      return result?.Datainfo?.Subcode_List;
-    },
-    enabled: hasSubCode,
-    select: () => {},
-  });
-};
 const useGetPartnerDemoData = (
   YearQtr: string,
   hasChildCode: boolean,
   childrenCode?: string,
 ) => {
-  const {EMP_Code} = useLoginStore(state => state.userInfo);
+  const {EMP_Code, EMP_Type} = useLoginStore(state => state.userInfo);
   const employeeCode = childrenCode || EMP_Code || '';
-  //   the employeeCode should be Parent Other wise no data will be fetched
+
   const enabled = Boolean(employeeCode && YearQtr) && !hasChildCode;
   return useQuery({
     queryKey: ['partnerDemoData', employeeCode, YearQtr],
@@ -144,54 +75,78 @@ const useGetPartnerDemoData = (
       if (!result?.Status) {
         throw new Error('Failed to fetch activation data');
       }
-      const table = result?.Datainfo?.Table;
+      const table = result?.Datainfo?.Table as PartnerDemoData[];
       return table;
     },
-    select: (data: PartnerDemoData[]): PartnerDemoSummary => {
-      const categorySet = new Set<string>();
-      const statusSet = new Set<string>();
-      const groupedData: Record<string, PartnerDemoData[]> = {};
-      data.forEach(item => {
-        if (item.Category) categorySet.add(item.Category);
-        if (item.DemoExecutionDone) statusSet.add(item.DemoExecutionDone);
-        const key = item.AGP_Name || item.AGP_Code || 'UNKNOWN';
-        if (!groupedData[key]) groupedData[key] = [];
-        groupedData[key].push(item);
-      });
-      const categories = Array.from(categorySet)
-        .sort()
-        .map(v => ({label: v, value: v}));
-      const demoStatuses = Array.from(statusSet)
-        .sort()
-        .map(v => ({label: v, value: v}));
-      return {categories, demoStatuses, groupedData};
-    },
   });
 };
 
-const useGetDemoHubDetails = (Serial_No: string, YearQtr: string) => {
-  return useQuery({
-    queryKey: ['demoHubDetails', Serial_No, YearQtr],
-    queryFn: async () => {
-      const response = await handleASINApiCall(
-        '/DemoForm/GetPartnerDemoSummaryHubInfo',
-        {Serial_No, YearQtr},
-      );
-      const result = response?.demoFormData;
-      if (!result?.Status) {
-        throw new Error('Failed to fetch demo hub data');
-      }
-      const table = result?.Datainfo?.HubInfo;
-      return (table || []) as DemoHubType[];
-    },
-    enabled: Boolean(Serial_No && YearQtr),
-  });
+const getStatusColors = (status: string | null) => {
+  const base = {
+    container: 'bg-slate-200 dark:bg-slate-700',
+    text: 'text-slate-700 dark:text-slate-300',
+    iconColor: '#6b7280',
+    iconName: 'info',
+  };
+  if (!status) return base;
+  const normalized = status.trim().toLowerCase();
+  if (/(^|\b)pending(s)?\b/.test(normalized)) {
+    return {
+      container: 'bg-yellow-100 dark:bg-yellow-900',
+      text: 'text-yellow-700 dark:text-yellow-300',
+      iconColor: '#f59e0b',
+      iconName: 'clock',
+    };
+  }
+  if (/(^|\b)(done|complete|completed)\b/.test(normalized)) {
+    return {
+      container: 'bg-emerald-100 dark:bg-emerald-900',
+      text: 'text-emerald-700 dark:text-emerald-300',
+      iconColor: '#16a34a',
+      iconName: 'check-circle',
+    };
+  }
+  if (/(progress|running)/.test(normalized)) {
+    return {
+      container: 'bg-blue-100 dark:bg-blue-900',
+      text: 'text-blue-700 dark:text-blue-300',
+      iconColor: '#3b82f6',
+      iconName: 'loader',
+    };
+  }
+  if (/(failed|fail|cancel|canceled|cancelled|error)/.test(normalized)) {
+    return {
+      container: 'bg-rose-100 dark:bg-rose-900',
+      text: 'text-rose-700 dark:text-rose-300',
+      iconColor: '#dc2626',
+      iconName: 'x-circle',
+    };
+  }
+  return base;
 };
 
-// ===== Logic Hook ========
+const LoaderView = memo(() => (
+  <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base px-3">
+    <View className="flex-row flex-wrap gap-4">
+      {[...Array(4)].map((_, i) => (
+        <Skeleton key={i} height={40} width={screenWidth * 0.45} />
+      ))}
+    </View>
+    <Skeleton height={200} width={screenWidth - 24} />
+    <View className="h-5" />
+    {[...Array(5)].map((_, i) => (
+      <Skeleton key={i} height={100} width={screenWidth - 24} />
+    ))}
+  </View>
+));
+
+const formatDate = (value: string | null) => {
+  if (!value) return '—';
+  return moment(value).isValid() ? moment(value).format('YYYY-MM-DD') : value;
+};
+
 const usePartnerDemoLogic = (childrenCode?: string) => {
   const empInfo = useUserStore(state => state.empInfo);
-  const IsAWP = empInfo?.EMP_Type === ASUS.PARTNER_TYPE.T2.AWP;
   const {quarters, selectedQuarter, setSelectedQuarter} = useQuarterHook();
 
   // Remote data
@@ -214,54 +169,59 @@ const usePartnerDemoLogic = (childrenCode?: string) => {
   const [selectedStatus, setSelectedStatus] = useState<AppDropdownItem | null>(
     null,
   );
-  const [selectedAgp, setSelectedAgp] = useState<AppDropdownItem | null>(null);
-
-  // Accordion open group tracking
-  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
+  const [selectedUnitModel, setSelectedUnitModel] =
+    useState<AppDropdownItem | null>(null);
 
   // Derived options
-  const agpOptions = useMemo(() => {
-    if (!demoData?.groupedData) return [] as AppDropdownItem[];
-    return Object.keys(demoData.groupedData)
-      .sort()
-      .map(k => ({label: k, value: k}));
+  const unitModelOptions = useMemo(() => {
+    if (!demoData) return [] as AppDropdownItem[];
+    const models = new Set<string>();
+    demoData.forEach(demo => {
+      if (demo.DemoUnitModel) models.add(demo.DemoUnitModel);
+    });
+    return Array.from(models).map(m => ({label: m, value: m}));
+  }, [demoData]);
+
+  const statusOptions = useMemo(() => {
+    if (!demoData) return [] as AppDropdownItem[];
+    const statuses = new Set<string>();
+    demoData.forEach(demo => {
+      if (demo.DemoExecutionDone) statuses.add(demo.DemoExecutionDone);
+    });
+    return Array.from(statuses).map(s => ({label: s, value: s}));
+  }, [demoData]);
+
+  const categoryOptions = useMemo(() => {
+    if (!demoData) return [] as AppDropdownItem[];
+    const categories = new Set<string>();
+    demoData.forEach(demo => {
+      if (demo.Category) categories.add(demo.Category);
+    });
+    return Array.from(categories).map(c => ({label: c, value: c}));
   }, [demoData]);
 
   // Filter and group data
   const sections = useMemo(() => {
-    if (!demoData?.groupedData)
-      return [] as {key: string; items: PartnerDemoData[]; count: number}[];
-    return Object.entries(demoData.groupedData).reduce(
-      (acc, [key, items]) => {
-        if (selectedAgp && selectedAgp.value !== key) return acc;
-        const filteredItems = items.filter(it => {
-          if (selectedCategory && it.Category !== selectedCategory.value)
-            return false;
-          if (selectedStatus && it.DemoExecutionDone !== selectedStatus.value)
-            return false;
-          return true;
-        });
-        if (filteredItems.length)
-          acc.push({key, items: filteredItems, count: filteredItems.length});
-        return acc;
-      },
-      [] as {key: string; items: PartnerDemoData[]; count: number}[],
-    );
-  }, [demoData, selectedCategory, selectedStatus, selectedAgp]);
+    if (!demoData) return [];
+    let filtered = demoData;
+    if (selectedCategory) {
+      filtered = filtered.filter(d => d.Category === selectedCategory.value);
+    }
+    if (selectedStatus) {
+      filtered = filtered.filter(
+        d => d.DemoExecutionDone === selectedStatus.value,
+      );
+    }
+    if (selectedUnitModel) {
+      filtered = filtered.filter(
+        d => d.DemoUnitModel === selectedUnitModel.value,
+      );
+    }
+    return filtered;
+  }, [demoData, selectedCategory, selectedStatus, selectedUnitModel]);
 
-  const totalItems = useMemo(
-    () => sections.reduce((sum, s) => sum + s.count, 0),
-    [sections],
-  );
+  const totalItems = demoData?.length || 0;
 
-  const toggleGroup = useCallback((key: string) => {
-    setOpenGroups(prev => {
-      const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
-      return next;
-    });
-  }, []);
-  console.log('Demo Partner Rendered', demoData?.groupedData);
   return {
     // Remote
     demoData,
@@ -278,48 +238,18 @@ const usePartnerDemoLogic = (childrenCode?: string) => {
     setSelectedCategory,
     selectedStatus,
     setSelectedStatus,
-    selectedAgp,
-    setSelectedAgp,
-    agpOptions,
+    selectedUnitModel,
+    setSelectedUnitModel,
+
+    unitModelOptions,
+    statusOptions,
+    categoryOptions,
     // Grouped data
     sections,
     totalItems,
-    // Accordion
-    openGroups,
-    toggleGroup,
-    // Misc
-    IsAWP,
     IsParent: !!empInfo?.IsParentCode,
   };
 };
-
-// ===== UI Components ========
-const StatMetric: React.FC<StatMetricProps> = memo(
-  ({iconName, iconColor, bgClass, label, value, valueColorClass}) => {
-    const baseLabelColor = valueColorClass.replace('700', '600');
-    return (
-      <View className="flex-1 items-center">
-        <View
-          className={`w-14 h-14 rounded-full ${bgClass} items-center justify-center mb-2`}>
-          <AppIcon type="feather" name={iconName} size={26} color={iconColor} />
-        </View>
-        <AppText
-          size="sm"
-          weight="medium"
-          className={`${baseLabelColor} mb-1 text-center`}>
-          {label}
-        </AppText>
-        <AppText
-          size="2xl"
-          weight="semibold"
-          className={`${valueColorClass} text-center`}
-          numberOfLines={1}>
-          {value}
-        </AppText>
-      </View>
-    );
-  },
-);
 
 const InfoPair: React.FC<InfoPairProps> = memo(
   ({
@@ -348,6 +278,33 @@ const InfoPair: React.FC<InfoPairProps> = memo(
   },
 );
 
+const StatMetric: React.FC<StatMetricProps> = memo(
+  ({iconName, iconColor, bgClass, label, value, valueColorClass}) => {
+    const baseLabelColor = valueColorClass.replace('700', '600');
+    return (
+      <View className="flex-1 items-center">
+        <View
+          className={`w-14 h-14 rounded-full ${bgClass} items-center justify-center mb-2`}>
+          <AppIcon type="feather" name={iconName} size={26} color={iconColor} />
+        </View>
+        <AppText
+          size="sm"
+          weight="medium"
+          className={`${baseLabelColor} mb-1 text-center`}>
+          {label}
+        </AppText>
+        <AppText
+          size="2xl"
+          weight="semibold"
+          className={`${valueColorClass} text-center`}
+          numberOfLines={1}>
+          {value}
+        </AppText>
+      </View>
+    );
+  },
+);
+
 const DemoItem: React.FC<{row: PartnerDemoData}> = memo(({row}) => {
   const statusColors = getStatusColors(row.DemoExecutionDone);
   const normalizedStatus = row.DemoExecutionDone?.trim().toLowerCase() || '';
@@ -355,8 +312,10 @@ const DemoItem: React.FC<{row: PartnerDemoData}> = memo(({row}) => {
   const handleSeeMore = useCallback(() => {
     SheetManager.show('PartnerDemoDetailsSheet', {payload: {demo: row}});
   }, [row]);
+
   return (
-    <View className="px-4 py-3 border-t border-slate-100 bg-white">
+    <View className="px-4 py-3 border border-slate-200 dark:border-slate-700 bg-lightBg-surface dark:bg-darkBg-surface rounded-lg">
+      <Watermark />
       <View className="flex-row items-center justify-between mb-2">
         <View className="flex-1 pr-3">
           <AppText
@@ -419,8 +378,7 @@ const DemoItem: React.FC<{row: PartnerDemoData}> = memo(({row}) => {
             <AppText
               size="sm"
               weight="semibold"
-              color="primary"
-              className=" underline mr-2">
+              className="underline mr-2 text-primary dark:text-white">
               See More Demo Details
             </AppText>
           </TouchableOpacity>
@@ -429,238 +387,6 @@ const DemoItem: React.FC<{row: PartnerDemoData}> = memo(({row}) => {
     </View>
   );
 });
-
-export const PartnerDemoDetailsSheet: React.FC = () => {
-  const payload = useSheetPayload('PartnerDemoDetailsSheet');
-  const {demo} = payload || ({} as {demo?: PartnerDemoData});
-
-  // Fetch Demo Hub Details
-  const {
-    data: hubData,
-    isLoading: isLoadingHub,
-    isError: isErrorHub,
-  } = useGetDemoHubDetails(demo?.Serial_No || '', demo?.YearQtr || '');
-
-  if (!demo) return null;
-  const isPending = /(pending)/i.test(demo.DemoExecutionDone || '');
-
-  return (
-    <View>
-      <ActionSheet
-        id="PartnerDemoDetailsSheet"
-        useBottomSafeAreaPadding
-        containerStyle={{
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
-          backgroundColor: '#ffffff',
-          height: screenHeight * 0.8,
-        }}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{padding: 16, paddingBottom: 48}}>
-          {/* Header Section */}
-          <View className="mb-4">
-            <AppText
-              size="lg"
-              weight="bold"
-              className="text-slate-800 mb-1"
-              numberOfLines={1}>
-              {demo.DemoUnitModel || 'Demo Unit'}
-            </AppText>
-            <View className="flex-row flex-wrap gap-2 mt-1">
-              <View
-                className={`px-2.5 py-1 rounded-md ${isPending ? 'bg-amber-500/10' : 'bg-emerald-500/10'}`}>
-                <AppText
-                  size="xs"
-                  weight="semibold"
-                  className={isPending ? 'text-amber-600' : 'text-emerald-600'}>
-                  {demo.DemoExecutionDone || 'Status N/A'}
-                </AppText>
-              </View>
-              {demo.Category && (
-                <View className="bg-slate-100 px-2.5 py-1 rounded-md">
-                  <AppText
-                    size="xs"
-                    weight="medium"
-                    className="text-slate-600"
-                    numberOfLines={1}>
-                    {demo.Category}
-                  </AppText>
-                </View>
-              )}
-            </View>
-          </View>
-
-          {/* Demo Details Section */}
-          <View className="flex-row flex-wrap -mx-2 mb-4">
-            {[
-              {label: 'Series', value: demo.Series},
-              {label: 'Model', value: demo.DemoUnitModel},
-              {label: 'Serial No', value: demo.Serial_No},
-              {label: 'Invoice Date', value: formatDate(demo.Invoice_Date)},
-              {label: 'Duration (Days)', value: demo.DurationDays?.toString()},
-              {label: 'Year Qtr', value: demo.YearQtr},
-              {label: 'Hub ID', value: demo.HubID},
-              {
-                label: 'Last Registered',
-                value: formatDate(demo.LastRegisteredDate),
-              },
-              {
-                label: 'Last Unregistered',
-                value: formatDate(demo.LastUnRegisteredDate),
-              },
-            ].map((f, idx) => (
-              <View key={idx} className="w-1/2 px-2 mb-4">
-                <AppText size="xs" weight="medium" className="text-slate-500">
-                  {f.label}
-                </AppText>
-                <AppText
-                  size="xs"
-                  weight="semibold"
-                  className="text-slate-700"
-                  numberOfLines={1}>
-                  {f.value || '—'}
-                </AppText>
-              </View>
-            ))}
-          </View>
-
-          {/* Divider */}
-          <View className="h-px bg-slate-200 my-4" />
-
-          {/* Demo Hub Details Section */}
-          <View className="mb-3">
-            <View className="flex-row items-center mb-3">
-              <AppIcon type="feather" name="clock" size={18} color="#64748b" />
-              <AppText
-                size="md"
-                weight="semibold"
-                className="text-slate-800 ml-2">
-                Demo Hub Activity
-              </AppText>
-            </View>
-
-            {/* Loading State */}
-            {isLoadingHub && (
-              <View className="space-y-3">
-                {[...Array(3)].map((_, i) => (
-                  <View key={i} className="bg-slate-50 rounded-xl p-4 mb-3">
-                    <View className="mb-2">
-                      <Skeleton height={16} width={120} />
-                    </View>
-                    <Skeleton height={14} width={80} />
-                  </View>
-                ))}
-              </View>
-            )}
-
-            {/* Error State */}
-            {!isLoadingHub && isErrorHub && (
-              <View className="bg-rose-50 rounded-xl p-4 items-center">
-                <AppIcon
-                  type="feather"
-                  name="alert-circle"
-                  size={20}
-                  color="#dc2626"
-                />
-                <AppText
-                  size="xs"
-                  weight="medium"
-                  className="text-rose-600 mt-2">
-                  Failed to load hub details
-                </AppText>
-              </View>
-            )}
-
-            {/* Empty State */}
-            {!isLoadingHub &&
-              !isErrorHub &&
-              (!hubData || hubData.length === 0) && (
-                <View className="bg-slate-50 rounded-xl p-6 items-center">
-                  <AppIcon
-                    type="feather"
-                    name="inbox"
-                    size={24}
-                    color="#94a3b8"
-                  />
-                  <AppText
-                    size="xs"
-                    weight="medium"
-                    className="text-slate-500 mt-2">
-                    No hub activity recorded
-                  </AppText>
-                </View>
-              )}
-
-            {/* Data State */}
-            {!isLoadingHub && !isErrorHub && hubData && hubData.length > 0 && (
-              <View className="gap-y-5">
-                {hubData.map((hub, index) => (
-                  <View
-                    key={index}
-                    className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-4 border border-slate-200">
-                    <View className="flex-row items-center justify-between mb-2">
-                      <View className="flex-row items-center flex-1">
-                        <View className="bg-blue-100 rounded-full p-2 mr-3">
-                          <AppIcon
-                            type="feather"
-                            name="calendar"
-                            size={16}
-                            color="#3b82f6"
-                          />
-                        </View>
-                        <View className="flex-1">
-                          <AppText
-                            size="xs"
-                            weight="medium"
-                            className="text-slate-500 mb-0.5">
-                            Hub Date
-                          </AppText>
-                          <AppText
-                            size="sm"
-                            weight="semibold"
-                            className="text-slate-800"
-                            numberOfLines={1}>
-                            {formatDate(hub.Demo_Hub_Date)}
-                          </AppText>
-                        </View>
-                      </View>
-                      <View className="ml-3">
-                        <View className="bg-indigo-100 px-3 py-1.5 rounded-full">
-                          <View className="flex-row items-center">
-                            <AppIcon
-                              type="feather"
-                              name="clock"
-                              size={12}
-                              color="#4f46e5"
-                            />
-                            <AppText
-                              size="xs"
-                              weight="bold"
-                              className="text-indigo-700 ml-1">
-                              {hub.Hours || '0'} hrs
-                            </AppText>
-                          </View>
-                        </View>
-                      </View>
-                    </View>
-                  </View>
-                ))}
-              </View>
-            )}
-          </View>
-
-          {/* Footer Note */}
-          <View className="mt-4">
-            <AppText size="xs" className="text-slate-400 text-center">
-              Detailed execution metadata for this demo unit.
-            </AppText>
-          </View>
-        </ScrollView>
-      </ActionSheet>
-    </View>
-  );
-};
 
 const FiltersSummaryHeader: React.FC<{
   logic: ReturnType<typeof usePartnerDemoLogic>;
@@ -674,19 +400,25 @@ const FiltersSummaryHeader: React.FC<{
     setSelectedCategory,
     selectedStatus,
     setSelectedStatus,
-    selectedAgp,
-    setSelectedAgp,
-    agpOptions,
+    selectedUnitModel,
+    setSelectedUnitModel,
+    unitModelOptions,
+    categoryOptions,
+    statusOptions,
     sections,
     totalItems,
   } = logic;
+
+  const getColors = useCallback((status: string | null) => {
+    return getStatusColors(status);
+  }, []);
   return (
     <View className="mb-5">
       <View className="flex-row mb-4">
         <View className="pr-2" style={{flex: 0.65}}>
           <AppDropdown
             mode="dropdown"
-            data={demoData?.categories || []}
+            data={categoryOptions}
             selectedValue={selectedCategory?.value}
             onSelect={setSelectedCategory}
             placeholder="Category"
@@ -710,20 +442,20 @@ const FiltersSummaryHeader: React.FC<{
         <View className="pr-2" style={{flex: 0.65}}>
           <AppDropdown
             mode="autocomplete"
-            data={agpOptions}
-            selectedValue={selectedAgp?.value}
-            onSelect={setSelectedAgp}
-            placeholder="AGP Name"
-            searchPlaceholder="Search AGP..."
+            data={unitModelOptions}
+            selectedValue={selectedUnitModel?.value}
+            onSelect={setSelectedUnitModel}
+            placeholder="Unit Model"
+            searchPlaceholder="Search Unit Model..."
             zIndex={2800}
             allowClear
-            onClear={() => setSelectedAgp(null)}
+            onClear={() => setSelectedUnitModel(null)}
           />
         </View>
         <View className="pl-2" style={{flex: 0.35}}>
           <AppDropdown
             mode="dropdown"
-            data={demoData?.demoStatuses || []}
+            data={statusOptions}
             selectedValue={selectedStatus?.value}
             onSelect={setSelectedStatus}
             placeholder="Status"
@@ -733,185 +465,94 @@ const FiltersSummaryHeader: React.FC<{
           />
         </View>
       </View>
-      <View className="p-5 rounded-2xl bg-white border border-slate-200">
+      <View className="p-5 rounded-2xl bg-lightBg-surface dark:bg-darkBg-surface border border-slate-200 dark:border-slate-700">
         <AppText size="md" weight="semibold" className="text-slate-800 mb-4">
           Summary
         </AppText>
         <View className="flex-row items-center gap-x-8">
-          <StatMetric
-            iconName="check-circle"
-            iconColor="#16a34a"
-            bgClass="bg-emerald-100"
-            label="At Least single Demo"
-            value={sections.length}
-            valueColorClass="text-emerald-700"
-          />
-          <View className="w-px self-stretch bg-slate-200" />
-          <StatMetric
-            iconName="award"
-            iconColor="#7c3aed"
-            bgClass="bg-indigo-100"
-            label="100% Demo"
-            value={totalItems}
-            valueColorClass="text-indigo-700"
-          />
-          <View className="w-px self-stretch bg-slate-200" />
-          <StatMetric
-            iconName="clock"
-            iconColor="#7c3aed"
-            bgClass="bg-indigo-100"
-            label="Pending"
-            value={totalItems}
-            valueColorClass="text-indigo-700"
-          />
+          {statusOptions.map((status, idx) => {
+            return (
+              <View className="flex-row items-center flex-1" key={status.value}>
+                <StatMetric
+                  iconName={getColors(status.value).iconName}
+                  iconColor={getColors(status.value).iconColor}
+                  bgClass={`${getColors(status.value).container} `}
+                  label={status.label}
+                  value={
+                    status.value && !!demoData
+                      ? demoData?.filter(
+                          s => s.DemoExecutionDone === status.value,
+                        ).length
+                      : 0
+                  }
+                  valueColorClass={getColors(status.value).text}
+                />
+              </View>
+            );
+          })}
         </View>
       </View>
-      <AppText
-        size="md"
-        weight="semibold"
-        className="text-slate-700 mt-4 mb-2 px-1">
-        AGP Demo
-      </AppText>
+      <View className="flex-row items-center justify-between">
+        <AppText
+          size="md"
+          weight="semibold"
+          className="text-slate-700 dark:text-slate-300 mt-4 mb-2 px-1">
+          Unit Model Demo
+        </AppText>
+        <AppText>
+          ({sections.length} out of {totalItems} units)
+        </AppText>
+      </View>
     </View>
   );
 });
 
-const GroupAccordion: React.FC<{
-  item: {key: string; items: PartnerDemoData[]; count: number};
-  isOpen: boolean;
-  onToggle: () => void;
-}> = memo(({item, isOpen, onToggle}) => {
-  return (
-    <Accordion
-      header={
-        <View className="flex-1 py-1">
-          <AppText
-            size="md"
-            weight="semibold"
-            className="text-slate-800"
-            numberOfLines={1}>
-            {item.key}
-          </AppText>
-          <AppText
-            size="sm"
-            weight="medium"
-            className="mt-1 text-slate-600"
-            numberOfLines={1}>
-            Demo Items: {item.count}
-          </AppText>
-        </View>
-      }
-      isOpen={isOpen}
-      onToggle={onToggle}
-      containerClassName="bg-white rounded-xl mb-4"
-      headerClassName="py-3 px-4"
-      contentClassName="px-0"
-      needBottomBorder={false}
-      needShadow
-      arrowSize={22}>
-      {isOpen && (
-        <FlatList
-          data={item.items}
-          keyExtractor={(d, idx) =>
-            (d.Serial_No ||
-              d.DemoUnitModel ||
-              d.Invoice_Date ||
-              idx.toString()) +
-            '_' +
-            idx
-          }
-          renderItem={({item: row}) => <DemoItem row={row} />}
-          initialNumToRender={10}
-          maxToRenderPerBatch={20}
-          windowSize={7}
-          removeClippedSubviews
-          showsVerticalScrollIndicator={false}
-        />
-      )}
-    </Accordion>
-  );
-});
-
-const LoaderView = memo(() => (
-  <View className="flex-1 ">
-    <View className="flex-row flex-wrap gap-4">
-      {[...Array(4)].map((_, i) => (
-        <Skeleton key={i} height={40} width={screenWidth * 0.45} />
-      ))}
-    </View>
-    <Skeleton height={200} width={screenWidth - 24} />
-    <View className="h-5" />
-    {[...Array(5)].map((_, i) => (
-      <Skeleton key={i} height={100} width={screenWidth - 24} />
-    ))}
-  </View>
-));
-
-// ================= Main Component =======================
 export default function Demo_Partner() {
   const navigation = useNavigation<AppNavigationProp>();
-  const empInfo = useUserStore(state => state.empInfo);
-  // const {data: subCodes, isLoading: isLoadingChildren} = useGetSubCode(
-  //   !!empInfo?.IsParentCode,
-  // );
-  const [selectedChildren, setSelectedChildren] = useState<AppDropdownItem | null>(null);
-  const logic = usePartnerDemoLogic(selectedChildren?.value);
-  const {
-    IsAWP,
-    isLoading,
-    sections,
-    openGroups,
-    toggleGroup,
-    isError,
-    error,
-    refetch,
-    isRefetching,
-  } = logic;
+  const childrenCode = '';
+  const logic = usePartnerDemoLogic(childrenCode);
+  const {sections, isLoading, isError, refetch, isRefetching} = logic;
 
-  const renderGroup = useCallback(
-    ({
-      item,
-    }: {
-      item: {key: string; items: PartnerDemoData[]; count: number};
-    }) => {
-      return (
-        <GroupAccordion
-          item={item}
-          isOpen={openGroups.has(item.key)}
-          onToggle={() => toggleGroup(item.key)}
-        />
-      );
-    },
-    [openGroups, toggleGroup],
+  const groupKeyExtractor = useCallback(
+    (_: any, index: number) => index.toString(),
+    [],
   );
-  const groupKeyExtractor = useCallback((i: {key: string}) => i.key, []);
+  const renderGroup = useCallback(
+    ({item}: {item: any}) => <DemoItem row={item} />,
+    [],
+  );
   const handlePress = () => navigation.push('UploadDemoData');
+
   return (
-    <View className='px-3 pt-5 bg-lightBg-base dark:bg-darkBg-base'>
-    <DataStateView
-      isLoading={isLoading}
-      isError={isError}
-      isEmpty={!sections.length}
-      onRetry={refetch}
-      LoadingComponent={<LoaderView />}>
-      <FlatList
-        data={sections}
-        keyExtractor={groupKeyExtractor}
-        renderItem={renderGroup}
-        ListHeaderComponent={<FiltersSummaryHeader logic={logic} />}
-        initialNumToRender={8}
-        maxToRenderPerBatch={12}
-        windowSize={10}
-        removeClippedSubviews
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{paddingBottom: 90}}
-        refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
-        }
-      />
-      {!IsAWP && <FAB onPress={handlePress} />}
-      <PartnerDemoDetailsSheet />
-    </DataStateView>
+    <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
+      <DataStateView
+        isLoading={isLoading}
+        isError={isError}
+        isEmpty={!sections?.length}
+        onRetry={refetch}
+        LoadingComponent={<LoaderView />}>
+        <FlatList
+          data={sections}
+          keyExtractor={groupKeyExtractor}
+          renderItem={renderGroup}
+          ListHeaderComponent={<FiltersSummaryHeader logic={logic} />}
+          initialNumToRender={8}
+          maxToRenderPerBatch={12}
+          windowSize={10}
+          removeClippedSubviews
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingBottom: 90,
+            paddingHorizontal: 14,
+            paddingTop: 10,
+          }}
+          ItemSeparatorComponent={() => <View className="h-4" />}
+          refreshControl={
+            <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
+          }
+        />
+        <FAB onPress={handlePress} />
+      </DataStateView>
     </View>
   );
 }

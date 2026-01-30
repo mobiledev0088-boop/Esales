@@ -19,6 +19,7 @@ import {useMutation} from '@tanstack/react-query';
 import {handleASINApiCall} from '../../../../../../utils/handleApiCall';
 import {getDeviceId} from 'react-native-device-info';
 import { queryClient } from '../../../../../../stores/providers/QueryProvider';
+import { SheetManager } from 'react-native-actions-sheet';
 
 interface ImageTypeData {
   ImageType: string;
@@ -117,6 +118,7 @@ export default function UploadGalleryReview() {
   const navigation = useNavigation();
   const {params} = useRoute();
   const {data, storeCode, referenceImages} = params as RouteParams;
+  console.log('UploadGalleryReview params', params);
 
   const {EMP_Name, EMP_Code} = useLoginStore(state => state.userInfo);
   const {mutate} = useUploadImagesMutation();
@@ -142,16 +144,20 @@ export default function UploadGalleryReview() {
   });
 
   const openSourceModal = (index: number) => {
+    console.log({index})
     setActiveImageTypeIndex(index);
     showSourceOptionSheet({
       onSelect: source => handleSelectSource(source),
     });
   };
   const handleSelectSource = async (source: 'camera' | 'gallery') => {
-    if (activeImageTypeIndex === null) {
-      return;
-    }
+    // console.log('handleSelectSource called with:', source);
+    // if (activeImageTypeIndex === null) {
+    //   return;
+    // }
+    console.log('Selected source:', source);
     await pickImage(source);
+    SheetManager.hide('SourceOptionSheet');
   };
   const handleReferenceImagePress = (url: string) => {
     setReferenceModalUrl(url);

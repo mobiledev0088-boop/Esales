@@ -118,10 +118,10 @@ async function fetchAndCacheImage(
     });
 
     const result = response?.login;
-    console.log(
-      'Fetched splash image data from API:',
-      result?.Datainfo?.[0]?.FestiveAnimation,
-    );
+    // console.log(
+    //   'Fetched splash image data from API:',
+    //   result?.Datainfo?.[0]?.FestiveAnimation,
+    // );
     // Validate response has splash image
     if (result?.Status) {
       if (result?.Datainfo?.[0]?.FestiveAnimation) {
@@ -136,12 +136,8 @@ async function fetchAndCacheImage(
       }
       const Latitude = result.Datainfo[0].Latitude;
       const Longitude = result.Datainfo[0].Longitude;
-      console.log(
-        'Fetched fresh location from splash image  API:',
-        Latitude,
-        Longitude,
-      );
-      const empData = result.Datainfo[0].Year_Qtr;
+      const empData = result.Datainfo[0];
+      // console.log('Fetched fresh location from splash image  API:',empData);
       const setUserInfo = useLoginStore.getState().setUserInfo;
       const setEmpInfo = useUserStore.getState().setEmpInfo;
       setUserInfo({Latitude, Longitude});

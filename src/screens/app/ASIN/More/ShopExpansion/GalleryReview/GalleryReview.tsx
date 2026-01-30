@@ -154,7 +154,7 @@ const QuarterGallerySection = ({
           </View>
         </View>
       </View>
-      <View className="flex-row flex-wrap">
+      <View className="flex-row flex-wrap ">
         {items.map(item => (
           <View
             key={`${sectionIndex}-${item.ImageType}`}
@@ -172,7 +172,8 @@ const QuarterGallerySection = ({
                   activeDotColor={'#00539B'}
                   removeClippedSubviews={false}
                   style={{flexGrow: 1}}
-                  paginationStyle={{bottom: 2}}>
+                  paginationStyle={{bottom: 2}}
+                  >
                   {item.Image_Links.map((image, idx) => (
                     <AppImage
                       key={idx}
@@ -182,7 +183,7 @@ const QuarterGallerySection = ({
                         height: '100%',
                         borderRadius: 12,
                       }}
-                      resizeMode={'cover'}
+                      resizeMode={'contain'}
                       enableModalZoom
                     />
                   ))}
@@ -193,10 +194,11 @@ const QuarterGallerySection = ({
                 <AppImage
                   source={{uri: item.Image_Links[0]}}
                   style={{
-                    width: (screenWidth - 32 - 20) / 2,
-                    height: 140,
+                    width: '100%',
+                    height: screenWidth *0.28,
                     borderRadius: 12,
                   }}
+                  resizeMode={'contain'}
                   enableModalZoom
                 />
               )}
@@ -301,10 +303,12 @@ export default function GalleryReview({
   const quarters = Object.values(galleryByQuarter);
   const currentQuarterImages = quarters[1];
   const previousQuarterImages = quarters[0];
+  console.log('currentQuarterImages', currentQuarterImages);
+  console.log('previousQuarterImages', previousQuarterImages);
 
   const handlePress = useCallback(() => {
     navigation.navigate('UploadGalleryReview', {
-      data: currentQuarterImages,
+      data: currentQuarterImages || previousQuarterImages,
       storeCode: data.PartnerCode,
       referenceImages: galleryQueryResult?.referenceImages || [],
     });

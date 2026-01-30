@@ -33,6 +33,7 @@ import Account from '../User/Account/Account';
 import BackgroundFetch from 'react-native-background-fetch';
 import Dashboard_ASE from '../Dashboard/Dashboard_ASE';
 import AutoUpdate from '../../../../components/AutoUpdate';
+import DemoAWPPartners from '../Demo/DemoAWPPartners';
 interface TabScreens {
   name: string;
   component: ComponentType<any>;
@@ -97,7 +98,15 @@ const Home: React.FC = () => {
         userInfo?.EMP_RoleId === ASUS.ROLE_ID.ESHOP_HO
       ) {
         // No Demo for DISTRIBUTORS and Disti HO and ESHOP HO
-      } else if (userInfo?.EMP_RoleId === ASUS.ROLE_ID.PARTNERS || userInfo?.EMP_RoleId === ASUS.ROLE_ID.ASE) {
+      } else if (
+        userInfo?.EMP_RoleId === ASUS.ROLE_ID.PARTNERS &&
+        userInfo?.EMP_Type === ASUS.PARTNER_TYPE.T2.AWP
+      ) {
+        arr.push({name: 'Demo', component: DemoAWPPartners, icon: 'laptop'});
+      } else if (
+        userInfo?.EMP_RoleId === ASUS.ROLE_ID.PARTNERS ||
+        userInfo?.EMP_RoleId === ASUS.ROLE_ID.ASE
+      ) {
         // Demo for PARTNERS and ASE
         arr.push({name: 'Demo', component: Demo_Partner, icon: 'laptop'});
       } else {

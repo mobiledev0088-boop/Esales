@@ -311,8 +311,9 @@ const EachMoreOption = ({
         <AppText
           size="sm"
           weight="semibold"
-          className="text-heading-light dark:text-heading-dark text-center w-16"
-          numberOfLines={2}>
+          className="text-heading dark:text-heading-dark text-center w-16"
+          numberOfLines={2}
+          >
           {label}
         </AppText>
       </View>

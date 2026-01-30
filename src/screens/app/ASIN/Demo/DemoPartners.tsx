@@ -27,6 +27,7 @@ import Skeleton from '../../../../components/skeleton/skeleton';
 import {screenHeight, screenWidth} from '../../../../utils/constant';
 import {useThemeStore} from '../../../../stores/useThemeStore';
 import clsx from 'clsx';
+import SheetIndicator from '../../../../components/SheetIndicator';
 
 type PartnerTypes = {
   AGP_Code: string;
@@ -60,6 +61,13 @@ type DemoSummaryItem = {
   LastRegisteredDate: string | null;
   LastUnRegisteredDate: string | null;
   DurationDays: number;
+};
+
+type ModelItem = {
+  name: string;
+  total_demo: number;
+  total_act: number;
+  total_stock: number;
 };
 
 const useGetPartnerDemoSummary = (
@@ -108,7 +116,13 @@ const showDemoDetailsSheet = (demo: DemoSummaryItem) => {
   });
 };
 
-export const PartnerDetailsSheet: React.FC = () => {
+const showDemoROISheet = (partner: PartnerTypes) => {
+  SheetManager.show('DemoROISheet', {
+    payload: {partner},
+  });
+};
+
+export const PartnerDetailsSheet = () => {
   const payload = useSheetPayload('PartnerDetailsSheet');
   const {partner, yearQtr} = payload || {};
 
@@ -409,6 +423,7 @@ export const PartnerDetailsSheet: React.FC = () => {
           backgroundColor: isDark ? '#1f2937' : '#ffffff',
           height: screenHeight * 0.85,
         }}>
+          <SheetIndicator/>
         <View className="p-4 pb-3 border-b border-slate-200 dark:border-slate-700">
           <View className="flex-row items-start justify-between mb-2">
             <View className="flex-1">
@@ -612,7 +627,7 @@ export const PartnerDetailsSheet: React.FC = () => {
   );
 };
 
-export const DemoDetailsSheet: React.FC = () => {
+export const DemoDetailsSheet = () => {
   const payload = useSheetPayload('DemoDetailsSheet');
   const {demo} = payload || {};
   const AppTheme = useThemeStore(state => state.AppTheme);
@@ -633,6 +648,7 @@ export const DemoDetailsSheet: React.FC = () => {
           backgroundColor: isDark ? '#1f2937' : '#ffffff',
           height: screenHeight * 0.75,
         }}>
+          <SheetIndicator/>
         <ScrollView
           contentContainerStyle={{padding: 16, paddingBottom: 64}}
           showsVerticalScrollIndicator={false}>
@@ -718,6 +734,432 @@ export const DemoDetailsSheet: React.FC = () => {
             <AppText size="xs" className="text-slate-400 dark:text-slate-500">
               These details reflect the latest recorded demo execution metadata.
             </AppText>
+          </View>
+        </ScrollView>
+      </ActionSheet>
+    </View>
+  );
+};
+
+export const DemoROISheet = () => {
+  const payload = useSheetPayload('DemoROISheet');
+  const {partner} = payload || {};
+  const AppTheme = useThemeStore(state => state.AppTheme);
+  const isDark = AppTheme === 'dark';
+
+  // State for model filtering
+  const [selectedModel, setSelectedModel] = useState<AppDropdownItem | null>(null);
+
+  // Reset filter when sheet opens
+  useEffect(() => {
+    setSelectedModel(null);
+  }, []);
+
+  // Extract models from partner
+  const models: ModelItem[] = useMemo(() => {return partner?.model || [];}, [partner]);
+
+  // Create dropdown items for models
+  const modelDropdownItems = useMemo(
+    () =>
+      models.map(model => ({
+        label: model.name,
+        value: model.name,
+      })),
+    [models],
+  );
+
+  // Filter models based on selection
+  const filteredModels = useMemo(
+    () =>
+      selectedModel?.value
+        ? models.filter(model => model.name === selectedModel.value)
+        : models,
+    [models, selectedModel],
+  );
+
+  // Calculate totals
+  const totals = useMemo(() => {
+    return filteredModels.reduce(
+      (acc, model) => ({
+        demo: acc.demo + (model.total_demo || 0),
+        activation: acc.activation + (model.total_act || 0),
+        stock: acc.stock + (model.total_stock || 0),
+      }),
+      {demo: 0, activation: 0, stock: 0},
+    );
+  }, [filteredModels]);
+
+  // Calculate ROI percentage
+  const roiPercentage = useMemo(() => {
+    if (totals.demo === 0) return 0;
+    return ((totals.activation / totals.demo) * 100).toFixed(1);
+  }, [totals]);
+
+  // Render model row
+  const renderModelRow = useCallback(
+    (model: ModelItem, index: number) => {
+      const isEven = index % 2 === 0;
+      return (
+        <View
+          key={model.name}
+          className={`flex-row items-center py-3 px-4 ${
+            isEven
+              ? 'bg-slate-50 dark:bg-slate-800/50'
+              : 'bg-white dark:bg-slate-800'
+          }`}>
+          {/* Model Name */}
+          <View className="flex-1">
+            <AppText
+              size="sm"
+              weight="semibold"
+              className="text-slate-800 dark:text-slate-100"
+              numberOfLines={1}>
+              {model.name}
+            </AppText>
+          </View>
+
+          {/* Demo Count */}
+          <View className="w-20 items-center">
+            <AppText
+              size="sm"
+              weight="semibold"
+              className="text-teal-600 dark:text-teal-400">
+              {model.total_demo || 0}
+            </AppText>
+          </View>
+
+          {/* Activation Count */}
+          <View className="w-20 items-center">
+            <AppText
+              size="sm"
+              weight="semibold"
+              className="text-secondary dark:text-secondary-dark">
+              {model.total_act || 0}
+            </AppText>
+          </View>
+
+          {/* Stock Count */}
+          <View className="w-20 items-center">
+            <AppText
+              size="sm"
+              weight="semibold"
+              className="text-warning dark:text-warning-dark">
+              {model.total_stock || 0}
+            </AppText>
+          </View>
+        </View>
+      );
+    },
+    [isDark],
+  );
+
+  if (!partner) return null;
+
+  return (
+    <View>
+      <ActionSheet
+        id="DemoROISheet"
+        useBottomSafeAreaPadding={true}
+        containerStyle={{
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+          backgroundColor: isDark ? '#1f2937' : '#ffffff',
+          height: screenHeight * 0.85,
+        }}>
+        <SheetIndicator />
+
+        {/* Header Section */}
+        <View className="p-4 pb-3 border-b border-slate-200 dark:border-slate-700">
+          <View className="flex-row items-start justify-between mb-2">
+            <View className="flex-1">
+              <AppText
+                size="xl"
+                weight="bold"
+                className="text-slate-800 dark:text-slate-100 mb-1">
+                {partner.PartnerName}
+              </AppText>
+              <View className="flex-row items-center flex-wrap gap-2 mt-1">
+                <View className="bg-primary/10 dark:bg-primary-dark/20 px-2.5 py-1 rounded-md">
+                  <AppText
+                    size="xs"
+                    weight="semibold"
+                    className="text-primary dark:text-primary-dark">
+                    {partner.PartnerType}
+                  </AppText>
+                </View>
+                <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-md">
+                  <AppText
+                    size="xs"
+                    weight="medium"
+                    className="text-slate-600 dark:text-slate-300">
+                    {partner.PartnerCode}
+                  </AppText>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* Branch Info */}
+          <View className="flex-row items-center mt-2">
+            <AppIcon
+              name="map-pin"
+              type="feather"
+              size={14}
+              color={isDark ? '#94A3B8' : '#64748B'}
+            />
+            <AppText
+              size="sm"
+              weight="medium"
+              className="text-slate-600 dark:text-slate-400 ml-2">
+              {partner.BranchName}
+            </AppText>
+          </View>
+        </View>
+
+        <ScrollView
+          contentContainerStyle={{paddingBottom: 64}}
+          showsVerticalScrollIndicator={false}>
+          {/* Key Metrics Cards */}
+          <View className="p-4">
+            <View className="flex-row gap-2 mb-4">
+              {/* Total Demo Card */}
+              <View className="flex-1 bg-teal-50 dark:bg-teal-900/20 rounded-xl p-3 border border-teal-100 dark:border-teal-800">
+                <View className="flex-row items-center justify-between mb-1">
+                  <AppIcon
+                    name="laptop-outline"
+                    type="ionicons"
+                    size={20}
+                    color={AppColors.success}
+                  />
+                  <View className="bg-teal-600 dark:bg-teal-500 px-2 py-0.5 rounded-md">
+                    <AppText
+                      size="xs"
+                      weight="bold"
+                      className="text-white">
+                      {totals.demo}
+                    </AppText>
+                  </View>
+                </View>
+                <AppText
+                  size="xs"
+                  weight="medium"
+                  className="text-teal-600 dark:text-teal-400">
+                  Total Demos
+                </AppText>
+              </View>
+
+              {/* Total Activation Card */}
+              <View className="flex-1 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-3 border border-blue-100 dark:border-blue-800">
+                <View className="flex-row items-center justify-between mb-1">
+                  <AppIcon
+                    name="trending-up"
+                    type="feather"
+                    size={20}
+                    color={AppColors.secondary}
+                  />
+                  <View className="bg-blue-600 dark:bg-blue-500 px-2 py-0.5 rounded-md">
+                    <AppText
+                      size="xs"
+                      weight="bold"
+                      className="text-white">
+                      {totals.activation}
+                    </AppText>
+                  </View>
+                </View>
+                <AppText
+                  size="xs"
+                  weight="medium"
+                  className="text-blue-600 dark:text-blue-400">
+                  Activations
+                </AppText>
+              </View>
+
+              {/* Total Stock Card */}
+              <View className="flex-1 bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3 border border-amber-100 dark:border-amber-800">
+                <View className="flex-row items-center justify-between mb-1">
+                  <AppIcon
+                    name="package"
+                    type="feather"
+                    size={20}
+                    color={AppColors.warning}
+                  />
+                  <View className="bg-amber-600 dark:bg-amber-500 px-2 py-0.5 rounded-md">
+                    <AppText
+                      size="xs"
+                      weight="bold"
+                      className="text-white">
+                      {totals.stock}
+                    </AppText>
+                  </View>
+                </View>
+                <AppText
+                  size="xs"
+                  weight="medium"
+                  className="text-amber-600 dark:text-amber-400">
+                  Total Stock
+                </AppText>
+              </View>
+            </View>
+
+            {/* Model Filter */}
+            {models.length > 0 && (
+              <View className="mb-3">
+                <AppText
+                  size="sm"
+                  weight="semibold"
+                  className="text-slate-700 dark:text-slate-300 mb-2">
+                  Filter by Model
+                </AppText>
+                <AppDropdown
+                  data={modelDropdownItems}
+                  selectedValue={selectedModel?.value}
+                  mode="autocomplete"
+                  placeholder="Search Series"
+                  onSelect={setSelectedModel}
+                  allowClear
+                  onClear={() => setSelectedModel(null)}
+                />
+              </View>
+            )}
+
+            {/* Models Table */}
+            <View className="mt-2">
+              <View className="flex-row items-center justify-between mb-2">
+                <AppText
+                  size="base"
+                  weight="bold"
+                  className="text-slate-800 dark:text-slate-100">
+                  Model Performance
+                </AppText>
+                <AppText
+                  size="xs"
+                  className="text-slate-500 dark:text-slate-400">
+                  {filteredModels.length} of {models.length} models
+                </AppText>
+              </View>
+
+              {filteredModels.length > 0 ? (
+                <View className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                  {/* Table Header */}
+                  <View className="flex-row items-center bg-slate-100 dark:bg-slate-700 py-3 px-4">
+                    <View className="flex-1">
+                      <AppText
+                        size="xs"
+                        weight="bold"
+                        className="text-slate-600 dark:text-slate-300">
+                        MODEL
+                      </AppText>
+                    </View>
+                    <View className="w-20 items-center">
+                      <AppText
+                        size="xs"
+                        weight="bold"
+                        className="text-teal-600 dark:text-teal-400">
+                        DEMO
+                      </AppText>
+                    </View>
+                    <View className="w-20 items-center">
+                      <AppText
+                        size="xs"
+                        weight="bold"
+                        className="text-blue-600 dark:text-blue-400">
+                        ACT
+                      </AppText>
+                    </View>
+                    <View className="w-20 items-center">
+                      <AppText
+                        size="xs"
+                        weight="bold"
+                        className="text-amber-600 dark:text-amber-400">
+                        STOCK
+                      </AppText>
+                    </View>
+                  </View>
+
+                  {/* Table Body */}
+                  {filteredModels.map((model, index) =>
+                    renderModelRow(model, index),
+                  )}
+
+                  {/* Table Footer - Totals */}
+                  {filteredModels.length > 1 && (
+                    <View className="flex-row items-center bg-slate-100 dark:bg-slate-700 py-3 px-4 border-t border-slate-200 dark:border-slate-600">
+                      <View className="flex-1">
+                        <AppText
+                          size="sm"
+                          weight="bold"
+                          className="text-slate-700 dark:text-slate-200">
+                          TOTAL
+                        </AppText>
+                      </View>
+                      <View className="w-20 items-center">
+                        <AppText
+                          size="sm"
+                          weight="bold"
+                          className="text-teal-600 dark:text-teal-400">
+                          {totals.demo}
+                        </AppText>
+                      </View>
+                      <View className="w-20 items-center">
+                        <AppText
+                          size="sm"
+                          weight="bold"
+                          className="text-blue-600 dark:text-blue-400">
+                          {totals.activation}
+                        </AppText>
+                      </View>
+                      <View className="w-20 items-center">
+                        <AppText
+                          size="sm"
+                          weight="bold"
+                          className="text-amber-600 dark:text-amber-400">
+                          {totals.stock}
+                        </AppText>
+                      </View>
+                    </View>
+                  )}
+                </View>
+              ) : (
+                <View className="items-center justify-center py-10 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                  <AppIcon
+                    name="inbox"
+                    type="feather"
+                    size={48}
+                    color={isDark ? '#64748B' : '#94A3B8'}
+                  />
+                  <AppText
+                    size="base"
+                    weight="semibold"
+                    className="text-slate-600 dark:text-slate-400 mt-3">
+                    No Models Found
+                  </AppText>
+                  <AppText
+                    size="sm"
+                    className="text-slate-500 dark:text-slate-500 mt-1">
+                    Try adjusting your filter
+                  </AppText>
+                </View>
+              )}
+            </View>
+
+            {/* Additional Info */}
+            <View className="mt-4 bg-slate-50 dark:bg-slate-800 rounded-lg p-3 border border-slate-200 dark:border-slate-700">
+              <View className="flex-row items-start">
+                <AppIcon
+                  name="info"
+                  type="feather"
+                  size={16}
+                  color={isDark ? '#94A3B8' : '#64748B'}
+                  style={{marginTop: 2}}
+                />
+                <AppText
+                  size="xs"
+                  className="text-slate-600 dark:text-slate-400 ml-2 flex-1">
+                  This data reflects the current inventory, demo executions, and
+                  activation metrics for this partner.
+                </AppText>
+              </View>
+            </View>
           </View>
         </ScrollView>
       </ActionSheet>
@@ -1005,7 +1447,11 @@ export default function DemoPartners() {
   // Handle view partner details in ActionSheet
   const handleViewPartner = useCallback(
     (partner: PartnerTypes) => {
-      showPartnerDetailsSheet(partner, yearQtr || '');
+      if (isROI) {
+        showDemoROISheet(partner);
+      }else{
+        showPartnerDetailsSheet(partner, yearQtr || '');
+      }
     },
     [yearQtr],
   );
