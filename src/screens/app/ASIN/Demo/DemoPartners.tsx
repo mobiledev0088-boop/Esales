@@ -423,7 +423,7 @@ export const PartnerDetailsSheet = () => {
           backgroundColor: isDark ? '#1f2937' : '#ffffff',
           height: screenHeight * 0.85,
         }}>
-          <SheetIndicator/>
+        <SheetIndicator />
         <View className="p-4 pb-3 border-b border-slate-200 dark:border-slate-700">
           <View className="flex-row items-start justify-between mb-2">
             <View className="flex-1">
@@ -648,7 +648,7 @@ export const DemoDetailsSheet = () => {
           backgroundColor: isDark ? '#1f2937' : '#ffffff',
           height: screenHeight * 0.75,
         }}>
-          <SheetIndicator/>
+        <SheetIndicator />
         <ScrollView
           contentContainerStyle={{padding: 16, paddingBottom: 64}}
           showsVerticalScrollIndicator={false}>
@@ -748,7 +748,9 @@ export const DemoROISheet = () => {
   const isDark = AppTheme === 'dark';
 
   // State for model filtering
-  const [selectedModel, setSelectedModel] = useState<AppDropdownItem | null>(null);
+  const [selectedModel, setSelectedModel] = useState<AppDropdownItem | null>(
+    null,
+  );
 
   // Reset filter when sheet opens
   useEffect(() => {
@@ -756,7 +758,9 @@ export const DemoROISheet = () => {
   }, []);
 
   // Extract models from partner
-  const models: ModelItem[] = useMemo(() => {return partner?.model || [];}, [partner]);
+  const models: ModelItem[] = useMemo(() => {
+    return partner?.model || [];
+  }, [partner]);
 
   // Create dropdown items for models
   const modelDropdownItems = useMemo(
@@ -932,10 +936,7 @@ export const DemoROISheet = () => {
                     color={AppColors.success}
                   />
                   <View className="bg-teal-600 dark:bg-teal-500 px-2 py-0.5 rounded-md">
-                    <AppText
-                      size="xs"
-                      weight="bold"
-                      className="text-white">
+                    <AppText size="xs" weight="bold" className="text-white">
                       {totals.demo}
                     </AppText>
                   </View>
@@ -958,10 +959,7 @@ export const DemoROISheet = () => {
                     color={AppColors.secondary}
                   />
                   <View className="bg-blue-600 dark:bg-blue-500 px-2 py-0.5 rounded-md">
-                    <AppText
-                      size="xs"
-                      weight="bold"
-                      className="text-white">
+                    <AppText size="xs" weight="bold" className="text-white">
                       {totals.activation}
                     </AppText>
                   </View>
@@ -984,10 +982,7 @@ export const DemoROISheet = () => {
                     color={AppColors.warning}
                   />
                   <View className="bg-amber-600 dark:bg-amber-500 px-2 py-0.5 rounded-md">
-                    <AppText
-                      size="xs"
-                      weight="bold"
-                      className="text-white">
+                    <AppText size="xs" weight="bold" className="text-white">
                       {totals.stock}
                     </AppText>
                   </View>
@@ -1449,7 +1444,7 @@ export default function DemoPartners() {
     (partner: PartnerTypes) => {
       if (isROI) {
         showDemoROISheet(partner);
-      }else{
+      } else {
         showPartnerDetailsSheet(partner, yearQtr || '');
       }
     },

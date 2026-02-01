@@ -56,6 +56,7 @@ interface PartnerDemoSummary {
   categories: AppDropdownItem[];
   demoStatuses: AppDropdownItem[];
   groupedData: Record<string, PartnerDemoData[]>;
+  Table2: any[];
 }
 
 interface StatMetricProps {
@@ -86,16 +87,16 @@ const getStatusColors = (status: string | null) => {
   if (!status) return base;
   const normalized = status.trim().toLowerCase();
   if (/(^|\b)pending(s)?\b/.test(normalized)) {
-    return {container: 'bg-amber-100', text: 'text-amber-700'}; // Pending => Yellow
+    return {container: 'bg-amber-100 dark:bg-amber-900', text: 'text-amber-700 dark:text-amber-300'}; // Pending => Yellow
   }
   if (/(^|\b)(done|complete|completed)\b/.test(normalized)) {
-    return {container: 'bg-emerald-100', text: 'text-emerald-700'}; // Done/Complete => Green
+    return {container: 'bg-emerald-100 dark:bg-emerald-900', text: 'text-emerald-700 dark:text-emerald-300'}; // Done/Complete => Green
   }
   if (/(progress|running)/.test(normalized)) {
-    return {container: 'bg-blue-100', text: 'text-blue-700'};
+    return {container: 'bg-blue-100 dark:bg-blue-900', text: 'text-blue-700 dark:text-blue-300'};
   }
   if (/(failed|fail|cancel|canceled|cancelled|error)/.test(normalized)) {
-    return {container: 'bg-rose-100', text: 'text-rose-700'};
+    return {container: 'bg-rose-100 dark:bg-rose-900', text: 'text-rose-700 dark:text-rose-300'};
   }
   return base;
 };
@@ -106,25 +107,6 @@ const formatDate = (value: string | null) => {
   return moment(value).isValid() ? moment(value).format('YYYY-MM-DD') : value;
 };
 // ===== API Hooks  ========
-
-const useGetSubCode = (hasSubCode: boolean) => {
-  const {EMP_Code: employeeCode = ''} = useLoginStore(state => state.userInfo);
-  return useQuery({
-    queryKey: ['subCodes', employeeCode],
-    queryFn: async () => {
-      const response = await handleASINApiCall('/DemoForm/GetChildCodes', {
-        employeeCode,
-      });
-      const result = response?.demoFormData;
-      if (!result?.Status) {
-        throw new Error('Failed to fetch sub codes');
-      }
-      return result?.Datainfo?.Subcode_List;
-    },
-    enabled: hasSubCode,
-    select: () => {},
-  });
-};
 const useGetPartnerDemoData = (
   YearQtr: string,
   hasChildCode: boolean,
@@ -146,14 +128,15 @@ const useGetPartnerDemoData = (
       if (!result?.Status) {
         throw new Error('Failed to fetch activation data');
       }
-      const table = result?.Datainfo?.Table;
+      const table = result?.Datainfo;
       return table;
     },
-    select: (data: PartnerDemoData[]): PartnerDemoSummary => {
+    select: (data:{Table: PartnerDemoData[], Table2: any[]}): PartnerDemoSummary => {
+      const demoData = data?.Table || [];
       const categorySet = new Set<string>();
       const statusSet = new Set<string>();
       const groupedData: Record<string, PartnerDemoData[]> = {};
-      data.forEach(item => {
+      demoData.forEach(item => {
         if (item.Category) categorySet.add(item.Category);
         if (item.DemoExecutionDone) statusSet.add(item.DemoExecutionDone);
         const key = item.AGP_Name || item.AGP_Code || 'UNKNOWN';
@@ -166,7 +149,7 @@ const useGetPartnerDemoData = (
       const demoStatuses = Array.from(statusSet)
         .sort()
         .map(v => ({label: v, value: v}));
-      return {categories, demoStatuses, groupedData};
+      return {categories, demoStatuses, groupedData,Table2: data.Table2 || []};
     },
   });
 };
@@ -263,7 +246,6 @@ const usePartnerDemoLogic = (childrenCode?: string) => {
       return next;
     });
   }, []);
-  console.log('Demo Partner Rendered', demoData?.groupedData);
   return {
     // Remote
     demoData,
@@ -358,7 +340,7 @@ const DemoItem: React.FC<{row: PartnerDemoData}> = memo(({row}) => {
     SheetManager.show('PartnerDemoDetailsSheet', {payload: {demo: row}});
   }, [row]);
   return (
-    <View className="px-4 py-3 border-t border-slate-100 bg-white">
+    <View className="px-4 py-3 border-t border-slate-200 bg-lightBg-surface dark:bg-darkBg-surface dark:border-slate-700">
       <View className="flex-row items-center justify-between mb-2">
         <View className="flex-1 pr-3">
           <AppText
@@ -422,7 +404,7 @@ const DemoItem: React.FC<{row: PartnerDemoData}> = memo(({row}) => {
               size="sm"
               weight="semibold"
               color="primary"
-              className=" underline mr-2">
+              className="underline mr-2 dark:text-secondary">
               See More Demo Details
             </AppText>
           </TouchableOpacity>
@@ -681,9 +663,9 @@ const FiltersSummaryHeader: React.FC<{
     selectedAgp,
     setSelectedAgp,
     agpOptions,
-    sections,
-    totalItems,
+    totalItems
   } = logic;
+
   return (
     <View className="mb-5">
       <View className="flex-row mb-4">
@@ -737,7 +719,8 @@ const FiltersSummaryHeader: React.FC<{
           />
         </View>
       </View>
-      <View className="p-5 rounded-2xl bg-white border border-slate-200">
+      {/* Summary is Hiide Beacuse of there is no Accurate Data  */}
+      <View className="p-5 rounded-2xl bg-lightBg-surface dark:bg-darkBg-surface border border-slate-200 dark:border-slate-700">
         <AppText size="md" weight="semibold" className="text-slate-800 mb-4">
           Summary
         </AppText>
@@ -745,37 +728,42 @@ const FiltersSummaryHeader: React.FC<{
           <StatMetric
             iconName="check-circle"
             iconColor="#16a34a"
-            bgClass="bg-emerald-100"
-            label="At Least single Demo"
-            value={sections.length}
-            valueColorClass="text-emerald-700"
+            bgClass="bg-emerald-100 dark:bg-emerald-900"
+            label="Single Demo"
+            value={demoData?.Table2[0]?.ALP_AtleastSingleDone || 0}
+            valueColorClass="text-emerald-700 dark:text-emerald-300"
           />
           <View className="w-px self-stretch bg-slate-200" />
           <StatMetric
             iconName="award"
             iconColor="#7c3aed"
-            bgClass="bg-indigo-100"
+            bgClass="bg-indigo-100 dark:bg-indigo-900"
             label="100% Demo"
-            value={totalItems}
-            valueColorClass="text-indigo-700"
+            value={demoData?.Table2[0]?.ALP_Percent100Done || 0}
+            valueColorClass="text-indigo-700 dark:text-indigo-300"
           />
-          <View className="w-px self-stretch bg-slate-200" />
-          <StatMetric
+          {/* <View className="w-px self-stretch bg-slate-200" /> */}
+          {/* <StatMetric
             iconName="clock"
-            iconColor="#7c3aed"
-            bgClass="bg-indigo-100"
+            iconColor="#f59e0b"
+            bgClass="bg-amber-100 dark:bg-amber-900"
             label="Pending"
-            value={totalItems}
-            valueColorClass="text-indigo-700"
-          />
+            value={demoData?.Table2[0]?.ALP_Pending || 0}
+            valueColorClass="text-amber-700 dark:text-amber-300"
+          /> */}
         </View>
       </View>
+      <View className="flex-row items-center justify-between">
       <AppText
         size="md"
         weight="semibold"
         className="text-slate-700 mt-4 mb-2 px-1">
         AGP Demo
       </AppText>
+      <AppText>
+        Total AGP: {totalItems}
+      </AppText>
+          </View>
     </View>
   );
 });
@@ -807,7 +795,7 @@ const GroupAccordion: React.FC<{
       }
       isOpen={isOpen}
       onToggle={onToggle}
-      containerClassName="bg-white rounded-xl mb-4"
+      containerClassName="bg-lightBg-surface dark:bg-darkBg-surface rounded-xl mb-4"
       headerClassName="py-3 px-4"
       contentClassName="px-0"
       needBottomBorder={false}
@@ -871,6 +859,7 @@ export default function DemoAWPPartners() {
     error,
     refetch,
     isRefetching,
+    demoData
   } = logic;
 
   const renderGroup = useCallback(
@@ -896,7 +885,7 @@ export default function DemoAWPPartners() {
       <DataStateView
         isLoading={isLoading}
         isError={isError}
-        isEmpty={!sections.length}
+        isEmpty={!demoData}
         onRetry={refetch}
         LoadingComponent={<LoaderView />}>
         <FlatList
@@ -904,6 +893,14 @@ export default function DemoAWPPartners() {
           keyExtractor={groupKeyExtractor}
           renderItem={renderGroup}
           ListHeaderComponent={<FiltersSummaryHeader logic={logic} />}
+          ListEmptyComponent={<View>
+            <AppText
+              size="md"
+              weight="medium"
+              className="text-slate-600 text-center mt-10">
+              No demo data found matching the selected criteria.
+            </AppText>
+          </View>}
           initialNumToRender={8}
           maxToRenderPerBatch={12}
           windowSize={10}

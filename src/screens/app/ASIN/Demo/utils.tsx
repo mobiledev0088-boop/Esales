@@ -185,7 +185,7 @@ export interface Filters {
 
 // helpers
 export const STAT_PALETTE = {
-  lap_icon: {tint: 'text-red-600', iconBg: 'bg-red-500'},
+  lap_icon: {tint: 'text-violet-600', iconBg: 'bg-violet-500'},
   grow_icon: {tint: 'text-blue-600', iconBg: 'bg-blue-500'},
   perc_icon: {tint: 'text-green-600', iconBg: 'bg-green-500'},
   pause_icon: {tint: 'text-yellow-600', iconBg: 'bg-yellow-500'},

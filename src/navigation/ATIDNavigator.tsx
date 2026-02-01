@@ -37,7 +37,11 @@ const screens = [
 ];
 
 export const ATIDNavigator = () => (
-  <Stack.Navigator screenOptions={{headerShown: false}}>
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+      animation: 'slide_from_right',
+    }}>
     {screens.map(({name, component}) => (
       <Stack.Screen key={name} name={name} component={component} />
     ))}

@@ -3,11 +3,10 @@ import {getMMKV} from '../utils/mmkvStorage';
 import {handleASINApiCall} from '../utils/handleApiCall';
 import {getDeviceId} from 'react-native-device-info';
 import {useLoginStore} from '../stores/useLoginStore';
-import { useUserStore } from '../stores/useUserStore';
+import {useUserStore} from '../stores/useUserStore';
 
 interface SplashImageCache {
-  imageUrl: string;
-  timestamp: number;
+imageUrl: string;
 }
 
 interface UseGetSplashImageReturn {
@@ -17,7 +16,6 @@ interface UseGetSplashImageReturn {
 }
 
 const CACHE_KEY = 'splash-image-cache';
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
 /**
  * Hook to fetch and cache splash screen image with smart caching strategy
@@ -37,41 +35,26 @@ export const useGetSplashImage = (
     try {
       const storage = getMMKV();
       const cachedData = storage.getString(CACHE_KEY);
-
       if (cachedData) {
         // Parse existing cache
         const parsedCache: SplashImageCache = JSON.parse(cachedData);
-        const cacheAge = Date.now() - parsedCache.timestamp;
-
-        // Cache is fresh (< 24 hours) - use it and exit
-        // if (cacheAge < CACHE_DURATION) {
-        //   if (isMounted) {
-        //     setImageUrl(parsedCache.imageUrl);
-        //     setIsLoading(false);
-        //   }
-        //   return;
-        // }
-
         // Cache is stale (> 24 hours) - show old image while updating in background
         if (isMounted) {
           setImageUrl(parsedCache.imageUrl);
           setIsLoading(false);
           setIsUpdating(true);
         }
-
         // Fetch fresh image in background
-        await fetchAndCacheImage(employeeCode, storage, isMounted);
-
+        await fetchAndCacheImage(employeeCode, storage);
         if (isMounted) {
           setIsUpdating(false);
         }
       } else {
         // No cache exists - fetch and cache for next time (don't show yet)
-        await fetchAndCacheImage(employeeCode, storage, isMounted);
-
         if (isMounted) {
           setIsLoading(false);
         }
+        await fetchAndCacheImage(employeeCode, storage);
       }
     } catch (error) {
       console.error('Error in useGetSplashImage:', error);
@@ -108,7 +91,6 @@ export const useGetSplashImage = (
 async function fetchAndCacheImage(
   employeeCode: string,
   storage: ReturnType<typeof getMMKV>,
-  isMounted: boolean,
 ): Promise<void> {
   try {
     const deviceId = getDeviceId();
@@ -126,11 +108,8 @@ async function fetchAndCacheImage(
     if (result?.Status) {
       if (result?.Datainfo?.[0]?.FestiveAnimation) {
         const freshImageUrl = result.Datainfo[0].FestiveAnimation;
-        // Cache the image with timestamp
-        const cacheData: SplashImageCache = {
-          imageUrl: freshImageUrl,
-          timestamp: Date.now(),
-        };
+        // Cache the image
+        const cacheData: SplashImageCache = {imageUrl: freshImageUrl};
         // Intentionally empty - image will be shown on next app launch
         storage.set(CACHE_KEY, JSON.stringify(cacheData));
       }

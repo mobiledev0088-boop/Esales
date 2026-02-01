@@ -56,13 +56,11 @@ interface StatMetricProps {
 
 const useGetPartnerDemoData = (
   YearQtr: string,
-  hasChildCode: boolean,
   childrenCode?: string,
 ) => {
-  const {EMP_Code, EMP_Type} = useLoginStore(state => state.userInfo);
+  const {EMP_Code} = useLoginStore(state => state.userInfo);
   const employeeCode = childrenCode || EMP_Code || '';
-
-  const enabled = Boolean(employeeCode && YearQtr) && !hasChildCode;
+  const enabled = Boolean(employeeCode && YearQtr);
   return useQuery({
     queryKey: ['partnerDemoData', employeeCode, YearQtr],
     enabled,
@@ -77,6 +75,25 @@ const useGetPartnerDemoData = (
       }
       const table = result?.Datainfo?.Table as PartnerDemoData[];
       return table;
+    },
+  });
+};
+const useGetSubCode = (hasSubCode: boolean) => {
+  const {EMP_Code: employeeCode = ''} = useLoginStore(state => state.userInfo);
+  return useQuery({
+    queryKey: ['subCodes', employeeCode],
+    queryFn: async () => {
+      const response = await handleASINApiCall('/DemoForm/GetSubcode_List', {employeeCode});
+      console.log('Sub Codes Response:', response);
+      const result = response?.demoFormData;
+      if (!result?.Status) {
+        throw new Error('Failed to fetch sub codes');
+      }
+      return result?.Datainfo?.Subcode_List;
+    },
+    enabled: hasSubCode,
+    select: data => {
+      return data?.map((item: any) => ({label: item?.PartnerName, value: item?.PartnerCode  })) || [];
     },
   });
 };
@@ -157,11 +174,7 @@ const usePartnerDemoLogic = (childrenCode?: string) => {
     error,
     refetch,
     isRefetching,
-  } = useGetPartnerDemoData(
-    selectedQuarter?.value || '',
-    !!empInfo?.IsParentCode,
-    childrenCode,
-  );
+  } = useGetPartnerDemoData(selectedQuarter?.value || '',childrenCode);
 
   // Local filter state
   const [selectedCategory, setSelectedCategory] =
@@ -171,34 +184,6 @@ const usePartnerDemoLogic = (childrenCode?: string) => {
   );
   const [selectedUnitModel, setSelectedUnitModel] =
     useState<AppDropdownItem | null>(null);
-
-  // Derived options
-  const unitModelOptions = useMemo(() => {
-    if (!demoData) return [] as AppDropdownItem[];
-    const models = new Set<string>();
-    demoData.forEach(demo => {
-      if (demo.DemoUnitModel) models.add(demo.DemoUnitModel);
-    });
-    return Array.from(models).map(m => ({label: m, value: m}));
-  }, [demoData]);
-
-  const statusOptions = useMemo(() => {
-    if (!demoData) return [] as AppDropdownItem[];
-    const statuses = new Set<string>();
-    demoData.forEach(demo => {
-      if (demo.DemoExecutionDone) statuses.add(demo.DemoExecutionDone);
-    });
-    return Array.from(statuses).map(s => ({label: s, value: s}));
-  }, [demoData]);
-
-  const categoryOptions = useMemo(() => {
-    if (!demoData) return [] as AppDropdownItem[];
-    const categories = new Set<string>();
-    demoData.forEach(demo => {
-      if (demo.Category) categories.add(demo.Category);
-    });
-    return Array.from(categories).map(c => ({label: c, value: c}));
-  }, [demoData]);
 
   // Filter and group data
   const sections = useMemo(() => {
@@ -219,6 +204,33 @@ const usePartnerDemoLogic = (childrenCode?: string) => {
     }
     return filtered;
   }, [demoData, selectedCategory, selectedStatus, selectedUnitModel]);
+
+  // Derived options
+  const unitModelOptions = useMemo(() => {
+    if (!sections) return [] as AppDropdownItem[];
+    const models = new Set<string>();
+    sections.forEach(demo => {
+      if (demo.DemoUnitModel) models.add(demo.DemoUnitModel);
+    });
+    return Array.from(models).map(m => ({label: m, value: m}));
+  }, [sections]);
+  const statusOptions = useMemo(() => {
+    if (!sections) return [] as AppDropdownItem[];
+    const statuses = new Set<string>();
+    sections.forEach(demo => {
+      if (demo.DemoExecutionDone) statuses.add(demo.DemoExecutionDone);
+    });
+    return Array.from(statuses).map(s => ({label: s, value: s}));
+  }, [sections]);
+
+  const categoryOptions = useMemo(() => {
+    if (!demoData) return [] as AppDropdownItem[];
+    const categories = new Set<string>();
+    demoData.forEach(demo => {
+      if (demo.Category) categories.add(demo.Category);
+    });
+    return Array.from(categories).map(c => ({label: c, value: c}));
+  }, [demoData]);
 
   const totalItems = demoData?.length || 0;
 
@@ -507,11 +519,35 @@ const FiltersSummaryHeader: React.FC<{
   );
 });
 
+const EmptyComponent = () => (
+  <View className="flex-1 items-center justify-center">
+    <AppIcon name="inbox" size={48} color="#9CA3AF" type="fontAwesome" />
+    <AppText size="md" className="text-center">
+      No data available to display.
+    </AppText>
+  </View>
+);
+const SelectSubCodesEmptyComponent = () => (
+  <View className="flex-1 items-center mt-20 px-4">
+    <AppIcon name="info" size={48} color="#3B82F6" type="feather" />
+    <AppText size="md" className="text-center">
+      Select a Sub code to view demo data.
+    </AppText>
+  </View>
+);
+
 export default function Demo_Partner() {
   const navigation = useNavigation<AppNavigationProp>();
-  const childrenCode = '';
+  const {IsParentCode} = useUserStore(state => state.empInfo);
+  const [childrenCode, setChildrenCode] = useState('');
+
+  const {
+    data,
+    isLoading: isSubCodeLoading,
+    isError: isSubCodeError,
+  } = useGetSubCode(!!IsParentCode);
   const logic = usePartnerDemoLogic(childrenCode);
-  const {sections, isLoading, isError, refetch, isRefetching} = logic;
+  const {sections, isLoading, isError, refetch, isRefetching, demoData} = logic;
 
   const groupKeyExtractor = useCallback(
     (_: any, index: number) => index.toString(),
@@ -525,17 +561,39 @@ export default function Demo_Partner() {
 
   return (
     <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
+      <AppDropdown
+        mode="dropdown"
+        data={data || []}
+        selectedValue={childrenCode}
+        onSelect={item => setChildrenCode(item?.value || '')}
+        placeholder={isSubCodeLoading ? 'Loading...' : 'Select Child Code'}
+        zIndex={4000}
+        allowClear
+        onClear={() => setChildrenCode('')}
+        style={{padding: 12}}
+      />
       <DataStateView
         isLoading={isLoading}
         isError={isError}
-        isEmpty={!sections?.length}
+        isEmpty={!demoData?.length}
         onRetry={refetch}
+        EmptyComponent={IsParentCode ? <SelectSubCodesEmptyComponent /> : <EmptyComponent />}
         LoadingComponent={<LoaderView />}>
         <FlatList
           data={sections}
           keyExtractor={groupKeyExtractor}
           renderItem={renderGroup}
           ListHeaderComponent={<FiltersSummaryHeader logic={logic} />}
+          ListEmptyComponent={
+            <View>
+              <AppText
+                size="md"
+                weight="medium"
+                className="text-slate-600 text-center mt-10">
+                No demo data found matching the selected criteria.
+              </AppText>
+            </View>
+          }
           initialNumToRender={8}
           maxToRenderPerBatch={12}
           windowSize={10}
@@ -551,8 +609,8 @@ export default function Demo_Partner() {
             <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
           }
         />
-        <FAB onPress={handlePress} />
       </DataStateView>
+      <FAB onPress={handlePress} />
     </View>
   );
 }

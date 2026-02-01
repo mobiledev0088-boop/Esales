@@ -21,7 +21,7 @@ export default function DynamicSplash({onFinish}: {onFinish: () => void}) {
       setEmployeeCode(empCode);
       setStartAPICall(true);
     });
-  }, []);
+  }, []); 
 
   useEffect(() => {
     if (!isLoading) {

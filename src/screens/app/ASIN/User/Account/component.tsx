@@ -379,7 +379,6 @@ export const SpecialAccessUI = ({
         loginAs: loginAsID,
         deviceId: getDeviceId(),
       };
-
       const response = await handleASINApiCall('/Auth/Login_As', payload);
       const result = response?.login;
 

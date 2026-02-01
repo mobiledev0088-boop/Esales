@@ -14,9 +14,9 @@ const AuthLayout = ({children}: {children: React.ReactNode}) => {
       extraScrollHeight={10}
       enableAutomaticScroll
       keyboardShouldPersistTaps="handled">
-      <View className="min-h-full bg-[#d8e5f6]">
+      <View className="min-h-full bg-slate-200 dark:bg-slate-700 flex-1">
         <View
-          className="w-full justify-center items-center bg-primary rounded-b-2xl"
+          className="w-full justify-center items-center bg-primary dark:bg-primary-dark rounded-b-2xl"
           style={[getShadowStyle(), {minHeight: '50%'}]}>
           <AppImage
             source={require('../../assets/images/logo.png')}

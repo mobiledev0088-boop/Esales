@@ -104,7 +104,7 @@ export default function DemoFilterSheet() {
   const isLoading = payload.loading;
 
   const activeCount = useMemo(() =>Object.values(filters).filter(value => value != null && value !== '').length,[filters])
-
+  console.log('DemoFilterSheet - filters', filters);
   const groups = useMemo(
     () => Object.keys(filters).map(key => ({
         key,
@@ -114,7 +114,7 @@ export default function DemoFilterSheet() {
         data: datList[key] || [],
         hasValue: filters[key] !== '' && filters[key] != null,
       })),
-    [filters, datList],
+    [filters],
   );
   const [group, setGroup] = useState<Group>(groups[0].key);
 
@@ -140,7 +140,7 @@ export default function DemoFilterSheet() {
       setFilters(prev => {
         const newFilters = {...prev};
         if (newFilters[group] === item) {
-          delete newFilters[group];
+          newFilters[group] = '';
         } else {
           newFilters[group] = item;
         }

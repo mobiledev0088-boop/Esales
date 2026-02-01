@@ -288,7 +288,7 @@ export default function ActivationFilterSheet() {
       },
       {
         key: 'type' as const,
-        label: 'Type',
+        label: 'Product Line',
         hasValue: type.length > 0,
       },
       {

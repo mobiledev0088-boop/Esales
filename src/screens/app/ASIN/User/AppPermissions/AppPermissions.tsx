@@ -18,10 +18,10 @@ import {
 
 type PermissionKey =
   | 'camera'
-  | 'gallery'
+  // | 'gallery'
   | 'location'
   | 'locationAlways'
-  | 'storageSave'
+  // | 'storageSave'
   | 'notifications';
 
 type Status =
@@ -54,15 +54,15 @@ function getPermissionConstant(key: PermissionKey): Permission | null {
         android: PERMISSIONS.ANDROID.CAMERA,
         default: null,
       }) as Permission | null;
-    case 'gallery':
-      return Platform.select({
-        ios: PERMISSIONS.IOS.PHOTO_LIBRARY,
-        android:
-          androidVersion >= 33
-            ? PERMISSIONS.ANDROID.READ_MEDIA_IMAGES
-            : PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE,
-        default: null,
-      }) as Permission | null;
+    // case 'gallery':
+    //   return Platform.select({
+    //     ios: PERMISSIONS.IOS.PHOTO_LIBRARY,
+    //     android:
+    //       androidVersion >= 33
+    //         ? PERMISSIONS.ANDROID.READ_MEDIA_IMAGES
+    //         : PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE,
+    //     default: null,
+    //   }) as Permission | null;
     case 'location':
       return Platform.select({
         ios: PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
@@ -75,15 +75,15 @@ function getPermissionConstant(key: PermissionKey): Permission | null {
         android: PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION,
         default: null,
       }) as Permission | null;
-    case 'storageSave':
-      return Platform.select({
-        ios: PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY,
-        android:
-          androidVersion >= 33
-            ? PERMISSIONS.ANDROID.READ_MEDIA_IMAGES
-            : PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE,
-        default: null,
-      }) as Permission | null;
+    // case 'storageSave':
+    //   return Platform.select({
+    //     ios: PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY,
+    //     android:
+    //       androidVersion >= 33
+    //         ? PERMISSIONS.ANDROID.READ_MEDIA_IMAGES
+    //         : PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE,
+    //     default: null,
+    //   }) as Permission | null;
     default:
       return null;
   }
@@ -206,10 +206,10 @@ export default function AppPermissions() {
   const androidVersion = getAndroidVersion();
   const [state, setState] = useState<PermissionState>({
     camera: null,
-    gallery: null,
+    // gallery: null,
     location: null,
     locationAlways: null,
-    storageSave: null,
+    // storageSave: null,
     notifications: null,
   });
 
@@ -361,34 +361,34 @@ export default function AppPermissions() {
             : 'Allow app notifications on your device.',
         icon: {type: 'feather', name: 'bell'},
       },
-      {
-        key: 'gallery',
-        title: Platform.OS === 'ios' ? 'Photos' : 'Gallery',
-        desc:
-          Platform.OS === 'ios'
-            ? 'Pick images from your Photo Library.'
-            : androidVersion >= 33
-              ? 'Allow reading images from your gallery.'
-              : 'Allow access to external storage to choose images.',
-        icon: {type: 'feather', name: 'image'},
-      },
+      // {
+      //   key: 'gallery',
+      //   title: Platform.OS === 'ios' ? 'Photos' : 'Gallery',
+      //   desc:
+      //     Platform.OS === 'ios'
+      //       ? 'Pick images from your Photo Library.'
+      //       : androidVersion >= 33
+      //         ? 'Allow reading images from your gallery.'
+      //         : 'Allow access to external storage to choose images.',
+      //   icon: {type: 'feather', name: 'image'},
+      // },
       {
         key: 'location',
         title: 'Location (While Using)',
         desc: 'Enable accurate location for nearby features.',
         icon: {type: 'ionicons', name: 'location-outline'},
       },
-      {
-        key: 'storageSave',
-        title: Platform.OS === 'ios' ? 'Save to Photos' : 'Save files',
-        desc:
-          Platform.OS === 'ios'
-            ? 'Allow saving images to your Photos.'
-            : androidVersion >= 33
-              ? 'Allow saving images to media storage.'
-              : 'Allow writing files to storage.',
-        icon: {type: 'material-community', name: 'content-save-outline'},
-      },
+      // {
+      //   key: 'storageSave',
+      //   title: Platform.OS === 'ios' ? 'Save to Photos' : 'Save files',
+      //   desc:
+      //     Platform.OS === 'ios'
+      //       ? 'Allow saving images to your Photos.'
+      //       : androidVersion >= 33
+      //         ? 'Allow saving images to media storage.'
+      //         : 'Allow writing files to storage.',
+      //   icon: {type: 'material-community', name: 'content-save-outline'},
+      // },
     ];
     if (Platform.OS === 'android') {
       base.splice(3, 0, {

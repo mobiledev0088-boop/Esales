@@ -4,12 +4,12 @@ import AppModal from './customs/AppModal';
 import AppText from './customs/AppText';
 import AppIcon from './customs/AppIcon';
 import AppButton from './customs/AppButton';
-import { useMutation } from '@tanstack/react-query';
-import { handleASINApiCall } from '../utils/handleApiCall';
-import { getDeviceId } from 'react-native-device-info';
-import { useLoginStore } from '../stores/useLoginStore';
-import { showToast } from '../utils/commonFunctions';
-import { isIOS } from '../utils/constant';
+import {useMutation} from '@tanstack/react-query';
+import {handleASINApiCall} from '../utils/handleApiCall';
+import {getDeviceId} from 'react-native-device-info';
+import {useLoginStore} from '../stores/useLoginStore';
+import {showToast} from '../utils/commonFunctions';
+import {isIOS} from '../utils/constant';
 
 const LogoutModal = ({
   isVisible,
@@ -18,28 +18,39 @@ const LogoutModal = ({
   isVisible: boolean;
   onClose: () => void;
 }) => {
-    const userInfo = useLoginStore(state => state.userInfo);
-    const removeAuthData = useLoginStore(state => state.removeAuthData);
-    const { mutate } = useMutation({
-        mutationFn: async () => {
-            const res = await handleASINApiCall('/Auth/UpdateToken',{
-                 deviceId: getDeviceId(),
+  const userInfo = useLoginStore(state => state.userInfo);
+  const removeAuthData = useLoginStore(state => state.removeAuthData);
+  const {mutate} = useMutation({
+    mutationFn: async () => {
+      if (!userInfo?.Token) {
+        removeAuthData();
+        onClose();
+        showToast('Logged out successfully');
+        return;
+      }
+      const res = await handleASINApiCall('/Auth/UpdateToken', {
+        deviceId: getDeviceId(),
         token: userInfo?.Token,
         employeeCode: userInfo?.EMP_Code,
-            })  
-            const result  = res.login;
-            if(result?.Status){
-                removeAuthData();
-                onClose();
-                showToast('Logged out successfully');
-            }else{
-                showToast(result?.Message || 'Logout failed');
-            }
-        }
-    })
-    const handleLogout = () => mutate();
+      });
+
+      const result = res.login;
+      if (result?.Status) {
+        removeAuthData();
+        onClose();
+        showToast('Logged out successfully');
+      } else {
+        showToast(result?.Message || 'Logout failed');
+      }
+    },
+    onError: error => {
+      console.error('Logout API Error:', error); // Debug log
+      showToast('An error occurred during logout');
+    },
+  });
+  const handleLogout = () => mutate();
   return (
-    <AppModal isOpen={isVisible} onClose={onClose} modalWidth={'80%'}  >
+    <AppModal isOpen={isVisible} onClose={onClose} modalWidth={'80%'}>
       <View className="items-center justify-center  space-y-5">
         <View className="bg-primary rounded-full p-4 mb-5">
           <AppIcon
@@ -65,10 +76,10 @@ const LogoutModal = ({
           />
           <TouchableOpacity
             activeOpacity={0.7}
-            onPress={isIOS? onClose : undefined}
+            onPress={isIOS ? onClose : undefined}
             onPressOut={!isIOS ? onClose : undefined}
             className="bg-gray-100 py-3 rounded-sm items-center mt-2">
-            <AppText weight="bold"  color="primary">
+            <AppText weight="bold" color="primary">
               Cancel
             </AppText>
           </TouchableOpacity>

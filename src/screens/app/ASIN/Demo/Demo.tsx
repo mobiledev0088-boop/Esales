@@ -1,4 +1,4 @@
-import {FlatList, View} from 'react-native';
+import {FlatList, ScrollView, View} from 'react-native';
 import {useCallback, useMemo, useState} from 'react';
 import MaterialTabBar from '../../../../components/MaterialTabBar';
 import AppDropdown, {
@@ -23,6 +23,7 @@ import {
   BranchCardROI,
   DemoSkeleton,
   StatsHeader,
+  SummaryOverView,
 } from './components';
 import {
   useGetDemoCategories,
@@ -238,8 +239,10 @@ const Reseller = () => {
   const handleRetry = useCallback(() => {
     refetch();
   }, [refetch]);
+  const isError = !!error && transformedData.length === 0;
+  const isEmpty = !isLoading && !error && transformedData.length === 0;
   return (
-    <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
+    <ScrollView className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
       <View className="flex-row items-center gap-x-1 px-3 pt-2 mb-3">
         <View className="w-[30%]">
           <AppDropdown
@@ -267,10 +270,11 @@ const Reseller = () => {
           noShadow
         />
       </View>
+      {(isEmpty || isError) &&  <View className='px-3'><SummaryOverView /></View>}
       <DataStateView
         isLoading={isLoading}
-        isError={!!error}
-        isEmpty={!isLoading && !error && transformedData.length === 0}
+        isError={isError}
+        isEmpty={isEmpty}
         onRetry={handleRetry}
         LoadingComponent={<DemoSkeleton />}>
         <FlatList
@@ -288,9 +292,10 @@ const Reseller = () => {
               }}
             />
           }
+          scrollEnabled={false}
         />
       </DataStateView>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -490,8 +495,10 @@ const Retailer = () => {
   const handleRetry = useCallback(() => {
     refetch();
   }, [refetch]);
+  const isError = !!error && transformedData.length === 0;
+  const isEmpty = !isLoading && !error && transformedData.length === 0;
   return (
-    <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
+    <ScrollView className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
       <View className="flex-row items-center gap-x-1 px-3 pt-2 mb-3">
         <View className="w-[30%]">
           <AppDropdown
@@ -519,10 +526,11 @@ const Retailer = () => {
           noShadow
         />
       </View>
+        {(isEmpty || isError) &&  <View className='px-3'><SummaryOverView /></View>}
       <DataStateView
         isLoading={isLoading}
-        isError={!!error}
-        isEmpty={!isLoading && !error && transformedData.length === 0}
+        isError={isError}
+        isEmpty={isEmpty}
         onRetry={handleRetry}
         LoadingComponent={<DemoSkeleton />}>
         <FlatList
@@ -543,7 +551,7 @@ const Retailer = () => {
           }
         />
       </DataStateView>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -719,9 +727,11 @@ const LFR = () => {
   const handleRetry = useCallback(() => {
     refetch();
   }, [refetch]);
+  const isError = !!error && transformedData.length === 0;
+  const isEmpty = !isLoading && !error && transformedData.length === 0;
 
   return (
-    <View className="flex-1 bg-slate-50">
+    <ScrollView className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
       <View className="flex-row items-center gap-x-1 px-3 pt-2 mb-3">
         <View className="w-[30%]">
           <AppDropdown
@@ -749,10 +759,11 @@ const LFR = () => {
           noShadow
         />
       </View>
+        {(isEmpty || isError) &&  <View className='px-3'><SummaryOverView /></View>}
       <DataStateView
         isLoading={isLoading}
-        isError={!!error}
-        isEmpty={!isLoading && !error && transformedData.length === 0}
+        isError={isError}
+        isEmpty={isEmpty}
         onRetry={handleRetry}
         LoadingComponent={<DemoSkeleton />}>
         <FlatList
@@ -773,7 +784,7 @@ const LFR = () => {
           }
         />
       </DataStateView>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -971,9 +982,11 @@ const ROI = () => {
     seriesList,
     categoriesData,
   ]);
-  console.log('ROI render', {selectedQuarter, filters, transformedData});
+  const isError = !!error && transformedData.length === 0;
+  const isEmpty = !isLoading && !error && transformedData.length === 0;
+
   return (
-    <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
+    <ScrollView className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
       <View className="flex-row items-center gap-x-1 px-3 pt-2 mb-3">
         <View className="w-[30%]">
           <AppDropdown
@@ -1001,10 +1014,11 @@ const ROI = () => {
           noShadow
         />
       </View>
+        {(isEmpty || isError) &&  <View className='px-3'><SummaryOverView /></View>}
       <DataStateView
         isLoading={isLoading}
-        isError={!!error}
-        isEmpty={!isLoading && !error && transformedData.length === 0}
+        isError={isError}
+        isEmpty={isEmpty}
         onRetry={handleRetry}
         LoadingComponent={<DemoSkeleton />}>
         <FlatList
@@ -1025,7 +1039,7 @@ const ROI = () => {
           }
         />
       </DataStateView>
-    </View>
+    </ScrollView>
   );
 };
 

@@ -8,7 +8,7 @@ import {
 import AppLayout from '../../../../components/layout/AppLayout';
 import Card from '../../../../components/Card';
 import AppInput from '../../../../components/customs/AppInput';
-import {useState} from 'react';
+import {useCallback, useState} from 'react';
 import AppIcon from '../../../../components/customs/AppIcon';
 import {useThemeStore} from '../../../../stores/useThemeStore';
 import {AppColors} from '../../../../config/theme';
@@ -20,6 +20,10 @@ import {showToast} from '../../../../utils/commonFunctions';
 import AppDatePicker from '../../../../components/customs/AppDatePicker';
 import moment from 'moment';
 import AppText from '../../../../components/customs/AppText';
+import {useUserStore} from '../../../../stores/useUserStore';
+import {getDeviceId} from 'react-native-device-info';
+import {useNavigation} from '@react-navigation/native';
+import {queryClient} from '../../../../stores/providers/QueryProvider';
 
 const useValidateMutation = () => {
   return useMutation({
@@ -56,16 +60,47 @@ const useValidateMutation = () => {
   });
 };
 
+const useUploadMutation = () => {
+  return useMutation({
+    mutationFn: async (dataToSend: any) => {
+      const res = await handleASINApiCall(
+        '/DemoForm/SubmitDemoFormData',
+        dataToSend,
+        {},
+        true,
+      );
+      const result = res.demoFormData;
+      if (!result.Status) {
+        throw new Error(result.Message || 'Upload failed');
+      }
+      return result;
+    },
+    onError: (error: any) => {
+      showToast(error.message || 'Validation failed');
+    },
+    onSuccess: () => {
+      showToast('Demo Data uploaded successfully!');
+    },
+  });
+};
 
 export default function UploadDemoData() {
+  const navigation = useNavigation();
+  const empInfo = useUserStore(state => state.empInfo);
   const isDarkTheme = useThemeStore(state => state.AppTheme === 'dark');
-
   const {
     mutate: validateSerialNumbers,
     isPending,
     isError,
     error,
   } = useValidateMutation();
+
+  const {
+    mutate: uploadDemoData,
+    isPending: isUploading,
+    isError: isUploadError,
+    error: uploadError,
+  } = useUploadMutation();
 
   const [formData, setFormData] = useState({
     serialNumber1: 'T2N0CX096057090',
@@ -79,7 +114,6 @@ export default function UploadDemoData() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
 
-
   const openScanner = (inputName: 'serialNumber1' | 'serialNumber2') => {
     setActiveInput(inputName);
     setIsVisible(true);
@@ -90,23 +124,17 @@ export default function UploadDemoData() {
   const handleBarcodeScanned = (code: string) => {
     if (activeInput) {
       setFormData(prev => ({...prev, [activeInput]: code}));
-      console.log(`📱 Barcode scanned for ${activeInput}:`, code);
     }
     setIsVisible(false);
   };
 
   const handleValidate = () => {
     const {serialNumber1, serialNumber2} = formData;
-
     if (!serialNumber1.trim() || !serialNumber2.trim()) {
       showToast('Please enter both serial numbers');
-      console.log('⚠️ Validation skipped: Missing serial numbers');
       return;
     }
-
-    console.log('🚀 Initiating validation...');
     setValidationResult(null);
-
     validateSerialNumbers(
       {serialNo1: serialNumber1, serialNo2: serialNumber2},
       {
@@ -116,11 +144,40 @@ export default function UploadDemoData() {
       },
     );
   };
+
+  const handleSubmit = useCallback(() => {
+    const dataToSend = {
+      ALP_PartnerCode: empInfo.EMP_Code || '',
+      ALP_PartnerType: empInfo.EMP_Type || '',
+      ALP_SerialNo1: formData.serialNumber1,
+      ALP_SerialNo2: formData.serialNumber2,
+      ALP_InvoiceDate: moment(selectedDate).format('YYYY-MM-DD'),
+      ALP_DemoDisplay_Copy: null,
+      ALP_Customer_Copy: null,
+      UPD_MACHINENAME: getDeviceId(),
+      ALP_Invoice_Copy: '',
+      ALP_Store_Copy: '',
+      ALP_SerialNo_Copy: '',
+    };
+    console.log('Submitting Demo Form Data:', dataToSend);
+    uploadDemoData(dataToSend, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({queryKey: ['partnerDemoData']});
+        navigation.goBack();
+      },
+    });
+  }, [empInfo, formData, selectedDate]);
+
+  // minimumDate 3 Months ago from today
+  const minimumDate = moment().subtract(3, 'months').toDate();
+  const disabledInput = validationResult !== null;
   return (
     <AppLayout title="Demo upload" needBack>
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="pt-5 px-3 pb-6">
-          <Card className="border border-slate-200 dark:border-slate-700 gap-y-5">
+          <Card
+            className="border border-slate-200 dark:border-slate-700 gap-y-5"
+            noshadow>
             <AppInput
               label="Serial Number.1 (Demo Display Unit)"
               value={formData.serialNumber1}
@@ -131,6 +188,7 @@ export default function UploadDemoData() {
               leftIcon="search"
               rightIconTsx={
                 <TouchableOpacity
+                  disabled={disabledInput}
                   onPress={() => openScanner('serialNumber1')}
                   className="mr-3 p-2 rounded-lg"
                   style={{
@@ -151,6 +209,7 @@ export default function UploadDemoData() {
                 setFormData(prev => ({...prev, serialNumber1: ''}));
                 setValidationResult(null);
               }}
+              readOnly={disabledInput}
             />
 
             <AppInput
@@ -164,6 +223,7 @@ export default function UploadDemoData() {
               rightIconTsx={
                 <TouchableOpacity
                   onPress={() => openScanner('serialNumber2')}
+                  disabled={disabledInput}
                   className="mr-3 p-2 rounded-lg"
                   style={{
                     backgroundColor: isDarkTheme
@@ -183,15 +243,27 @@ export default function UploadDemoData() {
                 setFormData(prev => ({...prev, serialNumber2: ''}));
                 setValidationResult(null);
               }}
+              readOnly={disabledInput}
             />
 
-            <View className="flex-row justify-end items-center gap-x-3 mb-2">
+            <View className="flex-row justify-between items-center gap-x-3 mb-2">
+              <View>
+                {disabledInput && validationResult ? (
+                  <AppText
+                    className="underline bg-primary dark:bg-primary"
+                    weight="semibold"
+                    onPress={() => setValidationResult(null)}>
+                    Edit Serial No's
+                  </AppText>
+                ) : null}
+              </View>
               <View style={{minWidth: 120}}>
                 <AppButton
                   title={isPending ? 'Validating...' : 'Validate'}
                   onPress={handleValidate}
-                  disabled={isPending}
-                  className="rounded-md"
+                  iconName="check"
+                  disabled={isPending || disabledInput}
+                  className={`rounded-md ${disabledInput ? 'bg-green-600' : ''}`}
                   noLoading
                 />
               </View>
@@ -200,33 +272,53 @@ export default function UploadDemoData() {
 
           {/* Date Selection Card */}
           {validationResult && (
-            <Card className="mt-4 p-0">
-              <TouchableOpacity
-                onPress={() => setIsDatePickerVisible(true)}
-                className="p-4"
-                activeOpacity={0.7}>
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-row items-center flex-1">
-                    <View className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full items-center justify-center mr-3">
-                      <AppIcon
-                        name="calendar"
-                        type="ionicons"
-                        size={20}
-                        color="#3B82F6"
-                      />
-                    </View>
-                    <View className="flex-1">
-                      <AppText size="xs" className="text-gray-500 dark:text-gray-400 mb-0.5">
-                        Demo Date
-                      </AppText>
-                      <AppText size="sm" weight="semibold" className="text-gray-900 dark:text-white">
-                        {moment(selectedDate).format('MMM D, YYYY')}
-                      </AppText>
+            <View className="mt-4">
+              <AppText className="mb-2">
+                <AppText weight="semibold" className="text-error">
+                  &#42;{' '}
+                </AppText>
+                Select Invoice Date
+              </AppText>
+              <Card
+                className="p-0 overflow-hidden border border-slate-200 dark:border-slate-700"
+                noshadow>
+                <TouchableOpacity
+                  onPress={() => setIsDatePickerVisible(true)}
+                  className="p-4"
+                  activeOpacity={0.7}>
+                  <View className="flex-row items-center justify-between ">
+                    <View className="flex-row items-center">
+                      <View className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full items-center justify-center mr-3">
+                        <AppIcon
+                          name="calendar"
+                          type="ionicons"
+                          size={20}
+                          color="#3B82F6"
+                        />
+                      </View>
+                      <View className="flex-1">
+                        <AppText
+                          size="xs"
+                          className="text-gray-500 dark:text-gray-400 mb-0.5">
+                          Invoice Date
+                        </AppText>
+                        <AppText
+                          size="sm"
+                          weight="semibold"
+                          className="text-gray-900 dark:text-white">
+                          {moment(selectedDate).format('MMM D, YYYY')}
+                        </AppText>
+                      </View>
                     </View>
                   </View>
-                </View>
-              </TouchableOpacity>
-            </Card>
+                </TouchableOpacity>
+              </Card>
+              <AppButton
+                title="Upload Demo Data"
+                className="rounded-lg mt-4"
+                onPress={handleSubmit}
+              />
+            </View>
           )}
 
           {/* AppDatePicker Component */}
@@ -236,6 +328,7 @@ export default function UploadDemoData() {
             onClose={() => setIsDatePickerVisible(false)}
             initialDate={selectedDate}
             maximumDate={new Date()}
+            minimumDate={minimumDate}
             onDateSelect={date => {
               setSelectedDate(date);
               setIsDatePickerVisible(false);

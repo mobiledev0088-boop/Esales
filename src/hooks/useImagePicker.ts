@@ -10,6 +10,7 @@ import {
 } from 'react-native-image-picker';
 import {check, request, PERMISSIONS, RESULTS} from 'react-native-permissions';
 import ImageMarker, {ImageFormat, Position, TextBackgroundType} from 'react-native-image-marker';
+import { isIOS } from '../utils/constant';
 
 type ImageSource = 'camera' | 'gallery';
 
@@ -216,6 +217,7 @@ export function useImagePicker(
             return;
           }
         } else {
+          if(!isIOS) return;
           hasPermission = await requestLibraryPermission();
           if (!hasPermission) {
             Alert.alert(
@@ -241,7 +243,10 @@ export function useImagePicker(
         if (source === 'camera') {
           response = await launchCamera(pickerOptions);
         } else {
-          response = await launchImageLibrary(pickerOptions);
+          response = await launchImageLibrary({
+            ...pickerOptions,
+            selectionLimit: 1,
+          });
         }
 
         // Handle response

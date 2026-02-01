@@ -81,7 +81,7 @@ export const ASUS = {
 // Test                ASIN000001       PARTNERS          Testing@1234567890   AGP Partner
 // Supreme Computers   ASIN001139       PARTNERS          SupremeAsus@1234!    AWP Partner
 // Univell Computers   ASIN005195       PARTNERS          X9g(dtH#0_6!4q2      AES Partner
-// S. R. Infotech.     ASIN001198       PARTNERS          )PFSSx6AoPGkM%%      AES Parent Partner
+// S. R. Infotech.     ASIN001198       PARTNERS          SRInfotech@12345     AES Parent Partner
 // Computech           27CEVPS2243Q1ZG  PARTNERS          Yz1Gqrk5nBI(!RN      T3 Partner
 // Silver Systems      ASIN001016       PARTNERS          Silversystem*1234    MFR Partner
 // NewGlobalComputers  ASIN001083       PARTNERS          Global.new@77777     SFR Partner
