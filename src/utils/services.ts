@@ -1,4 +1,3 @@
-import BackgroundFetch from 'react-native-background-fetch';
 import Geolocation from 'react-native-geolocation-service';
 
 import {isIOS} from './constant';
@@ -45,33 +44,7 @@ export const getCurrentLocation =
       );
     });
   };
-
-export const initBackgroundFetchService = async () => {
-  const status = await BackgroundFetch.configure(
-    {
-      minimumFetchInterval: 15, // Minimum 15 minutes
-      stopOnTerminate: false, // Continue after app is closed (Android)
-      startOnBoot: true, // Auto-start after device restart (Android)
-      enableHeadless: true, // Run HeadlessTask (Android)
-      requiredNetworkType: BackgroundFetch.NETWORK_TYPE_ANY,
-    },
-    async taskId => {
-      // console.log('[BackgroundFetch] Event received: ', taskId);
-      await checkUserInsideRadius();
-      // Finish the background fetch needed for it to work correctly
-      BackgroundFetch.finish(taskId);
-    },
-    error => {
-      console.error('[BackgroundFetch] Failed to configure: ', error);
-    },
-  );
-  if (status === BackgroundFetch.STATUS_AVAILABLE) {
-    console.log('[BackgroundFetch] Background fetch is enabled');
-  } else {
-    console.log('[BackgroundFetch] Background fetch is disabled');
-  }
-};
-
+  
 export async function downloadFile({
   url,
   fileName,

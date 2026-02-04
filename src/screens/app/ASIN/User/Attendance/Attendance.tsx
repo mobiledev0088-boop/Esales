@@ -62,12 +62,13 @@ export default function Attendance() {
     if (!location) return false;
     const {lat, lon} = location;
     if (
+      selectedDateKey?.toString() === todayKey &&
       !attendanceToday.checkInDone &&
       !isInsideGeoFence(lat, lon, Latitude!, Longitude!)
     )
       return false;
     return true;
-  }, [attendanceToday, location, Latitude, Longitude]);
+  }, [attendanceToday, location, Latitude, Longitude, selectedDateKey, todayKey]);
   const calendarRecords = useMemo(() => {
     const seen = new Set<string>();
     const merged = [...(data?.attendance_data || [])];

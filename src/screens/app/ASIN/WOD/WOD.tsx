@@ -30,6 +30,7 @@ import {
 import {showWODFilterSheet} from './WODFilterSheet';
 import { useNavigation } from '@react-navigation/native';
 import { AppNavigationProp } from '../../../../types/navigation';
+import { useThemeStore } from '../../../../stores/useThemeStore';
 
 const useGetWODData = (ModelName = '') => {
   const userInfo = useLoginStore((state: any) => state.userInfo);
@@ -98,6 +99,7 @@ const IntialFilterState = {
 // Main Screen Component
 export default function WOD() {
   const navigation = useNavigation<AppNavigationProp>();
+  const isDark = useThemeStore(state => state.AppTheme === 'dark');
   const isFocused = navigation.isFocused();
   const [activeTab, setActiveTab] = useState(0);
   const activeMode = useMemo(
@@ -363,7 +365,7 @@ export default function WOD() {
             name="tune-variant"
             type="material-community"
             size={22}
-            color={'#475569'}
+            color={isDark ? '#94A3B8' : '#475569'}
           />
           {activeCount && (
             <View className="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary items-center justify-center" />
@@ -445,6 +447,7 @@ export default function WOD() {
   return (
     <View className="bg-lightBg-base dark:bg-darkBg-base flex-1">
       <StatusInfoModal
+        activeMode={activeMode}
         visible={showStatusInfo}
         onClose={handleCloseStatusInfo}
       />

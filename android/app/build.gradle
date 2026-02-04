@@ -96,8 +96,8 @@ android {
         applicationId "com.asus.esales"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 201
-        versionName "4.0.1"
+        versionCode 203
+        versionName "5.0.2"
     }
     signingConfigs {
         debug {

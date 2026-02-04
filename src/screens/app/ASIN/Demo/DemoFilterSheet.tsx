@@ -9,10 +9,10 @@ import AppInput from '../../../../components/customs/AppInput';
 import FilterSheet from '../../../../components/FilterSheet';
 import { useDebounce } from '../../../../hooks/useDebounce';
 interface DemoFilterPayload {
-  filters: Record<string, string | number>;
+  filters: Record<string, string | number | null>;
   data: Record<string, Array<{label: string; value: string | number}>>;
   loading: boolean;
-  onApply?: (filters: Record<string, string | number>) => void;
+  onApply?: (filters: Record<string, string | number | null>) => void;
   onReset?: () => void;
 }
 
@@ -95,7 +95,7 @@ const CheckboxRow = memo(
 export default function DemoFilterSheet() {
   const payload = (useSheetPayload?.() || {}) as DemoFilterPayload;
   const isDarkTheme = useThemeStore(state => state.AppTheme === 'dark');
-  const [filters, setFilters] = useState<Record<string, string | number>>(
+  const [filters, setFilters] = useState<Record<string, string | number | null>>(
     payload.filters || {},
   );
   const [searchTexts, setSearchTexts] = useState<Record<string, string>>({});
@@ -140,7 +140,7 @@ export default function DemoFilterSheet() {
       setFilters(prev => {
         const newFilters = {...prev};
         if (newFilters[group] === item) {
-          newFilters[group] = '';
+          newFilters[group] = null;
         } else {
           newFilters[group] = item;
         }
@@ -222,13 +222,19 @@ export default function DemoFilterSheet() {
   }, [filters, group, searchTexts, debouncedSearchTexts, isLoading, datList, groups, renderCheckbox]);
 
   const handleApply = useCallback(() => {
-    const result: Record<string, string | number> = {...filters};
+    const result: Record<string, string | number | null> = {...filters};
     payload.onApply?.(result);
     SheetManager.hide('DemoFilterSheet');
   }, [payload, filters]);
 
   const handleClearAll = useCallback(() => {
-    setFilters({});
+    setFilters(prev => {
+      const newFilters: Record<string, string | number> = {};
+      Object.keys(prev).forEach(key => {
+        newFilters[key] = '';
+      });
+      return newFilters;
+    });
     payload.onReset?.();
   }, [payload]);
 

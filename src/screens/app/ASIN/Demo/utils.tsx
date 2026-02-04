@@ -137,8 +137,8 @@ export interface DemoFilterResult {
 
 export interface ResellerFilterType {
   category: string;
-  pKiosk: number;
-  rogKiosk: number;
+  pKiosk: number | null;
+  rogKiosk: number | null;
   partnerType: string;
 }
 

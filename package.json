@@ -37,7 +37,6 @@
     "react": "19.0.0",
     "react-native": "0.79.0",
     "react-native-actions-sheet": "^0.9.7",
-    "react-native-background-fetch": "^4.2.8",
     "react-native-blob-util": "^0.22.2",
     "react-native-device-info": "^14.0.4",
     "react-native-dropdown-picker": "^5.4.6",

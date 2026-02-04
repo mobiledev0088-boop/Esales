@@ -131,13 +131,13 @@ const ClaimCard: React.FC<{item: ClaimDashboardItem}> = memo(({item}) => {
             />
             <View className="flex-row items-center flex-wrap">
               <AppText size="xs" color="gray" weight="medium" className="mr-1">
-                Net Payable:
+                After Tax Amount:
               </AppText>
               <AppText
                 size="sm"
                 weight="semibold"
                 className="text-primary dark:text-primary-dark">
-                {convertToASINUnits(item.After_Tax_FinalAmt)}
+                {convertToASINUnits(item.After_Tax_FinalAmt,true,true)}
               </AppText>
             </View>
           </View>
@@ -261,7 +261,7 @@ export default function ClaimApplicationDetails() {
       {label: 'Product Line', value: Product_Line},
       {label: 'Partner Type', value: PartnerType},
       {label: 'Total Partners', value: String(totalPartners)},
-      {label: 'Month API', value: MonthAPI},
+      // {label: 'Month API', value: MonthAPI},
       {label: 'Case ID', value: caseId},
       {label: 'Claim Status', value: ClaimStatus},
       {label: 'Amount', value: Amount_Props},

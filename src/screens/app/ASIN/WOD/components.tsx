@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import Animated, {
   Extrapolation,
@@ -364,7 +364,7 @@ export const CSETable: React.FC<{
 }> = ({rows, searchQuery, handlePressCSE}) => {
   if (!rows.length)
     return (
-      <View className="bg-slate-50 rounded-xl border border-dashed border-slate-300 py-8 items-center justify-center">
+      <View className="bg-lightBg-base dark:bg-darkBg-base rounded-xl border border-dashed border-slate-300 dark:border-slate-700 py-8 items-center justify-center">
         <AppIcon name="user" type="feather" size={24} color="#94a3b8" />
         <AppText size="sm" weight="medium" className="text-slate-500 mt-3">
           No CSE data
@@ -396,8 +396,8 @@ export const CSETable: React.FC<{
     );
   };
   return (
-    <View className="rounded-lg border border-slate-200 bg-white overflow-hidden">
-      <View className="flex-row bg-slate-50/70 border-b border-slate-200">
+    <View className="rounded-lg border border-slate-200 dark:border-slate-700 bg-lightBg-base dark:bg-darkBg-base overflow-hidden">
+      <View className="flex-row bg-lightBg-surface dark:bg-darkBg-surface border-b border-slate-200 dark:border-slate-700">
         {CSE_COLUMNS.map((col, idx) =>
           renderCellContainer(
             col,
@@ -424,8 +424,8 @@ export const CSETable: React.FC<{
           onPress={() => handlePressCSE(r.name)}
           className={twMerge(
             'flex-row',
-            rowIdx % 2 === 1 ? 'bg-slate-50' : 'bg-white',
-            rowIdx !== rows.length - 1 && 'border-b border-slate-100',
+            rowIdx % 2 === 1 ? 'bg-slate-50 dark:bg-slate-500' : 'bg-white dark:bg-slate-600',
+            rowIdx !== rows.length - 1 && 'border-b border-slate-100 dark:border-slate-700',
           )}>
           {CSE_COLUMNS.map((col, colIdx) => {
             const first = colIdx === 0;
@@ -488,7 +488,7 @@ export const TerritoryRow: React.FC<TerritoryRowProps> = ({
   searchQuery,
   handlePressCSE,
 }) => (
-  <View className={twMerge(!last && !expanded && 'border-b border-slate-100')}>
+  <View className={twMerge(!last && !expanded && 'border-b border-slate-100 dark:border-slate-700')}>
     <TouchableOpacity
       accessibilityRole="button"
       onPress={toggle}
@@ -499,7 +499,7 @@ export const TerritoryRow: React.FC<TerritoryRowProps> = ({
           <AppText
             size="sm"
             weight="semibold"
-            className="text-slate-800 mb-1"
+            className="text-slate-800  mb-1"
             numberOfLines={2}>
             {t.name}
           </AppText>
@@ -593,11 +593,11 @@ export const BranchCard: React.FC<{
     });
   };
   return (
-    <Card className="p-0 overflow-hidden rounded-xl border border-slate-200">
-      <View className="px-4 py-4 border-b border-slate-100">
+    <Card className="p-0 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
+      <View className="px-4 py-4 border-b border-slate-100 dark:border-slate-700">
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center">
-            <View className="w-9 h-9 rounded-xl bg-blue-100 items-center justify-center mr-3">
+            <View className="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-900 items-center justify-center mr-3">
               <AppIcon
                 name="map-pin"
                 type="feather"
@@ -613,7 +613,7 @@ export const BranchCard: React.FC<{
               {block.branch}
             </AppText>
           </View>
-          <View className="flex-row items-center bg-slate-100/80 px-3 py-1 rounded-full">
+          <View className="flex-row items-center bg-slate-100/80 dark:bg-slate-700/80 px-3 py-1 rounded-full">
             <AppText
               size="xs"
               weight="medium"
@@ -775,12 +775,25 @@ export const TabHeader: React.FC<{
 
 // ---------------- Modal (moved from WOD.tsx) ----------------
 export const StatusInfoModal: React.FC<{
+  activeMode: StatusMode;
   visible: boolean;
   onClose: () => void;
-}> = ({visible, onClose}) => {
+}> = ({activeMode, visible, onClose}) => {
   if (!visible) return null;
-  const currentYear = moment().year();
-  const previousYear = currentYear - 1;
+
+const lastYearLabel = moment().subtract(1, 'year').format('YYYY');
+const priorYearLabel = moment().subtract(2, 'year').format('YYYY');
+
+const lastQuarterLabel = moment().subtract(1, 'quarter').format('[Q]Q YYYY'); 
+const priorQuarterLabel = moment().subtract(2, 'quarter').format('[Q]Q YYYY');
+
+const lastMonthLabel = moment().subtract(1, 'month').format('MMMM YYYY');
+const priorMonthLabel = moment().subtract(2, 'month').format('MMMM YYYY');
+
+
+  const data = useMemo(()=> {
+    return activeMode === 'YoY'? [priorYearLabel,lastYearLabel] : activeMode === 'QoQ' ? [priorQuarterLabel,lastQuarterLabel] : [priorMonthLabel,lastMonthLabel];
+  }, [activeMode]);
   return (
     <AppModal
       isOpen={visible}
@@ -790,7 +803,7 @@ export const StatusInfoModal: React.FC<{
       overlayClassName="items-center justify-center"
       cardClassName="p-0 overflow-hidden rounded-2xl"
       showCloseButton>
-      <View className="px-5 pt-5 pb-4 border-b border-slate-200 flex-row items-center justify-between bg-white ">
+      <View className="px-5 pt-5 pb-4 border-b border-slate-200 flex-row items-center justify-between bg-lightBg-surface dark:bg-darkBg-surface dark:border-slate-700">
         <View className="flex-row items-center">
           <View className="w-10 h-10 rounded-full items-center justify-center bg-blue-100 mr-4">
             <AppIcon
@@ -805,10 +818,10 @@ export const StatusInfoModal: React.FC<{
           </AppText>
         </View>
       </View>
-      <View className="px-5 py-4 bg-white">
-        <View className="rounded-xl border border-slate-200 overflow-hidden">
-          <View className="flex-row bg-slate-50">
-            <View className="w-1/3 px-3 py-3 border-r border-slate-200">
+      <View className="px-5 py-4 bg-lightBg-surface dark:bg-darkBg-surface">
+        <View className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <View className="flex-row bg-lightBg-surface dark:bg-darkBg-surface border-b border-slate-200 dark:border-slate-700">
+            <View className="w-1/3 px-3 py-3 border-r border-slate-200 dark:border-slate-700">
               <AppText
                 size="xs"
                 weight="semibold"
@@ -817,10 +830,10 @@ export const StatusInfoModal: React.FC<{
               </AppText>
             </View>
             <View className="flex-1 flex-row">
-              {[previousYear, currentYear].map(year => (
+              {data.map(year => (
                 <View
                   key={year}
-                  className="flex-1 px-2 py-3 border-l border-slate-200 items-center justify-center">
+                  className="flex-1 px-2 py-3 border-l border-slate-200 dark:border-slate-700 items-center justify-center">
                   <AppText
                     size="xs"
                     weight="semibold"
@@ -847,10 +860,10 @@ export const StatusInfoModal: React.FC<{
             <View
               key={row.label}
               className={twMerge(
-                'flex-row bg-white',
-                idx !== arr.length - 1 && 'border-b border-slate-200',
+                'flex-row bg-lightBg-surface dark:bg-darkBg-surface',
+                idx !== arr.length - 1 && 'border-b border-slate-200 dark:border-slate-700',
               )}>
-              <View className="w-1/3 px-3 py-3 border-r border-slate-200 justify-center">
+              <View className="w-1/3 px-3 py-3 border-r border-slate-200 dark:border-slate-700 justify-center">
                 <AppText size="sm" weight="semibold" className={row.color}>
                   {row.label}
                 </AppText>
@@ -859,7 +872,7 @@ export const StatusInfoModal: React.FC<{
                 {row.checks.map((val, i) => (
                   <View
                     key={i}
-                    className="flex-1 items-center justify-center py-3 border-l border-slate-200">
+                    className="flex-1 items-center justify-center py-3 border-l border-slate-200 dark:border-slate-700">
                     {val ? (
                       <AppIcon
                         name="check"

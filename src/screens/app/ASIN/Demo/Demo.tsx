@@ -42,17 +42,21 @@ import {ASUS} from '../../../../utils/constant';
 
 const Reseller = () => {
   const quarters = useMemo(() => getPastQuarters(), []);
-  const [selectedQuarter, setSelectedQuarter] =useState<AppDropdownItem | null>(quarters?.[0] ?? null);
-  const [selectedPartnerName, setSelectedPartnerName] = useState<AppDropdownItem | null>(null);
+  const [selectedQuarter, setSelectedQuarter] =
+    useState<AppDropdownItem | null>(quarters?.[0] ?? null);
+  const [selectedPartnerName, setSelectedPartnerName] =
+    useState<AppDropdownItem | null>(null);
   const [filters, setFilters] = useState<ResellerFilterType>({
     category: 'All',
-    pKiosk: 0,
-    rogKiosk: 0,
+    pKiosk: null,
+    rogKiosk: null,
     partnerType: '',
   });
   const {EMP_RoleId: role_id} = useLoginStore(state => state.userInfo);
-  const {LFR_HO,ONLINE_HO,AM,TM,SALES_REPS} = ASUS.ROLE_ID
-  const noTerritoryButton = [LFR_HO,ONLINE_HO,AM,TM,SALES_REPS].includes(role_id as any);
+  const {LFR_HO, ONLINE_HO, AM, TM, SALES_REPS} = ASUS.ROLE_ID;
+  const noTerritoryButton = [LFR_HO, ONLINE_HO, AM, TM, SALES_REPS].includes(
+    role_id as any,
+  );
 
   const {data, isLoading, error, refetch} = useGetDemoDataReseller(
     selectedQuarter?.value ?? '',
@@ -170,7 +174,7 @@ const Reseller = () => {
         />
       );
     },
-    [summaryData, selectedQuarter, filters,noTerritoryButton],
+    [summaryData, selectedQuarter, filters, noTerritoryButton],
   );
 
   const stats = useMemo(
@@ -219,16 +223,16 @@ const Reseller = () => {
       onApply: appliedFilters => {
         setFilters({
           category: String(appliedFilters.category) || 'All',
-          pKiosk: Number(appliedFilters.pKiosk) || 0,
-          rogKiosk: Number(appliedFilters.rogKiosk) || 0,
+          pKiosk: Number(appliedFilters.pKiosk) || null,
+          rogKiosk: Number(appliedFilters.rogKiosk) || null,
           partnerType: String(appliedFilters.partnerType) || '',
         });
       },
       onReset: () => {
         setFilters({
           category: 'All',
-          pKiosk: 0,
-          rogKiosk: 0,
+          pKiosk: null,
+          rogKiosk: null,
           partnerType: '',
         });
       },
@@ -270,7 +274,11 @@ const Reseller = () => {
           noShadow
         />
       </View>
-      {(isEmpty || isError) &&  <View className='px-3'><SummaryOverView /></View>}
+      {(isEmpty || isError) && (
+        <View className="px-3">
+          <SummaryOverView />
+        </View>
+      )}
       <DataStateView
         isLoading={isLoading}
         isError={isError}
@@ -316,9 +324,11 @@ const Retailer = () => {
     partnerType: '',
   });
 
-    const {EMP_RoleId: role_id} = useLoginStore(state => state.userInfo);
-  const {LFR_HO,ONLINE_HO,AM,TM,SALES_REPS} = ASUS.ROLE_ID
-  const noTerritoryButton = [LFR_HO,ONLINE_HO,AM,TM,SALES_REPS].includes(role_id as any);
+  const {EMP_RoleId: role_id} = useLoginStore(state => state.userInfo);
+  const {LFR_HO, ONLINE_HO, AM, TM, SALES_REPS} = ASUS.ROLE_ID;
+  const noTerritoryButton = [LFR_HO, ONLINE_HO, AM, TM, SALES_REPS].includes(
+    role_id as any,
+  );
 
   const {data, isLoading, error, refetch} = useGetDemoDataRetailer(
     selectedQuarter?.value || '',
@@ -388,7 +398,7 @@ const Retailer = () => {
         noTerritoryButton={noTerritoryButton}
       />
     ),
-    [summaryData, selectedQuarter, filters,noTerritoryButton],
+    [summaryData, selectedQuarter, filters, noTerritoryButton],
   );
 
   const partnerNameList = useMemo(() => {
@@ -526,7 +536,11 @@ const Retailer = () => {
           noShadow
         />
       </View>
-        {(isEmpty || isError) &&  <View className='px-3'><SummaryOverView /></View>}
+      {(isEmpty || isError) && (
+        <View className="px-3">
+          <SummaryOverView />
+        </View>
+      )}
       <DataStateView
         isLoading={isLoading}
         isError={isError}
@@ -549,6 +563,7 @@ const Retailer = () => {
               }}
             />
           }
+          scrollEnabled={false}
         />
       </DataStateView>
     </ScrollView>
@@ -759,7 +774,11 @@ const LFR = () => {
           noShadow
         />
       </View>
-        {(isEmpty || isError) &&  <View className='px-3'><SummaryOverView /></View>}
+      {(isEmpty || isError) && (
+        <View className="px-3">
+          <SummaryOverView />
+        </View>
+      )}
       <DataStateView
         isLoading={isLoading}
         isError={isError}
@@ -782,6 +801,7 @@ const LFR = () => {
               }}
             />
           }
+          scrollEnabled={false}
         />
       </DataStateView>
     </ScrollView>
@@ -1014,7 +1034,11 @@ const ROI = () => {
           noShadow
         />
       </View>
-        {(isEmpty || isError) &&  <View className='px-3'><SummaryOverView /></View>}
+      {(isEmpty || isError) && (
+        <View className="px-3">
+          <SummaryOverView />
+        </View>
+      )}
       <DataStateView
         isLoading={isLoading}
         isError={isError}
@@ -1037,6 +1061,7 @@ const ROI = () => {
               }}
             />
           }
+          scrollEnabled={false}
         />
       </DataStateView>
     </ScrollView>
@@ -1061,8 +1086,13 @@ const ROLE_TABS = {
 export default function Demo() {
   useGetSummaryOverviewData(); // Preload summary data
   const {EMP_RoleId: role_id} = useLoginStore(state => state.userInfo);
-  const {LFR_HO,ONLINE_HO,AM,TM,SALES_REPS} = ASUS.ROLE_ID;
-  const [isLFR, isAM, isTM, isCSE] = [role_id === LFR_HO || role_id === ONLINE_HO,role_id === AM,role_id === TM,role_id === SALES_REPS];
+  const {LFR_HO, ONLINE_HO, AM, TM, SALES_REPS} = ASUS.ROLE_ID;
+  const [isLFR, isAM, isTM, isCSE] = [
+    role_id === LFR_HO || role_id === ONLINE_HO,
+    role_id === AM,
+    role_id === TM,
+    role_id === SALES_REPS,
+  ];
 
   const tabs = useMemo(() => {
     const resolveRole = () => {

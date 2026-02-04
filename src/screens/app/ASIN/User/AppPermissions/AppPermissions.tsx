@@ -20,7 +20,7 @@ type PermissionKey =
   | 'camera'
   // | 'gallery'
   | 'location'
-  | 'locationAlways'
+  // | 'locationAlways'
   // | 'storageSave'
   | 'notifications';
 
@@ -69,12 +69,12 @@ function getPermissionConstant(key: PermissionKey): Permission | null {
         android: PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
         default: null,
       }) as Permission | null;
-    case 'locationAlways':
-      return Platform.select({
-        ios: PERMISSIONS.IOS.LOCATION_ALWAYS,
-        android: PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION,
-        default: null,
-      }) as Permission | null;
+    // case 'locationAlways':
+    //   return Platform.select({
+    //     ios: PERMISSIONS.IOS.LOCATION_ALWAYS,
+    //     android: PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION,
+    //     default: null,
+    //   }) as Permission | null;
     // case 'storageSave':
     //   return Platform.select({
     //     ios: PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY,
@@ -208,7 +208,7 @@ export default function AppPermissions() {
     camera: null,
     // gallery: null,
     location: null,
-    locationAlways: null,
+    // locationAlways: null,
     // storageSave: null,
     notifications: null,
   });
@@ -220,7 +220,7 @@ export default function AppPermissions() {
         'camera',
         'gallery',
         'location',
-        'locationAlways',
+        // 'locationAlways',
         'storageSave',
       ],
       default: ['camera', 'gallery', 'location', 'storageSave'],
@@ -289,40 +289,40 @@ export default function AppPermissions() {
       const perm = getPermissionConstant(key);
       if (!perm) return;
 
-      // Special flows for Always Location on both platforms
-      if (key === 'locationAlways') {
-        // Ensure foreground permission first
-        const whenInUse = getPermissionConstant('location');
-        if (whenInUse) {
-          const statusFg = await check(whenInUse);
-          if (statusFg !== RESULTS.GRANTED) {
-            const reqFg = await request(whenInUse);
-            if (reqFg !== RESULTS.GRANTED) {
-              Alert.alert(
-                'Permission Required',
-                'Allow location (While Using the App) first to enable Always Allow Location.',
-              );
-              await refresh();
-              return;
-            }
-          }
-        }
+      // // Special flows for Always Location on both platforms
+      // if (key === 'locationAlways') {
+      //   // Ensure foreground permission first
+      //   const whenInUse = getPermissionConstant('location');
+      //   if (whenInUse) {
+      //     const statusFg = await check(whenInUse);
+      //     if (statusFg !== RESULTS.GRANTED) {
+      //       const reqFg = await request(whenInUse);
+      //       if (reqFg !== RESULTS.GRANTED) {
+      //         Alert.alert(
+      //           'Permission Required',
+      //           'Allow location (While Using the App) first to enable Always Allow Location.',
+      //         );
+      //         await refresh();
+      //         return;
+      //       }
+      //     }
+      //   }
 
-        // Now request background/always
-        const res = await request(perm);
-        if (res === RESULTS.BLOCKED) {
-          Alert.alert(
-            'Location Always Blocked',
-            'Please enable Always Allow Location from Settings.',
-            [
-              {text: 'Cancel', style: 'cancel'},
-              {text: 'Open Settings', onPress: () => openSettings()},
-            ],
-          );
-        }
-        await refresh();
-        return;
-      }
+      //   // Now request background/always
+      //   const res = await request(perm);
+      //   if (res === RESULTS.BLOCKED) {
+      //     Alert.alert(
+      //       'Location Always Blocked',
+      //       'Please enable Always Allow Location from Settings.',
+      //       [
+      //         {text: 'Cancel', style: 'cancel'},
+      //         {text: 'Open Settings', onPress: () => openSettings()},
+      //       ],
+      //     );
+      //   }
+      //   await refresh();
+      //   return;
+      // }
 
       // Regular permission request flow
       const status = await check(perm);
@@ -390,14 +390,14 @@ export default function AppPermissions() {
       //   icon: {type: 'material-community', name: 'content-save-outline'},
       // },
     ];
-    if (Platform.OS === 'android') {
-      base.splice(3, 0, {
-        key: 'locationAlways',
-        title: 'Always Allow Location',
-        desc: 'Enable background location for better experience.',
-        icon: {type: 'ionicons', name: 'navigate-outline'},
-      });
-    }
+    // if (Platform.OS === 'android') {
+    //   base.splice(3, 0, {
+    //     key: 'locationAlways',
+    //     title: 'Always Allow Location',
+    //     desc: 'Enable background location for better experience.',
+    //     icon: {type: 'ionicons', name: 'navigate-outline'},
+    //   });
+    // }
     return base;
   }, [androidVersion]);
 
@@ -431,11 +431,7 @@ export default function AppPermissions() {
     // DENIED or UNAVAILABLE -> try request
     return (
       <ModernActionButton
-        label={
-          key === 'locationAlways'
-            ? 'Enable Background Location'
-            : 'Grant Access'
-        }
+        label={'Grant Access'}
         icon={{type: 'feather', name: 'check'}}
         variant="primary"
         onPress={() => requestPermission(key)}

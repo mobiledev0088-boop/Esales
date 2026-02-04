@@ -11,11 +11,9 @@ import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import {QueryProvider} from './QueryProvider';
 import {useThemeStore} from '../useThemeStore';
 import {useColorScheme} from 'nativewind';
-import {AppColors} from '../../config/theme';
 import {SheetProvider} from 'react-native-actions-sheet';
 import {useLoaderStore} from '../useLoaderStore';
 import {enableScreens} from 'react-native-screens';
-import {initBackgroundFetchService} from '../../utils/services';
 import notifee from '@notifee/react-native';
 import {
   navigateFromNotification,
@@ -51,7 +49,6 @@ export const AppProviders = ({children}: PropsWithChildren) => {
 
   useEffect(() => {
     setColorScheme(AppTheme);
-    initBackgroundFetchService();
     handleInitialNotification();
     const fgUnsub = registerForegroundHandler();
     const pressUnsub = registerNotificationPressHandler(navigationRef);
@@ -60,7 +57,7 @@ export const AppProviders = ({children}: PropsWithChildren) => {
       fgUnsub();
       pressUnsub();
     };
-  }, [AppTheme, setColorScheme]);
+  }, [AppTheme]);
 
   enableScreens();
 
@@ -70,10 +67,7 @@ export const AppProviders = ({children}: PropsWithChildren) => {
         <GestureHandlerRootView style={{flex: 1}}>
           <NavigationContainer ref={navigationRef} onReady={onReady}>
             <SheetProvider>
-              <CustomStatusBar
-                backgroundColor={AppColors[AppTheme].primary}
-                barStyle="light-content"
-              />
+              <CustomStatusBar />
               <SafeAreaView style={{flex: 1}}>{children}</SafeAreaView>
             </SheetProvider>
           </NavigationContainer>

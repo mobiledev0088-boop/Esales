@@ -30,7 +30,6 @@ import Demo_Partner from '../Demo/Demo_Partner';
 import RollingFunnel from '../Commercial/RollingFunnel/RollingFunnel';
 import PowerCalculator from '../Commercial/PowerCalculator/PowerCalculator';
 import Account from '../User/Account/Account';
-import BackgroundFetch from 'react-native-background-fetch';
 import Dashboard_ASE from '../Dashboard/Dashboard_ASE';
 import AutoUpdate from '../../../../components/AutoUpdate';
 import DemoAWPPartners from '../Demo/DemoAWPPartners';

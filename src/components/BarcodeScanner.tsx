@@ -144,7 +144,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
 
       // User cancelled
       if (result.didCancel) {
-        setScannerState('ready');
+        setScannerState('idle');
         return;
       }
 
@@ -327,6 +327,29 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
       );
     }
 
+    // Idle state with permission (show retake button)
+    if (scannerState === 'idle' && hasPermission) {
+      return (
+        <>
+          <AppIcon type="feather" name="camera" size={64} color="#ffffff" />
+          <AppText className="text-white text-center mb-2 text-xl font-semibold mt-6">
+            Ready to Scan
+          </AppText>
+          <AppText className="text-gray-300 text-center mb-6 text-base px-6">
+            Tap the button below to open the camera and scan the serial number
+          </AppText>
+          <TouchableOpacity
+            className="bg-blue-500 px-8 py-4 rounded-full"
+            onPress={launchCameraAndProcess}
+            activeOpacity={0.8}>
+            <AppText className="text-white text-lg font-semibold">
+              Open Camera
+            </AppText>
+          </TouchableOpacity>
+        </>
+      );
+    }
+
     // Ready state (should auto-launch camera)
     return (
       <>
@@ -382,12 +405,12 @@ function findSerialNumber(blocks: any[]): string | null {
     const text = block.text?.trim();
     if (!text) continue;
 
-    // Match S/N# followed by alphanumeric characters
-    const match = text.match(/s\/n#\s*([a-z0-9]+)/i);
+    const match = text.match(/(?:s\/n|sn)#\s*([a-z0-9]+)/i);
     if (match && match[1]) {
-      return match[1].trim().toUpperCase();
+      return match[1].toUpperCase();
     }
   }
+
   return null;
 }
 

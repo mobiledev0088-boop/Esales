@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {memo, useCallback, useMemo, useState} from 'react';
+import {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import MaterialTabBar from '../../../../../components/MaterialTabBar';
 import useQuarterHook from '../../../../../hooks/useQuarterHook';
 import {
@@ -56,6 +56,7 @@ import clsx from 'clsx';
 import ImageSlider from '../../../../../components/ImageSlider';
 import moment from 'moment';
 import AppTabBar from '../../../../../components/CustomTabBar';
+import { LogCacheAPI, saveApiLogAPAC } from '../../../../../utils/handleApiCall';
 
 interface TargetVsAchievementData {
   PODQty: ProductCategoryData[];
@@ -1131,6 +1132,10 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
 export default function Dashboard() {
   const {quarters} = useQuarterHook();
   const initialTab = 'Total';
+
+  // useEffect(() => {
+  //   LogCacheAPI('Dashboard API Log Cached');
+  // }, []);
 
   const {
     data: dashboardData,

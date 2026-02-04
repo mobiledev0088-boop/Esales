@@ -1,6 +1,7 @@
 import {apiClientAPAC, apiClientASIN} from '../config/apiConfig';
 import {useLoaderStore} from '../stores/useLoaderStore';
 import {useLoginStore} from '../stores/useLoginStore';
+import {ASUS} from './constant';
 
 export const handleASINApiCall = async <T = any>(
   url: string,
@@ -18,10 +19,6 @@ export const handleASINApiCall = async <T = any>(
     if (showGlobalLoading) {
       setGlobalLoading(true);
     }
-    // const timeLog = `${Math.random().toFixed(3)} API Call Timing for ${url}`;
-    // if (__DEV__) {
-    //   console.time(timeLog);
-    // }
     const response = await apiClientASIN.request<T>({
       method: 'POST',
       url,
@@ -30,9 +27,6 @@ export const handleASINApiCall = async <T = any>(
         ...headers,
       },
     });
-    // if (__DEV__) {
-    //   console.timeEnd(timeLog);
-    // }
     return response.data;
   } catch (error: any) {
     if (showError) {
@@ -48,7 +42,7 @@ export const handleASINApiCall = async <T = any>(
     if (token && userInfo?.EMP_Code) {
       void saveApiLog(url, token, userInfo.EMP_Code);
     } else {
-      console.log('Token or EMP_Code is missing, skipping API log save',url);
+      console.log('Token or EMP_Code is missing, skipping API log save', url);
     }
   }
 };
@@ -69,10 +63,6 @@ export const handleAPACApiCall = async <T = any>(
     if (showGlobalLoading) {
       setGlobalLoading(true);
     }
-    // const timeLog = `${Math.random().toFixed(3)} API Call Timing for ${url}`;
-    // if (__DEV__) {
-    //   console.time(timeLog);
-    // }
     const response = await apiClientAPAC.request<T>({
       method: 'POST',
       url,
@@ -81,9 +71,6 @@ export const handleAPACApiCall = async <T = any>(
         ...headers,
       },
     });
-    // if (__DEV__) {
-    //   console.timeEnd(timeLog);
-    // }
     return response.data;
   } catch (error: any) {
     if (showError) {
@@ -97,7 +84,7 @@ export const handleAPACApiCall = async <T = any>(
     setGlobalLoading(false);
     setLoading(false);
     if (token && userInfo?.EMP_Code) {
-      void saveApiLog(url, token, userInfo.EMP_Code);
+      // void saveApiLogAPAC(url, token, userInfo.EMP_Code);
     } else {
       console.log('Token or EMP_Code is missing, skipping API log save');
     }
@@ -117,5 +104,47 @@ const saveApiLog = async (
     });
   } catch {
     console.log('Failed to save API log');
+  }
+};
+
+export const saveApiLogAPAC = async (
+  url: string,
+  token: string,
+  empCode: string,
+): Promise<void> => {
+  try {
+    await apiClientAPAC.post('/Information/SaveAPIRequestInfo', {
+      Employee_Code: empCode,
+      API_Name: url,
+      Token_ID: token,
+    });
+  } catch {
+    console.log('Failed to save API log');
+  }
+};
+
+export const LogCacheAPI = async (url: string): Promise<void> => {
+  const {EMP_Code, Token, EMP_CountryID} = useLoginStore.getState().userInfo;
+  const isASIN = EMP_CountryID === ASUS.COUNTRIES.ASIN;
+  if (isASIN) {
+    try {
+      await apiClientASIN.post('/Information/SaveAPIRequestInfo', {
+        Employee_Code: EMP_Code,
+        API_Name: url,
+        Token_ID: Token,
+      });
+    } catch {
+      console.log('Failed to log cache API');
+    }
+  } else {
+    try {
+      await apiClientAPAC.post('/Information/SaveAPIRequestInfo', {
+        Employee_Code: EMP_Code,
+        API_Name: url,
+        Token_ID: Token,
+      });
+    } catch {
+      console.log('Failed to log cache API');
+    }
   }
 };

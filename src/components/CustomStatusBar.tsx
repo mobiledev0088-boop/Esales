@@ -1,30 +1,20 @@
 import React from 'react';
 import {
   StatusBar,
-  StatusBarStyle,
-  Platform,
   View,
   StyleSheet,
 } from 'react-native';
-import { screenWidth } from '../utils/constant';
+import { AppColors } from '../config/theme';
+import { useThemeStore } from '../stores/useThemeStore';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-interface Props {
-  backgroundColor: string;
-  barStyle?: StatusBarStyle;
-}
-
-const CustomStatusBar: React.FC<Props> = ({
-  backgroundColor,
-  barStyle = 'light-content',
-}) => {
+const CustomStatusBar =() => {
+  const insets = useSafeAreaInsets();
+  const AppTheme = useThemeStore(state => state.AppTheme);
   return (
     <>
-      <View style={[styles.statusBarBackground, { backgroundColor}]} />
-      <StatusBar
-        translucent
-        backgroundColor="transparent"
-        barStyle={barStyle}
-      />
+      <View style={[styles.statusBarBackground, { backgroundColor: AppColors[AppTheme].primary, height: insets.top}]} />
+      <StatusBar barStyle={'light-content'} />
     </>
   );
 };
@@ -35,7 +25,6 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: Platform.OS === 'ios' ? screenWidth * 0.121: StatusBar.currentHeight ?? 0,
     zIndex: 1,
   },
 });

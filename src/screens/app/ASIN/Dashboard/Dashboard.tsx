@@ -1104,7 +1104,6 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
       setIsRefreshing(false);
     }
   }, [refetchDashboard]);
-
   return (
     <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
       <ScrollView
@@ -1152,14 +1151,13 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
             quarter={selectedQuarter?.value || ''}
           />
         </View>
-
-        {([DIR_HOD_MAN, HO_EMPLOYEES, COUNTRY_HEAD].includes(
+        {[DIR_HOD_MAN, HO_EMPLOYEES, COUNTRY_HEAD].includes(
           userInfo?.EMP_RoleId as any,
         ) &&
-          ['Total', 'CHANNEL', 'LFR'].includes(route.name)) ||
-          ([BSM, BPM, TM, RSM, CHANNEL_MARKETING].includes(
-            userInfo?.EMP_RoleId as any,
-          ) && (
+          (['Total', 'CHANNEL', 'LFR'].includes(route.name) ||
+            [BSM, BPM, TM, RSM, CHANNEL_MARKETING].includes(
+              userInfo?.EMP_RoleId as any,
+            )) && (
             <ASEDataComponent
               totalData={aseData.total}
               channelData={aseData.channel}
@@ -1170,7 +1168,7 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
               quarter={selectedQuarter?.value || ''}
               masterTab={route.name}
             />
-          ))}
+          )}
 
         {['Total', 'CHANNEL'].includes(route.name) &&
           ![ASUS.ROLE_ID.DISTI_HO, ASUS.ROLE_ID.DISTRIBUTORS].includes(

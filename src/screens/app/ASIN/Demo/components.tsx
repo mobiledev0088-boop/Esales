@@ -371,7 +371,7 @@ export const BranchCard = memo(
     premiumKiosk = 0,
     rogKiosk = 0,
     partnerType,
-    IsCompulsory,
+    IsCompulsory = 'Yes',
     noTerritoryButton,
   }: {
     item: TransformedBranchRes;

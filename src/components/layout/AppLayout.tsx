@@ -62,7 +62,7 @@ const Header = memo<HeaderProps>(
     const empType = empInfo?.EMP_Type ? empInfo.EMP_Type + ' ' : '';
     const [isOpen, setIsOpen] = useState(false);
     return (
-      <View className="flex-row items-center justify-between px-4 py-4 bg-primary dark:bg-primary-dark rounded-b-md">
+      <View className="flex-row items-center justify-between px-4 py-4 bg-primary dark:bg-primary-dark rounded-b-md ">
         {/* Left */}
         <View className="flex-row items-center max-w-[70%]">
           {!onlyHeader && (

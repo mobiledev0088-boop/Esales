@@ -1,5 +1,4 @@
 import App from './App';
-import BackgroundFetch from 'react-native-background-fetch';
 
 import {AppRegistry} from 'react-native';
 import {name as appName} from './app.json';
@@ -31,6 +30,5 @@ notifee.onBackgroundEvent(async ({ type, detail }) => {
 });
 
 // Register the headless task
-BackgroundFetch.registerHeadlessTask(MyHeadlessTask);
 
 AppRegistry.registerComponent(appName, () => App);
