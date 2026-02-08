@@ -217,16 +217,16 @@ export function useImagePicker(
             return;
           }
         } else {
-          if(isIOS) {
-            hasPermission = await requestLibraryPermission();
-            if (!hasPermission) {
-              Alert.alert(
-                'Permission Required',
-                'Photo library permission is required to select images.',
-              );
-              setIsLoading(false);
-              return;
-            }
+          // Gallery permissions
+          hasPermission = await requestLibraryPermission();
+          if (!hasPermission && isIOS) {
+            // Only show alert on iOS, Android may not need explicit permission
+            Alert.alert(
+              'Permission Required',
+              'Photo library permission is required to select images.',
+            );
+            setIsLoading(false);
+            return;
           }
         }
 
@@ -244,30 +244,34 @@ export function useImagePicker(
         if (source === 'camera') {
           response = await launchCamera(pickerOptions);
         } else {
-          console.log('Launching image library with options:', pickerOptions);
           response = await launchImageLibrary({
             ...pickerOptions,
             selectionLimit: 1,
           });
-          console.log('Image Library Response:', response);
         }
 
         // Handle response
         if (response.didCancel) {
           console.log('User cancelled image picker');
         } else if (response.errorCode) {
-          console.error('ImagePicker Error:', response.errorMessage);
           Alert.alert('Error', response.errorMessage || 'Failed to pick image');
         } else if (response.assets && response.assets.length > 0) {
           const asset = response.assets[0];
           const result = convertAssetToResult(asset);
-
           setImageData(result);
 
           // If crop is enabled, show crop modal, otherwise set image directly
           if (enableCrop) {
+            console.log('Setting temp URI and showing crop modal');
             setTempImageUri(result.uri);
-            setShowCropModal(true);
+            // Add delay for iOS to allow native picker to fully dismiss
+            if (Platform.OS === 'ios') {
+              setTimeout(() => {
+                setShowCropModal(true);
+              }, 500);
+            } else {
+              setShowCropModal(true);
+            }
           } else {
             if (watermarkText) {
               const watermarkedUri = await addWatermarkIfNeeded(
@@ -290,7 +294,7 @@ export function useImagePicker(
         setIsLoading(false);
       }
     },
-    [quality, maxWidth, maxHeight, mediaType],
+    [quality, maxWidth, maxHeight, mediaType, enableCrop, watermarkText],
   );
 
   const handleCropComplete = useCallback(
@@ -316,7 +320,7 @@ export function useImagePicker(
     setShowCropModal(false);
     setTempImageUri(null);
     setImageData(null);
-  }, [watermarkText]);
+  }, []);
 
   const reset = useCallback(() => {
     setImageUri(null);

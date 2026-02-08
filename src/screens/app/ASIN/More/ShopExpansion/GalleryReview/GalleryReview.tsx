@@ -116,7 +116,6 @@ const useGetStoreDetails = (partnerCode: string, partnerType: string) => {
       }
 
       const dataInfo = result.Datainfo ?? {};
-
       return {
         galleryData: dataInfo.SuccessData ?? [],
         referenceImages: dataInfo.ReferenceImages ?? [],
@@ -174,8 +173,7 @@ const QuarterGallerySection = ({
                   activeDotColor={'#00539B'}
                   removeClippedSubviews={false}
                   style={{flexGrow: 1}}
-                  paginationStyle={{bottom: 2}}
-                  >
+                  paginationStyle={{bottom: 2}}>
                   {item.Image_Links.map((image, idx) => (
                     <AppImage
                       key={idx}
@@ -197,7 +195,7 @@ const QuarterGallerySection = ({
                   source={{uri: item.Image_Links[0]}}
                   style={{
                     width: '100%',
-                    height: screenWidth *0.28,
+                    height: screenWidth * 0.28,
                     borderRadius: 12,
                   }}
                   resizeMode={'contain'}
@@ -265,58 +263,60 @@ export default function GalleryReview({
   const navigation = useNavigation<AppNavigationProp>();
   const [refreshing, setRefreshing] = useState(false);
   const {selectedQuarter} = useQuarterHook();
-  // console.log('GalleryReview data:', data?.PartnerCode, data?.StoreType);
   const {
     data: galleryQueryResult,
     isLoading,
     error,
     refetch,
   } = useGetStoreDetails(data.PartnerCode, data.StoreType);
-  console.log('GalleryReview galleryQueryResult:', galleryQueryResult);
   const galleryByQuarter: DisplayGalleryByQuarter = useMemo(() => {
-    if (!galleryQueryResult?.galleryData || !Object.keys(galleryQueryResult?.galleryData || {}).length) {
-      return assetsKey.map(assetKey => [
-        {
-          ImageType: convertSnakeCaseToSentence(assetKey),
-          Image_Links: [],
-          Partner_Code: '',
-        },
-      ]).reduce((acc, curr, idx) => {
-        acc[`${selectedQuarter?.value}`] = curr;
-        return acc;
-      }, {} as DisplayGalleryByQuarter);
+    const emptyGallery = assetsKey.map(assetKey => ({
+      ImageType: convertSnakeCaseToSentence(assetKey),
+      Image_Links: [],
+      Partner_Code: '',
+    }));
+
+    // 1️⃣ No data → return default for selected quarter
+    if (
+      !galleryQueryResult?.galleryData ||
+      Object.keys(galleryQueryResult.galleryData).length === 0
+    ) {
+      return selectedQuarter?.value
+        ? {[selectedQuarter.value]: emptyGallery}
+        : {};
     }
 
+    // 2️⃣ Data exists → normalize gallery data
     const result: DisplayGalleryByQuarter = {};
 
-    Object.entries(galleryQueryResult.galleryData).forEach(
-      ([yearQuarterKey, stores]) => {
-        if (!Array.isArray(stores)) {
-          return;
-        }
+    for (const [yearQuarterKey, stores] of Object.entries(
+      galleryQueryResult.galleryData,
+    )) {
+      if (!Array.isArray(stores)) continue;
 
-        const storeMap = new Map(stores.map(item => [item.Image_Type, item]));
+      const storeMap = new Map(stores.map(item => [item.Image_Type, item]));
 
-        result[yearQuarterKey] = assetsKey.map(assetKey => {
-          const storeItem = storeMap.get(assetKey);
+      result[yearQuarterKey] = assetsKey.map(assetKey => {
+        const storeItem = storeMap.get(assetKey);
 
-          return {
-            ImageType: convertSnakeCaseToSentence(assetKey),
-            Image_Links: storeItem ? storeItem.Image_Links : [],
-            Partner_Code: storeItem ? storeItem.Partner_Code : '',
-          };
-        });
-      },
-    );
+        return {
+          ImageType: convertSnakeCaseToSentence(assetKey),
+          Image_Links: storeItem?.Image_Links ?? [],
+          Partner_Code: storeItem?.Partner_Code ?? '',
+        };
+      });
+    }
 
     return result;
-  }, [galleryQueryResult, assetsKey]);
+  }, [galleryQueryResult, assetsKey, selectedQuarter]);
 
+  console.log('Transformed gallery by quarter:', galleryByQuarter);
 
-  const isEmptyState = !isLoading && !error && Object.keys(galleryByQuarter).length === 0;
+  const isEmptyState =
+    !isLoading && !error && Object.keys(galleryByQuarter).length === 0;
 
   const quarters = Object.values(galleryByQuarter);
-  const currentQuarterImages = quarters[1]? quarters[1]:quarters[0];
+  const currentQuarterImages = quarters[1] ? quarters[1] : quarters[0];
   const previousQuarterImages = !quarters[1] ? undefined : quarters[0];
 
   const handlePress = useCallback(() => {
@@ -326,7 +326,7 @@ export default function GalleryReview({
       referenceImages: galleryQueryResult?.referenceImages || [],
     });
   }, [data, galleryQueryResult, navigation]);
-  
+
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
     refetch();
@@ -343,12 +343,8 @@ export default function GalleryReview({
         className="flex-1 bg-lightBg-base dark:bg-darkBg-base"
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl
-          refreshing={refreshing}
-          onRefresh={handleRefresh}
-          />
-        }
-        >
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }>
         <View className="pt-3 pb-4 gap-y-4">
           {currentQuarterImages && (
             <QuarterGallerySection
@@ -367,4 +363,4 @@ export default function GalleryReview({
       <FAB onPress={handlePress} />
     </DataStateView>
   );
-};
+}
