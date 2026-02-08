@@ -29,6 +29,7 @@ export interface ActivationData {
   Hit_Rate?: number;
   CSE_Name?: string;
   Partner_Type?: string;
+  ALP_Code?: string;
 }
 
 export interface ActivationPerformanceData {

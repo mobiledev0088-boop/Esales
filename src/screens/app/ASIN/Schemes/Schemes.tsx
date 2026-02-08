@@ -773,6 +773,13 @@ export default function Schemes() {
   const [modelSearchActive, setModelSearchActive] = useState(false);
   const [selectedModelName, setSelectedModelName] = useState('');
   const [modelTabIndex, setModelTabIndex] = useState(0); // 0 = ongoing, 1 = lapsed
+  const [modelSRPData, setModelSRPData] = useState<{
+    ongoing: string | null;
+    lapsed: string | null;
+  }>({
+    ongoing: null,
+    lapsed: null,
+  });
 
   // Coerce roleId to a number defensively (userInfo shape may be loosely typed)
   const roleId = useMemo<number>(() => {
@@ -1099,6 +1106,99 @@ export default function Schemes() {
     return <View className="h-6" />;
   }, [activeTabidx, loadingMore, hasMore, selectedData.length]);
 
+  const ModelNotFoundWithSRP: React.FC<{srp: string; category: string}> =
+    useCallback(
+      ({srp, category}) => (
+        <View className="w-full items-center pt-8 px-4">
+          <View className="w-full max-w-md">
+            {/* Icon and Title */}
+            <View className="items-center mb-6">
+              <View className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 items-center justify-center mb-3">
+                <AppIcon
+                  type="feather"
+                  name="alert-circle"
+                  size={32}
+                  color="#f59e0b"
+                />
+              </View>
+              <AppText
+                size="lg"
+                weight="bold"
+                className="text-heading dark:text-heading-dark text-center">
+                No {category} Schemes
+              </AppText>
+              <AppText
+                size="sm"
+                className="text-slate-500 dark:text-slate-400 mt-1 text-center">
+                for {selectedModelName}
+              </AppText>
+            </View>
+
+            {/* SRP Card */}
+            <Card
+              noshadow
+              className="p-5 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-blue-200 dark:border-blue-700">
+              <View className="flex-row items-center justify-between">
+                <View className="flex-1">
+                  <View className="flex-row items-center mb-2">
+                    <View className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-800/50 items-center justify-center mr-2">
+                      <AppIcon
+                        type="feather"
+                        name="tag"
+                        size={16}
+                        color="#2563eb"
+                      />
+                    </View>
+                    <AppText
+                      size="sm"
+                      weight="semibold"
+                      className="text-blue-700 dark:text-blue-300">
+                      Suggested Retail Price
+                    </AppText>
+                  </View>
+                  <View className="flex-row items-baseline">
+                    <AppText
+                      size="xs"
+                      className="text-slate-600 dark:text-slate-400 mr-1">
+                      ₹
+                    </AppText>
+                    <AppText
+                      size="2xl"
+                      weight="bold"
+                      className="text-heading dark:text-heading-dark">
+                      {srp ? Number(srp).toLocaleString('en-IN') : '—'}
+                    </AppText>
+                  </View>
+                </View>
+                <View className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-800/50 items-center justify-center">
+                  <AppIcon
+                    type="feather"
+                    name="info"
+                    size={24}
+                    color="#2563eb"
+                  />
+                </View>
+              </View>
+            </Card>
+
+            {/* Info Message */}
+            <View className="mt-6 p-4 rounded-lg bg-slate-100 dark:bg-slate-800/50">
+              <AppText
+                size="xs"
+                className="text-slate-600 dark:text-slate-400 text-center leading-5">
+                Currently, there are no {category.toLowerCase()} schemes for
+                this model.
+                {category === 'Ongoing'
+                  ? ' Check the Lapsed tab or try again later.'
+                  : ' Check back later for updates.'}
+              </AppText>
+            </View>
+          </View>
+        </View>
+      ),
+      [selectedModelName],
+    );
+
   const EmptyList = useCallback(
     () => (
       <View className="w-full items-center pt-10 px-4">
@@ -1132,15 +1232,51 @@ export default function Schemes() {
 
   if (showSkeleton) return <SchemeSkeleton />;
 
+  console.log(
+    'Rendering Schemes with',
+    modelSchemes,
+    'selectedModelName:',
+    selectedModelName,
+  );
   return (
     <View className="flex-1 bg-slate-50 dark:bg-black">
       <SchemeSearch
         selectedModelName={selectedModelName}
         onModelLoading={setModelLoading}
         onModelSchemes={(schemesByCategory, modelName) => {
+          // Check if response contains error objects
+          const checkForError = (arr: any[]) => {
+            if (!arr || arr.length === 0) return null;
+            const firstItem = arr[0];
+            if (firstItem?.ErrorMessage && firstItem?.SRP) {
+              return {hasError: true, srp: firstItem.SRP};
+            }
+            return {hasError: false, srp: null};
+          };
+
+          const ongoingCheck = checkForError(schemesByCategory.ongoing);
+          const lapsedCheck = checkForError(schemesByCategory.lapsed);
+
+          // Filter out any error objects and only keep valid schemes
+          const filterValidSchemes = (arr: any[]) => {
+            return (arr ?? []).filter((item: any) => !item?.ErrorMessage);
+          };
+
+          const validOngoing = filterValidSchemes(schemesByCategory.ongoing);
+          const validLapsed = filterValidSchemes(schemesByCategory.lapsed);
+
+          // Store SRP for each tab separately
+          const ongoingSRP = ongoingCheck?.srp || null;
+          const lapsedSRP = lapsedCheck?.srp || null;
+
+          setModelSRPData({
+            ongoing: ongoingSRP,
+            lapsed: lapsedSRP,
+          });
+
           setModelSchemes({
-            ongoing: (schemesByCategory.ongoing ?? []) as Scheme[],
-            lapsed: (schemesByCategory.lapsed ?? []) as Scheme[],
+            ongoing: validOngoing as Scheme[],
+            lapsed: validLapsed as Scheme[],
           });
           setModelSearchActive(true);
           setSelectedModelName(modelName);
@@ -1152,6 +1288,7 @@ export default function Schemes() {
           setSelectedModelName('');
           setModelLoading(false);
           setModelTabIndex(0);
+          setModelSRPData({ongoing: null, lapsed: null});
         }}
       />
       <FlatList
@@ -1166,7 +1303,25 @@ export default function Schemes() {
         scrollEventThrottle={32}
         ListFooterComponent={ListFooter}
         ListHeaderComponent={ListHeader}
-        ListEmptyComponent={EmptyList}
+        ListEmptyComponent={
+          modelSearchActive && selectedData.length === 0
+            ? (() => {
+                const currentSRP =
+                  modelTabIndex === 0
+                    ? modelSRPData.ongoing
+                    : modelSRPData.lapsed;
+                const categoryName = modelTabIndex === 0 ? 'Ongoing' : 'Lapsed';
+                return currentSRP ? (
+                  <ModelNotFoundWithSRP
+                    srp={currentSRP}
+                    category={categoryName}
+                  />
+                ) : (
+                  <EmptyList />
+                );
+              })()
+            : EmptyList
+        }
         contentContainerClassName="px-3"
         refreshControl={
           <RefreshControl

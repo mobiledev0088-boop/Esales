@@ -52,6 +52,7 @@ const useUploadImagesMutation = () => {
         UserName: EMP_Code || '',
         MachineName: getDeviceId() || '',
       };
+      console.log('Payload for upload API', payload);
       const response = await handleASINApiCall(
         '/Partner/ShopExpansionGalleryImages_Insert',
         payload,
@@ -77,7 +78,7 @@ const buildPayload = async (formData: ImageTypeData[]) => {
 
         return {
           ImageType: item.ImageType.replace(/ /g, '_').toLowerCase(),
-          ImageLink,
+          ImageName : ImageLink,
         };
       })
     )
@@ -118,7 +119,6 @@ export default function UploadGalleryReview() {
   const navigation = useNavigation();
   const {params} = useRoute();
   const {data, storeCode, referenceImages} = params as RouteParams;
-  console.log('UploadGalleryReview params', params);
 
   const {EMP_Name, EMP_Code} = useLoginStore(state => state.userInfo);
   const {mutate} = useUploadImagesMutation();
@@ -181,21 +181,21 @@ export default function UploadGalleryReview() {
     });
   };
   const handleUpload = async () => {
+    console.log('Form data to upload', formData);
     const payload = await buildPayload(formData);
-    console.log('payload', payload);
-    // mutate({
-    //   storeCode,
-    //   formatedData: payload,
-    // },{
-    //   onSuccess: () => {
-    //     showToast('Images uploaded successfully.');
-    //     // queryClient.invalidateQueries({ queryKey: ['StoreDetails'] });
-    //     // navigation.goBack();
-    //   },
-    //   onError: (error: any) => {
-    //     showToast(error.message || 'Failed to upload images.');
-    //   },
-    // });
+    mutate({
+      storeCode,
+      formatedData: payload,
+    },{
+      onSuccess: () => {
+        showToast('Images uploaded successfully.');
+        queryClient.invalidateQueries({ queryKey: ['StoreDetails'] });
+        navigation.goBack();
+      },
+      onError: (error: any) => {
+        showToast(error.message || 'Failed to upload images.');
+      },
+    });
   };
 
   useEffect(() => {

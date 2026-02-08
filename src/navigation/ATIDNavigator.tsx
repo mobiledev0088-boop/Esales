@@ -12,15 +12,19 @@ import DealerHitRate from '../screens/app/ASIN/Reports/APAC/DealerHitRate';
 import TargetPartnerDashboard from '../screens/app/ASIN/Reports/APAC/TargetPartnerDashboard';
 import Notification from '../screens/app/ASIN/Notification/Notification';
 import ScanSN from '../screens/app/ASIN/ScanSN/ScanSN';
+import AppPermissions from '../screens/app/ASIN/User/AppPermissions/AppPermissions';
+import ActPerformanceATID from '../screens/app/ASIN/Reports/APAC/ActPerformanceATID';
 
 const Stack = createNativeStackNavigator();
 
 const screens = [
   {name: 'Index', component: Index},
+  {name: 'AppPermissions', component: AppPermissions},
   // dashbaord Screens
   {name: 'TargetSummaryAPAC', component: TargetSummaryAPAC},
   {name: 'DealerHitRate', component: DealerHitRate},
   {name: 'TargetPartnerDashboard', component: TargetPartnerDashboard},
+  {name: 'ActPerformanceATID', component: ActPerformanceATID},
   // Channel Map
   {name: 'ChannelMapDealerInfo', component: ChannelMapDealerInfo},
 

@@ -247,31 +247,32 @@ const Reseller = () => {
   const isEmpty = !isLoading && !error && transformedData.length === 0;
   return (
     <ScrollView className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
-      <View className="flex-row items-center gap-x-1 px-3 pt-2 mb-3">
-        <View className="w-[30%]">
-          <AppDropdown
-            mode="dropdown"
-            data={quarters}
-            selectedValue={selectedQuarter?.value}
-            onSelect={setSelectedQuarter}
-            placeholder="Select Quarter"
-          />
-        </View>
-        <View className="flex-1">
-          <AppDropdown
-            mode="autocomplete"
-            data={PartnerNameList}
-            selectedValue={selectedPartnerName?.value}
-            onSelect={setSelectedPartnerName}
-            placeholder="Select Partner Name"
-            allowClear
-            onClear={() => setSelectedPartnerName(null)}
-          />
-        </View>
+      <View className="flex-row justify-end gap-x-2 px-3 pt-2 mb-3 ">
+        <AppDropdown
+          mode="dropdown"
+          data={quarters}
+          selectedValue={selectedQuarter?.value}
+          onSelect={setSelectedQuarter}
+          placeholder="Select Quarter"
+          zIndex={1000}
+          style={{width: 125}}
+        />
         <FilterButton
           onPress={handleFilter}
-          containerClassName="p-3 border border-[#ccc] dark:border-[#444] rounded-lg"
+          containerClassName="p-3 border border-[#ccc] dark:border-[#444] rounded-lg "
           noShadow
+        />
+      </View>
+      <View className="px-3 pt-2 mb-3">
+        <AppDropdown
+          mode="autocomplete"
+          data={PartnerNameList}
+          selectedValue={selectedPartnerName?.value}
+          onSelect={setSelectedPartnerName}
+          placeholder="Select Partner Name"
+          allowClear
+          onClear={() => setSelectedPartnerName(null)}
+          zIndex={900}
         />
       </View>
       {(isEmpty || isError) && (
@@ -509,31 +510,32 @@ const Retailer = () => {
   const isEmpty = !isLoading && !error && transformedData.length === 0;
   return (
     <ScrollView className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
-      <View className="flex-row items-center gap-x-1 px-3 pt-2 mb-3">
-        <View className="w-[30%]">
-          <AppDropdown
-            mode="dropdown"
-            data={quarters}
-            selectedValue={selectedQuarter?.value}
-            onSelect={setSelectedQuarter}
-            placeholder="Select Quarter"
-          />
-        </View>
-        <View className="flex-1">
-          <AppDropdown
-            mode="autocomplete"
-            data={partnerNameList}
-            selectedValue={selectedPartnerName?.value}
-            onSelect={setSelectedPartnerName}
-            placeholder="Select Partner Name"
-            allowClear
-            onClear={() => setSelectedPartnerName(null)}
-          />
-        </View>
+      <View className="flex-row justify-end gap-x-2 px-3 pt-2 mb-3 ">
+        <AppDropdown
+          mode="dropdown"
+          data={quarters}
+          selectedValue={selectedQuarter?.value}
+          onSelect={setSelectedQuarter}
+          placeholder="Select Quarter"
+          zIndex={1000}
+          style={{width: 125}}
+        />
         <FilterButton
           onPress={handleFilter}
-          containerClassName="p-3 border border-[#ccc] dark:border-[#444] rounded-lg"
+          containerClassName="p-3 border border-[#ccc] dark:border-[#444] rounded-lg "
           noShadow
+        />
+      </View>
+      <View className="px-3 ">
+        <AppDropdown
+          mode="autocomplete"
+          data={partnerNameList}
+          selectedValue={selectedPartnerName?.value}
+          onSelect={setSelectedPartnerName}
+          placeholder="Select Partner Name"
+          allowClear
+          onClear={() => setSelectedPartnerName(null)}
+          zIndex={900}
         />
       </View>
       {(isEmpty || isError) && (
@@ -747,31 +749,32 @@ const LFR = () => {
 
   return (
     <ScrollView className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
-      <View className="flex-row items-center gap-x-1 px-3 pt-2 mb-3">
-        <View className="w-[30%]">
-          <AppDropdown
-            mode="dropdown"
-            data={quarters}
-            selectedValue={selectedQuarter?.value}
-            onSelect={setSelectedQuarter}
-            placeholder="Select Quarter"
-          />
-        </View>
-        <View className="flex-1">
-          <AppDropdown
-            mode="autocomplete"
-            data={partnerNameList}
-            selectedValue={selectedPartnerName?.value}
-            onSelect={setSelectedPartnerName}
-            placeholder="Select Partner Name"
-            allowClear
-            onClear={() => setSelectedPartnerName(null)}
-          />
-        </View>
+      <View className="flex-row justify-end gap-x-2 px-3 pt-2 mb-3 ">
+        <AppDropdown
+          mode="dropdown"
+          data={quarters}
+          selectedValue={selectedQuarter?.value}
+          onSelect={setSelectedQuarter}
+          placeholder="Select Quarter"
+          zIndex={1000}
+          style={{width: 125}}
+        />
         <FilterButton
           onPress={handleFilter}
-          containerClassName="p-3 border border-[#ccc] dark:border-[#444] rounded-lg"
+          containerClassName="p-3 border border-[#ccc] dark:border-[#444] rounded-lg "
           noShadow
+        />
+      </View>
+      <View className="flex-1 px-3">
+        <AppDropdown
+          mode="autocomplete"
+          data={partnerNameList}
+          selectedValue={selectedPartnerName?.value}
+          onSelect={setSelectedPartnerName}
+          placeholder="Select Partner Name"
+          allowClear
+          onClear={() => setSelectedPartnerName(null)}
+          zIndex={900}
         />
       </View>
       {(isEmpty || isError) && (
@@ -1007,31 +1010,31 @@ const ROI = () => {
 
   return (
     <ScrollView className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
-      <View className="flex-row items-center gap-x-1 px-3 pt-2 mb-3">
-        <View className="w-[30%]">
-          <AppDropdown
-            mode="dropdown"
-            data={quarters}
-            selectedValue={selectedQuarter?.value}
-            onSelect={setSelectedQuarter}
-            placeholder="Select Quarter"
-          />
-        </View>
-        <View className="flex-1">
-          <AppDropdown
-            mode="autocomplete"
-            data={partnerNameList}
-            selectedValue={selectedPartnerName?.value}
-            onSelect={setSelectedPartnerName}
-            placeholder="Select Partner Name"
-            allowClear
-            onClear={() => setSelectedPartnerName(null)}
-          />
-        </View>
+      <View className="flex-row justify-end gap-x-2 px-3 pt-2 mb-3 ">
+        <AppDropdown
+          mode="dropdown"
+          data={quarters}
+          selectedValue={selectedQuarter?.value}
+          onSelect={setSelectedQuarter}
+          placeholder="Select Quarter"
+          zIndex={1000}
+          style={{width: 125}}
+        />
         <FilterButton
           onPress={handleFilter}
-          containerClassName="p-3 border border-[#ccc] dark:border-[#444] rounded-lg"
+          containerClassName="p-3 border border-[#ccc] dark:border-[#444] rounded-lg "
           noShadow
+        />
+      </View>
+      <View className="flex-1 px-3">
+        <AppDropdown
+          mode="autocomplete"
+          data={partnerNameList}
+          selectedValue={selectedPartnerName?.value}
+          onSelect={setSelectedPartnerName}
+          placeholder="Select Partner Name"
+          allowClear
+          onClear={() => setSelectedPartnerName(null)}
         />
       </View>
       {(isEmpty || isError) && (

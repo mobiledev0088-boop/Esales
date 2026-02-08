@@ -527,11 +527,12 @@ export const SpecialAccessUI = ({
 
 export const AccountSettings = () => {
   const navigation = useNavigation<AppNavigationProp>();
-  const {EMP_RoleId} = useLoginStore(state => state.userInfo);
+  const {EMP_RoleId,EMP_CountryID} = useLoginStore(state => state.userInfo);
+  const isASIN = EMP_CountryID === ASUS.COUNTRIES.ASIN;
   const AppTheme = useThemeStore(state => state.AppTheme);
   const {ASE,BSM,HO_EMPLOYEES,AM,TM} = ASUS.ROLE_ID;
   const allowAttendanceRoles = [ASE,BSM,HO_EMPLOYEES,AM,TM];
-  const isAttendanceAllowed = allowAttendanceRoles.includes(EMP_RoleId as any);
+  const isAttendanceAllowed = isASIN && allowAttendanceRoles.includes(EMP_RoleId as any);
   const attendanceNavigation  = EMP_RoleId === ASE ? 'Attendance' : 'Attendance_HO';
   return (
     <>

@@ -217,15 +217,16 @@ export function useImagePicker(
             return;
           }
         } else {
-          if(!isIOS) return;
-          hasPermission = await requestLibraryPermission();
-          if (!hasPermission) {
-            Alert.alert(
-              'Permission Required',
-              'Photo library permission is required to select images.',
-            );
-            setIsLoading(false);
-            return;
+          if(isIOS) {
+            hasPermission = await requestLibraryPermission();
+            if (!hasPermission) {
+              Alert.alert(
+                'Permission Required',
+                'Photo library permission is required to select images.',
+              );
+              setIsLoading(false);
+              return;
+            }
           }
         }
 
@@ -243,10 +244,12 @@ export function useImagePicker(
         if (source === 'camera') {
           response = await launchCamera(pickerOptions);
         } else {
+          console.log('Launching image library with options:', pickerOptions);
           response = await launchImageLibrary({
             ...pickerOptions,
             selectionLimit: 1,
           });
+          console.log('Image Library Response:', response);
         }
 
         // Handle response

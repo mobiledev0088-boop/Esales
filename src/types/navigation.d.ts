@@ -18,7 +18,7 @@ type AppNavigationParamList = {
   ScanSN: undefined;
   TargetPartnerDashboard: {partner: any};
   // Demo Screen
-  DemoPartners: {partners: Array<any>; yearQtr: string,isROI?: boolean};
+  DemoPartners: {partners: Array<any>; yearQtr: string,isROI?: boolean,tab?:string};
   UploadDemoData: undefined;
   // Claim Screen
   ClaimInfo: {
@@ -157,6 +157,9 @@ type AppNavigationParamList = {
     YearQtr: string;
     masterTab: string;
   }
+  ActPerformanceATID:  {
+    [key: string]: any;
+  };
   DealerHitRate : {BranchName : string};
   ChannelMapDealerInfo: {Dealer_Data: any};
   Promoter: undefined;

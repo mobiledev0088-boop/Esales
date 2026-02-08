@@ -66,7 +66,7 @@ declare module 'react-native-actions-sheet' {
     SchemeInfoSheet: SheetDefinition;
     ActivationFilterSheet: SheetDefinition;
     PartnerDetailsSheet: SheetDefinition<{
-      payload: {partner: any; yearQtr: string};
+      payload: {partner: any; yearQtr: string, tab: string};
     }>;
     DemoROISheet: SheetDefinition<{
       payload: {partner: any};

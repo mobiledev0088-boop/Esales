@@ -191,9 +191,9 @@ const getASINOptions = (
     });
   }
   if (
-    ['KN2100033', 'KN2100029', 'KN2200052', 'KN1800037', 'KN2500069'].includes(
-      empCode,
-    )
+    ['KN2100033', 'KN2100029', 'KN2200052', 'KN1800037', 'KN2500069','KN1300078'].includes(empCode)
+    ||
+    checkRole(roleId, [CHANNEL_MARKETING])
   ) {
     options.push({
       label: 'Display Stand & POSM',

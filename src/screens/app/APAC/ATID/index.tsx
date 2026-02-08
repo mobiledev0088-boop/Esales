@@ -2,6 +2,7 @@ import {createDrawerNavigator} from '@react-navigation/drawer';
 import CustomDrawerContent from '../../../../components/drawer/CustomDrawerContent';
 import Home from './Home/Home';
 import Account from '../../ASIN/User/Account/Account';
+import Reports from './Reports/Reports';
 
 const Drawer = createDrawerNavigator();
 
@@ -10,11 +11,11 @@ const Index = () => {
     {name: 'Home', component: Home},
     {name: 'Account', component: Account},
     // {name: 'AuditReport', component: AuditReport},
-    // {name: 'SchemePPACT', component: Reports},
-    // {name: 'PriceList', component: Reports},
-    // {name: 'DemoProgramLetter', component: Reports},
-    // {name: 'EndCustomerRelated', component: Reports},
-    // {name: 'MarketingMaterial', component: Reports},
+    {name: 'SchemePPACT', component: Reports},
+    {name: 'PriceList', component: Reports},
+    {name: 'DemoProgramLetter', component: Reports},
+    {name: 'EndCustomerRelated', component: Reports},
+    {name: 'MarketingMaterial', component: Reports},
   ];
 
   return (

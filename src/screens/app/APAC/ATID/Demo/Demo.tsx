@@ -251,7 +251,7 @@ const ByProgram = () => {
     const partner = item?.PartnerCode;
     const yearQtr = filter?.Month;
     SheetManager.show('PartnerDetailsSheet', {
-      payload: {partner, yearQtr},
+      payload: {partner, yearQtr,tab:''},
     });
   };
 
@@ -308,7 +308,7 @@ const ByProgram = () => {
   const renderListHeader = useCallback(() => {
     return (
       <View className="mb-3">
-        <View className='items-end'>
+        <View className='items-end mb-3'>
           <FilterButton
             onPress={() => {
               showDemoFilterSheet({
@@ -432,17 +432,6 @@ const ByProgram = () => {
     );
   }
 
-  if (!groupedByBranch.length) {
-    return (
-      <View className="flex-1 items-center justify-center bg-lightBg-base dark:bg-darkBg-base">
-        <AppIcon name="inbox" type="feather" size={48} color={AppColors.text} />
-        <AppText size="md" color="gray">
-          No data found
-        </AppText>
-      </View>
-    );
-  }
-
   return (
     <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
       <FlatList
@@ -536,6 +525,12 @@ const ByProgram = () => {
             </Accordion>
           );
         }}
+        ListEmptyComponent={<View className="mt-10 items-center justify-center bg-lightBg-base dark:bg-darkBg-base">
+        <AppIcon name="inbox" type="feather" size={48} color={AppColors.text} />
+        <AppText size="md" color="gray">
+          No data found
+        </AppText>
+      </View>}
       />
     </View>
   );
@@ -588,7 +583,7 @@ const ByPartner = () => {
     const partner = item?.PartnerCode;
     const yearQtr = filter?.YearQtr;
     SheetManager.show('PartnerDetailsSheet', {
-      payload: {partner, yearQtr},
+      payload: {partner, yearQtr, tab: ''},
     });
   };
 

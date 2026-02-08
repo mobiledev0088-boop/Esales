@@ -507,6 +507,7 @@ export const BranchCard = memo(
                 navigation.push('DemoPartners', {
                   partners: item.partners,
                   yearQtr,
+                  tab: 'reseller',
                 });
               }}>
               <Card
@@ -730,6 +731,7 @@ export const TerritoryCard: React.FC<{
         navigation.push('DemoPartners', {
           partners: territory.partners,
           yearQtr,
+          tab: 'reseller',
         });
       }}>
       {/* Territory Header */}
@@ -962,6 +964,7 @@ export const BranchCardRet = memo(
                 navigation.push('DemoPartners', {
                   partners: item.partners,
                   yearQtr,
+                  tab: 'retailer',
                 });
               }}>
               <Card
@@ -1166,6 +1169,7 @@ export const TerritoryCardRet: React.FC<{
         navigation.push('DemoPartners', {
           partners: territory.partners,
           yearQtr,
+          tab: 'retailer',
         });
       }}>
       {/* Territory Header */}

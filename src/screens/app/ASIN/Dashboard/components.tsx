@@ -170,7 +170,7 @@ const TableRow = ({
           {column.key === 'name'
             ? item[column.dataKey] || '---'
             : column.key === 'h-rate'
-              ? `${item[column.dataKey]} %`
+              ? `${item[column.dataKey] ? Math.round(Number(item[column.dataKey])) : '0'} %`
               : convertToASINUnits(Number(item[column.dataKey]), true)}
         </AppText>
       </View>

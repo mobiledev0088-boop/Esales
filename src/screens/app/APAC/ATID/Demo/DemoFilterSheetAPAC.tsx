@@ -114,9 +114,9 @@ const GroupItem = memo(
 // Generate 12 months starting from current month
 const generateMonthOptions = (): Array<{label: string; value: string}> => {
   const months: Array<{label: string; value: string}> = [];
-  const currentDate = moment().subtract(1, 'months');
+  const currentDate = moment().subtract(1, 'years');
 
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i <= 12; i++) {
     const monthDate = currentDate.clone().add(i, 'months');
     months.push({
       label: monthDate.format('MMMM YYYY'),

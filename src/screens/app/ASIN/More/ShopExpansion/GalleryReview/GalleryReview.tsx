@@ -1,9 +1,9 @@
-import {ScrollView, View} from 'react-native';
+import {RefreshControl, ScrollView, View} from 'react-native';
 import {useQuery} from '@tanstack/react-query';
 import {handleASINApiCall} from '../../../../../../utils/handleApiCall';
 import {DataStateView} from '../../../../../../components/DataStateView';
 import FAB from '../../../../../../components/FAB';
-import {useCallback, useMemo} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 import AppIcon from '../../../../../../components/customs/AppIcon';
 import AppText from '../../../../../../components/customs/AppText';
 import Card from '../../../../../../components/Card';
@@ -14,6 +14,7 @@ import Swiper from 'react-native-swiper';
 import {useNavigation} from '@react-navigation/native';
 import {AppNavigationProp} from '../../../../../../types/navigation';
 import {convertSnakeCaseToSentence} from '../../../../../../utils/commonFunctions';
+import useQuarterHook from '../../../../../../hooks/useQuarterHook';
 
 interface RawGalleryImageItem {
   Image_Link: string;
@@ -82,6 +83,7 @@ function transformGalleryData(
   );
   return groupedData;
 }
+
 function transformReferenceImages(
   data: RawGalleryImageItem[] | null | undefined,
 ): {Image_Link: string; StandType: string}[] {
@@ -261,15 +263,28 @@ export default function GalleryReview({
   assetsKey: string[];
 }) {
   const navigation = useNavigation<AppNavigationProp>();
+  const [refreshing, setRefreshing] = useState(false);
+  const {selectedQuarter} = useQuarterHook();
+  // console.log('GalleryReview data:', data?.PartnerCode, data?.StoreType);
   const {
     data: galleryQueryResult,
     isLoading,
     error,
+    refetch,
   } = useGetStoreDetails(data.PartnerCode, data.StoreType);
-
+  console.log('GalleryReview galleryQueryResult:', galleryQueryResult);
   const galleryByQuarter: DisplayGalleryByQuarter = useMemo(() => {
-    if (!galleryQueryResult?.galleryData || !assetsKey?.length) {
-      return {} as DisplayGalleryByQuarter;
+    if (!galleryQueryResult?.galleryData || !Object.keys(galleryQueryResult?.galleryData || {}).length) {
+      return assetsKey.map(assetKey => [
+        {
+          ImageType: convertSnakeCaseToSentence(assetKey),
+          Image_Links: [],
+          Partner_Code: '',
+        },
+      ]).reduce((acc, curr, idx) => {
+        acc[`${selectedQuarter?.value}`] = curr;
+        return acc;
+      }, {} as DisplayGalleryByQuarter);
     }
 
     const result: DisplayGalleryByQuarter = {};
@@ -297,14 +312,12 @@ export default function GalleryReview({
     return result;
   }, [galleryQueryResult, assetsKey]);
 
-  const isEmptyState =
-    !isLoading && !error && Object.keys(galleryByQuarter).length === 0;
+
+  const isEmptyState = !isLoading && !error && Object.keys(galleryByQuarter).length === 0;
 
   const quarters = Object.values(galleryByQuarter);
-  const currentQuarterImages = quarters[1];
-  const previousQuarterImages = quarters[0];
-  console.log('currentQuarterImages', currentQuarterImages);
-  console.log('previousQuarterImages', previousQuarterImages);
+  const currentQuarterImages = quarters[1]? quarters[1]:quarters[0];
+  const previousQuarterImages = !quarters[1] ? undefined : quarters[0];
 
   const handlePress = useCallback(() => {
     navigation.navigate('UploadGalleryReview', {
@@ -313,6 +326,12 @@ export default function GalleryReview({
       referenceImages: galleryQueryResult?.referenceImages || [],
     });
   }, [data, galleryQueryResult, navigation]);
+  
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    refetch();
+    setRefreshing(false);
+  }, [refetch]);
 
   return (
     <DataStateView
@@ -321,8 +340,15 @@ export default function GalleryReview({
       isEmpty={isEmptyState}
       LoadingComponent={<GalleryReviewSkeleton />}>
       <ScrollView
-        className="flex-1 bg-lightBg-base dark:bg-darkBg-base "
-        showsVerticalScrollIndicator={false}>
+        className="flex-1 bg-lightBg-base dark:bg-darkBg-base"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          />
+        }
+        >
         <View className="pt-3 pb-4 gap-y-4">
           {currentQuarterImages && (
             <QuarterGallerySection
@@ -341,4 +367,4 @@ export default function GalleryReview({
       <FAB onPress={handlePress} />
     </DataStateView>
   );
-}
+};

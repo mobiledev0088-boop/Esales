@@ -59,10 +59,14 @@ export async function downloadFile({
   const {fs} = ReactNativeBlobUtil;
 
   if (isIOS) {
-    const iosPath = `${fs.dirs.DocumentDir}/Downloads/${safeName}`;
-    await fs.mkdir(`${fs.dirs.DocumentDir}/Downloads`);
+    const iosPath = `${fs.dirs.DocumentDir}/Downloads`;
+    console.log('iosPath', iosPath);
+    const isExists = await fs.exists(iosPath);
+    if (!isExists){
+      await fs.mkdir(iosPath);
+    }
     const res = await ReactNativeBlobUtil.config({
-      path: iosPath,
+      path: `${iosPath}/${safeName}`,
     }).fetch('GET', url);
     if (autoOpen) {
       ReactNativeBlobUtil.ios.openDocument(res.path());

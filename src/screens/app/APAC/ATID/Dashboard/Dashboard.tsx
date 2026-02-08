@@ -944,6 +944,7 @@ const PartnerAnalyticsComponent: React.FC<PartnerAnalyticsProps> = ({
 };
 
 const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
+  const navigation = useNavigation<AppNavigationProp>();
   const {quarters, selectedQuarter, setSelectedQuarter} = useQuarterHook();
   const userInfo = useLoginStore(state => state.userInfo);
 
@@ -1055,6 +1056,14 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
     }
   }, [refetchDashboard]);
 
+  const onPress = (data:any)=>{
+   navigation.push('ActPerformanceATID', {
+    masterTab: route.name,
+    quarter: selectedQuarter?.value || '',
+    data
+   })
+  }
+
   return (
     <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
       <ScrollView
@@ -1100,6 +1109,7 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
             onRetry={handleRetry}
             name={route.name}
             quarter={selectedQuarter?.value || ''}
+            handleSeeMore={onPress}
           />
         </View>
 
@@ -1133,9 +1143,9 @@ export default function Dashboard() {
   const {quarters} = useQuarterHook();
   const initialTab = 'Total';
 
-  // useEffect(() => {
-  //   LogCacheAPI('Dashboard API Log Cached');
-  // }, []);
+  useEffect(() => {
+    LogCacheAPI('Dashboard API Log Cached');
+  }, []);
 
   const {
     data: dashboardData,

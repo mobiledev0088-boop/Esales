@@ -24,7 +24,7 @@ import AppDropdown, {
   AppDropdownItem,
 } from '../../../../components/customs/AppDropdown';
 import Skeleton from '../../../../components/skeleton/skeleton';
-import {screenHeight, screenWidth} from '../../../../utils/constant';
+import {ASUS, screenHeight, screenWidth} from '../../../../utils/constant';
 import {useThemeStore} from '../../../../stores/useThemeStore';
 import clsx from 'clsx';
 import SheetIndicator from '../../../../components/SheetIndicator';
@@ -61,6 +61,7 @@ type DemoSummaryItem = {
   LastRegisteredDate: string | null;
   LastUnRegisteredDate: string | null;
   DurationDays: number;
+  ALPType?: string;
 };
 
 type ModelItem = {
@@ -74,24 +75,29 @@ const useGetPartnerDemoSummary = (
   YearQtr: string,
   PartnerCode: string,
   enabled: boolean,
+  tab: string
 ) => {
   const queryPayload = {
     YearQtr,
     PartnerCode,
+    employeeCode:PartnerCode,
+    RoleId: tab !== 'reseller' && tab !== 'retailer' ? ASUS.ROLE_ID.PARTNERS : ''
   };
+  const Endpoint = tab === 'reseller' ? '/DemoForm/GetResellerPartnerDemoSummaryAGP' : tab === 'retailer' ?  '/DemoForm/GetPartnerDemoSummary' : '/DemoForm/GetPartnerDemoSummaryASE';
 
   return useQuery({
     queryKey: ['partnerDemoSummary', YearQtr, PartnerCode],
     queryFn: async () => {
       const response = await handleASINApiCall(
-        '/DemoForm/GetResellerPartnerDemoSummaryAGP',
+        Endpoint,
         queryPayload,
       );
+      console.log('Partner Demo Summary Response:', response);
       const result = response?.demoFormData;
       if (!result?.Status) {
         throw new Error('Failed to fetch partner demo summary');
       }
-      return (result.Datainfo?.Table || []) as DemoSummaryItem[];
+      return (result.Datainfo?.Table || result.Datainfo?.PartnerSummary  || []) as DemoSummaryItem[];
     },
     enabled: enabled && !!YearQtr && !!PartnerCode,
   });
@@ -104,9 +110,9 @@ const formatDate = (value: string | null) => {
   return m.isValid() ? m.format('YYYY/MM/DD') : value;
 };
 
-const showPartnerDetailsSheet = (partner: PartnerTypes, yearQtr: string) => {
+const showPartnerDetailsSheet = (partner: PartnerTypes, yearQtr: string, tab: string) => {
   SheetManager.show('PartnerDetailsSheet', {
-    payload: {partner, yearQtr},
+    payload: {partner, yearQtr,tab},
   });
 };
 
@@ -124,20 +130,22 @@ const showDemoROISheet = (partner: PartnerTypes) => {
 
 export const PartnerDetailsSheet = () => {
   const payload = useSheetPayload('PartnerDetailsSheet');
-  const {partner, yearQtr} = payload || {};
+  const {partner, yearQtr,tab} = payload || {};
 
   const AppTheme = useThemeStore(state => state.AppTheme);
   const isDark = AppTheme === 'dark';
 
-  // Track if sheet is open
-  const [isSheetOpen, setIsSheetOpen] = useState(true);
 
   // Fetch demo summary data
   const {data, isLoading, error} = useGetPartnerDemoSummary(
     yearQtr || '',
-    partner?.AGP_Code || '',
-    isSheetOpen && !!partner && !!yearQtr,
+    partner?.AGP_Code || partner?.PartnerCode || '',
+    !!partner && !!yearQtr,
+    tab
   );
+  console.log('PartnerDetailsSheet data:', yearQtr || '',
+    partner?.AGP_Code || partner?.PartnerCode || '',
+    !!partner && !!yearQtr,);
 
   // Filter states
   const [selectedCategory, setSelectedCategory] =
@@ -151,11 +159,11 @@ export const PartnerDetailsSheet = () => {
     // Reset filters on mount
     setSelectedCategory(null);
     setSelectedStatus(null);
-    setIsSheetOpen(true);
+    // setIsSheetOpen(true);
 
-    return () => {
-      setIsSheetOpen(false);
-    };
+    // return () => {
+    //   setIsSheetOpen(false);
+    // };
   }, []);
 
   // Extract unique categories and statuses
@@ -221,7 +229,7 @@ export const PartnerDetailsSheet = () => {
                 weight="bold"
                 className="text-slate-800 dark:text-slate-100 mb-1"
                 numberOfLines={1}>
-                {item.Series}
+                {item.Series || item?.Category}
               </AppText>
               <View className="flex-row items-center flex-wrap mt-1 gap-2">
                 {/* Status Badge */}
@@ -431,7 +439,7 @@ export const PartnerDetailsSheet = () => {
                 size="xl"
                 weight="bold"
                 className="text-slate-800 dark:text-slate-100 mb-1">
-                {partner.AGP_Name}
+                {partner.AGP_Name || partner?.PartnerName}
               </AppText>
               <View className="flex-row items-center flex-wrap gap-2">
                 <View className="bg-primary/10 dark:bg-primary-dark/20 px-2.5 py-1 rounded-md">
@@ -439,7 +447,7 @@ export const PartnerDetailsSheet = () => {
                     size="xs"
                     weight="semibold"
                     className="text-primary dark:text-primary-dark">
-                    {partner.AGP_Or_T3}
+                    {partner.AGP_Or_T3 || partner.PartnerType}
                   </AppText>
                 </View>
                 <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-md">
@@ -447,7 +455,7 @@ export const PartnerDetailsSheet = () => {
                     size="xs"
                     weight="medium"
                     className="text-slate-600 dark:text-slate-300">
-                    Code: {partner.AGP_Code}
+                    Code: {partner.AGP_Code || partner.PartnerCode}
                   </AppText>
                 </View>
               </View>
@@ -1399,10 +1407,12 @@ export default function DemoPartners() {
     partners,
     yearQtr,
     isROI = false,
+    tab,
   } = params as {
     partners: PartnerTypes[];
     yearQtr: string;
     isROI?: boolean;
+    tab?: string;
   };
 
   // Partner selection state for filtering
@@ -1445,10 +1455,11 @@ export default function DemoPartners() {
       if (isROI) {
         showDemoROISheet(partner);
       } else {
-        showPartnerDetailsSheet(partner, yearQtr || '');
+        console.log('Year Qtr:', yearQtr,partner);
+        showPartnerDetailsSheet(partner, yearQtr || '',tab || '');
       }
     },
-    [yearQtr],
+    [yearQtr, tab],
   );
 
   // Render item with memoization

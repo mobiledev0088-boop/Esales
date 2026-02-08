@@ -24,6 +24,7 @@ import {showToast} from '../../../../../utils/commonFunctions';
 import moment from 'moment';
 import Card from '../../../../../components/Card';
 import AppButton from '../../../../../components/customs/AppButton';
+import {downloadFile} from '../../../../../utils/services';
 
 type SchemeCategory = typeof ONGOING | typeof LAPSED;
 
@@ -352,7 +353,7 @@ const ProgramSearch: React.FC<ProgramSearchProps> = ({
       />
     </View>
   );
-}
+};
 
 const AnimatedFAB: React.FC<{
   visible: boolean;
@@ -666,7 +667,24 @@ export default function Program() {
 
   const currentCategory = activeTabidx === TabIndex.ONGOING ? ONGOING : LAPSED;
   const searchCategory = ONGOING;
-  const handleDownload = useCallback((filePath: string) => {}, []);
+  const handleDownload = useCallback(async (url: string) => {
+    if (!url) {
+      showToast('File not available');
+      return;
+    }
+    const fileName = url.split('/').pop() || 'Scheme_File';
+    try {
+      showToast('Downloading file...');
+      await downloadFile({
+        url: url,
+        fileName: fileName,
+        autoOpen: true,
+      });
+    } catch (e) {
+      console.log('Open URL error', e);
+      showToast('Unable to open link');
+    }
+  }, []);
 
   const renderItem = useCallback(
     ({item}: {item: Scheme}) => (
@@ -718,6 +736,8 @@ export default function Program() {
       </View>
     );
   }
+
+  console.log('Rendering Program with', selectedData);
 
   return (
     <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
@@ -775,4 +795,4 @@ export default function Program() {
       />
     </View>
   );
-};
+}

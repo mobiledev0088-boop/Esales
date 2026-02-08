@@ -117,7 +117,7 @@ const useAllocationStatus = (RequestId: string) => {
         APIResponse<{AllocationStatus: AllocationStatusType[]}>
       >('/StandPOSM/StandPOSMAllocation_GetStatusDetails', {
         RequestId,
-      });
+      },{},true);
 
       const result = res?.DashboardData;
       if (!result?.Status) {
@@ -647,12 +647,6 @@ export default function StandPOSM() {
         {selectedRequestId?.value ? (
           isLoadingAllocationStatus ? (
             <View className="flex-1 items-center justify-center mt-10">
-              <AppIcon
-                type="ionicons"
-                name="hourglass"
-                size={48}
-                color="#00539B"
-              />
               <AppText size="base" color="gray" className="mt-3">
                 Loading allocation details...
               </AppText>

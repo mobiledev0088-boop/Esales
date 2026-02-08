@@ -23,6 +23,9 @@ export interface ActivationFilterPayload {
   gpu?: string[];
   masterTab?: string;
   territory?: string; // If territory is passed, hide branch filter
+  // CPU_Type?: string[];
+  PartnerName?: string[];
+  StoreName?: string[];
 
   // Dynamic sources for dropdown data
   allBranches?: string[];
@@ -31,6 +34,9 @@ export interface ActivationFilterPayload {
   allALPs?: string[];
   allCPUs?: string[];
   allGPUs?: string[];
+  allPartners?: string[];
+  allStores?: string[];
+
 
   // Callbacks
   onApply?: (res: ActivationFilterResult) => void;
@@ -44,6 +50,8 @@ export interface ActivationFilterResult {
   alp: string[];
   cpu: string[];
   gpu: string[];
+  PartnerName?: string[];
+  StoreName?: string[];
 }
 
 type Group = 'branches' | 'model' | 'type' | 'alp' | 'cpu' | 'gpu';
