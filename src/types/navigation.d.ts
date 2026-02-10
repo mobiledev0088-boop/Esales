@@ -17,6 +17,8 @@ type AppNavigationParamList = {
   Home: undefined;
   ScanSN: undefined;
   TargetPartnerDashboard: {partner: any};
+  TargetASEDashboard: {partner: any};
+
   // Demo Screen
   DemoPartners: {partners: Array<any>; yearQtr: string,isROI?: boolean,tab?:string};
   UploadDemoData: undefined;
@@ -73,7 +75,10 @@ type AppNavigationParamList = {
   CreditLimit: undefined;
   PartnersCreditLimit: {distributorId: string};
   PartnerCreditLimitDetails: {partner: any};
-  ASEIncentive: undefined;
+  ASEIncentive: {
+    employeeCode?: string;
+    employeeName?: string;
+  };
   LMSList_HO: undefined;
   LMSListAWP: undefined;
   ChannelMap: {
@@ -142,8 +147,10 @@ type AppNavigationParamList = {
   };
   TargetSummary: {masterTab: string; Quarter: string, button: 'seemore' | 'disti',wise: 'POD' | 'SELL'};
   TargetSummaryPartner: {Year_Qtr:string; AlpType: string, Branch: string};
-  VerticalASE_HO: {Year: string; Month: string; AlpType: string, Branch?: string};
-  TargetSummaryAMBranch: {Year: string; Month: string; masterTab: string, branchName?: string};
+  TargetDemoPartner: {differentEmployeeCode: string};
+  VerticalASE_HO: {Year: string; Month: string; AlpType: string, Branch?: string, Territory?: string};
+  TargetASE: {Year: string; Month: string; masterTab: string};
+  TargetASETerritory: {Year: string; Month: string; masterTab: string, branchName: string};
   // Other Screens
   Banners: {Banner_Group_SeqNum: string};
   

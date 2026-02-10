@@ -108,7 +108,7 @@ export default function DemoFilterSheet() {
   const groups = useMemo(
     () => Object.keys(filters).map(key => ({
         key,
-        label: key
+        label: key === 'compulsory' ? 'Demo Status' : key
           .replace(/([A-Z])/g, ' $1')
           .replace(/^./, str => str.toUpperCase()),
         data: datList[key] || [],

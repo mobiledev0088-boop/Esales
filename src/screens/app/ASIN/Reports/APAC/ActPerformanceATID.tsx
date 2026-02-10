@@ -346,7 +346,7 @@ const DataTable = ({
     (name: string) => {
       let AGP_Code = name.match(/\(([^)]+)\)/)?.[1];
       console.log('Extracted AGP_Code:', AGP_Code);
-      navigation.navigate('TargetPartnerDashboard', {partner: {AGP_Code}});
+      navigation.push('TargetPartnerDashboard', {partner: {AGP_Code}});
     },
     [navigation],
   );

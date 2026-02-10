@@ -17,9 +17,13 @@ import AppImage from '../../../../../components/customs/AppImage';
 import ImageCropModal from '../../../../../components/ImageCropModal';
 import {useImagePicker} from '../../../../../hooks/useImagePicker';
 import clsx from 'clsx';
-import {convertImageToBase64, showToast} from '../../../../../utils/commonFunctions';
-import { useLoaderStore } from '../../../../../stores/useLoaderStore';
-import { useNavigation } from '@react-navigation/native';
+import {
+  convertImageToBase64,
+  showToast,
+} from '../../../../../utils/commonFunctions';
+import {useLoaderStore} from '../../../../../stores/useLoaderStore';
+import {useNavigation} from '@react-navigation/native';
+import {queryClient} from '../../../../../stores/providers/QueryProvider';
 
 interface ItemQty {
   Stand_Value: number;
@@ -100,7 +104,7 @@ const useGetRequestItemList = (partnerType: string | null) => {
 const useInsertStandPOSMAllocation = () => {
   return useMutation<APIResponse<null>, Error, any>({
     mutationFn: async data => {
-        console.log('Submitting Data:', data);
+      console.log('Submitting Data:', data);
       const res = await handleASINApiCall<APIResponse<null>>(
         '/StandPOSM/StandPOSMAllocation_Insert',
         data,
@@ -114,7 +118,7 @@ const useInsertStandPOSMAllocation = () => {
       return res;
     },
     onSuccess: () => {
-        // navigation.goBack();
+      // navigation.goBack();
     },
     onError: error => {
       showToast(error.message || 'Failed to submit allocation');
@@ -125,7 +129,8 @@ const useInsertStandPOSMAllocation = () => {
 export default function AddNewStandPOSM() {
   const [selectedPartner, setSelectedPartner] = useState<any>(null);
   const [formData, setFormData] = useState<Record<number, FieldData>>({});
-  const [remark, setRemark] = useState<string>('');
+  const [remark, setRemark] = useState('');
+  const [remarkError, setRemarkError] = useState('');
   const [activeFieldIndex, setActiveFieldIndex] = useState<number | null>(null);
   const {EMP_Code = ''} = useLoginStore(state => state.userInfo);
   const setGlobalLoading = useLoaderStore(state => state.setGlobalLoading);
@@ -289,10 +294,13 @@ export default function AddNewStandPOSM() {
         );
       }
     });
-
+    if (!remark) {
+      isValid = false;
+      setRemarkError('Remark is required');
+    }
     setFormData(updatedFormData);
     return isValid;
-  }, [formData, requestItems]);
+  }, [formData, requestItems, remark]);
 
   // Handle submit
   const handleSubmit = useCallback(async () => {
@@ -305,7 +313,7 @@ export default function AddNewStandPOSM() {
         const field = formData[index];
         if (!field || !field.quantity) return null;
         return {
-          StandType: item.Stand_Type,
+          StandType: item.Stand_Value,
           Quantity: parseInt(field.quantity, 10),
           ImageUrl: await convertImageToBase64(field.imageUri || ''),
         };
@@ -321,8 +329,14 @@ export default function AddNewStandPOSM() {
       Items,
     };
 
-    insertAllocation(dataToSubmit);
-    setGlobalLoading(false);
+    insertAllocation(dataToSubmit, {
+      onSuccess: () => {
+        setGlobalLoading(false);
+        showToast('Allocation submitted successfully');
+        queryClient.invalidateQueries({queryKey: ['requestNumbers']});
+        navigation.goBack();
+      },
+    });
   }, [validateForm, requestItems, formData, selectedPartner, remark]);
 
   // Check if any field is filled
@@ -389,7 +403,10 @@ export default function AddNewStandPOSM() {
               <AppInput
                 label="Remark"
                 value={remark}
-                setValue={setRemark}
+                setValue={value => {
+                  setRemark(value);
+                  remarkError && setRemarkError('');
+                }}
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"
@@ -397,6 +414,7 @@ export default function AddNewStandPOSM() {
                 size="md"
                 inputContainerClassName="min-h-[100px]"
                 containerClassName="min-h-[100px]"
+                error={remarkError}
               />
             </View>
 
@@ -486,7 +504,8 @@ function ItemCard({
 }: ItemCardProps) {
   const hasQuantity =
     fieldData?.quantity && parseInt(fieldData.quantity, 10) > 0;
-  const showImageRequired = item.Is_Image_Compulsory && hasQuantity && !fieldData?.imageUri;
+  const showImageRequired =
+    item.Is_Image_Compulsory && hasQuantity && !fieldData?.imageUri;
 
   return (
     <>

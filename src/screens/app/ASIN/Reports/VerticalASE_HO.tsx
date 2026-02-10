@@ -36,6 +36,7 @@ type VerticalASE_HOParams = {
   Month: string;
   AlpType: string;
   Branch?: string;
+  Territory?: string;
 };
 interface PartnerASEData {
   IchannelID: string;
@@ -61,6 +62,8 @@ const API_ENDPOINT = {
     '/TrgtVsAchvDetail/GetTrgtVsAchvPartnerTypeWiseASE_HO_MonthWise',
   branchWise:
     '/TrgtVsAchvDetail/GetTrgtVsAchvPartnerTypeWiseASE_Branch_MonthWise',
+  TerritoryWise:
+    '/TrgtVsAchvDetail/GetTrgtVsAchvPartnerTypeWiseASE_Territory_MonthWise',
 };
 
 // -------------------- API Hook --------------------
@@ -68,14 +71,13 @@ const useGetTrgtVsAchvPartnerTypeWise = (
   YearQtr: string,
   AlpType: string,
   branchName?: string,
+  TerritoryName?: string,
 ) => {
   const {EMP_Code: employeeCode = '', EMP_RoleId: RoleId = ''} = useLoginStore(
     state => state.userInfo,
   );
-  const end_point = branchName
-    ? API_ENDPOINT.branchWise
-    : API_ENDPOINT.PartnerTypeWise;
-  console.log('Fetching VerticalASE_HO with params:', {end_point, branchName});
+  const end_point = branchName ? API_ENDPOINT.branchWise : TerritoryName ? API_ENDPOINT.TerritoryWise : API_ENDPOINT.PartnerTypeWise;
+  console.log('Fetching VerticalASE_HO with params:', {end_point, branchName, TerritoryName, YearQtr, AlpType, employeeCode, RoleId});
   return useQuery({
     queryKey: [
       'getTrgtVsAchvPartnerTypeWise',
@@ -84,6 +86,7 @@ const useGetTrgtVsAchvPartnerTypeWise = (
       YearQtr,
       AlpType,
       branchName,
+      TerritoryName,
     ],
     queryFn: async () => {
       const response = await handleASINApiCall(end_point, {
@@ -92,6 +95,7 @@ const useGetTrgtVsAchvPartnerTypeWise = (
         YearQtr,
         AlpType,
         branchName,
+        TerritoryName,
       });
       const result = response?.DashboardData;
       if (!result?.Status) {
@@ -249,9 +253,14 @@ const PartnerCard = memo(
     }, [partner.Target_Qty, partner.SellOut_Qty]);
 
     const handlePress = useCallback(() => {
-      let AGP_Code = partner.Partner_Code;
-      console.log('Navigating with AGP_Code:', AGP_Code);
-      navigation.navigate('TargetPartnerDashboard', {partner: {AGP_Code}});
+      console.log('Navigating to TargetPartnerDashboard with AGP_Code:', partner);
+      if(partner.IchannelID){
+        let {IchannelID,ASE_Name} = partner;
+         navigation.push('TargetASEDashboard', {partner: {IchannelID,ASE_Name}});
+      }else{
+        let AGP_Code = partner.Partner_Code;
+        navigation.push('TargetPartnerDashboard', {partner: {AGP_Code}});
+      }
     }, [partner.Partner_Code, navigation]);
     return (
       <Card className="mb-3">
@@ -389,12 +398,12 @@ const PartnerCard = memo(
 export default function VerticalASE_HO() {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<{params: VerticalASE_HOParams}, 'params'>>();
-  const {Year, Month, AlpType, Branch} = route.params;
+  const {Year, Month, AlpType, Branch,Territory} = route.params;
   const YearQtr = `${Year}${Month}`;
 
   // Generate month options
   const monthOptions = useMemo<AppDropdownItem[]>(
-    () => getPastMonths(6, false, YearQtr),
+    () => getPastMonths(6, false, YearQtr,true),
     [YearQtr],
   );
 
@@ -415,6 +424,7 @@ export default function VerticalASE_HO() {
     selectedMonth?.value || YearQtr,
     AlpType,
     Branch,
+    Territory
   );
 
   // Generate partner dropdown options
@@ -497,23 +507,24 @@ export default function VerticalASE_HO() {
         isError={isError}
         onRetry={onRefresh}
         LoadingComponent={renderLoadingSkeleton()}
-        isEmpty={!isLoading && filteredFullData.length === 0}>
+        // isEmpty={!isLoading && filteredFullData.length === 0}
+        >
         <View className="flex-1 bg-gray-50 dark:bg-darkBg">
           {/* Filter section - only show when data is loaded */}
           <View className="px-3 py-3 bg-white dark:bg-darkCard border-b border-gray-200 dark:border-darkBorder">
-            {!!Branch && (
+            {!!Branch || !!Territory && (
               <View className="mb-3 rounded-lg border border-gray-200 dark:border-darkBorder bg-gray-50/80 dark:bg-darkBg px-3 py-2">
                 <View className="flex-row items-start justify-between">
                   <View className="flex-1 mr-2">
                     <AppText size="xs" color="gray" className="mb-0.5">
-                      Branch
+                      {Territory ? 'Territory' : 'Branch'}
                     </AppText>
                     <AppText
                       size="sm"
                       weight="semibold"
                       numberOfLines={2}
                       className="text-gray-900 dark:text-gray-100">
-                      {convertSnakeCaseToSentence(Branch)}
+                      {convertSnakeCaseToSentence(Branch || Territory || 'N/A')}
                     </AppText>
                   </View>
                   <View className="w-px h-8 bg-gray-200 dark:bg-darkBorder" />
@@ -575,6 +586,13 @@ export default function VerticalASE_HO() {
             maxToRenderPerBatch={20}
             windowSize={7}
             removeClippedSubviews={true}
+            ListEmptyComponent={
+              <View>
+                <AppText size="sm" color="gray" className="text-center mt-10">
+                  No partners found for the selected filters.
+                </AppText>
+              </View>
+            }
             refreshing={refreshing}
             onRefresh={onRefresh}
           />

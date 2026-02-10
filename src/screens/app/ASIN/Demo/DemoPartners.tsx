@@ -464,6 +464,21 @@ export const PartnerDetailsSheet = () => {
 
           {/* Summary Stats */}
           <View className="flex-row gap-2 mt-3">
+            <View className="flex-1 bg-slate-100 dark:bg-slate-700 rounded-lg p-2">
+              <AppText
+                size="xs"
+                weight="medium"
+                className="text-slate-600 dark:text-slate-300 mb-0.5">
+                Total
+              </AppText>
+              <AppText
+                size="lg"
+                weight="bold"
+                className="text-slate-800 dark:text-slate-100">
+                {partner.TotalCompulsoryDemo}
+              </AppText>
+            </View>
+
             <View className="flex-1 bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2">
               <AppText
                 size="xs"
@@ -478,32 +493,19 @@ export const PartnerDetailsSheet = () => {
                 {partner.DemoExecuted}
               </AppText>
             </View>
+
             <View className="flex-1 bg-amber-50 dark:bg-amber-900/20 rounded-lg p-2">
               <AppText
                 size="xs"
                 weight="medium"
                 className="text-amber-600 dark:text-amber-400 mb-0.5">
-                Shortfall
+                Pending
               </AppText>
               <AppText
                 size="lg"
                 weight="bold"
                 className="text-amber-600 dark:text-amber-400">
                 {shortfall}
-              </AppText>
-            </View>
-            <View className="flex-1 bg-slate-100 dark:bg-slate-700 rounded-lg p-2">
-              <AppText
-                size="xs"
-                weight="medium"
-                className="text-slate-600 dark:text-slate-300 mb-0.5">
-                Total
-              </AppText>
-              <AppText
-                size="lg"
-                weight="bold"
-                className="text-slate-800 dark:text-slate-100">
-                {partner.TotalCompulsoryDemo}
               </AppText>
             </View>
           </View>
@@ -1186,16 +1188,16 @@ const PartnerCard = memo<{
   }, [item.TotalCompulsoryDemo, item.DemoExecuted]);
 
   return (
-    <Card className="mb-4 mx-0">
+    <Card className="mx-0" needSeeMore seeMoreText='Demo Details' seeMoreOnPress={()=>onPressView(item)}>
       {/* Partner Name - Primary Information */}
       <View className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
         <View className="flex-row items-start justify-between">
           <View className="flex-1">
-            <View className="flex-row items-center justify-between">
+            {/* <View className="flex-row items-center justify-between"> */}
               <TouchableOpacity
                 onPress={() => onPressDetails(item)}
                 activeOpacity={0.7}
-                className="flex-row items-center w-10/12 ">
+                className="flex-row items-center">
                 <AppText
                   size="md"
                   weight="bold"
@@ -1203,7 +1205,7 @@ const PartnerCard = memo<{
                   {item.AGP_Name || item?.PartnerName || '—-'}
                 </AppText>
               </TouchableOpacity>
-              <TouchableOpacity
+              {/* <TouchableOpacity
                 onPress={() => onPressView(item)}
                 activeOpacity={0.7}
                 hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
@@ -1215,8 +1217,8 @@ const PartnerCard = memo<{
                     isDark ? AppColors.dark.secondary : AppColors.secondary
                   }
                 />
-              </TouchableOpacity>
-            </View>
+              </TouchableOpacity> */}
+            {/* </View> */}
             <View className="flex-row items-center mt-1">
               <View className="bg-primary/10 dark:bg-primary-dark/20 px-2.5 py-1 rounded-md">
                 <AppText
@@ -1379,7 +1381,7 @@ const PartnerCard = memo<{
                 size="xs"
                 weight="medium"
                 className="text-gray-500 dark:text-gray-400 mb-1 text-center">
-                Shortfall
+                Pending
               </AppText>
               <AppText
                 size="lg"
@@ -1699,7 +1701,7 @@ export default function DemoPartners() {
                       ? 'text-amber-600 dark:text-amber-400'
                       : 'text-slate-500 dark:text-slate-400'
                   }`}>
-                  Shortfall
+                  Pending
                 </AppText>
                 <AppText
                   size="lg"
@@ -1739,6 +1741,7 @@ export default function DemoPartners() {
         keyExtractor={keyExtractor}
         ListHeaderComponent={renderListHeader}
         ListEmptyComponent={renderEmptyComponent}
+        ItemSeparatorComponent={()=><View className='h-4'/>}
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingTop: 16,

@@ -376,6 +376,7 @@ const NoDataAvailable = () => (
 
 export default function Dashboard_Partner({
   DifferentEmployeeCode,
+  DifferentEmployeeName,
   noBanner,
   noPadding,
   noAnalytics,
@@ -383,6 +384,7 @@ export default function Dashboard_Partner({
   employeeType
 }: {
   DifferentEmployeeCode?: string;
+  DifferentEmployeeName?: string;
   noBanner?: boolean;
   noPadding?: boolean;
   noAnalytics?: boolean;
@@ -527,6 +529,15 @@ export default function Dashboard_Partner({
         />
       }>
       {!noBanner && <BannerComponent />}
+      {
+        DifferentEmployeeName && (
+          <Card className='p-4 rounded-2xl bg-blue-50 border border-blue-200'>
+            <AppText className='text-blue-900 text-center' size='md' weight='bold'>
+              Viewing Dashboard for: {DifferentEmployeeName}
+            </AppText>
+          </Card>
+        ) 
+      }
       <View className="mb-2 flex-row items-center justify-between px-3 border-b border-slate-300 pb-4">
         <View>
           <AppText weight="semibold" className="text-md  text-slate-700">

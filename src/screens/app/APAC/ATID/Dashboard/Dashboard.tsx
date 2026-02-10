@@ -43,6 +43,7 @@ import {ASUS, DASHBOARD, screenWidth} from '../../../../../utils/constant';
 import {
   convertToAPACUnits,
   convertToTitleCase,
+  getProductConfig,
   showToast,
 } from '../../../../../utils/commonFunctions';
 import AppText from '../../../../../components/customs/AppText';
@@ -229,23 +230,6 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
   const darkMode = AppTheme === 'dark';
   const {DIR_HOD_MAN, HO_EMPLOYEES, BSM, COUNTRY_HEAD, SA, RSM} = ASUS.ROLE_ID;
 
-  const getProductConfig = useCallback(
-    (index: number): {icon: string; color: string} => {
-      const configs: {icon: string; color: string}[] = [
-        {icon: 'laptop', color: AppColors.utilColor1}, // Notebook/Laptop
-        {icon: 'monitor', color: AppColors.utilColor2}, // Network Router or Desktop Monitor
-        {icon: 'monitor-speaker', color: AppColors.utilColor3}, // All-in-One PC
-        {icon: 'desktop-tower-monitor', color: AppColors.utilColor4}, // Desktop
-        {icon: 'desktop-tower', color: AppColors.utilColor5}, // Gaming Desktop
-        {icon: 'account-group', color: AppColors.utilColor6}, // Creator Laptops/Workstations
-        {icon: 'package-variant', color: AppColors.utilColor7}, // Accessories
-        {icon: 'wifi', color: AppColors.utilColor8}, // Wireless/Network Equipment
-      ];
-      return configs[index] || {icon: 'package', color: AppColors.utilColor1};
-    },
-    [],
-  );
-
   const handleDistributorWisePress = useCallback((buttonType: 'POD_Qty' | 'AGP_SellIn') => {
     navigation.push('TargetSummaryAPAC', {
       masterTab: tabName,
@@ -270,7 +254,7 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
       index: number,
       onPress?: (item: ProductCategoryData) => void,
     ) => {
-      const config = getProductConfig(index);
+      const config = getProductConfig(item.Product_Category);
       return (
         <TouchableOpacity
           disabled={!onPress}
@@ -768,7 +752,7 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
   const MonthNum =
     currentMonth < quarterNum * 3 ? currentMonth : quarterNum * 3;
   const onPress = () => {
-    navigation.push('TargetSummaryAMBranch', {
+    navigation.push('TargetASE', {
       Year: year.toString(),
       Month: MonthNum.toString(),
       masterTab,

@@ -701,7 +701,7 @@ const ClaimContainer = memo<ClaimInfoListProps>(({tabName}) => {
       YearQtr: selectedQuarter?.value || '',
       masterTab: tabName,
     });
-  }, []);
+  }, [selectedQuarter?.value, tabName]);
 
   const branchKeyExtractor = useCallback(
     (item: BranchItemProps['item'], index: number) =>
@@ -766,7 +766,7 @@ const ClaimContainer = memo<ClaimInfoListProps>(({tabName}) => {
         <>
           <View className="flex-row justify-end px-3 gap-2 mb-4">
             {/* Download Button */}
-            <TouchableOpacity
+            {/* <TouchableOpacity
               // onPress={handleDownload}
               activeOpacity={0.7}
               className="w-[45%] flex-row items-center justify-center bg-secondary dark:bg-darkBg-surface border border-gray-200 dark:border-gray-700 px-3 py-2 rounded-lg">
@@ -783,7 +783,7 @@ const ClaimContainer = memo<ClaimInfoListProps>(({tabName}) => {
                 className="ml-1.5">
                 Upcoming Claims
               </AppText>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
             {/* Filter Button */}
             <TouchableOpacity

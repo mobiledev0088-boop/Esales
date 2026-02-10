@@ -37,6 +37,7 @@ export interface claimDetails {
   India_Status: string;
   PreTaxAmt: number;
   Scheme_Category: string;
+  Partner_Name: string;
 }
 
 // Memoized Header Component
@@ -139,6 +140,15 @@ const ClaimCard = memo(({item, index}: {item: claimDetails; index: number}) => {
   return (
     <View className="px-4 py-1.5">
       <View className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm border border-gray-100 dark:border-gray-700">
+                  <View className='flex-1 mb-2 pb-2 border-b border-gray-100 dark:border-gray-700'>
+            <AppText size="xs" color="gray" className="opacity-60">
+              Partner_Name.
+            </AppText>
+            <AppText size="sm" weight="bold">
+              {item.Partner_Name}
+            </AppText>
+
+          </View>
         <View className="flex-row justify-between items-start mb-2 pb-2 border-b border-gray-100 dark:border-gray-700">
           <View className="flex-1">
             <AppText size="xs" color="gray" className="opacity-60">
@@ -192,7 +202,7 @@ const ClaimCard = memo(({item, index}: {item: claimDetails; index: number}) => {
           </View>
           <View className="w-1/2 px-1 mb-1.5">
             <AppText size="sm" color="gray" className="opacity-60 mb-0.5">
-              Disti Code
+              Disti Name
             </AppText>
             <AppText weight="medium">{item.Disti_Code || 'N/A'}</AppText>
           </View>
@@ -280,6 +290,7 @@ export default function ClaimViewMoreSheet({
 }: {
   payload: ClaimFilterPayload;
 }) {
+  console.log('ClaimViewMoreSheet Payload:', payload); // Debug log for payload
   const {data, isLoading, isError, error, refetch} =
     useClaimMasterDataViewMore(payload);
   const isDarkMode = useThemeStore(state => state.AppTheme === 'dark');
@@ -324,6 +335,7 @@ export default function ClaimViewMoreSheet({
         />
       );
     }
+    console.log('Claim Details Data:', data); // Debug log for data structure
     if (!data || data.length === 0) {
       return <EmptyState />;
     }

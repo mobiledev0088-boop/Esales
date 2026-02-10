@@ -39,7 +39,7 @@ import DemoPartners from '../screens/app/ASIN/Demo/DemoPartners';
 import ShopExpansion from '../screens/app/ASIN/More/ShopExpansion/ShopExpansion';
 import StoreDetails from '../screens/app/ASIN/More/ShopExpansion/StoreDetails';
 import VerticalASE_HO from '../screens/app/ASIN/Reports/VerticalASE_HO';
-import TargetSummaryAMBranch from '../screens/app/ASIN/Reports/TargetSummaryAMBranch';
+import TargetASE from '../screens/app/ASIN/Reports/TargetASE';
 import TargetPartnerDashboard from '../screens/app/ASIN/Dashboard/TargetPartnerDashboard';
 import UploadDemoData from '../screens/app/ASIN/Demo/UploadDemoData';
 import AddRollingFunnel from '../screens/app/ASIN/Commercial/RollingFunnel/AddRollingFunnel';
@@ -54,6 +54,9 @@ import WOD_Partners from '../screens/app/ASIN/WOD/WOD_Partners';
 import ActPerformance from '../screens/app/ASIN/Reports/ActPerformance';
 import LMSListAWP from '../screens/app/ASIN/More/LMS/LMSListAWP';
 import MarketingDispatchTracker from '../screens/app/ASIN/More/MarketingDispatchTracker/MarketingDispatchTracker';
+import TargetASETerritory from '../screens/app/ASIN/Reports/TargetASETerritory';
+import TargetASEDashboard from '../screens/app/ASIN/Dashboard/TargetASEDashboard';
+import TargetDemoPartner from '../screens/app/ASIN/Demo/TargetDemoPartner';
 
 type Screen = {
   name: string;
@@ -72,6 +75,8 @@ const screens: Screen[] = [
   // Dashboard Screens
   {name: 'ScanSN', component: ScanSN},
   {name: 'TargetPartnerDashboard', component: TargetPartnerDashboard},
+  {name: 'TargetASEDashboard', component: TargetASEDashboard},
+  {name: 'TargetDemoPartner', component: TargetDemoPartner},
   // Demo Screens
   {name: 'DemoPartners', component: DemoPartners},
   {name: 'UploadDemoData', component: UploadDemoData},
@@ -130,7 +135,8 @@ const screens: Screen[] = [
   {name: 'TargetSummary', component: TargetSummary},
   {name: 'TargetSummaryPartner', component: TargetSummaryPartner},
   {name: 'VerticalASE_HO', component: VerticalASE_HO},
-  {name: 'TargetSummaryAMBranch', component: TargetSummaryAMBranch},
+  {name: 'TargetASE', component: TargetASE},
+  {name: 'TargetASETerritory', component: TargetASETerritory},
   // Commercial Screens
   {name: 'AddRollingFunnel', component: AddRollingFunnel},
   //Other screens

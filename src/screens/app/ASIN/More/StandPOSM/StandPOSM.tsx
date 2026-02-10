@@ -1,4 +1,4 @@
-import {ScrollView, TouchableOpacity, View} from 'react-native';
+import {RefreshControl, ScrollView, TouchableOpacity, View} from 'react-native';
 import AppLayout from '../../../../../components/layout/AppLayout';
 import AppDropdown, {
   AppDropdownItem,
@@ -481,10 +481,7 @@ const AllocationDetailsUI = ({data}: {data: AllocationStatusType[]}) => {
   const firstItem = data[0];
 
   return (
-    <ScrollView
-      className="flex-1 px-3 mt-4"
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{paddingBottom: 100}}>
+    <View className="flex-1 px-3 mt-4">
       {/* Request Overview Card - Common for all items */}
       <Card className="mb-4 p-4">
         <SectionHeader title="Request Overview" icon="document-text" />
@@ -613,24 +610,40 @@ const AllocationDetailsUI = ({data}: {data: AllocationStatusType[]}) => {
           item={item}
         />
       ))}
-    </ScrollView>
+    </View>
   );
 };
 
 export default function StandPOSM() {
   const [selectedRequestId, setSelectedRequestId] =
     useState<AppDropdownItem | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation<AppNavigationProp>();
-  const {data, isLoading, isError} = useRequestNumbersList();
+  const {data, isLoading, refetch} = useRequestNumbersList();
   const {
     data: allocationStatusData,
     isLoading: isLoadingAllocationStatus,
     isError: isErrorAllocationStatus,
   } = useAllocationStatus(selectedRequestId?.value || '');
 
+  const handleRefresh = () => {
+    setRefreshing(true);
+    refetch();
+    setRefreshing(false);
+  };
+
   return (
     <AppLayout title="Stand POSM" needBack>
-      <View className="flex-1 mt-5">
+      <ScrollView 
+      className="flex-1 mt-5 "
+      contentContainerClassName='pb-24'
+      refreshControl={
+        <RefreshControl
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
+      />
+      }
+      >
         <View className="px-3">
           <AppDropdown
             data={data || []}
@@ -640,6 +653,7 @@ export default function StandPOSM() {
             label="Request / Ticket Number"
             needIndicator
             allowClear
+            disabled={isLoading}
             onClear={() => setSelectedRequestId(null)}
           />
         </View>
@@ -693,7 +707,7 @@ export default function StandPOSM() {
             </AppText>
           </View>
         )}
-      </View>
+      </ScrollView>
 
       {/* (FAB) Floating Action Button */}
       <TouchableOpacity

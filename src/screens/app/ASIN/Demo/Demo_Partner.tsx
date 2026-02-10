@@ -57,12 +57,13 @@ interface StatMetricProps {
 const useGetPartnerDemoData = (
   YearQtr: string,
   childrenCode?: string,
+  DifferentEmployeeCode?: string
 ) => {
   const {EMP_Code} = useLoginStore(state => state.userInfo);
-  const employeeCode = childrenCode || EMP_Code || '';
+  const employeeCode =  childrenCode || DifferentEmployeeCode ||  EMP_Code || '';
   const enabled = Boolean(employeeCode && YearQtr);
   return useQuery({
-    queryKey: ['partnerDemoData', employeeCode, YearQtr],
+    queryKey: ['partnerDemoData', employeeCode, YearQtr,DifferentEmployeeCode],
     enabled,
     queryFn: async () => {
       const response = await handleASINApiCall(
@@ -162,7 +163,7 @@ const formatDate = (value: string | null) => {
   return moment(value).isValid() ? moment(value).format('YYYY-MM-DD') : value;
 };
 
-const usePartnerDemoLogic = (childrenCode?: string) => {
+const usePartnerDemoLogic = (childrenCode?: string,DifferentEmployeeCode?: string) => {
   const empInfo = useUserStore(state => state.empInfo);
   const {quarters, selectedQuarter, setSelectedQuarter} = useQuarterHook();
 
@@ -174,7 +175,7 @@ const usePartnerDemoLogic = (childrenCode?: string) => {
     error,
     refetch,
     isRefetching,
-  } = useGetPartnerDemoData(selectedQuarter?.value || '',childrenCode);
+  } = useGetPartnerDemoData(selectedQuarter?.value || '',childrenCode,DifferentEmployeeCode);
 
   // Local filter state
   const [selectedCategory, setSelectedCategory] =
@@ -536,17 +537,17 @@ const SelectSubCodesEmptyComponent = () => (
   </View>
 );
 
-export default function Demo_Partner() {
+export default function Demo_Partner({DifferentEmployeeCode}:{DifferentEmployeeCode?:string}) {
   const navigation = useNavigation<AppNavigationProp>();
   const {IsParentCode} = useUserStore(state => state.empInfo);
   const [childrenCode, setChildrenCode] = useState('');
-
+  const checkIsParent = DifferentEmployeeCode ? false : IsParentCode;
   const {
     data,
     isLoading: isSubCodeLoading,
     isError: isSubCodeError,
-  } = useGetSubCode(!!IsParentCode);
-  const logic = usePartnerDemoLogic(childrenCode);
+  } = useGetSubCode(!!checkIsParent);
+  const logic = usePartnerDemoLogic(childrenCode,DifferentEmployeeCode);
   const {sections, isLoading, isError, refetch, isRefetching, demoData} = logic;
 
   const groupKeyExtractor = useCallback(
@@ -561,7 +562,7 @@ export default function Demo_Partner() {
 
   return (
     <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
-      <AppDropdown
+     {checkIsParent && <AppDropdown
         mode="dropdown"
         data={data || []}
         selectedValue={childrenCode}
@@ -571,13 +572,13 @@ export default function Demo_Partner() {
         allowClear
         onClear={() => setChildrenCode('')}
         style={{padding: 12}}
-      />
+      />}
       <DataStateView
         isLoading={isLoading}
         isError={isError}
         isEmpty={!demoData?.length}
         onRetry={refetch}
-        EmptyComponent={IsParentCode ? <SelectSubCodesEmptyComponent /> : <EmptyComponent />}
+        EmptyComponent={checkIsParent ? <SelectSubCodesEmptyComponent /> : <EmptyComponent />}
         LoadingComponent={<LoaderView />}>
         <FlatList
           data={sections}
@@ -610,7 +611,7 @@ export default function Demo_Partner() {
           }
         />
       </DataStateView>
-      <FAB onPress={handlePress} />
+      {checkIsParent && <FAB onPress={handlePress} />}
     </View>
   );
 }

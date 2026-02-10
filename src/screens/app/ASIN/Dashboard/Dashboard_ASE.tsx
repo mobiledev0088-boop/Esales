@@ -14,6 +14,9 @@ import {screenWidth} from '../../../../utils/constant';
 import {ActivationPerformanceComponent} from './Dashboard_AM';
 import Skeleton from '../../../../components/skeleton/skeleton';
 import AttendanceMarkModal from '../User/Attendance/AttendanceMarkModal';
+import AppButton from '../../../../components/customs/AppButton';
+import { useNavigation } from '@react-navigation/native';
+import { AppNavigationProp } from '../../../../types/navigation';
 
 interface TargetAchievementProps {
   target: number;
@@ -182,16 +185,20 @@ const TargetAchievementCard = ({
 };
 
 export default function Dashboard_ASE({
-  DifferentEmployeeCode,
+  DifferentEmployeeCode='',
+  DifferentEmployeeCodeName='',
   noPadding,
   noBanner,
 }: {
-  DifferentEmployeeCode: string;
   noPadding: boolean;
   noBanner: boolean;
+  DifferentEmployeeCode?: string;
+  DifferentEmployeeCodeName?: string;
 }) {
+  const navigation = useNavigation<AppNavigationProp>();
   const {months, selectedMonth, setSelectedMonth} = useMonthHook();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  console.log('Using Employee Code:', DifferentEmployeeCode);
 
   // Fetch dashboard data for selected quarter
   const {
@@ -202,8 +209,7 @@ export default function Dashboard_ASE({
   } = useDashboardDataAM(
     selectedMonth?.value || '',
     'Total',
-    // '',
-    // DifferentEmployeeCode,
+    DifferentEmployeeCode,
   );
 
   const achievementData = useMemo(
@@ -222,12 +228,13 @@ export default function Dashboard_ASE({
   }, [refetchDashboard]);
 
   const isDataEmpty = !isLoading && !dashboardData;
+  console.log('Dashboard Data:', dashboardData);
 
   return (
     <ScrollView
       className={clsx(
         'flex-1 bg-lightBg-base dark:bg-darkBg-base',
-        noPadding && 'px-3',
+        !noPadding && 'px-3',
       )}
       contentContainerClassName="flex-grow pb-10 gap-5 pt-3"
       showsVerticalScrollIndicator={false}
@@ -241,6 +248,13 @@ export default function Dashboard_ASE({
           titleColor="#6B7280"
         />
       }>
+      {!!DifferentEmployeeCodeName && (
+        <View className="mb-2 px-3">
+          <AppText weight="semibold" className="text-md  text-slate-700">
+            {DifferentEmployeeCodeName}
+          </AppText>
+        </View>
+      )}
       {!noBanner && <BannerComponent />}
       {/* Title and Month Selection */}
       <View className="mb-2 flex-row items-center justify-between px-3 border-b border-slate-300 pb-4">
@@ -280,9 +294,28 @@ export default function Dashboard_ASE({
             error={dashboardError}
             onRetry={handleRetry}
           />
+          {DifferentEmployeeCode && (
+          <View className='gap-y-5'>
+            <AppButton
+            title="See Demo"
+            onPress={() => navigation.push('TargetDemoPartner', {differentEmployeeCode: DifferentEmployeeCode})}
+            className='bg-lightBg-surface dark:bg-darkBg-surface border border-slate-200 dark:border-slate-700'
+            color='secondary'
+            weight='extraBold'
+            />
+            <AppButton
+            title="See Incentive Data"
+            onPress={() => navigation.push('ASEIncentive', {employeeCode: DifferentEmployeeCode, employeeName: DifferentEmployeeCodeName})}
+            className='bg-lightBg-surface dark:bg-darkBg-surface border border-slate-200 dark:border-slate-700'
+            color='secondary'
+            weight='extraBold'
+            />
+          </View>
+          )}
+
         </>
       )}
-      <AttendanceMarkModal />
+      {!DifferentEmployeeCode && <AttendanceMarkModal />}
     </ScrollView>
   );
 }

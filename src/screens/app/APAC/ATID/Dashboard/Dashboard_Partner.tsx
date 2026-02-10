@@ -705,7 +705,9 @@ export const TargetAchievementCard = ({
         onScroll={e => {
           const offsetX = e.nativeEvent.contentOffset.x;
           const index = Math.round(offsetX / (cardWidth + cardGap));
-          setCurrentIndex(Math.max(0, Math.min(index, (data?.length || 1) - 1)));
+          setCurrentIndex(
+            Math.max(0, Math.min(index, (data?.length || 1) - 1)),
+          );
         }}
         scrollEventThrottle={16}>
         {!data || data.length === 0 ? (
@@ -720,7 +722,9 @@ export const TargetAchievementCard = ({
               Math.round((achievement / target) * 100),
               100,
             );
-            const config = getProductConfig(index);
+            const config = getProductConfig(
+              item?.Product_Category || 'Default',
+            );
             return (
               <View
                 className="bg-white dark:bg-slate-800 rounded-2xl mr-3 shadow-md border border-slate-100 dark:border-slate-700 overflow-hidden"
@@ -807,7 +811,7 @@ export const TargetAchievementCard = ({
       {/* Pagination Dots */}
       {data && data.length > 1 && (
         <View className="flex-row justify-center py-4 gap-1.5">
-          {data.map((_:any, idx:number) => (
+          {data.map((_: any, idx: number) => (
             <View
               key={idx}
               className="rounded-full"

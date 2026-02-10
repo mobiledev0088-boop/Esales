@@ -42,6 +42,7 @@ import {CircularProgressBar} from '../../../../components/customs/AppChart';
 import {useNavigation} from '@react-navigation/native';
 import {AppNavigationProp} from '../../../../types/navigation';
 import {useLoginStore} from '../../../../stores/useLoginStore';
+import { Watermark } from '../../../../components/Watermark';
 
 const reduceToFrstFive = (data: {[key: string]: any[]}) => {
   return Object.entries(data).reduce(
@@ -76,6 +77,7 @@ export const buildActivationTabItems = (
         <View>
           <TableHeader columns={cfg.columns} />
           <DataTable data={tabData} activeTab={id} columns={cfg.columns} />
+          <Watermark  verticalCount={2} rowGap={100} />
         </View>
       ),
     } as TabItem;

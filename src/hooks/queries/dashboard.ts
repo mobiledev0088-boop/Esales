@@ -65,6 +65,7 @@ export const useDashboardData = (
   const effectiveYearQtr = YearQtr || yearQtr;
   const effectiveMasterTab = masterTab || 'Total';
   if(subCode) employeeCode = subCode; // Override employee code if subCode is provided (for partner view)
+  console.log('useDashboardData DifferentEmployeeCode',DifferentEmployeeCode);
   return useQuery({
     queryKey: [
       'dashboardData',
@@ -75,7 +76,7 @@ export const useDashboardData = (
     ],
     queryFn: async () => {
       const res = await handleASINApiCall('/Dashboard/GetDashboardData_New', {
-        employeeCode:DifferentEmployeeCode || employeeCode,
+        employeeCode: DifferentEmployeeCode || employeeCode,
         masterTab: effectiveMasterTab,
         YearQtr: effectiveYearQtr,
       });
@@ -91,6 +92,7 @@ export const useDashboardData = (
 export const useDashboardDataAM = (
   YearQtr: string | null,
   masterTab: string | null,
+  DifferentEmployeeCode?: string | null,
 ) => {
   const {employeeCode, yearQtr} = getUserCredentials();
   // const {yearQtr} = getUserCredentials();
@@ -99,16 +101,17 @@ export const useDashboardDataAM = (
   // const employeeCode = 'KN1100081'; // For testing purpose only
   return useQuery({
     queryKey: [
-      'dashboardDataAM',
+      'dashboardDataASE',
       employeeCode,
       effectiveMasterTab,
       effectiveYearQtr,
+      DifferentEmployeeCode
     ],
     queryFn: async () => {
       const res = await handleASINApiCall(
         '/Dashboard/GetDashboardDataASE_MonthWise',
         {
-          employeeCode,
+          employeeCode: DifferentEmployeeCode || employeeCode,
           masterTab: effectiveMasterTab,
           YearQtr: effectiveYearQtr,
         },

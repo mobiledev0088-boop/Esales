@@ -283,7 +283,7 @@ const groupedPartnerData = (demoData: PartnerWise[]) => {
 
 const ProductCard = memo(
   ({product, index}: {product: ProductCategoryData; index: number}) => {
-    const config = getProductConfig(index);
+    const config = getProductConfig(product.Product_Category);
     return (
       <TouchableOpacity disabled activeOpacity={0.7}>
         <Card className="min-w-40 rounded-md" watermark>

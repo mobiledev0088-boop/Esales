@@ -190,7 +190,7 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
       animationDelay: number = 0,
       onPress?: (item: ProductCategoryData) => void,
     ) => {
-      const config = getProductConfig(index);
+      const config = getProductConfig(item.Product_Category);
       return (
         <TouchableOpacity
           disabled={!onPress}
@@ -273,7 +273,7 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
             <AppText
               size="sm"
               weight="medium"
-              className="text-secondary dark:text-white ml-2">
+              className="text-primary dark:text-white ml-2">
               Distributor Wise
             </AppText>
           </TouchableOpacity>
@@ -669,12 +669,13 @@ const ASEDataComponent: React.FC<ASEDataProps> = ({
   const currentMonth = moment().month() + 1; // month() is zero-based
   const MonthNum =
     currentMonth < quarterNum * 3 ? currentMonth : quarterNum * 3;
+  const navigateTo: any = isBranchManager ? 'TargetASETerritory' : 'TargetASE';
   const onPress = () => {
-    navigation.push('TargetSummaryAMBranch', {
+    navigation.push(navigateTo, {
       Year: year.toString(),
       Month: MonthNum.toString(),
       masterTab,
-      branchName: empInfo?.Branch_Name || '',
+      branchName: isBranchManager ? empInfo?.Branch_Name || '' : undefined,
     });
   };
   return (

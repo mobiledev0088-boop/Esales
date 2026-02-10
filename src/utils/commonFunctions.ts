@@ -6,13 +6,13 @@ import ReactNativeBlobUtil from 'react-native-blob-util';
 import {AppColors} from '../config/theme';
 import {useLoginStore} from '../stores/useLoginStore';
 import {ASUS} from './constant';
-import { Platform } from 'react-native';
-import { useUserStore } from '../stores/useUserStore';
+import {Platform} from 'react-native';
+import {useUserStore} from '../stores/useUserStore';
 
 export const getPlatformVersion = () => {
   const v = Platform.Version;
   return typeof v === 'number' ? v : parseInt(String(v), 10);
-}
+};
 
 const getAPACcurrencySymbol = () => {
   const {EMP_RoleId, EMP_CountryID} = useLoginStore.getState().userInfo;
@@ -92,25 +92,29 @@ export const convertToCapitalized = (text: string): string => {
 };
 
 export const getPastMonths = (
-  count=6,
+  count = 6,
   isForward?: boolean,
   startFrom?: string,
+  isOneMinus: boolean = false,
 ): {label: string; value: string}[] => {
   const months: {label: string; value: string}[] = [];
-  const baseDate = startFrom ? moment(startFrom, 'YYYYM') : moment().subtract(15, 'days');
+  const baseDate = startFrom
+    ? moment(startFrom, 'YYYYM')
+    : moment().subtract(15, 'days');
+  const date = isOneMinus ? baseDate.clone().subtract(1, 'months') : baseDate;
   if (isForward) {
     for (let i = 0; i < count; i++) {
       months.push({
-        label: baseDate.clone().add(i, 'months').format('MMM-YYYY'),
-        value: baseDate.clone().add(i, 'months').format('YYYYM'),
+        label: date.clone().add(i, 'months').format('MMM-YYYY'),
+        value: date.clone().add(i, 'months').format('YYYYM'),
       });
     }
     return months;
   }
   for (let i = 0; i < count; i++) {
     months.push({
-      label: baseDate.clone().subtract(i, 'months').format('MMM-YYYY'),
-      value: baseDate.clone().subtract(i, 'months').format('YYYYM'),
+      label: date.clone().subtract(i, 'months').format('MMM-YYYY'),
+      value: date.clone().subtract(i, 'months').format('YYYYM'),
     });
   }
   return months;
@@ -233,22 +237,32 @@ export const convertImageToBase64 = async (
     throw new Error('Failed to convert image to base64');
   }
 };
+type ProductConfig = {
+  icon: string;
+  color: string;
+  name: string;
+};
 
-export const getProductConfig = (
-  index: number,
-): {icon: string; color: string} => {
-  const configs: {icon: string; color: string}[] = [
-    {icon: 'laptop', color: AppColors.utilColor1},
-    {icon: 'monitor', color: AppColors.utilColor2},
-    {icon: 'monitor-speaker', color: AppColors.utilColor3},
-    {icon: 'desktop-tower-monitor', color: AppColors.utilColor4},
-    {icon: 'desktop-tower', color: AppColors.utilColor5},
-    {icon: 'cube-outline', color: AppColors.utilColor6},
-    {icon: 'book-open-variant', color: AppColors.utilColor7},
-    {icon: 'wifi', color: AppColors.utilColor8},
-    {icon: 'package-variant', color: AppColors.utilColor9},
-  ];
-  return configs[index] || {icon: 'package', color: AppColors.utilColor1};
+const PRODUCT_CONFIG_MAP: Record<string, ProductConfig> = {
+  NB: {icon: 'laptop', color: AppColors.utilColor1, name: 'NB'},
+  NR: {icon: 'monitor', color: AppColors.utilColor2, name: 'NR'},
+  AIO: {icon: 'monitor-speaker', color: AppColors.utilColor3, name: 'AIO'},
+  DT: {icon: 'desktop-tower-monitor', color: AppColors.utilColor4, name: 'DT'},
+  GDT: {icon: 'desktop-tower', color: AppColors.utilColor5, name: 'GDT'},
+  Creator: {icon: 'cube-outline', color: AppColors.utilColor6, name: 'Creator'},
+  ACCY: {icon: 'book-open-variant', color: AppColors.utilColor7, name: 'ACCY'},
+  WEP: {icon: 'wifi', color: AppColors.utilColor8, name: 'WEP'},
+  NX: {icon: 'laptop', color: AppColors.utilColor9, name: 'NX'},
+};
+
+const DEFAULT_PRODUCT_CONFIG: ProductConfig = {
+  icon: 'package',
+  color: AppColors.utilColor1,
+  name: 'Unknown',
+};
+
+export const getProductConfig = (name: string): ProductConfig => {
+  return PRODUCT_CONFIG_MAP[name] ?? DEFAULT_PRODUCT_CONFIG;
 };
 
 export const formatUnique = (
@@ -277,7 +291,9 @@ export const applyOpacityHex = (hex: string, opacity: number) => {
   return `#${base}${alpha}`;
 };
 
-export const convertStringToNumber = (value: string | number): number | null => {
+export const convertStringToNumber = (
+  value: string | number,
+): number | null => {
   if (typeof value === 'number') {
     return value;
   }
@@ -287,7 +303,7 @@ export const convertStringToNumber = (value: string | number): number | null => 
   const cleanedValue = value.replace(/[^0-9.-]/g, '');
   const parsedValue = parseFloat(cleanedValue);
   return isNaN(parsedValue) ? null : parsedValue;
-}
+};
 
 export const getCurrentQuarter = () => {
   const now = new Date();
@@ -296,7 +312,7 @@ export const getCurrentQuarter = () => {
   return Number(`${year}${quarter}`);
 };
 
-export function to12HourFormat(time24:string) {
+export function to12HourFormat(time24: string) {
   const [hour, minute] = time24.split(':').map(Number);
 
   const period = hour >= 12 ? 'PM' : 'AM';
@@ -346,7 +362,7 @@ export const getMimeTypeFromUrl = (url: string): string => {
   return mimeTypes[extension] || 'application/octet-stream';
 };
 
-export const isEmptyData = (data:any)=>{
-  if(data === null || data === undefined || data === '') return true;
+export const isEmptyData = (data: any) => {
+  if (data === null || data === undefined || data === '') return true;
   return false;
-}
+};

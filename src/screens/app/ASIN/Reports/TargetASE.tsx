@@ -3,9 +3,7 @@ import {useLoginStore} from '../../../../stores/useLoginStore';
 import {useQuery} from '@tanstack/react-query';
 import {handleASINApiCall} from '../../../../utils/handleApiCall';
 import {useNavigation, useRoute} from '@react-navigation/native';
-import AppDropdown, {
-  AppDropdownItem,
-} from '../../../../components/customs/AppDropdown';
+import AppDropdown, {AppDropdownItem} from '../../../../components/customs/AppDropdown';
 import {useCallback, useMemo, useState} from 'react';
 import {
   convertToASINUnits,
@@ -13,7 +11,7 @@ import {
   getProductConfig,
 } from '../../../../utils/commonFunctions';
 import Skeleton from '../../../../components/skeleton/skeleton';
-import {ASUS, screenWidth} from '../../../../utils/constant';
+import {screenWidth} from '../../../../utils/constant';
 import AppText from '../../../../components/customs/AppText';
 import AppLayout from '../../../../components/layout/AppLayout';
 import Accordion from '../../../../components/Accordion';
@@ -23,26 +21,6 @@ import {CircularProgressBar} from '../../../../components/customs/AppChart';
 import {PieChart} from 'react-native-gifted-charts';
 import {Watermark} from '../../../../components/Watermark';
 import {AppNavigationProp} from '../../../../types/navigation';
-
-const PARTNER_COLORS: Record<string, string> = {
-  CHANNEL: '#34A853', // Green
-  LFR: '#1A73E8', // Blue
-};
-
-const FALLBACK_COLORS = [
-  '#FB8C00',
-  '#AB47BC',
-  '#00ACC1',
-  '#FDD835',
-  '#8D6E63',
-  '#5C6BC0',
-];
-
-const getPartnerColor = (type: string | undefined, index: number): string => {
-  if (!type) return FALLBACK_COLORS[index % FALLBACK_COLORS.length];
-  const key = type.toUpperCase();
-  return PARTNER_COLORS[key] || FALLBACK_COLORS[index % FALLBACK_COLORS.length];
-};
 
 interface ProductCategory {
   Sequence_No: number;
@@ -72,6 +50,26 @@ interface SummaryItem {
   PartnerWiseDetails: PartnerWise[];
   AchievedQty: number;
 }
+
+const PARTNER_COLORS: Record<string, string> = {
+  CHANNEL: '#34A853', // Green
+  LFR: '#1A73E8', // Blue
+};
+
+const FALLBACK_COLORS = [
+  '#FB8C00',
+  '#AB47BC',
+  '#00ACC1',
+  '#FDD835',
+  '#8D6E63',
+  '#5C6BC0',
+];
+
+const getPartnerColor = (type: string | undefined, index: number): string => {
+  if (!type) return FALLBACK_COLORS[index % FALLBACK_COLORS.length];
+  const key = type.toUpperCase();
+  return PARTNER_COLORS[key] || FALLBACK_COLORS[index % FALLBACK_COLORS.length];
+};
 
 const formatAreaManagerNames = (names: string): string => {
   if (!names || names === 'N/A') return 'N/A';
@@ -113,19 +111,13 @@ const useGetTrgtVsAchvDetail = (
       branchName,
     ],
     queryFn: async () => {
-      const isBranchManager = [ASUS.ROLE_ID.BSM, ASUS.ROLE_ID.BPM].includes(
-        RoleId as any,
-      );
-      const endpoint = isBranchManager
-        ? '/TrgtVsAchvDetail/GetTrgtVsAchvTerritorywiseASE_MonthWise'
-        : '/TrgtVsAchvDetail/GetTrgtVsAchvDetailASE_MonthWise';
+      const endpoint = '/TrgtVsAchvDetail/GetTrgtVsAchvDetailASE_MonthWise';
       const dataToSend = {employeeCode, RoleId, YearQtr, masterTab, branchName};
       const response = await handleASINApiCall(endpoint, dataToSend);
       const result = response?.DashboardData;
       if (!result?.Status) {
         throw new Error('Failed to fetch activation data');
       }
-      console.log('API Response:', result);
       return (
         result.Datainfo || {
           ProductCategory: [],
@@ -140,16 +132,15 @@ const useGetTrgtVsAchvDetail = (
 export default function TargetSummaryAMBranch() {
   const route = useRoute();
   const navigation = useNavigation<AppNavigationProp>();
-  const {Year, Month, masterTab, branchName} = route.params as {
+  const {Year, Month, masterTab} = route.params as {
     Year: string;
     Month: string;
     masterTab: string;
-    branchName?: string;
   };
   const YearQtr = `${Year}${Month}`;
 
   const monthOptions = useMemo<AppDropdownItem[]>(
-    () => getPastMonths(6, false, YearQtr),
+    () => getPastMonths(6, false, YearQtr, true),
     [YearQtr],
   );
   const [selectedMonth, setSelectedMonth] = useState<AppDropdownItem | null>(
@@ -163,68 +154,62 @@ export default function TargetSummaryAMBranch() {
     isLoading,
     isError,
     refetch,
-  } = useGetTrgtVsAchvDetail(
-    selectedMonth?.value || YearQtr,
-    masterTab,
-    branchName,
-  );
-
+  } = useGetTrgtVsAchvDetail(selectedMonth?.value || YearQtr,masterTab);
   const mergeData = useMemo((): SummaryItem[] => {
     if (!trgtVsAchvDetail) return [];
-
     const {ProductCategory = [], PartnerWise = []} = trgtVsAchvDetail;
 
     if (ProductCategory.length === 0 && PartnerWise.length === 0) return [];
     let groupedList: SummaryItem[] = [];
-    if (branchName) {
-        
-    } else {
-      const branchMap = new Map<string, SummaryItem>();
-      ProductCategory.forEach((item: ProductCategory) => {
-        const branchKey = item.Loc_Branch?.toLowerCase()?.trim();
-        if (!branchKey) return; // Skip if branch name is invalid
 
-        if (!branchMap.has(branchKey)) {
-          branchMap.set(branchKey, {
-            BranchName: item.Loc_Branch,
-            AreaManager: item.AreaManager || 'N/A',
-            ProductCategoryType: [],
-            PartnerWiseDetails: [],
-            AchievedQty: 0,
-          });
-        }
+    const branchMap = new Map<string, SummaryItem>();
 
-        const node = branchMap.get(branchKey)!;
-        node.ProductCategoryType.push(item);
-        node.AchievedQty += item.Achieved_Qty || 0;
-      });
-      PartnerWise.forEach((item: PartnerWise) => {
-        const branchKey = item.Branch_Name?.toLowerCase()?.trim();
-        if (!branchKey) return; // Skip if branch name is invalid
+    ProductCategory.forEach((item: ProductCategory) => {
+      const branchKey = item.Loc_Branch?.toLowerCase()?.trim();
+      if (!branchKey) return; // Skip if branch name is invalid
 
-        if (!branchMap.has(branchKey)) {
-          branchMap.set(branchKey, {
-            BranchName: item.Branch_Name,
-            AreaManager: 'N/A',
-            ProductCategoryType: [],
-            PartnerWiseDetails: [],
-            AchievedQty: 0,
-          });
-        }
+      if (!branchMap.has(branchKey)) {
+        branchMap.set(branchKey, {
+          BranchName: item.Loc_Branch,
+          AreaManager: item.AreaManager || 'N/A',
+          ProductCategoryType: [],
+          PartnerWiseDetails: [],
+          AchievedQty: 0,
+        });
+      }
 
-        const node = branchMap.get(branchKey)!;
-        node.PartnerWiseDetails.push(item);
-      });
-      groupedList = Array.from(branchMap.values()).sort((a, b) =>
-        a.BranchName.localeCompare(b.BranchName),
-      );
-    }
+      const node = branchMap.get(branchKey)!;
+      node.ProductCategoryType.push(item);
+      node.AchievedQty += item.Achieved_Qty || 0;
+    });
+
+    PartnerWise.forEach((item: PartnerWise) => {
+      const branchKey = item.Branch_Name?.toLowerCase()?.trim();
+      if (!branchKey) return; // Skip if branch name is invalid
+
+      if (!branchMap.has(branchKey)) {
+        branchMap.set(branchKey, {
+          BranchName: item.Branch_Name,
+          AreaManager: 'N/A',
+          ProductCategoryType: [],
+          PartnerWiseDetails: [],
+          AchievedQty: 0,
+        });
+      }
+
+      const node = branchMap.get(branchKey)!;
+      node.PartnerWiseDetails.push(item);
+    });
+
+    groupedList = Array.from(branchMap.values()).sort((a, b) =>
+      a.BranchName.localeCompare(b.BranchName),
+    );
     return groupedList;
   }, [trgtVsAchvDetail]);
 
   const renderProductCard = useCallback(
     (item: ProductCategory, index: number) => {
-      const config = getProductConfig(index);
+      const config = getProductConfig(item.Product_Category);
       const achievedQty = item.Achieved_Qty || 0;
       return (
         <View className="items-center p-2" key={index}>
@@ -403,9 +388,16 @@ export default function TargetSummaryAMBranch() {
               {/* View Territory Button */}
               <TouchableOpacity
                 className="self-end mb-4 mr-4 mt-2"
+                // onPress={() => console.log('View Territory:', item.BranchName)}
                 onPress={() => {
-                  console.log('View Territory:', item.BranchName);
-                }}>
+                  navigation.push('TargetASETerritory', {
+                    Year,
+                    Month,
+                    masterTab,
+                    branchName: item.BranchName,
+                  });
+                }}
+              >
                 <View className="flex-row items-center gap-1 bg-primary/5 px-3 py-2 rounded-lg">
                   <AppText
                     className="underline"
@@ -433,7 +425,7 @@ export default function TargetSummaryAMBranch() {
         </Accordion>
       );
     },
-    [renderProductCard],
+    [renderProductCard,navigation],
   );
 
   const onRefresh = useCallback(async () => {
@@ -500,9 +492,8 @@ export default function TargetSummaryAMBranch() {
     ),
     [isError, refetch],
   );
-  console.log('Merge Data:', mergeData);
   return (
-    <AppLayout title="ASE Partner List" needBack needScroll={false}>
+    <AppLayout title="Target ASE" needBack needScroll={false}>
       {!isLoading && (
         <View className="w-36 self-end mx-3 mt-4">
           <AppDropdown
@@ -524,6 +515,7 @@ export default function TargetSummaryAMBranch() {
         }
         refreshing={refreshing}
         onRefresh={onRefresh}
+          showsVerticalScrollIndicator={false}
       />
     </AppLayout>
   );

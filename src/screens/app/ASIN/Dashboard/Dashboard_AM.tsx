@@ -24,7 +24,6 @@ import {
   convertToCapitalized,
   convertToTitleCase,
   getPastMonths,
-  getPastQuarters,
   getProductConfig,
 } from '../../../../utils/commonFunctions';
 import {
@@ -46,6 +45,8 @@ import {AppTextColorType} from '../../../../types/customs';
 import AppInput from '../../../../components/customs/AppInput';
 import { BannerComponent, ErrorDisplay } from './components';
 import AppTabBar from '../../../../components/CustomTabBar';
+import useQuarterHook from '../../../../hooks/useQuarterHook';
+import { useUserStore } from '../../../../stores/useUserStore';
 
 interface ActivationData {
   Series: string;
@@ -412,7 +413,7 @@ const TargetVsAchievementComponent: React.FC<
 
   const renderProductCard = useCallback(
     (item: ProductCategoryData, index: number) => {
-      const config = getProductConfig(index);
+      const config = getProductConfig(item.Product_Category);
       const achieved = Number(item.Achieved_Qty) || 0;
       return (
         <Card
@@ -932,13 +933,14 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
 });
 
 export default function Dashboard_AM() {
-  const quarters = useMemo(() => getPastQuarters(), []);
+  const {Year_Qtr} = useUserStore(state =>state.empInfo)
+  const {selectedQuarter} = useQuarterHook(Year_Qtr);
   const {
     data: dashboardData,
     isLoading: isTabsLoading,
     error: tabsError,
     refetch: handleRetry,
-  } = useDashboardDataAM([...quarters][0].value || '', 'Total');
+  } = useDashboardDataAM(selectedQuarter?.value || '', 'Total');
 
   const dashboardTabs = useMemo(() => {
     if (dashboardData?.MasterTab && Array.isArray(dashboardData.MasterTab)) {

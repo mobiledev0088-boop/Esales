@@ -11,6 +11,8 @@ import AppText from '../../../../../components/customs/AppText';
 import AppIcon from '../../../../../components/customs/AppIcon';
 import Skeleton from '../../../../../components/skeleton/skeleton';
 import {screenWidth} from '../../../../../utils/constant';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import { AppNavigationParamList } from '../../../../../types/navigation';
 
 // -------------------- Types --------------------
 interface IncentiveItem {
@@ -51,11 +53,11 @@ const toNumber = (v: any): number => {
 };
 
 // -------------------- Query Hook --------------------
-const useASEIncentive = (monthValue: string | undefined) => {
+const useASEIncentive = (monthValue: string | undefined,diffCode?: string) => {
   const userInfo = useLoginStore(state => state.userInfo);
   const employeeCode = userInfo?.EMP_Code || '';
   return useQuery<IncentiveItem[] , Error>({
-    queryKey: ['aseIncentive', employeeCode, monthValue],
+    queryKey: ['aseIncentive', employeeCode, monthValue, diffCode],
     enabled: !!employeeCode && !!monthValue,
     queryFn: async () => {
       const year = monthValue?.slice(0, 4) || '';
@@ -63,7 +65,7 @@ const useASEIncentive = (monthValue: string | undefined) => {
       const res: IncentiveApiResponse = await handleASINApiCall(
         '/Dashboard/GetDashboardData_ASE_Incentive_MonthWise',
         {
-          IChannelID: employeeCode,
+          IChannelID: diffCode || employeeCode,
           Year: year,
           Month: month,
         },
@@ -73,8 +75,6 @@ const useASEIncentive = (monthValue: string | undefined) => {
         throw new Error(result?.Message || 'Failed to load incentive data');
       return result?.Datainfo?.ASE_Incentive || [];
     },
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
   });
 };
 
@@ -113,12 +113,14 @@ const RowItem = ({label, value}: {label: string; value: any}) => (
 
 // -------------------- Screen --------------------
 export default function ASEIncentive() {
+  const {params} = useRoute<RouteProp<AppNavigationParamList, 'ASEIncentive'>>();
   const months = useMemo<AppDropdownItem[]>(() => getPastMonths(6), []);
   const [selectedMonth, setSelectedMonth] = useState<AppDropdownItem | null>(() => months[0] || null);
   const [showDetails, setShowDetails] = useState(true);
 
   const {data, isLoading, isError, refetch, error, isFetching} = useASEIncentive(
     selectedMonth?.value,
+    params?.employeeCode
   );
 
   const incentive = data && data.length > 0 ? data[0] : undefined;
@@ -225,7 +227,7 @@ export default function ASEIncentive() {
           renderItem={() => (
             <View className='mt-5'>
               {/* Summary Card */}
-              <Card className="overflow-hidden">
+              <Card className="border border-slate-200 dark:border-slate-800" noshadow>
                 <View className="flex-row justify-between">
                   <View className="flex-1 pr-4">
                     <AppText size="lg" weight="extraBold" className="text-gray-900 dark:text-gray-100" numberOfLines={2}>

@@ -18,6 +18,7 @@ import {
   getCurrentTabConfig,
   TAB_LABEL_TO_ID,
 } from '../Dashboard/dashboardUtils';
+import { Watermark } from '../../../../components/Watermark';
 
 const DisclaimerNotice = () => (
   <View className="bg-red-50 rounded-xl p-3 mb-6 border border-red-600 mt-4">
@@ -276,6 +277,7 @@ const DataTable = ({
         windowSize={5}
         initialNumToRender={10}
       />
+       <Watermark verticalCount={2} rowGap={200} />
     </View>
   );
 };

@@ -34,6 +34,7 @@ import AppDropdown, {
 import clsx from 'clsx';
 import {AppNavigationProp} from '../../../../types/navigation';
 import { ASUS } from '../../../../utils/constant';
+import { Watermark } from '../../../../components/Watermark';
 
 const ITEMS_PER_BATCH = 10;
 interface ApiParams {
@@ -603,6 +604,7 @@ const buildTabItems = (
             sortConfig={sortConfig}
             onSort={columnKey => handleSort(id, columnKey)}
           />
+          <Watermark verticalCount={2} rowGap={200} />
         </View>
       ),
     } as TabItem;

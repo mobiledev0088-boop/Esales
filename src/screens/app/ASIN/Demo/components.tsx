@@ -42,6 +42,7 @@ import {twMerge} from 'tailwind-merge';
 import {AppColors} from '../../../../config/theme';
 import FilterButton from '../../../../components/FilterButton';
 import clsx from 'clsx';
+import {convertToASINUnits} from '../../../../utils/commonFunctions';
 
 // helper component
 const ProgressStat: React.FC<ProgressStatProps> = ({
@@ -111,8 +112,8 @@ export const SummaryOverView = memo(() => {
   if (!data) return null;
   return (
     <Accordion
-      containerClassName="mt-2 border border-slate-200 dark:border-slate-700 rounded-2xl"
-      headerClassName="bg-white px-3 py-3"
+    containerClassName="mt-2 border border-slate-200 dark:border-slate-700 rounded-2xl"
+    headerClassName="bg-lightBg-surface dark:bg-darkBg-surface px-3 py-3"
       needBottomBorder={false}
       header={
         <View className="flex-row items-center gap-x-1">
@@ -120,38 +121,56 @@ export const SummaryOverView = memo(() => {
             <AppIcon name="info" type="feather" size={17} color="#2563eb" />
           </View>
           <AppText weight="semibold" size="md">
-            Summary Overview
+            Demo Hub Summary
           </AppText>
         </View>
       }>
-      <View className="px-3 pb-3 bg-white dark:bg-slate-900 rounded-b-2xl">
-        <View className="flex-row items-stretch gap-2 mb-3">
-          <View className="p-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg">
+      <View className="px-3 pb-3 bg-lightBg-base dark:bg-darkBg-base rounded-b-2xl">
+        {/* Total OverView */}
+        <View className="flex-row items-center gap-1.5 mb-3">
+          <View className="flex-1 p-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg items-center">
             <AppText
-              weight="semibold"
+              weight="medium"
               size="xs"
-              className="text-slate-500 dark:text-slate-300 uppercase">
-              Total Offline Models
+              className="text-slate-400 dark:text-slate-400 uppercase mb-0.5"
+              numberOfLines={1}>
+              Stores
             </AppText>
             <AppText
               size="lg"
               weight="bold"
-              className="text-slate-900 dark:text-slate-50 text-center">
+              className="text-slate-900 dark:text-slate-50">
+              {Totals.stores.toLocaleString('en-US')}
+            </AppText>
+          </View>
+          <View className="flex-1 p-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg items-center">
+            <AppText
+              weight="medium"
+              size="xs"
+              className="text-slate-400 dark:text-slate-400 uppercase mb-0.5"
+              numberOfLines={1}>
+              Offline
+            </AppText>
+            <AppText
+              size="lg"
+              weight="bold"
+              className="text-slate-900 dark:text-slate-50">
               {Totals.models.toLocaleString('en-US')}
             </AppText>
           </View>
-          <View className="p-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg">
+           <View className="flex-1 p-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg items-center">
             <AppText
-              weight="semibold"
+              weight="medium"
               size="xs"
-              className="text-slate-500 dark:text-slate-300 uppercase">
-              Total Stores
+              className="text-slate-400 dark:text-slate-400 uppercase mb-0.5"
+              numberOfLines={1}>
+              Online
             </AppText>
             <AppText
               size="lg"
               weight="bold"
-              className="text-slate-900 dark:text-slate-50 text-center">
-              {Totals.stores.toLocaleString('en-US')}
+              className="text-slate-900 dark:text-slate-50">
+              {Totals.models.toLocaleString('en-US')}
             </AppText>
           </View>
         </View>
@@ -167,20 +186,20 @@ export const SummaryOverView = memo(() => {
             <AppText
               weight="semibold"
               size="sm"
-              className="w-24 text-center text-slate-700 dark:text-slate-100">
-              Offline
-            </AppText>
-            <AppText
-              weight="semibold"
-              size="sm"
               className="w-16 text-center text-slate-700 dark:text-slate-100">
-              Stores
+              Store Count
             </AppText>
             <AppText
               weight="semibold"
               size="sm"
-              className="w-32 text-center text-slate-700 dark:text-slate-100">
-              Status
+              className="w-24 text-center text-slate-700 dark:text-slate-100">
+              Offline {'\n'} Unit
+            </AppText>
+            <AppText
+              weight="semibold"
+              size="sm"
+              className="w-24 text-center text-slate-700 dark:text-slate-100">
+              Online {'\n'} Unit
             </AppText>
           </View>
           {data.map((item, idx) => {
@@ -211,17 +230,25 @@ export const SummaryOverView = memo(() => {
                 <AppText
                   weight="semibold"
                   size="sm"
-                  className="w-24 text-center text-slate-800 dark:text-slate-50">
-                  {item.Total_Offline_Models.toLocaleString('en-US')}
+                  className="w-16 text-center text-slate-800 dark:text-slate-50">
+                  {convertToASINUnits(item?.Store_count || 0, true)}
                 </AppText>
+
                 <AppText
                   weight="semibold"
                   size="sm"
-                  className="w-16 text-center text-slate-800 dark:text-slate-50">
-                  {item.Store_count.toLocaleString('en-US')}
+                  className="w-24 text-center text-slate-800 dark:text-slate-50">
+                  {convertToASINUnits(item?.Total_Offline_Models || 0, true)}
                 </AppText>
 
-                <View className="w-32">
+                <AppText
+                  weight="semibold"
+                  size="sm"
+                  className="w-24 text-center text-slate-800 dark:text-slate-50">
+                  {convertToASINUnits(item?.Total_Offline_Models || 0, true)}
+                </AppText>
+
+                {/* <View className="w-32">
                   <View
                     className={twMerge(
                       'px-2 py-0.5 rounded-full',
@@ -238,7 +265,7 @@ export const SummaryOverView = memo(() => {
                       {item.Status}
                     </AppText>
                   </View>
-                </View>
+                </View> */}
               </View>
             );
           })}
@@ -248,101 +275,96 @@ export const SummaryOverView = memo(() => {
   );
 });
 
-export const StatsHeader = memo(
-  ({
-    stats,
-    counts,
-  }: StatsHeaderProps) => {
-    return (
-      <View className="mb-3">
-        <Card
-          className="p-3 border border-slate-200 dark:border-slate-700"
-          noshadow>
-          <View className="pb-2 border-b border-slate-100 dark:border-slate-700">
-            <View className="flex-row items-center justify-between">
-              <View className="flex-row items-center gap-2">
-                <View className="w-8 h-8 rounded-full bg-primary/10 dark:bg-primary-dark/20 items-center justify-center">
-                  <AppIcon
-                    name="bar-chart-2"
-                    type="feather"
-                    size={16}
-                    color={AppColors.primary}
-                  />
-                </View>
-                <AppText
-                  size="base"
-                  weight="semibold"
-                  className="text-slate-800 dark:text-slate-100">
-                  Overall Summary
-                </AppText>
+export const StatsHeader = memo(({stats, counts}: StatsHeaderProps) => {
+  return (
+    <View className="mb-3">
+      <Card
+        className="p-3 border border-slate-200 dark:border-slate-700"
+        noshadow>
+        <View className="pb-2 border-b border-slate-100 dark:border-slate-700">
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center gap-2">
+              <View className="w-8 h-8 rounded-full bg-primary/10 dark:bg-primary-dark/20 items-center justify-center">
+                <AppIcon
+                  name="bar-chart-2"
+                  type="feather"
+                  size={16}
+                  color={AppColors.primary}
+                />
               </View>
+              <AppText
+                size="base"
+                weight="semibold"
+                className="text-slate-800 dark:text-slate-100">
+                Overall Summary
+              </AppText>
             </View>
           </View>
-
-          <View className="flex-row  -mx-1 mt-2">
-            {stats.map((s, idx) => {
-              const palette = STAT_PALETTE[s.name];
-              const isLastInRow = idx === stats.length - 1;
-              return (
-                <View
-                  key={s.label}
-                  className={clsx(
-                    'flex-1 px-1 mb-2',
-                    !isLastInRow && 'border-r border-slate-200',
-                  )}>
-                  <View className="items-center p-2.5 dark:border-slate-700 dark:bg-slate-800/70">
-                    <View
-                      className={twMerge(
-                        'mb-1.5 h-9 w-9 items-center justify-center rounded-md',
-                        palette.iconBg,
-                      )}>
-                      <AppIcon
-                        name={s.icon}
-                        type={s.iconType as any}
-                        size={18}
-                        color="white"
-                      />
-                    </View>
-                    <AppText
-                      size="md"
-                      weight="semibold"
-                      className="text-slate-900 dark:text-slate-50 leading-snug text-center">
-                      {s.value}
-                    </AppText>
-                    <AppText
-                      size="xs"
-                      weight="semibold"
-                      className={twMerge(
-                        'mt-0.5 uppercase text-slate-600 dark:text-slate-300 text-center',
-                        palette.tint,
-                      )}
-                      numberOfLines={2}>
-                      {s.label}
-                    </AppText>
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        </Card>
-        <SummaryOverView />
-        <View className="flex-row items-center justify-between px-1 mt-2">
-          {counts.awp_count !== null && (
-            <AppText className="text-slate-700 dark:text-slate-300">
-              AWP Partners: <AppText weight="bold">{counts.awp_count}</AppText>
-            </AppText>
-          )}
-          {counts.total_partners !== null && (
-            <AppText className="text-slate-700 dark:text-slate-300">
-              Total Partners:{' '}
-              <AppText weight="bold">{counts.total_partners}</AppText>
-            </AppText>
-          )}
         </View>
+
+        <View className="flex-row  -mx-1 mt-2">
+          {stats.map((s, idx) => {
+            const palette = STAT_PALETTE[s.name];
+            const isLastInRow = idx === stats.length - 1;
+            return (
+              <View
+                key={s.label}
+                className={clsx(
+                  'flex-1 px-1 mb-2',
+                  !isLastInRow && 'border-r border-slate-200',
+                )}>
+                <View className="items-center p-2.5 dark:border-slate-700 dark:bg-slate-800/70">
+                  <View
+                    className={twMerge(
+                      'mb-1.5 h-9 w-9 items-center justify-center rounded-md',
+                      palette.iconBg,
+                    )}>
+                    <AppIcon
+                      name={s.icon}
+                      type={s.iconType as any}
+                      size={18}
+                      color="white"
+                    />
+                  </View>
+                  <AppText
+                    size="md"
+                    weight="semibold"
+                    className="text-slate-900 dark:text-slate-50 leading-snug text-center">
+                    {s.value}
+                  </AppText>
+                  <AppText
+                    size="xs"
+                    weight="semibold"
+                    className={twMerge(
+                      'mt-0.5 uppercase text-slate-600 dark:text-slate-300 text-center',
+                      palette.tint,
+                    )}
+                    numberOfLines={2}>
+                    {s.label}
+                  </AppText>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      </Card>
+      <SummaryOverView />
+      <View className="flex-row items-center justify-between px-1 mt-2">
+        {counts.awp_count !== null && (
+          <AppText className="text-slate-700 dark:text-slate-300">
+            AWP Partners: <AppText weight="bold">{counts.awp_count}</AppText>
+          </AppText>
+        )}
+        {counts.total_partners !== null && (
+          <AppText className="text-slate-700 dark:text-slate-300">
+            Total Partners:{' '}
+            <AppText weight="bold">{counts.total_partners}</AppText>
+          </AppText>
+        )}
       </View>
-    );
-  },
-);
+    </View>
+  );
+});
 
 export const DemoSkeleton: React.FC = () => {
   return (
@@ -382,8 +404,8 @@ export const BranchCard = memo(
     };
     yearQtr: string;
     category: string;
-    premiumKiosk?: number|null;
-    rogKiosk?: number|null;
+    premiumKiosk?: number | null;
+    rogKiosk?: number | null;
     partnerType: string | null;
     IsCompulsory?: string;
     noTerritoryButton: boolean;
@@ -589,7 +611,11 @@ export const BranchCard = memo(
                   )}
                 </View>
                 {/* Progress section */}
-                <View className={clsx("mt-5 px-3 gap-3", noTerritoryButton && "mb-4")}>
+                <View
+                  className={clsx(
+                    'mt-5 px-3 gap-3',
+                    noTerritoryButton && 'mb-4',
+                  )}>
                   {item.at_least_single_demo !== null && (
                     <ProgressStat
                       label="At Least Single"
@@ -611,13 +637,15 @@ export const BranchCard = memo(
                     />
                   )}
                 </View>
-                {!noTerritoryButton && <Pressable
-                  onPress={flipCard}
-                  className="px-3 py-3 items-center mt-3">
-                  <AppText size="sm" className="text-primary" weight="medium">
-                    Tap here to view territories
-                  </AppText>
-                </Pressable>}
+                {!noTerritoryButton && (
+                  <Pressable
+                    onPress={flipCard}
+                    className="px-3 py-3 items-center mt-3">
+                    <AppText size="sm" className="text-primary" weight="medium">
+                      Tap here to view territories
+                    </AppText>
+                  </Pressable>
+                )}
               </Card>
             </TouchableOpacity>
           </Animated.View>
@@ -866,7 +894,10 @@ export const BranchCardRet = memo(
     // Transform and filter territory data
     const territories = useMemo(() => {
       if (!territoryData || showFront) return [];
-      const transformed = transformDemoDataRetailer(territoryData, {groupType: 'territory',labelKey: 'territory'});
+      const transformed = transformDemoDataRetailer(territoryData, {
+        groupType: 'territory',
+        labelKey: 'territory',
+      });
 
       // Apply frontend partner type filtering
       if (partnerType) {
@@ -880,13 +911,15 @@ export const BranchCardRet = memo(
         return transformed
           .map(({...territory}) => ({
             ...territory,
-            partners: filterDemoItemsByPartnerType(territory.partners, partnerType),
+            partners: filterDemoItemsByPartnerType(
+              territory.partners,
+              partnerType,
+            ),
           }))
           .filter(item => item.partners.length > 0);
       }
       return transformed;
     }, [territoryData, showFront, partnerType]);
-
 
     const atLeastSinglePercent = useMemo(() => {
       if (summaryData.at_least_single_demo === 0) return 0;
@@ -1003,7 +1036,7 @@ export const BranchCardRet = memo(
                     icon="users"
                     tint="slate"
                   />
-                   <Metric
+                  <Metric
                     label={'Pending'}
                     value={item.pending}
                     icon="layers"
@@ -1011,7 +1044,11 @@ export const BranchCardRet = memo(
                   />
                 </View>
                 {/* Progress section */}
-                <View className={clsx("mt-5 px-3 gap-3", noTerritoryButton && "pb-4")}>
+                <View
+                  className={clsx(
+                    'mt-5 px-3 gap-3',
+                    noTerritoryButton && 'pb-4',
+                  )}>
                   {item.at_least_single_demo != null ? (
                     <ProgressStat
                       label="At Least Single"
@@ -1049,13 +1086,15 @@ export const BranchCardRet = memo(
                     false
                   )}
                 </View>
-               {!noTerritoryButton && <Pressable
-                  onPress={flipCard}
-                  className="px-3 py-3 items-center mt-3">
-                  <AppText size="sm" className="text-primary" weight="medium">
-                    Tap here to view territories
-                  </AppText>
-                </Pressable>}
+                {!noTerritoryButton && (
+                  <Pressable
+                    onPress={flipCard}
+                    className="px-3 py-3 items-center mt-3">
+                    <AppText size="sm" className="text-primary" weight="medium">
+                      Tap here to view territories
+                    </AppText>
+                  </Pressable>
+                )}
               </Card>
             </TouchableOpacity>
           </Animated.View>
@@ -1287,98 +1326,93 @@ export const BranchCardLFR = memo(
     }, [item.at_80_demo, summaryData.at_80_demo]);
     return (
       <TouchableOpacity
-      className='mb-3'
-              activeOpacity={0.8}
-              onPress={() => {
-                navigation.push('DemoPartners', {
-                  partners: item.partners,
-                  yearQtr,
-                });
-              }}>
-              <Card
-                className="p-0 border border-slate-200 dark:border-slate-700"
-                noshadow>
-                <View className="flex-row items-center gap-2 pb-2 border-b border-slate-100 pt-4 px-3">
-                  <View className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center">
-                    <AppIcon
-                      name="map-pin"
-                      type="feather"
-                      size={16}
-                      color="black"
-                    />
-                  </View>
-                  <AppText
-                    size="base"
-                    weight="semibold"
-                    className="text-slate-800 tracking-tight flex-1"
-                    numberOfLines={1}>
-                    {item.state}
-                  </AppText>
-                  <View className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center">
-                    <AppIcon
-                      name="chevron-right"
-                      type="feather"
-                      size={16}
-                      color="#475569"
-                    />
-                  </View>
-                </View>
-                {/* Metric grid */}
-                <View className="mt-3 px-3 flex-row flex-wrap pb-2 border-b border-slate-100">
-                  <Metric
-                    label={'Partners'}
-                    value={item.partner_count}
-                    icon="users"
-                    tint="slate"
-                  />
-                  <Metric
-                    label={'Pending'}
-                    value={item.pending}
-                    icon="layers"
-                    tint="violet"
-                  />
-                </View>
-                {/* Progress section */}
-                <View className="mt-5 px-3 gap-3 pb-4">
-                  {item.at_least_single_demo != null ? (
-                    <ProgressStat
-                      label="At Least Single"
-                      percent={atLeastSinglePercent}
-                      current={item.at_least_single_demo}
-                      total={summaryData.at_least_single_demo}
-                      barTint="bg-violet-500"
-                      percentTint="text-violet-600"
-                    />
-                  ) : (
-                    false
-                  )}
-                  {item.at_80_demo != null ? (
-                    <ProgressStat
-                      label="80% Demo"
-                      percent={demo80Percent}
-                      current={item.at_80_demo}
-                      total={summaryData.at_80_demo || 0}
-                      barTint="bg-sky-500"
-                      percentTint="text-sky-600"
-                    />
-                  ) : (
-                    false
-                  )}
-                  {item.demo_100 != null ? (
-                    <ProgressStat
-                      label="100% Demo"
-                      percent={demo100Percent}
-                      current={item.demo_100}
-                      total={summaryData.demo_100}
-                      barTint="bg-teal-500"
-                      percentTint="text-teal-600"
-                    />
-                  ) : (
-                    false
-                  )}
-                </View>
-              </Card>
-            </TouchableOpacity>
+        className="mb-3"
+        activeOpacity={0.8}
+        onPress={() => {
+          navigation.push('DemoPartners', {
+            partners: item.partners,
+            yearQtr,
+          });
+        }}>
+        <Card
+          className="p-0 border border-slate-200 dark:border-slate-700"
+          noshadow>
+          <View className="flex-row items-center gap-2 pb-2 border-b border-slate-100 pt-4 px-3">
+            <View className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center">
+              <AppIcon name="map-pin" type="feather" size={16} color="black" />
+            </View>
+            <AppText
+              size="base"
+              weight="semibold"
+              className="text-slate-800 tracking-tight flex-1"
+              numberOfLines={1}>
+              {item.state}
+            </AppText>
+            <View className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center">
+              <AppIcon
+                name="chevron-right"
+                type="feather"
+                size={16}
+                color="#475569"
+              />
+            </View>
+          </View>
+          {/* Metric grid */}
+          <View className="mt-3 px-3 flex-row flex-wrap pb-2 border-b border-slate-100">
+            <Metric
+              label={'Partners'}
+              value={item.partner_count}
+              icon="users"
+              tint="slate"
+            />
+            <Metric
+              label={'Pending'}
+              value={item.pending}
+              icon="layers"
+              tint="violet"
+            />
+          </View>
+          {/* Progress section */}
+          <View className="mt-5 px-3 gap-3 pb-4">
+            {item.at_least_single_demo != null ? (
+              <ProgressStat
+                label="At Least Single"
+                percent={atLeastSinglePercent}
+                current={item.at_least_single_demo}
+                total={summaryData.at_least_single_demo}
+                barTint="bg-violet-500"
+                percentTint="text-violet-600"
+              />
+            ) : (
+              false
+            )}
+            {item.at_80_demo != null ? (
+              <ProgressStat
+                label="80% Demo"
+                percent={demo80Percent}
+                current={item.at_80_demo}
+                total={summaryData.at_80_demo || 0}
+                barTint="bg-sky-500"
+                percentTint="text-sky-600"
+              />
+            ) : (
+              false
+            )}
+            {item.demo_100 != null ? (
+              <ProgressStat
+                label="100% Demo"
+                percent={demo100Percent}
+                current={item.demo_100}
+                total={summaryData.demo_100}
+                barTint="bg-teal-500"
+                percentTint="text-teal-600"
+              />
+            ) : (
+              false
+            )}
+          </View>
+        </Card>
+      </TouchableOpacity>
     );
   },
 );
@@ -1390,9 +1424,9 @@ export const BranchCardROI = memo(
   }: {
     item: TransformedBranchROI;
     summaryData: {
-        total_demo: number,
-        total_act: number,
-        total_stock: number,
+      total_demo: number;
+      total_act: number;
+      total_stock: number;
     };
     yearQtr: string;
   }) => {
@@ -1400,9 +1434,7 @@ export const BranchCardROI = memo(
 
     const totalDemoPercent = useMemo(() => {
       if (summaryData.total_demo === 0) return 0;
-      return Math.round(
-        (item.total_demo / summaryData.total_demo) * 100,
-      );
+      return Math.round((item.total_demo / summaryData.total_demo) * 100);
     }, [item.total_demo, summaryData.total_demo]);
     const totalActPercent = useMemo(() => {
       if (summaryData.total_demo === 0) return 0;
@@ -1414,93 +1446,88 @@ export const BranchCardROI = memo(
     }, [item.total_stock, summaryData.total_stock]);
     return (
       <TouchableOpacity
-      className='mb-3'
-              activeOpacity={0.8}
-              onPress={() => {
-                navigation.push('DemoPartners', {
-                  partners: item.partners,
-                  yearQtr,
-                  isROI: true
-                });
-              }}>
-              <Card
-                className="p-0 border border-slate-200 dark:border-slate-700"
-                noshadow>
-                <View className="flex-row items-center gap-2 pb-2 border-b border-slate-100 pt-4 px-3">
-                  <View className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center">
-                    <AppIcon
-                      name="map-pin"
-                      type="feather"
-                      size={16}
-                      color="black"
-                    />
-                  </View>
-                  <AppText
-                    size="base"
-                    weight="semibold"
-                    className="text-slate-800 tracking-tight flex-1"
-                    numberOfLines={1}>
-                    {item.state}
-                  </AppText>
-                  <View className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center">
-                    <AppIcon
-                      name="chevron-right"
-                      type="feather"
-                      size={16}
-                      color="#475569"
-                    />
-                  </View>
-                </View>
-                {/* Metric grid */}
-                <View className="mt-3 px-3 flex-row flex-wrap pb-2 border-b border-slate-100">
-                  <Metric
-                    label={'Partners'}
-                    value={item.partner_count}
-                    icon="users"
-                    tint="slate"
-                  />
-                </View>
-                {/* Progress section */}
-                <View className="mt-5 px-3 gap-3 pb-4">
-                  {item.total_demo != null ? (
-                    <ProgressStat
-                      label="Total Demo"
-                      percent={totalDemoPercent}
-                      current={item.total_demo}
-                      total={summaryData.total_demo}
-                      barTint="bg-violet-500"
-                      percentTint="text-violet-600"
-                    />
-                  ) : (
-                    false
-                  )}
-                  {item.total_act != null ? (
-                    <ProgressStat
-                      label="Total Active"
-                      percent={totalActPercent}
-                      current={item.total_act}
-                      total={summaryData.total_act || 0}
-                      barTint="bg-sky-500"
-                      percentTint="text-sky-600"
-                    />
-                  ) : (
-                    false
-                  )}
-                  {item.total_stock != null ? (
-                    <ProgressStat
-                      label="Total Stock"
-                      percent={totalStockPercent}
-                      current={item.total_stock}
-                      total={summaryData.total_stock}
-                      barTint="bg-teal-500"
-                      percentTint="text-teal-600"
-                    />
-                  ) : (
-                    false
-                  )}
-                </View>
-              </Card>
-            </TouchableOpacity>
+        className="mb-3"
+        activeOpacity={0.8}
+        onPress={() => {
+          navigation.push('DemoPartners', {
+            partners: item.partners,
+            yearQtr,
+            isROI: true,
+          });
+        }}>
+        <Card
+          className="p-0 border border-slate-200 dark:border-slate-700"
+          noshadow>
+          <View className="flex-row items-center gap-2 pb-2 border-b border-slate-100 pt-4 px-3">
+            <View className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center">
+              <AppIcon name="map-pin" type="feather" size={16} color="black" />
+            </View>
+            <AppText
+              size="base"
+              weight="semibold"
+              className="text-slate-800 tracking-tight flex-1"
+              numberOfLines={1}>
+              {item.state}
+            </AppText>
+            <View className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center">
+              <AppIcon
+                name="chevron-right"
+                type="feather"
+                size={16}
+                color="#475569"
+              />
+            </View>
+          </View>
+          {/* Metric grid */}
+          <View className="mt-3 px-3 flex-row flex-wrap pb-2 border-b border-slate-100">
+            <Metric
+              label={'Partners'}
+              value={item.partner_count}
+              icon="users"
+              tint="slate"
+            />
+          </View>
+          {/* Progress section */}
+          <View className="mt-5 px-3 gap-3 pb-4">
+            {item.total_demo != null ? (
+              <ProgressStat
+                label="Total Demo"
+                percent={totalDemoPercent}
+                current={item.total_demo}
+                total={summaryData.total_demo}
+                barTint="bg-violet-500"
+                percentTint="text-violet-600"
+              />
+            ) : (
+              false
+            )}
+            {item.total_act != null ? (
+              <ProgressStat
+                label="Total Active"
+                percent={totalActPercent}
+                current={item.total_act}
+                total={summaryData.total_act || 0}
+                barTint="bg-sky-500"
+                percentTint="text-sky-600"
+              />
+            ) : (
+              false
+            )}
+            {item.total_stock != null ? (
+              <ProgressStat
+                label="Total Stock"
+                percent={totalStockPercent}
+                current={item.total_stock}
+                total={summaryData.total_stock}
+                barTint="bg-teal-500"
+                percentTint="text-teal-600"
+              />
+            ) : (
+              false
+            )}
+          </View>
+        </Card>
+      </TouchableOpacity>
     );
   },
 );

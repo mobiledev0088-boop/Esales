@@ -10,7 +10,7 @@ import AppIcon, {IconType} from '../../../../../components/customs/AppIcon';
 import {EmpInfo, UserInfo} from '../../../../../types/user';
 import AppInput from '../../../../../components/customs/AppInput';
 import AppButton from '../../../../../components/customs/AppButton';
-import {useMemo, useState} from 'react';
+import {use, useMemo, useState} from 'react';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import {getDeviceId} from 'react-native-device-info';
 import {
@@ -30,6 +30,7 @@ import {AppColors} from '../../../../../config/theme';
 import AppDropdown, {
   AppDropdownItem,
 } from '../../../../../components/customs/AppDropdown';
+import { useUserStore } from '../../../../../stores/useUserStore';
 
 // --- types ---
 export interface SpecialFunctionsAccess {
@@ -356,14 +357,11 @@ export const SpecialAccessUI = ({
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const setAuthData = useLoginStore(state => state.setAuthData);
-  const {EMP_CountryID,EMP_Btype} = useLoginStore(state => state.userInfo);
-  const {data: businessTypes, isLoading: isBusinessTypesLoading} =
-    useGetBusinessTypes(specialFunctionsAccess.multipleBusinessTypeAllowed);
-  const {data: countries, isLoading} = useGetCountries(
-    specialFunctionsAccess.changeCountryAllowed,
-  );
-  const {mutate: changeCountryMutate, isPending: isChangingCountry} =
-    useChangeCountryMutation();
+  const setEmpInfo = useUserStore(state => state.setEmpInfo);
+  const {EMP_CountryID, EMP_Btype} = useLoginStore(state => state.userInfo);
+  const {data: businessTypes} = useGetBusinessTypes(specialFunctionsAccess.multipleBusinessTypeAllowed);
+  const {data: countries, isLoading} = useGetCountries(specialFunctionsAccess.changeCountryAllowed);
+  const {mutate: changeCountryMutate} = useChangeCountryMutation();
 
   const [loginAsID, setLoginAsID] = useState<string>('');
   const [loginAsError, setLoginAsError] = useState<string>('');
@@ -388,6 +386,21 @@ export const SpecialAccessUI = ({
           ...userDetails,
           is_Login_As: true,
         });
+        let empInfo = null;
+        if (userDetails.EMP_CountryID === ASUS.COUNTRIES.ASIN) {
+          const empRes = await handleASINApiCall('/Auth/EmpInfo', {
+            employeeCode: userDetails?.EMP_Code,
+          });
+          empInfo = empRes?.login?.Datainfo?.[0] ?? null;
+        } else {
+          const res = await handleAPACApiCall('/Auth/EmpInfo', {
+            employeeCode: userDetails?.EMP_Code,
+          });
+          empInfo = res?.login?.Datainfo?.[0] ?? null;
+        }
+        if (empInfo) {
+          setEmpInfo(empInfo);
+        }
         showToast('Login successful');
         navigation.replace('Index');
       } else {
@@ -513,10 +526,10 @@ export const SpecialAccessUI = ({
                 <AppText weight="bold">Switch Business Type</AppText>
               </View>
             }>
-            <TabSelector 
+            <TabSelector
               TABS={businessTypes || []}
-              handlePress={()=>{}}
-              selectedIndex={EMP_Btype}  
+              handlePress={() => {}}
+              selectedIndex={EMP_Btype}
             />
           </Accordion>
         )}
@@ -527,13 +540,15 @@ export const SpecialAccessUI = ({
 
 export const AccountSettings = () => {
   const navigation = useNavigation<AppNavigationProp>();
-  const {EMP_RoleId,EMP_CountryID} = useLoginStore(state => state.userInfo);
+  const {EMP_RoleId, EMP_CountryID} = useLoginStore(state => state.userInfo);
   const isASIN = EMP_CountryID === ASUS.COUNTRIES.ASIN;
   const AppTheme = useThemeStore(state => state.AppTheme);
-  const {ASE,BSM,HO_EMPLOYEES,AM,TM} = ASUS.ROLE_ID;
-  const allowAttendanceRoles = [ASE,BSM,HO_EMPLOYEES,AM,TM];
-  const isAttendanceAllowed = isASIN && allowAttendanceRoles.includes(EMP_RoleId as any);
-  const attendanceNavigation  = EMP_RoleId === ASE ? 'Attendance' : 'Attendance_HO';
+  const {ASE, BSM, HO_EMPLOYEES, AM, TM} = ASUS.ROLE_ID;
+  const allowAttendanceRoles = [ASE, BSM, HO_EMPLOYEES, AM, TM];
+  const isAttendanceAllowed =
+    isASIN && allowAttendanceRoles.includes(EMP_RoleId as any);
+  const attendanceNavigation =
+    EMP_RoleId === ASE ? 'Attendance' : 'Attendance_HO';
   return (
     <>
       <AppText className="ml-2 mt-8 mb-2 underline">Account Settings</AppText>

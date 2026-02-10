@@ -236,7 +236,7 @@ const PartnerCard = memo(
     const handlePress = useCallback(() => {
       let AGP_Code = partner.Partner_Code;
       console.log('Navigating with AGP_Code:', AGP_Code);
-      navigation.navigate('TargetPartnerDashboard', {partner: {AGP_Code}});
+      navigation.push('TargetPartnerDashboard', {partner: {AGP_Code}});
     }, [partner.Partner_Code, navigation]);
     return (
       <Card className="mb-3">

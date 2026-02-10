@@ -169,7 +169,7 @@ const MetricRow = memo(
 
 const ProductCard = memo(
   ({product, index}: {product: ProductCategory; index: number}) => {
-    const config = getProductConfig(index);
+    const config = getProductConfig(product.Product_Category);
     const isOver = (product.Percent || 0) >= 100;
 
     return (
@@ -227,7 +227,7 @@ const ProductCard = memo(
 
 const BranchCard = memo(
   ({product, index}: {product: ProductCategory; index: number}) => {
-    const config = getProductConfig(index);
+    const config = getProductConfig(product.Product_Category);
     const isOver = (product.Percent || 0) >= 100;
 
     return (
@@ -387,9 +387,9 @@ const ProductLineItem = memo(
             <View className="flex-row items-center gap-2">
               <View className="rounded-lg p-2 bg-slate-100">
                 <AppIcon
-                  name={getProductConfig(index).icon}
+                  name={getProductConfig(group.name).icon}
                   size={18}
-                  color={getProductConfig(index).color}
+                  color={getProductConfig(group.name).color}
                   type="material-community"
                 />
               </View>
@@ -488,7 +488,7 @@ export default function TargetSummaryAPAC() {
     </View>
   );
 
-  const handlePress = (branchName: string) => {navigation.navigate('DealerHitRate', {BranchName: branchName});}
+  const handlePress = (branchName: string) => {navigation.push('DealerHitRate', {BranchName: branchName});}
 
   return (
     <AppLayout title="Target v/s Achievement" needBack>

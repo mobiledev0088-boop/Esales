@@ -6,7 +6,9 @@ import AppDropdown, {
 } from '../../../../components/customs/AppDropdown';
 import {getPastQuarters} from '../../../../utils/commonFunctions';
 import {
+  DemoItemLFR,
   DemoItemRetailer,
+  DemoItemROI,
   ResellerFilterType,
   transformDemoData,
   transformDemoDataLFR,
@@ -341,11 +343,18 @@ const Retailer = () => {
 
   const filteredData = useMemo(() => {
     if (!data) return null;
-    if (!filters.partnerType || filters.partnerType === 'All') return data;
-    return data.filter(
+    let temp = data;
+    if (selectedPartnerName?.value) {
+      temp = temp.filter(
+        (item: DemoItemRetailer) =>
+          item.PartnerName === selectedPartnerName.value,
+      );
+    }
+    if (!filters.partnerType || filters.partnerType === 'All') return temp;
+    return temp.filter(
       (item: DemoItemRetailer) => item.PartnerType === filters.partnerType,
     );
-  }, [data, filters.partnerType]);
+  }, [data, filters.partnerType, selectedPartnerName?.value]);
 
   const transformedData = useMemo(() => {
     if (filteredData) {
@@ -593,11 +602,17 @@ const LFR = () => {
 
   const filteredData = useMemo(() => {
     if (!data) return null;
-    if (!filters.lfrType || filters.lfrType === 'All') return data;
-    return data.filter(
-      (item: DemoItemRetailer) => item.PartnerType === filters.lfrType,
+    let temp = data;
+    if (selectedPartnerName?.value) {
+      return temp.filter(
+        (item: DemoItemLFR) => item.PartnerName === selectedPartnerName.value,
+      );
+    }
+    if (!filters.lfrType || filters.lfrType === 'All') return temp;
+    return temp.filter(
+      (item: DemoItemLFR) => item.PartnerType === filters.lfrType,
     );
-  }, [data, filters.lfrType]);
+  }, [data, filters.lfrType, selectedPartnerName?.value]);
 
   const transformedData = useMemo(() => {
     if (filteredData) {
@@ -837,11 +852,16 @@ const ROI = () => {
 
   const filteredData = useMemo(() => {
     if (!data) return null;
+    if (selectedPartnerName?.value) {
+      return data.filter(
+        (item: DemoItemROI) => item.PartnerName === selectedPartnerName.value,
+      );
+    }
     if (!filters.partnerType || filters.partnerType === '') return data;
     return data.filter(
-      (item: DemoItemRetailer) => item.PartnerType === filters.partnerType,
+      (item: DemoItemROI) => item.PartnerType === filters.partnerType,
     );
-  }, [data, filters.partnerType]);
+  }, [data, filters.partnerType, selectedPartnerName?.value]);
 
   const transformedData = useMemo(() => {
     if (filteredData?.length) {
