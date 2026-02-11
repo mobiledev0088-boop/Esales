@@ -70,30 +70,28 @@ const Reseller = () => {
     selectedQuarter?.value || '',
   );
 
-  const transformedData = useMemo(() => {
-    if (!data) return [];
-    return transformDemoData(data);
-  }, [data]);
-
   const filteredData = useMemo(() => {
-    if (!transformedData.length) return [];
-    let temp = transformedData;
+    if (!data) return {
+      DemoDetailsList: [],
+      PartnerCount: [],
+    };
+    let temp = data.DemoDetailsList;
     if (selectedPartnerName?.value) {
-      temp = temp.filter(branch =>
-        branch.partners.some(
-          partner => partner.AGP_Name?.trim() === selectedPartnerName.value,
-        ),
-      );
+      temp = temp.filter((item:any) => item.AGP_Name.trim() === selectedPartnerName.value);
     }
     if (filters.partnerType && filters.partnerType !== 'All') {
-      temp = temp.filter(branch =>
-        branch.partners.some(
-          partner => partner.AGP_Or_T3?.trim() === filters.partnerType,
-        ),
-      );
+      temp = temp.filter((item:any) => item.AGP_Or_T3.trim() === filters.partnerType);
     }
-    return temp;
-  }, [transformedData, selectedPartnerName?.value, filters.partnerType]);
+    return {
+      DemoDetailsList: temp,
+      PartnerCount: data.PartnerCount,
+    };
+  }, [data, selectedPartnerName?.value, filters.partnerType]);
+
+  const transformedData = useMemo(() => {
+    if (!filteredData) return [];
+    return transformDemoData(filteredData);
+  }, [filteredData]);
 
   const PartnerNameList = useMemo(() => {
     if (!transformedData.length) return [];
@@ -247,6 +245,8 @@ const Reseller = () => {
   }, [refetch]);
   const isError = !!error && transformedData.length === 0;
   const isEmpty = !isLoading && !error && transformedData.length === 0;
+  // console.log('rendering Reseller with data:', filteredData);
+  // console.log('transformed Data:', transformedData);
   return (
     <ScrollView className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
       <View className="flex-row justify-end gap-x-2 px-3 pt-2 mb-3 ">
@@ -289,7 +289,7 @@ const Reseller = () => {
         onRetry={handleRetry}
         LoadingComponent={<DemoSkeleton />}>
         <FlatList
-          data={filteredData}
+          data={transformedData}
           renderItem={renderBranch}
           keyExtractor={keyExtractor}
           contentContainerClassName="pb-10 px-3"
@@ -1055,6 +1055,7 @@ const ROI = () => {
           placeholder="Select Partner Name"
           allowClear
           onClear={() => setSelectedPartnerName(null)}
+          zIndex={999}
         />
       </View>
       {(isEmpty || isError) && (

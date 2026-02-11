@@ -27,6 +27,7 @@ import AppIcon from '../../../../../components/customs/AppIcon';
 import {useNavigation} from '@react-navigation/native';
 import {AppNavigationProp} from '../../../../../types/navigation';
 import {ASUS} from '../../../../../utils/constant';
+import BackButton from '../../../../../components/BackButton';
 
 type Region = 'NORTH' | 'EAST' | 'SOUTH' | 'WEST';
 
@@ -890,53 +891,76 @@ export default function ShopExpansion() {
       </ScrollView>
       {((isHo && selectedRegion) ||
         (!isHo && (selectedBranch || selectedStoreType))) && (
-        <View className="absolute bottom-0 w-[95%] mx-3 bg-white">
-          <Card className="mb-4 py-2 border border-slate-200 dark:border-slate-700 bg-error/10 dark:bg-primary-dark/20" noshadow>
-            <TouchableOpacity
-              onPress={handleBack}
-              className="flex-row items-center py-2"
-              activeOpacity={0.7}>
-              <View className="w-8 h-8 rounded-full bg-primary/10 dark:bg-primary-dark/20 items-center justify-center mr-3">
-                <AppIcon
-                  type="material-community"
-                  name="arrow-left"
-                  size={18}
-                  color="#3b82f6"
-                />
-              </View>
-              <View className="flex-1">
-                <AppText
-                  size="md"
-                  weight="bold"
-                  className="text-primary dark:text-primary-dark"
-                  >
-                  {selectedStoreType
-                    ? 'Back to Store Types'
-                    : selectedBranch
-                      ? 'Back to Branches'
-                      : isHo
-                        ? 'Back to Regions'
-                        : ''}
-                </AppText>
-                <AppText
-                  size="sm"
-                  weight="medium"
-                  className="text-primary dark:text-primary-dark">
-                  {selectedStoreType
-                    ? `View all store types in ${selectedBranch}`
-                    : selectedBranch
-                      ? isHo
-                        ? `View all branches in ${selectedRegion}`
-                        : 'View all branches'
-                      : isHo
-                        ? 'Select a different region'
-                        : ''}
-                </AppText>
-              </View>
-            </TouchableOpacity>
-          </Card>
-        </View>
+        <BackButton
+          onPress={handleBack}
+          Title={
+            selectedStoreType
+              ? 'Back to Store Types'
+              : selectedBranch
+                ? 'Back to Branches'
+                : isHo
+                  ? 'Back to Regions'
+                  : ''
+          }
+          SubTitle={
+            selectedStoreType
+              ? `View all store types in ${selectedBranch}`
+              : selectedBranch
+                ? isHo
+                  ? `View all branches in ${selectedRegion}`
+                  : 'View all branches'
+                : isHo
+                  ? 'Select a different region'
+                  : ''
+          }
+        />
       )}
     </AppLayout>
   );
 }
+
+//   <Card
+//     className="mb-4 py-2 border border-slate-200 dark:border-slate-700 bg-error/10 dark:bg-primary-dark/20"
+//     noshadow>
+//     <TouchableOpacity
+//       onPress={handleBack}
+//       className="flex-row items-center py-2"
+//       activeOpacity={0.7}>
+//       <View className="w-8 h-8 rounded-full bg-primary/10 dark:bg-primary-dark/20 items-center justify-center mr-3">
+//         <AppIcon
+//           type="material-community"
+//           name="arrow-left"
+//           size={18}
+//           color="#3b82f6"
+//         />
+//       </View>
+//       <View className="flex-1">
+//         <AppText
+//           size="md"
+//           weight="bold"
+//           className="text-primary dark:text-primary-dark">
+//           {selectedStoreType
+//             ? 'Back to Store Types'
+//             : selectedBranch
+//               ? 'Back to Branches'
+//               : isHo
+//                 ? 'Back to Regions'
+//                 : ''}
+//         </AppText>
+//         <AppText
+//           size="sm"
+//           weight="medium"
+//           className="text-primary dark:text-primary-dark">
+//           {selectedStoreType
+//             ? `View all store types in ${selectedBranch}`
+//             : selectedBranch
+//               ? isHo
+//                 ? `View all branches in ${selectedRegion}`
+//                 : 'View all branches'
+//               : isHo
+//                 ? 'Select a different region'
+//                 : ''}
+//         </AppText>
+//       </View>
+//     </TouchableOpacity>
+//   </Card>

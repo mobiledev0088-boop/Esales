@@ -27,6 +27,7 @@ import PartnerPieChart, {
   PartnerPieSlice,
 } from '../../../../components/PartnerPieChart';
 import { AppNavigationProp } from '../../../../types/navigation';
+import BackButton from '../../../../components/BackButton';
 
 interface PartnerWise {
   Branch_Name: string;
@@ -94,8 +95,6 @@ type ViewMode = 'branch' | 'territory';
 type ButtonType = 'seemore' | 'disti';
 type WiseType = 'POD' | 'SELL';
 
-
-
 const FALLBACK_COLORS = [
 "#3EBC5C", 
 "#2D7ABC",  
@@ -143,6 +142,7 @@ const API_ENDPOINTS = {
     SELL: '/TrgtVsAchvDetail/GetTrgtVsAchvDetail_Disti',
   },
 };
+
 const APIMAPPING = (
   isTerritory: Boolean,
   isPOD: Boolean,
@@ -218,7 +218,6 @@ const useGetTrgtVsAchvDetail = ({
   });
 };
 
-// Utility Functions
 const groupDemoData = (
   demoData: ProductItem[] | undefined,
   viewMode: ViewMode,
@@ -254,8 +253,7 @@ const groupDemoData = (
   return Object.values(groups);
 };
 
-const getGroupKey = (viewMode: ViewMode, item: GroupedData) =>
-  `${viewMode}-${item.territoryName || item.branchName}`;
+const getGroupKey = (viewMode: ViewMode, item: GroupedData) => `${viewMode}-${item.territoryName || item.branchName}`;
 
 const groupedPartnerData = (demoData: PartnerWise[]) => {
   if (!demoData) return [];
@@ -432,7 +430,7 @@ const GroupAccordionItem = memo(
         <Accordion
           header={accordionHeader}
           needBottomBorder={false}
-          containerClassName="bg-white overflow-hidden rounded-md border border-gray-200">
+          containerClassName="bg-white overflow-hidden rounded-md border border-gray-200 -z-10">
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -551,9 +549,26 @@ const SummaryHeader = memo(
             data={quarter}
             selectedValue={selectedQuarter?.value}
             onSelect={onSelectQuarter}
+            zIndex={9999}
           />
         </View>
-        {viewMode === 'territory' && (
+        {/* add Leagen show Blue for Progress and green for Overachived */}
+        <View className="flex-row items-center gap-2 mb-3">
+          <View className="w-3 h-3 rounded-sm bg-blue-500" />
+          <AppText size="xs" className="text-gray-500">
+            Progress
+          </AppText>
+          <View className="w-3 h-3 rounded-sm bg-green-500" />
+          <AppText size="xs" className="text-gray-500">
+            Overachieved
+          </AppText>
+        </View>
+
+
+
+
+
+        {/* {viewMode === 'territory' && (
           <TouchableOpacity
             onPress={onBackToBranch}
             className="flex-row items-center gap-2 mb-3 self-start">
@@ -567,7 +582,7 @@ const SummaryHeader = memo(
               Back to Branches
             </AppText>
           </TouchableOpacity>
-        )}
+        )} */}
         <AppText size="lg" weight="bold" color="text" className="mb-1">
           {button === 'disti'
             ? viewMode === 'branch'
@@ -581,7 +596,10 @@ const SummaryHeader = memo(
             ? viewMode === 'branch'
               ? 'Distributors'
               : 'Territories'
-            : 'Branches'}{' '}
+            :viewMode === 'branch'
+              ? 'Branches'
+              : 'Territories'
+            }{' '}
           • {selectedQuarter?.label || 'All Time'}
         </AppText>
       </View>
@@ -643,17 +661,16 @@ export default function TargetSummary() {
   const {BSM, RSM, BPM, CHANNEL_MARKETING, SALES_REPS} = ASUS.ROLE_ID;
   const managerArr: number[] = [BSM, RSM, BPM, CHANNEL_MARKETING];
 
-  const isTerritory = useMemo(() => managerArr.includes(roleID), [roleID]);
+  const isBranchManager = useMemo(() => managerArr.includes(roleID), [roleID]);
   const isPartner = useMemo(() => roleID === SALES_REPS, [roleID]);
-  console.log('isTerritory:', isTerritory, 'isPartner:', isPartner);
-
+  
   const quarter = useMemo(() => getPastQuarters(), []);
   const foundQuarter = quarter.find(q => q.value === Quarter);
   const [selectedQuarter, setSelectedQuarter] =
-    useState<AppDropdownItem | null>(foundQuarter || null);
-  const [viewMode, setViewMode] = useState<ViewMode>(
-    isTerritory ? 'territory' : 'branch',
-  );
+  useState<AppDropdownItem | null>(foundQuarter || null);
+  const [viewMode, setViewMode] = useState<ViewMode>(isBranchManager ? 'territory' : 'branch');
+  const isTerritory = useMemo(() => viewMode === 'territory', [viewMode]);
+  console.log('isTerritory:', isTerritory, 'isPartner:', isPartner);
   const [selectedBranch, setSelectedBranch] = useState<string>('');
 
   // Dynamic endpoint based on current view mode (not role)
@@ -758,6 +775,14 @@ export default function TargetSummary() {
           isLoading ? <LoadingSkeletonComponent /> : <EmptyDataComponent />
         }
       />
+      {viewMode === 'territory' && !isBranchManager &&(
+        <BackButton
+        onPress={handleBackToBranch}
+        Title='Back to Branch'
+        SubTitle={selectedBranch}
+        className='w-[99%]'
+        />
+      ) }
     </AppLayout>
   );
 }

@@ -1359,22 +1359,12 @@ const PartnerCard = memo<{
             {/* Shortfall */}
             <View className="w-1/2 items-center">
               <View
-                className={`w-10 h-10 ${
-                  shortfall > 0
-                    ? 'bg-warning/10 dark:bg-warning/20'
-                    : 'bg-gray-100 dark:bg-gray-800'
-                } rounded-lg items-center justify-center mb-2`}>
+                className={`w-10 h-10 bg-warning/10 dark:bg-warning/20 rounded-lg items-center justify-center mb-2`}>
                 <AppIcon
                   name="alert-circle-outline"
                   type="material-community"
                   size={20}
-                  color={
-                    shortfall > 0
-                      ? AppColors.warning
-                      : isDark
-                        ? '#6B7280'
-                        : '#9CA3AF'
-                  }
+                  color={ AppColors.warning}
                 />
               </View>
               <AppText
@@ -1386,11 +1376,7 @@ const PartnerCard = memo<{
               <AppText
                 size="lg"
                 weight="bold"
-                className={
-                  shortfall > 0
-                    ? 'text-warning dark:text-warning'
-                    : 'text-gray-400 dark:text-gray-500'
-                }
+                className={ 'text-warning dark:text-warning'}
                 style={{textAlign: 'center'}}>
                 {shortfall}
               </AppText>
@@ -1680,11 +1666,7 @@ export default function DemoPartners() {
 
               <View className="flex-1 items-center">
                 <View
-                  className={`w-12 h-12 rounded-xl items-center justify-center mb-2 shadow-sm ${
-                    totalShortfall > 0
-                      ? 'bg-amber-500'
-                      : 'bg-slate-300 dark:bg-slate-600'
-                  }`}>
+                  className={`w-12 h-12 rounded-xl items-center justify-center mb-2 shadow-sm bg-amber-500`}>
                   <AppIcon
                     name="alert-circle"
                     type="feather"
@@ -1696,21 +1678,13 @@ export default function DemoPartners() {
                   size="xs"
                   weight="medium"
                   numberOfLines={2}
-                  className={`text-center leading-tight ${
-                    totalShortfall > 0
-                      ? 'text-amber-600 dark:text-amber-400'
-                      : 'text-slate-500 dark:text-slate-400'
-                  }`}>
+                  className={`text-center leading-tight text-amber-600 dark:text-amber-400`}>
                   Pending
                 </AppText>
                 <AppText
                   size="lg"
                   weight="semibold"
-                  className={`mt-1 ${
-                    totalShortfall > 0
-                      ? 'text-amber-600 dark:text-amber-400'
-                      : 'text-slate-500 dark:text-slate-400'
-                  }`}>
+                  className={`mt-1 text-amber-600 dark:text-amber-400`}>
                   {totalShortfall}
                 </AppText>
               </View>
@@ -1728,7 +1702,7 @@ export default function DemoPartners() {
           label="Select Partner"
           data={partnerDropdownItems}
           selectedValue={selectedPartner?.value}
-          mode="dropdown"
+          mode="autocomplete"
           placeholder="All Partners"
           onSelect={setSelectedPartner}
           allowClear

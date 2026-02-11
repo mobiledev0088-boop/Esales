@@ -157,9 +157,7 @@ const ListFooter = ({
 export default function RollingFunnel() {
   const userInfo = useLoginStore(state => state.userInfo);
   const navigation = useNavigation<AppNavigationProp>();
-  const isBSMorAM = [ASUS.ROLE_ID.BSM, ASUS.ROLE_ID.AM].includes(
-    userInfo?.EMP_RoleId as any,
-  );
+  const isBSMorACM = [ASUS.ROLE_ID.BSM, ASUS.ROLE_ID.ACM, ASUS.ROLE_ID.HO_EMPLOYEES].includes(userInfo?.EMP_RoleId as any);
 
   const [searchText, setSearchText] = useState('');
   const [refreshing, setRefreshing] = useState(false);
@@ -485,7 +483,7 @@ export default function RollingFunnel() {
   return (
     <View className="flex-1 bg-lightBg-base pt-4">
       {renderContent()}
-      {isBSMorAM && !isLoading && (
+      {isBSMorACM && !isLoading && (
         <FAB onPress={() => navigation.push('AddRollingFunnel')} />
       )}
     </View>

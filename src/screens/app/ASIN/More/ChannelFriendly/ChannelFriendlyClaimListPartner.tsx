@@ -227,12 +227,13 @@ export default function ChannelFriendlyClaimListPartner() {
   const {IsParentCode} = useUserStore(state => state.empInfo);
   const {quarters, selectedQuarter, setSelectedQuarter} = useQuarterHook();
   const [partnerCode, setPartnerCode] = useState<string>(EMP_Code);
+  const [refreshing, setRefreshing] = useState(false);
 
   const navigation = useNavigation<AppNavigationProp>();
   const {AppTheme} = useThemeStore();
   const theme = AppColors[AppTheme || 'light'];
 
-  const {data, isLoading} = useGetChannelFriendlyClaims(
+  const {data, isLoading,refetch} = useGetChannelFriendlyClaims(
     selectedQuarter?.value || '',
     partnerCode,
   );
@@ -286,6 +287,15 @@ export default function ChannelFriendlyClaimListPartner() {
     [isLoading, theme.text],
   );
 
+  const handleRefresh = useCallback(() => { 
+    setRefreshing(true);
+    try{
+      refetch();
+    }finally{
+      setRefreshing(false);
+    }
+  }, [refetch]);
+
   return (
     <AppLayout title="Channel Friendly Claims" needBack>
       <View
@@ -325,87 +335,89 @@ export default function ChannelFriendlyClaimListPartner() {
         ListEmptyComponent={renderEmpty}
         contentContainerStyle={{paddingBottom: 32, paddingHorizontal: 12}}
         showsVerticalScrollIndicator={false}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
       />
       <FAB onPress={() => navigation.push('ChannelFriendlyClaimsUpload')} />
     </AppLayout>
   );
 }
 
-export const DirectSourceExample = () => {
-  const {
-    imageUri,
-    showCropModal,
-    tempImageUri,
-    pickImage,
-    handleCropComplete,
-    handleCropCancel,
-    reset,
-  } = useImagePicker({
-    enableCrop: true,
-    quality: 0.9,
-  });
+// export const DirectSourceExample = () => {
+//   const {
+//     imageUri,
+//     showCropModal,
+//     tempImageUri,
+//     pickImage,
+//     handleCropComplete,
+//     handleCropCancel,
+//     reset,
+//   } = useImagePicker({
+//     enableCrop: true,
+//     quality: 0.9,
+//   });
 
-  useEffect(() => {
-    if (imageUri) {
-      console.log('Final Image URI:', imageUri);
-    }
-  }, [imageUri]);
+//   useEffect(() => {
+//     if (imageUri) {
+//       console.log('Final Image URI:', imageUri);
+//     }
+//   }, [imageUri]);
 
-  useEffect(() => {
-    if (tempImageUri) {
-      console.log('Temp Image URI (for crop):', tempImageUri);
-    }
-  }, [tempImageUri]);
+//   useEffect(() => {
+//     if (tempImageUri) {
+//       console.log('Temp Image URI (for crop):', tempImageUri);
+//     }
+//   }, [tempImageUri]);
 
-  return (
-    <View className="p-5 items-center">
-      <AppText className="text-lg font-bold mb-4 text-center">
-        Image Picker with Crop
-      </AppText>
-      <AppText>{imageUri}</AppText>
+//   return (
+//     <View className="p-5 items-center">
+//       <AppText className="text-lg font-bold mb-4 text-center">
+//         Image Picker with Crop
+//       </AppText>
+//       <AppText>{imageUri}</AppText>
 
-      {imageUri ? (
-        <>
-          <Image
-            source={{uri: imageUri}}
-            className="w-full h-[300px] rounded-lg mb-4 bg-gray-300"
-            resizeMode="cover"
-          />
-          <TouchableOpacity
-            onPress={reset}
-            className="bg-[#007AFF] px-6 py-3 rounded-lg mt-2">
-            <AppText className="text-white text-base font-semibold">
-              Clear
-            </AppText>
-          </TouchableOpacity>
-        </>
-      ) : (
-        <View className="flex-row gap-3 w-full">
-          <TouchableOpacity
-            onPress={() => pickImage('camera')}
-            className="flex-1 bg-[#007AFF] py-3 rounded-lg items-center">
-            <AppText className="text-white text-base font-semibold">
-              📷 Camera
-            </AppText>
-          </TouchableOpacity>
+//       {imageUri ? (
+//         <>
+//           <Image
+//             source={{uri: imageUri}}
+//             className="w-full h-[300px] rounded-lg mb-4 bg-gray-300"
+//             resizeMode="cover"
+//           />
+//           <TouchableOpacity
+//             onPress={reset}
+//             className="bg-[#007AFF] px-6 py-3 rounded-lg mt-2">
+//             <AppText className="text-white text-base font-semibold">
+//               Clear
+//             </AppText>
+//           </TouchableOpacity>
+//         </>
+//       ) : (
+//         <View className="flex-row gap-3 w-full">
+//           <TouchableOpacity
+//             onPress={() => pickImage('camera')}
+//             className="flex-1 bg-[#007AFF] py-3 rounded-lg items-center">
+//             <AppText className="text-white text-base font-semibold">
+//               📷 Camera
+//             </AppText>
+//           </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={() => pickImage('gallery')}
-            className="flex-1 bg-[#007AFF] py-3 rounded-lg items-center">
-            <AppText className="text-white text-base font-semibold">
-              🖼️ Gallery
-            </AppText>
-          </TouchableOpacity>
-        </View>
-      )}
+//           <TouchableOpacity
+//             onPress={() => pickImage('gallery')}
+//             className="flex-1 bg-[#007AFF] py-3 rounded-lg items-center">
+//             <AppText className="text-white text-base font-semibold">
+//               🖼️ Gallery
+//             </AppText>
+//           </TouchableOpacity>
+//         </View>
+//       )}
 
-      <ImageCropModal
-        visible={showCropModal}
-        imageUri={tempImageUri}
-        onCropComplete={handleCropComplete}
-        onCancel={handleCropCancel}
-        quality={0.9}
-      />
-    </View>
-  );
-};
+//       <ImageCropModal
+//         visible={showCropModal}
+//         imageUri={tempImageUri}
+//         onCropComplete={handleCropComplete}
+//         onCancel={handleCropCancel}
+//         quality={0.9}
+//       />
+//     </View>
+//   );
+// };

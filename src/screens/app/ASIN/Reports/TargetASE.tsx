@@ -201,9 +201,14 @@ export default function TargetSummaryAMBranch() {
       node.PartnerWiseDetails.push(item);
     });
 
-    groupedList = Array.from(branchMap.values()).sort((a, b) =>
-      a.BranchName.localeCompare(b.BranchName),
-    );
+    groupedList = Array.from(branchMap.values())
+      .sort((a, b) => a.BranchName.localeCompare(b.BranchName))
+      .map(item => ({
+        ...item,
+        ProductCategoryType: item.ProductCategoryType.sort(
+          (a, b) => a.Sequence_No - b.Sequence_No,
+        ),
+      }));
     return groupedList;
   }, [trgtVsAchvDetail]);
 

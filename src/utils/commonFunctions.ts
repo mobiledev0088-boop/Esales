@@ -252,12 +252,12 @@ const PRODUCT_CONFIG_MAP: Record<string, ProductConfig> = {
   Creator: {icon: 'cube-outline', color: AppColors.utilColor6, name: 'Creator'},
   ACCY: {icon: 'book-open-variant', color: AppColors.utilColor7, name: 'ACCY'},
   WEP: {icon: 'wifi', color: AppColors.utilColor8, name: 'WEP'},
-  NX: {icon: 'laptop', color: AppColors.utilColor9, name: 'NX'},
+  NX: {icon: 'laptop', color: AppColors.utilColor10, name: 'NX'},
 };
 
 const DEFAULT_PRODUCT_CONFIG: ProductConfig = {
   icon: 'package',
-  color: AppColors.utilColor1,
+  color: AppColors.utilColor9,
   name: 'Unknown',
 };
 

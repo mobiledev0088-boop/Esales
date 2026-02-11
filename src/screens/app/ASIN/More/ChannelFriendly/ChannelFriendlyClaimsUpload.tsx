@@ -1,5 +1,5 @@
 import {ScrollView, TouchableOpacity, View} from 'react-native';
-import {JSX, memo, useCallback, useEffect, useMemo, useState} from 'react';
+import {JSX, memo, use, useCallback, useEffect, useMemo, useState} from 'react';
 import AppLayout from '../../../../../components/layout/AppLayout';
 import AppText from '../../../../../components/customs/AppText';
 import AppInput from '../../../../../components/customs/AppInput';
@@ -24,6 +24,8 @@ import {getDeviceId} from 'react-native-device-info';
 import {useLoginStore} from '../../../../../stores/useLoginStore';
 import {queryClient} from '../../../../../stores/providers/QueryProvider';
 import { useLoaderStore } from '../../../../../stores/useLoaderStore';
+import { useUserStore } from '../../../../../stores/useUserStore';
+import { ASUS } from '../../../../../utils/constant';
 
 // type ClaimPayload = typeof DemoDataToSend;
 type StepId = 1 | 2 | 3;
@@ -60,9 +62,14 @@ interface BuildPayloadArgs {
   onlineSrp: string;
   studentEmail: string;
   images: Record<ImageKey, ClaimImage>;
+  t3PartnerName?: string;
 }
 
 interface ValidateSerialStepProps {
+  t3PartnerName: string;
+  setT3PartnerName: (value: string) => void;
+  t3PartnerNameError: string;
+  setT3PartnerNameError: (value: string) => void;
   formattedToday: string;
   searchValue: string;
   setSearchValue: (value: string) => void;
@@ -110,8 +117,7 @@ interface ValidatePurchaseInput {
   images: Record<ImageKey, ClaimImage>;
 }
 
-// API Hook
-
+// API Hookes
 const useGetEtailerList = () => {
   return useQuery({
     queryKey: ['channelFriendlyClaims'],
@@ -152,6 +158,7 @@ const useGetAuthSellerList = (eTailerName: string) => {
 const useValidateSSNMutation = () => {
   return useMutation({
     mutationFn: async (SSN: string) => {
+      console.log('Validating SSN:', SSN);
       const res = await handleASINApiCall(
         '/ChannelFriendlyClaims/GetChannelFriendlyClaims_ValidateSSN',
         {SSN},
@@ -159,6 +166,7 @@ const useValidateSSNMutation = () => {
         true,
       );
       const result = res.DashboardData;
+      console.log('Validation result:', result);
       if (result.Status) {
         return true;
       } else {
@@ -323,17 +331,19 @@ const buildClaimPayload = async ({
   onlineSrp,
   studentEmail,
   images,
+  t3PartnerName,
 }: BuildPayloadArgs) => {
   return {
     PartnerCode: employeeCode, // These values should be filled from login/user store where available.
     UserName: employeeCode,
     MachineName: getDeviceId(),
-    EndCustomerInvoiceDate: moment(formattedToday, "DD-MMM-YYYY").format("DD-MM-YYYY"),
+    T3PartnerName: t3PartnerName || 'N/A',
+    EndCustomerInvoiceDate: moment(formattedToday, "DD-MMM-YYYY").format("DD-MMM-YYYY"),
     SSN: serialNumber.trim(),
-    eTailerDate: moment(formattedToday, "DD-MMM-YYYY").format("DD-MM-YYYY"),
+    eTailerDate: moment(formattedToday, "DD-MMM-YYYY").format("DD-MMM-YYYY"),
     eTailerName: selectedEtailer?.label ?? '',
     eTailerSellerName: selectedAuthSeller?.label ?? '',
-    eTailerSRP: Number(onlineSrp.trim()),
+    eTailerSRP: onlineSrp.trim(),
     T2InvoiceCopy: await convertImageToBase64(images.invoice?.uri ?? ''),
     ALPT3InvoiceCopy: await convertImageToBase64(images.customerWithUnit?.uri ?? ''),
     ALPUploadPhotoCopy: await convertImageToBase64(images.customerWithUnit?.uri ?? ''),
@@ -352,8 +362,14 @@ const countUploadedImages = (
 ): number =>
   keys.reduce((count, key) => (images[key]?.uri ? count + 1 : count), 0);
 
+
+// components for each step
 const ValidateSerialStep = memo(
   ({
+    setT3PartnerName,
+    t3PartnerName,
+    setT3PartnerNameError,
+    t3PartnerNameError,
     formattedToday,
     searchValue,
     setSearchValue,
@@ -364,6 +380,9 @@ const ValidateSerialStep = memo(
     error,
   }: ValidateSerialStepProps) => {
     const scanButtonBg = isDarkTheme ? AppColors.dark.primary : '#EBF4FF';
+    const {EMP_Type} = useUserStore.getState().empInfo;
+    const isAWP = EMP_Type === ASUS.PARTNER_TYPE.T2.AWP;
+
     return (
       <View className="gap-6">
         <View className="gap-1">
@@ -383,6 +402,18 @@ const ValidateSerialStep = memo(
             Date is automatically set to today and cannot be edited.
           </AppText>
         </View>
+       {isAWP && <AppInput
+        value={t3PartnerName}
+        setValue={(item)=>{
+          setT3PartnerName(item)
+          if(t3PartnerNameError){
+            setT3PartnerNameError('')
+          }
+        }}
+        label='T3 Partner Name'
+        placeholder='Enter T3 Partner Name'
+        error={t3PartnerNameError}
+        />}
 
         <View className="gap-2">
           <AppInput
@@ -797,6 +828,8 @@ export default function ChannelFriendlyClaimsUpload() {
   const isDarkTheme = useThemeStore(state => state.AppTheme === 'dark');
   const setGlobalLoading = useLoaderStore(state => state.setGlobalLoading);
   const {EMP_Code: employeeCode="",EMP_Name=""} = useLoginStore(state => state.userInfo);
+  const {EMP_Type} = useUserStore(state => state.empInfo); 
+  const isAWP = EMP_Type === ASUS.PARTNER_TYPE.T2.AWP;
   const {data: etailerData, isLoading: etailerLoading} = useGetEtailerList();
   const {mutate: validateSSN} = useValidateSSNMutation();
   const {mutate: submitClaim, isPending: submitting} = useCliamInsertMutation();
@@ -828,6 +861,9 @@ export default function ChannelFriendlyClaimsUpload() {
     useState<PurchaseValidationErrors>({});
   const [purchaseMode, setPurchaseMode] = useState<PurchaseMode>('default');
   const [studentEmail, setStudentEmail] = useState('');
+  const [t3PartnerName, setT3PartnerName] = useState('');
+  const [t3PartnerNameError, setT3PartnerNameError] = useState('');
+
   const accent = '#3B82F6';
   const formattedToday = useMemo(() => moment().format('DD-MMM-YYYY'), []);
   const handleChange = useCallback((value: string) => {
@@ -847,6 +883,14 @@ export default function ChannelFriendlyClaimsUpload() {
 
   const handleSerialValidate = useCallback(() => {
     const validationError = validateSerialNumber(searchValue);
+    if(isAWP){
+      if (!t3PartnerName.trim()) {
+        setT3PartnerNameError('T3 Partner Name is required for AWP employees');
+        return;
+      } else {
+        setT3PartnerNameError('');
+      }
+    }
     if (validationError) {
       setError(validationError);
       return;
@@ -1018,13 +1062,14 @@ export default function ChannelFriendlyClaimsUpload() {
       onlineSrp,
       studentEmail,
       images,
+      t3PartnerName
     });
     console.log('Submitting Claim Payload:', payload);
 
     submitClaim(payload, {
       onSuccess: () => {
         sendNotification({EMP_Code: employeeCode, EMP_Name, serialNo: searchValue});
-        queryClient.invalidateQueries({queryKey: ['rollingFunnelData']});
+        queryClient.invalidateQueries({queryKey: ['channelFriendlyClaims']});
         showToast('Claim submitted successfully');
         navigation.goBack();
       },
@@ -1052,6 +1097,10 @@ export default function ChannelFriendlyClaimsUpload() {
     if (currentStep === 1) {
       return (
         <ValidateSerialStep
+        t3PartnerName={t3PartnerName}
+        setT3PartnerName={setT3PartnerName}
+        t3PartnerNameError={t3PartnerNameError}
+        setT3PartnerNameError={setT3PartnerNameError}
           formattedToday={formattedToday}
           searchValue={searchValue}
           setSearchValue={handleChange}

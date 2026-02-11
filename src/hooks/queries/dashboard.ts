@@ -65,7 +65,6 @@ export const useDashboardData = (
   const effectiveYearQtr = YearQtr || yearQtr;
   const effectiveMasterTab = masterTab || 'Total';
   if(subCode) employeeCode = subCode; // Override employee code if subCode is provided (for partner view)
-  console.log('useDashboardData DifferentEmployeeCode',DifferentEmployeeCode);
   return useQuery({
     queryKey: [
       'dashboardData',

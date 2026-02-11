@@ -1,4 +1,4 @@
-import {Pressable, ScrollView, View} from 'react-native';
+import {Pressable, RefreshControl, ScrollView, View} from 'react-native';
 import React, {useState, useCallback, memo, useMemo} from 'react';
 import {useQuery} from '@tanstack/react-query';
 import AppLayout from '../../../../../components/layout/AppLayout';
@@ -565,6 +565,7 @@ export default function ChannelFriendlyClaimListHO() {
     data: channelFriendlyClaimsDetail,
     isLoading,
     isError,
+    refetch,
   } = useGetChannelFriendlySummary(
     selectedQuarter?.value || quarters[0]?.value,
   );
@@ -577,6 +578,7 @@ export default function ChannelFriendlyClaimListHO() {
   const [selectedPartner, setSelectedPartner] =
     useState<AppDropdownItem | null>(null);
   const [showAllItems, setShowAllItems] = useState<Record<string, boolean>>({});
+  const [refreshing, setRefreshing] = useState(false);
 
   // Use custom hook for data processing
   const {partnerOptions, groupedByBranch, hasData, branchCount} =
@@ -600,6 +602,17 @@ export default function ChannelFriendlyClaimListHO() {
   const handleClearFilter = useCallback(() => {
     setSelectedPartner(null);
   }, []);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch]);
 
   return (
     <AppLayout title="Channel Friendly Claims" needBack>
@@ -639,7 +652,14 @@ export default function ChannelFriendlyClaimListHO() {
           <ScrollView
             className="flex-1"
             contentContainerStyle={{paddingBottom: 20}}
-            showsVerticalScrollIndicator={false}>
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              />
+            }
+            >
             {/* Summary Section */}
             <View className="px-4 pt-5 pb-4">
               <AppText

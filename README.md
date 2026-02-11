@@ -1,4 +1,4 @@
-# eSales Mobile App (Android-first)
+# eSales Mobile App
 
 A React Native application used by ASUS sales teams and partners to access dashboards, claims, schemes, reports, notifications, and operational workflows in a single mobile experience.
 

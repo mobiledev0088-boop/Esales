@@ -1643,7 +1643,9 @@ export default function ChannelMapEditAGP() {
             },
             {
               name: 'Finance_Info',
-              component: <FinanceInfo />,
+              component: <FinanceInfo
+              
+              />,
               label: 'Finance Info',
             },
           ]}
@@ -1789,9 +1791,9 @@ const ChannelMapInfoComponent = (props: ChannelMapInfoProps) => {
 };
 
 const FinanceInfo = (props:any) => {
-  // const { financeFields, financeInfo, updateFinanceInfo, validationErrors, openAccordion, handleAccordionToggle } = props;
+  const { financeFields, financeInfo, updateFinanceInfo, validationErrors, openAccordion, handleAccordionToggle } = props;
   return <View className="flex-1">
-      {/* <FormSection
+      <FormSection
         title="Finance Information"
         icon="info"
         iconType="feather"
@@ -1801,6 +1803,6 @@ const FinanceInfo = (props:any) => {
         validationErrors={validationErrors.financeInfo}
         isOpen={openAccordion === 'financeInfo'}
         onToggle={() => handleAccordionToggle('financeInfo')}
-      /> */}
+      />
   </View>;
 };
