@@ -32,9 +32,7 @@ import {
   DashboardSkeleton,
   TargetVsAchievementSkeleton,
 } from '../../../../components/skeleton/DashboardSkeleton';
-import {
-  useDashboardDataAM,
-} from '../../../../hooks/queries/dashboard';
+import {useDashboardDataAM} from '../../../../hooks/queries/dashboard';
 import {formatDisplayValue} from './dashboardUtils';
 import {DASHBOARD} from '../../../../utils/constant';
 import AppDropdown, {
@@ -43,10 +41,12 @@ import AppDropdown, {
 import {MaterialTopTabScreenProps} from '@react-navigation/material-top-tabs';
 import {AppTextColorType} from '../../../../types/customs';
 import AppInput from '../../../../components/customs/AppInput';
-import { BannerComponent, ErrorDisplay } from './components';
+import {BannerComponent, ErrorDisplay} from './components';
 import AppTabBar from '../../../../components/CustomTabBar';
 import useQuarterHook from '../../../../hooks/useQuarterHook';
-import { useUserStore } from '../../../../stores/useUserStore';
+import {useUserStore} from '../../../../stores/useUserStore';
+import {useNavigation} from '@react-navigation/native';
+import {AppNavigationProp} from '../../../../types/navigation';
 
 interface ActivationData {
   Series: string;
@@ -74,6 +74,24 @@ interface ActivationPerformanceComponentProps {
 interface DataTableProps {
   data: ActivationData[];
   columns: ColumnConfig[];
+}
+
+interface ASEDATAProps {
+  aseDataTotal: {
+    Target_Qty: number;
+    Sellout_Qty: number;
+    Achieved_Qty: number;
+    H_Rate: number;
+  };
+  list: {
+    IchannelID: string;
+    ASE_Name: string;
+    Partner_Name: string;
+    Target_Qty: number;
+    Sellout_Qty: number;
+    Achieved_Qty: number;
+    H_Rate: number;
+  }[];
 }
 
 const STATIC_DASHBOARD_TABS = [
@@ -406,7 +424,6 @@ const DashboardHeader: React.FC<HeaderProps> = ({
 const TargetVsAchievementComponent: React.FC<
   Omit<TargetVsAchievementProps, 'data'> & {data: ProductCategoryData[]}
 > = ({data = [], isLoading, error, onRetry}) => {
-
   const handleSeeMorePress = useCallback(() => {
     console.log('See More pressed');
   }, []);
@@ -518,7 +535,6 @@ const TargetVsAchievementComponent: React.FC<
 export const ActivationPerformanceComponent: React.FC<
   ActivationPerformanceComponentProps
 > = ({data = [], isLoading, error, onRetry}) => {
-
   const [isExpand, setIsExpand] = useState(false);
   const [search, setSearch] = useState(''); // immediate value
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -627,7 +643,7 @@ export const ActivationPerformanceComponent: React.FC<
     return <ActivationPerformanceSkeleton />;
   }
   const noMatches = debouncedSearch.length > 0 && totalFiltered === 0;
-  
+
   const TopModelsTab = () => {
     return (
       <View className="overflow-hidden rounded-xl">
@@ -723,7 +739,11 @@ export const ActivationPerformanceComponent: React.FC<
         seeMoreText={isExpand ? 'See Less' : 'See More'}>
         <AppTabBar
           tabs={[
-            {name: 'Top Models', label: 'Top Models', component: <TopModelsTab />},
+            {
+              name: 'Top Models',
+              label: 'Top Models',
+              component: <TopModelsTab />,
+            },
           ]}
         />
       </Card>
@@ -733,7 +753,11 @@ export const ActivationPerformanceComponent: React.FC<
 /**
  * ASE Performance Component - Shows ASE performance KPIs Need to Integrate real data
  */
-const ASEPerformanceComponent: React.FC = () => {
+const ASEPerformanceComponent: React.FC<ASEDATAProps> = ({
+  aseDataTotal,
+  list,
+}) => {
+  const navigation = useNavigation<AppNavigationProp>();
   const KPIItem = useCallback(
     ({
       label,
@@ -743,7 +767,7 @@ const ASEPerformanceComponent: React.FC = () => {
       iconColor,
     }: {
       label: string;
-      value: string;
+      value: number;
       icon: string;
       iconBg: string;
       iconColor: string;
@@ -769,34 +793,34 @@ const ASEPerformanceComponent: React.FC = () => {
     () => [
       {
         label: 'Total Target',
-        value: '1098',
+        value: aseDataTotal?.Target_Qty,
         icon: 'target',
         iconBg: '#dbeafe',
         iconColor: '#1d4ed8',
       },
       {
         label: 'Total Sellout',
-        value: '578',
+        value: aseDataTotal?.Sellout_Qty,
         icon: 'shopping-cart',
         iconBg: '#e0f2fe',
         iconColor: '#0369a1',
       },
       {
         label: 'Total Activation',
-        value: '500',
+        value: aseDataTotal?.Achieved_Qty,
         icon: 'zap',
         iconBg: '#fae8ff',
         iconColor: '#a21caf',
       },
       {
         label: 'Overall Hit Rate',
-        value: '86%',
+        value: aseDataTotal?.H_Rate,
         icon: 'percent',
         iconBg: '#dcfce7',
         iconColor: '#047857',
       },
     ],
-    [],
+    [aseDataTotal],
   );
 
   return (
@@ -822,7 +846,10 @@ const ASEPerformanceComponent: React.FC = () => {
       <Card
         className="flex-row justify-around flex-wrap"
         needSeeMore
-        needSeeMoreIcon>
+        needSeeMoreIcon
+        seeMoreOnPress={() =>
+          navigation.navigate('VerticalASE', {aseData: list})
+        }>
         {kpis.map(k => (
           <KPIItem key={k.label} {...k} />
         ))}
@@ -862,6 +889,24 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
         }
       : undefined;
   }, [dashboardData?.MasterTab, route.name]);
+
+  const aseDataTotal = useMemo(() => {
+    // Assuming TOP5ASE is an array of ASE performance data sum all of the data
+    const aseItem = dashboardData?.TOP5ASE?.reduce(
+      (acc: any, item: any) => {
+        acc.Target_Qty =
+          (Number(acc.Target_Qty) || 0) + (Number(item.Target_Qty) || 0);
+        acc.Sellout_Qty =
+          (Number(acc.Sellout_Qty) || 0) + (Number(item.Sellout_Qty) || 0);
+        acc.Activaton_Qty =
+          (Number(acc.Activaton_Qty) || 0) + (Number(item.Activaton_Qty) || 0);
+        acc.H_Rate = (Number(acc.H_Rate) || 0) + (Number(item.H_Rate) || 0);
+        return acc;
+      },
+      {Target_Qty: 0, Sellout_Qty: 0, Activaton_Qty: 0, H_Rate: 0},
+    );
+    return aseItem;
+  }, [dashboardData?.TOP5ASE]);
 
   const handleRetry = useCallback(() => {
     refetchDashboard();
@@ -908,7 +953,7 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
           onRetry={handleRetry}
         />
 
-        <BannerComponent  />
+        <BannerComponent />
 
         <TargetVsAchievementComponent
           data={dashboardData?.TRGTSummary}
@@ -926,14 +971,17 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
           onRetry={handleRetry}
         />
 
-        <ASEPerformanceComponent />
+        <ASEPerformanceComponent
+          aseDataTotal={aseDataTotal}
+          list={dashboardData?.TOP5ASE || []}
+        />
       </KeyboardAwareScrollView>
     </View>
   );
 });
 
 export default function Dashboard_AM() {
-  const {Year_Qtr} = useUserStore(state =>state.empInfo)
+  const {Year_Qtr} = useUserStore(state => state.empInfo);
   const {selectedQuarter} = useQuarterHook(Year_Qtr);
   const {
     data: dashboardData,

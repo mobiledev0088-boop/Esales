@@ -57,6 +57,7 @@ import MarketingDispatchTracker from '../screens/app/ASIN/More/MarketingDispatch
 import TargetASETerritory from '../screens/app/ASIN/Reports/TargetASETerritory';
 import TargetASEDashboard from '../screens/app/ASIN/Dashboard/TargetASEDashboard';
 import TargetDemoPartner from '../screens/app/ASIN/Demo/TargetDemoPartner';
+import VerticalASE from '../screens/app/ASIN/Reports/VerticalASE';
 
 type Screen = {
   name: string;
@@ -134,6 +135,7 @@ const screens: Screen[] = [
   {name: 'ActPerformance', component: ActPerformance},
   {name: 'TargetSummary', component: TargetSummary},
   {name: 'TargetSummaryPartner', component: TargetSummaryPartner},
+  {name: 'VerticalASE', component: VerticalASE},
   {name: 'VerticalASE_HO', component: VerticalASE_HO},
   {name: 'TargetASE', component: TargetASE},
   {name: 'TargetASETerritory', component: TargetASETerritory},

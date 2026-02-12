@@ -148,6 +148,9 @@ type AppNavigationParamList = {
   TargetSummary: {masterTab: string; Quarter: string, button: 'seemore' | 'disti',wise: 'POD' | 'SELL'};
   TargetSummaryPartner: {Year_Qtr:string; AlpType: string, Branch: string};
   TargetDemoPartner: {differentEmployeeCode: string};
+  VerticalASE : {
+    aseData: any;
+  }
   VerticalASE_HO: {Year: string; Month: string; AlpType: string, Branch?: string, Territory?: string};
   TargetASE: {Year: string; Month: string; masterTab: string};
   TargetASETerritory: {Year: string; Month: string; masterTab: string, branchName: string};
