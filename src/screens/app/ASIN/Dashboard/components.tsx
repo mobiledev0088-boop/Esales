@@ -642,7 +642,7 @@ export const TargetAchievementCard = ({
   const percentage = target ? Math.round((achievement / target) * 100) : 0;
 
   const getTheme = () => {
-    if (percentage >= 70)
+    if (percentage >= 90)
       return {
         bg: 'bg-emerald-50',
         border: 'border-emerald-200',
@@ -651,7 +651,7 @@ export const TargetAchievementCard = ({
         iconColor: '#10b981',
         progressBg: 'bg-emerald-500',
       };
-    if (percentage >= 40)
+    if (percentage >= 60)
       return {
         bg: 'bg-blue-50',
         border: 'border-blue-200',
@@ -664,7 +664,7 @@ export const TargetAchievementCard = ({
       bg: 'bg-orange-50',
       border: 'border-orange-200',
       text: 'text-orange-700',
-      icon: 'alert-circle',
+      icon: 'target',
       iconColor: '#f97316',
       progressBg: 'bg-orange-500',
     };

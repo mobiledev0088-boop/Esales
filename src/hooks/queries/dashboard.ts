@@ -259,12 +259,17 @@ export const useDashboardDataAPAC = (
       DifferentEmployeeCode
     ],
     queryFn: async () => {
+      console.log('Fetching dashboard data with params:', {
+        employeeCode: DifferentEmployeeCode || employeeCode,
+        masterTab: effectiveMasterTab,
+        YearQtr: effectiveYearQtr,
+      }); // Debug log to check parameters being sent to API
       const res = await handleAPACApiCall('/Dashboard/GetDashboardData', {
         employeeCode:DifferentEmployeeCode || employeeCode,
         masterTab: effectiveMasterTab,
         YearQtr: effectiveYearQtr,
       });
-
+      console.log('API Response for Dashboard Data:', res); // Debug log to check API response
       const result = res.DashboardData;
       return result?.Status ? result.Datainfo : null;
     },

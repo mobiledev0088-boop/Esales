@@ -36,11 +36,24 @@ import {
   LFRCompetitionInfo,
   LFRDetailsLoadingSkeleton,
 } from './components';
+import { AppColors } from '../../../../../config/theme';
+import { useThemeStore } from '../../../../../stores/useThemeStore';
 
-const ALPInfo = () => {
+const ALPInfo = ({
+  ALP_PartnerCode,
+  ALP_PartnerName,
+}: {
+  ALP_PartnerCode?: string;
+  ALP_PartnerName?: string;
+}) => {
   const userInfo = useLoginStore(state => state.userInfo);
+  const AppTheme = useThemeStore(state => state.AppTheme);
   const navigation = useNavigation<AppNavigationProp>();
-  const [selectedItem, setSelectedItem] = useState<AppDropdownItem | null>(null);
+   const selectedValue = ALP_PartnerCode
+    ? {label: ALP_PartnerName || '', value: ALP_PartnerCode}
+    : null;
+  const [selectedItem, setSelectedItem] = useState<AppDropdownItem | null>(selectedValue);
+  console.log('ALPInfo props:', selectedItem);
 
   const {data: listData, isLoading, error} = useGetALPList();
   const {
@@ -75,6 +88,7 @@ const ALPInfo = () => {
             DifferentEmployeeCode={selectedItem?.value}
             noPadding
             employeeType={alpDetails.PQT_PartnerType}
+            needSeeDemo
           />
         ),
         label: 'Results',
@@ -96,13 +110,15 @@ const ALPInfo = () => {
       ASUS.ROLE_ID.BPM,
     ].includes(userInfo.EMP_RoleId as any) ||
     ['KN2200052', 'KN1800037', 'KN2500069'].includes(userInfo?.EMP_Code || '');
+      console.log('ALPInfo selectedItem:', selectedItem);
   return (
-    <View className="flex-1 bg-lightBg-base px-1">
+    <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base px-1">
       <SearchableDropdown
         data={listData || []}
-        placeholder="Select ALP Channel Map Data"
+        placeholder={isLoading ? 'Loading....' : 'Select ALP Channel Map Data'}
         onSelect={setSelectedItem}
         onClear={() => setSelectedItem(null)}
+        defaultValue={selectedValue?.label}
       />
 
       {selectedItem?.value ? (
@@ -118,7 +134,7 @@ const ALPInfo = () => {
               <AppTabBar
                 tabs={tabs}
                 containerStyle={{marginLeft: 0, marginRight: 0}}
-                contentContainerStyle={{paddingTop: 16}}
+                contentContainerStyle={[{paddingTop: 16},{backgroundColor: AppColors[AppTheme].bgBase}]}
               />
             </ScrollView>
             {/* create button here */}
@@ -156,12 +172,14 @@ const AGPInfo = ({
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const userInfo = useLoginStore(state => state.userInfo);
+  const AppTheme = useThemeStore(state => state.AppTheme);
   const selectedValue = AGP_PartnerCode
     ? {label: AGP_PartnerName || '', value: AGP_PartnerCode}
     : null;
   const [selectedItem, setSelectedItem] = useState<AppDropdownItem | null>(
     selectedValue,
   );
+
 
   const {data: listData, isLoading, error} = useGetAGPList();
   const {
@@ -222,7 +240,8 @@ const AGPInfo = ({
         name: 'Results',
         component: () => (
           <Dashboard_Partner
-          DifferentEmployeeCode={selectedItem?.value}
+            DifferentEmployeeCode={selectedItem?.value}
+            DifferentEmployeeName={selectedItem?.label}
             noBanner
             noPadding
             noAnalytics
@@ -244,7 +263,7 @@ const AGPInfo = ({
         placeholder={isLoading ? 'Loading....' : 'Select AGP Channel Map Data'}
         onSelect={setSelectedItem}
         onClear={() => setSelectedItem(null)}
-        defaultValue={selectedValue?.value}
+        defaultValue={selectedItem?.label}
       />
       {selectedItem?.value ? (
         detailsLoading ? (
@@ -255,7 +274,10 @@ const AGPInfo = ({
           <ScrollView
             className="flex-1 pt-4"
             showsVerticalScrollIndicator={false}>
-            <AppTabBar tabs={tabs} contentContainerStyle={{paddingTop: 16}} />
+            <AppTabBar 
+              tabs={tabs} 
+              contentContainerStyle={[{paddingTop: 16},{backgroundColor: AppColors[AppTheme].bgBase}]}
+            />
           </ScrollView>
         ) : (
           <AGPNoDetailsState />
@@ -305,6 +327,7 @@ const LFRInfo = () => {
     isLoading: detailsLoading,
     error: detailsError,
   } = useGetLFRDetails(selectedItem?.value || null);
+  const AppTheme = useThemeStore(state => state.AppTheme);
 
   const lfrDetails: LFRDetails | null = useMemo(
     () => data?.LFR_Info?.[0] || null,
@@ -335,7 +358,7 @@ const LFRInfo = () => {
   }
 
   return (
-    <View className="flex-1 bg-lightBg-base px-1">
+    <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base px-1">
       <SearchableDropdown
         data={listData || []}
         placeholder="Select LFR Channel Map Data"
@@ -350,12 +373,12 @@ const LFRInfo = () => {
           <ErrorState message="Error loading LFR details. Please try again." />
         ) : lfrDetails ? (
           <ScrollView
-            className="flex-1 pt-4"
+            className="flex-1 pt-4 "
             showsVerticalScrollIndicator={false}>
             <AppTabBar
               tabs={tabs}
               containerStyle={{marginLeft: 0, marginRight: 0}}
-              contentContainerStyle={{paddingTop: 16}}
+              contentContainerStyle={[{paddingTop: 16},{backgroundColor: AppColors[AppTheme].bgBase}]}
             />
           </ScrollView>
         ) : (
@@ -370,28 +393,35 @@ const LFRInfo = () => {
 
 export default function ChannelMap() {
   const {params = {}} = useRoute();
-  const {activeTab, AGP_PartnerName, AGP_PartnerCode} = params as {
+  const {activeTab, PartnerName, PartnerCode} = params as {
     activeTab?: number;
-    AGP_PartnerName?: string;
-    AGP_PartnerCode?: string;
+    PartnerName?: string;
+    PartnerCode?: string;
   };
-  const initialRouteName =
-    activeTab === 1 ? 'AGP' : activeTab === 2 ? 'LFR' : 'ALP';
+  const initialRouteName = activeTab === 1 ? 'AGP' : activeTab === 2 ? 'LFR' : 'ALP';
+  const ALPData = activeTab === 0 ? {ALP_PartnerCode: PartnerCode, ALP_PartnerName: PartnerName} : undefined;
+  const AGPData = activeTab === 1 ? {AGP_PartnerCode: PartnerCode, AGP_PartnerName: PartnerName} : undefined;
+
   return (
     <AppLayout title="Channel Map" needBack needPadding>
       <MaterialTabBar
         tabs={[
           {
             name: 'ALP',
-            component: ALPInfo,
+            component: (
+              <ALPInfo
+                ALP_PartnerCode={ALPData?.ALP_PartnerCode}
+                ALP_PartnerName={ALPData?.ALP_PartnerName}
+              />
+            ),
             label: 'ALP',
           },
           {
             name: 'AGP',
             component: (
               <AGPInfo
-                AGP_PartnerCode={AGP_PartnerCode}
-                AGP_PartnerName={AGP_PartnerName}
+                AGP_PartnerCode={AGPData?.AGP_PartnerCode}
+                AGP_PartnerName={AGPData?.AGP_PartnerName}
               />
             ),
             label: 'AGP',

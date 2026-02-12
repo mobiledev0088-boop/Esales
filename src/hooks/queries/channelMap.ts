@@ -393,13 +393,13 @@ export const useAddAgpMutation = () => {
 
 export const useEditAgpMutation = () => {
   return useMutation({
-    mutationKey: ['addAGPChannelMap'],
+    mutationKey: ['editAGPChannelMap'],
     mutationFn: async (payload: any) => {
       const response = await handleASINApiCall(
-        '//AGP/GetPC_ChannelMap_Update',
+        '/AGP/GetPC_ChannelMap_Update',
         payload,
       );
-      console.log('Add AGP Channel Map Response:', response);
+      console.log('Edit AGP Channel Map Response:', response);
       return response;
     },
     onSuccess: () => {
@@ -407,3 +407,21 @@ export const useEditAgpMutation = () => {
     },
   });
 }
+
+
+export const useEditAgpFinanceMutation = () => {
+  return useMutation({
+    mutationKey: ['editAGPFinanceInfo'],
+    mutationFn: async (payload: any) => {
+      const response = await handleASINApiCall(
+        '/AGP/GetFinanceMapping_Insert',
+        payload,
+      );
+      console.log('Edit AGP Finance Response:', response);
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: ['AGPDetails']});
+    },
+  });
+} 

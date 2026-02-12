@@ -155,7 +155,7 @@ export interface StatsHeaderProps {
     awp_count: number | null;
     total_partners: number | null;
   };
-
+  isRetailer?: boolean;
 }
 
 export interface ProgressStatProps {

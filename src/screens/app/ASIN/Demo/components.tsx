@@ -203,7 +203,6 @@ export const SummaryOverView = memo(() => {
             </AppText>
           </View>
           {data.map((item, idx) => {
-            const palette = OFFLINE_STATUS_STYLES[item.Status];
             const stripe =
               idx % 2 === 0
                 ? 'bg-white dark:bg-slate-900'
@@ -245,27 +244,8 @@ export const SummaryOverView = memo(() => {
                   weight="semibold"
                   size="sm"
                   className="w-24 text-center text-slate-800 dark:text-slate-50">
-                  {convertToASINUnits(item?.Total_Offline_Models || 0, true)}
+                  {convertToASINUnits(item?.TotalActiveModels || 0, true)}
                 </AppText>
-
-                {/* <View className="w-32">
-                  <View
-                    className={twMerge(
-                      'px-2 py-0.5 rounded-full',
-                      palette.bg,
-                      palette.border,
-                    )}>
-                    <AppText
-                      weight="semibold"
-                      size="xs"
-                      className={twMerge(
-                        'uppercase text-center',
-                        palette.text,
-                      )}>
-                      {item.Status}
-                    </AppText>
-                  </View>
-                </View> */}
               </View>
             );
           })}
@@ -275,7 +255,7 @@ export const SummaryOverView = memo(() => {
   );
 });
 
-export const StatsHeader = memo(({stats, counts}: StatsHeaderProps) => {
+export const StatsHeader = memo(({stats, counts,isRetailer=false}: StatsHeaderProps) => {
   return (
     <View className="mb-3">
       <Card
@@ -348,7 +328,7 @@ export const StatsHeader = memo(({stats, counts}: StatsHeaderProps) => {
           })}
         </View>
       </Card>
-      <SummaryOverView />
+      {isRetailer && <SummaryOverView />}
       <View className="flex-row items-center justify-between px-1 mt-2">
         {counts.awp_count !== null && (
           <AppText className="text-slate-700 dark:text-slate-300">

@@ -83,8 +83,8 @@ type AppNavigationParamList = {
   LMSListAWP: undefined;
   ChannelMap: {
     activeTab?: number;
-    AGP_PartnerName?: string;
-    AGP_PartnerCode?: string;
+    PartnerName?: string;
+    PartnerCode?: string;
   };
   ChannelMapALPFinance: {
     financerDataALP?: any;

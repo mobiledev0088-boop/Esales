@@ -26,7 +26,6 @@ export default function RootNavigator() {
   const {isAutoLogin, userInfo} = useLoginStore();
   const country = userInfo?.EMP_CountryID;
   const selectedRoute = countryRoutes[country];
-
   return (
     <Stack.Navigator screenOptions={{headerShown: false}}>
       {!isAutoLogin ? (

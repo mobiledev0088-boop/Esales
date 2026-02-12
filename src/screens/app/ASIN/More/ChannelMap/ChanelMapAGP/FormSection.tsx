@@ -28,6 +28,7 @@ export interface FormField {
   dropdownData?: AppDropdownItem[];
   dropdownMode?: 'dropdown' | 'autocomplete';
   width?: FieldWidth; // New: Field width configuration
+  disabled?: boolean; // New: Field disabled state
 }
 
 interface FormSectionProps {
@@ -120,6 +121,7 @@ export default function FormSection({
           const dropdownLabel = field.dropdownData?.find(
             item => String(item.value) === values[field.key],
           )?.label;
+          const isDisabled = field.disabled || false;
 
           return (
             <View
@@ -188,6 +190,8 @@ export default function FormSection({
                       }
                       keyboardType={field.keyboardType}
                       maxLength={field.maxLength}
+                      readOnly={isDisabled}
+                      inputWrapperStyle={isDisabled ? {backgroundColor: '#ccc'}:{}}
                       leftIconTsx={
                         field.leftIcon ? (
                           <View className="ml-3 mr-2">

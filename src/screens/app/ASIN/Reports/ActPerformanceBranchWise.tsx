@@ -7,7 +7,9 @@ import AppLayout from '../../../../components/layout/AppLayout';
 import AppIcon from '../../../../components/customs/AppIcon';
 import AppText from '../../../../components/customs/AppText';
 import AppInput from '../../../../components/customs/AppInput';
-import AppDatePicker, {DatePickerState} from '../../../../components/customs/AppDatePicker';
+import AppDatePicker, {
+  DatePickerState,
+} from '../../../../components/customs/AppDatePicker';
 import Card from '../../../../components/Card';
 import AppTabBar, {TabItem} from '../../../../components/CustomTabBar';
 import {ActivationPerformanceSkeleton} from '../../../../components/skeleton/DashboardSkeleton';
@@ -33,8 +35,8 @@ import AppDropdown, {
 } from '../../../../components/customs/AppDropdown';
 import clsx from 'clsx';
 import {AppNavigationProp} from '../../../../types/navigation';
-import { ASUS } from '../../../../utils/constant';
-import { Watermark } from '../../../../components/Watermark';
+import {ASUS} from '../../../../utils/constant';
+import {Watermark} from '../../../../components/Watermark';
 
 const ITEMS_PER_BATCH = 10;
 interface ApiParams {
@@ -87,7 +89,7 @@ const useFetchActivationData = (params: ApiParams) => {
 
 // Disclaimer notice component
 const DisclaimerNotice = () => (
-  <View className="bg-red-50 rounded-xl p-3 mb-6 shadow-sm border border-red-600 mt-4">
+  <View className="bg-red-50 dark:bg-red-900 rounded-xl p-3 mb-6 shadow-sm border border-red-600  mt-4">
     <View className="flex-row items-center mb-1 gap-1">
       <AppIcon
         type="ionicons"
@@ -117,7 +119,7 @@ const TableHeader = ({
   sortConfig: {key: string; direction: 'asc' | 'desc'} | null;
   onSort: (columnKey: string) => void;
 }) => (
-  <View className="bg-white border-b border-gray-200">
+  <View className="bg-lightBg-base dark:bg-darkBg-base border-b border-gray-200 dark:border-gray-700">
     <View className="flex-row items-center px-4 py-3">
       {columns.map(column => {
         const isActive = sortConfig?.key === column.key;
@@ -168,25 +170,28 @@ const TableRow = ({
   columns: TableColumn[];
   searchQuery?: string;
   isAGPorALP: boolean;
-  handlePress: (name: string) => void;
+  handlePress: (item: ActivationData) => void;
 }) => (
   <TouchableOpacity
     disabled={!isAGPorALP}
-    onPress={() => handlePress(item.name)}
+    onPress={() => handlePress(item)}
     className={`flex-row items-center px-4 py-3 ${!isLast ? 'border-b border-gray-100' : ''}`}>
-    {columns.map(column => (
+    {columns.map(column => {
+      const cellValue =column.key === 'name' && isAGPorALP ? `${String(item[column.dataKey] || '0')} \n ${String(item?.ALP_Code || item?.AGP_Code || '')}` : String(item[column.dataKey] || '0');
+      return (
       <View
         key={column.key}
         className={`${column.width} ${column.key === 'name' ? 'flex-row items-center' : 'items-center'}`}>
         <HighlightedText
-          text={String(item[column.dataKey] || '0')}
+          text={cellValue}
           searchQuery={searchQuery}
           className={clsx(
             `text-sm ${column.key === 'name' ? 'font-manropeSemibold' : 'font-manropeBold'} ${column.colorType === 'primary' ? 'text-blue-600' : column.colorType === 'success' ? 'text-green-600' : column.colorType === 'warning' ? 'text-amber-600' : column.colorType === 'secondary' ? 'text-gray-600' : 'text-gray-800'} ${column.key === 'name' && isAGPorALP && 'text-primary underline'}`,
           )}
         />
       </View>
-    ))}
+    )}
+  )}
   </TouchableOpacity>
 );
 
@@ -311,12 +316,26 @@ const DataTable = ({
   );
 
   const handlePress = useCallback(
-    (name: string) => {
-      let AGP_Code = name.match(/\(([^)]+)\)/)?.[1];
-      console.log('Extracted AGP_Code:', AGP_Code);
-      navigation.navigate('TargetPartnerDashboard', {partner: {AGP_Code}});
+    (item: ActivationData) => {
+      if (activeTab === 'alp') {
+        const name =`${item.name} - ${item.ALP_Code}`
+        const code = item.ALP_Code;
+        navigation.push('ChannelMap', {
+          activeTab: 0,
+          PartnerName: name,
+          PartnerCode: code,
+        });
+      } else {
+        const name =`${item.name} - ${item.AGP_Code} - ${item.BranchName}`
+        const code = item.AGP_Code;
+        navigation.push('ChannelMap', {
+          activeTab: 1,
+          PartnerName: name,
+          PartnerCode: code,
+        });
+      }
     },
-    [navigation],
+    [navigation, activeTab],
   );
 
   const renderItem = useCallback(
@@ -910,10 +929,10 @@ export default function ActPerformanceBranchWise() {
     Territory = '',
   } = route.params || {};
   const userInfo = useLoginStore(state => state.userInfo);
-    const {BSM, BPM} = ASUS.ROLE_ID
-    const isBranchManager = useMemo(() => {
-      return [BSM,BPM].includes(userInfo?.EMP_RoleId as any);
-    }, [userInfo?.EMP_RoleId]);
+  const {BSM, BPM} = ASUS.ROLE_ID;
+  const isBranchManager = useMemo(() => {
+    return [BSM, BPM].includes(userInfo?.EMP_RoleId as any);
+  }, [userInfo?.EMP_RoleId]);
 
   // Date range state management
   const [dateRange, setDateRange] = useState<DatePickerState>({
@@ -966,7 +985,7 @@ export default function ActPerformanceBranchWise() {
       .map(key => key.replace(/top5/i, ''))
       .sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b));
 
-       if (isBranchManager) {
+    if (isBranchManager) {
       labels = ['Territory', ...labels.filter(tab => tab !== 'Branch')];
     }
 
@@ -974,12 +993,14 @@ export default function ActPerformanceBranchWise() {
       (acc, key) => {
         const items = data[key];
         if (items && Array.isArray(items) && items.length > 0) {
-          const name =  key === 'Top5Branch' ?
-            'Top_Branch_Territory' : key === 'Top5AGP' ?
-              `Top_${key.replace(/top5/i, '')}` :
-              key === 'TOP5ALP' ?
-                `Top_${key.replace(/top5/i, '')}` :
-                `Top_${key.replace(/top5/i, '')}`;
+          const name =
+            key === 'Top5Branch'
+              ? 'Top_Branch_Territory'
+              : key === 'Top5AGP'
+                ? `Top_${key.replace(/top5/i, '')}`
+                : key === 'TOP5ALP'
+                  ? `Top_${key.replace(/top5/i, '')}`
+                  : `Top_${key.replace(/top5/i, '')}`;
 
           acc[key === 'TOP5ALP' ? 'Top5ALP' : key] = items.map((item: any) => ({
             ...item,

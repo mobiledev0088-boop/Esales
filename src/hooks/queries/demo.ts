@@ -8,7 +8,7 @@ interface SummaryOverviewData {
   Vertical: string;
   Total_Offline_Models: number;
   Store_count: number;
-  Status: string;
+  TotalActiveModels: number;
 }
 
 export const useGetDemoDataReseller = (

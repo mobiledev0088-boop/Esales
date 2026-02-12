@@ -213,7 +213,7 @@ const Home: React.FC = () => {
   );
 };
 
-const CustomTabBar: React.FC<MyTabBarProps> = ({
+export const CustomTabBar: React.FC<MyTabBarProps> = ({
   state,
   navigation,
   TabScreens,

@@ -1,4 +1,4 @@
-import {FlatList, TouchableOpacity, View} from 'react-native';
+import {FlatList, ScrollView, TouchableOpacity, View} from 'react-native';
 import React, {memo, useCallback, useMemo, useState} from 'react';
 import {DataStateView} from '../../../../components/DataStateView';
 import {useLoginStore} from '../../../../stores/useLoginStore';
@@ -52,6 +52,7 @@ interface StatMetricProps {
   label: string;
   value: number;
   valueColorClass: string;
+  onPress?: () => void;
 }
 
 const useGetPartnerDemoData = (
@@ -147,7 +148,7 @@ const LoaderView = memo(() => (
   <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base px-3">
     <View className="flex-row flex-wrap gap-4">
       {[...Array(4)].map((_, i) => (
-        <Skeleton key={i} height={40} width={screenWidth * 0.45} />
+        <Skeleton key={i} height={40} width={screenWidth * 0.44} />
       ))}
     </View>
     <Skeleton height={200} width={screenWidth - 24} />
@@ -292,10 +293,10 @@ const InfoPair: React.FC<InfoPairProps> = memo(
 );
 
 const StatMetric: React.FC<StatMetricProps> = memo(
-  ({iconName, iconColor, bgClass, label, value, valueColorClass}) => {
+  ({iconName, iconColor, bgClass, label, value, valueColorClass,onPress}) => {
     const baseLabelColor = valueColorClass.replace('700', '600');
     return (
-      <View className="flex-1 items-center">
+      <TouchableOpacity disabled={!onPress} onPress={onPress} className="flex-1 items-center">
         <View
           className={`w-14 h-14 rounded-full ${bgClass} items-center justify-center mb-2`}>
           <AppIcon type="feather" name={iconName} size={26} color={iconColor} />
@@ -313,7 +314,7 @@ const StatMetric: React.FC<StatMetricProps> = memo(
           numberOfLines={1}>
           {value}
         </AppText>
-      </View>
+      </TouchableOpacity>
     );
   },
 );
@@ -482,11 +483,13 @@ const FiltersSummaryHeader: React.FC<{
         <AppText size="md" weight="semibold" className="text-slate-800 mb-4">
           Summary
         </AppText>
-        <View className="flex-row items-center gap-x-8">
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName='gap-x-10'>
+        {/* <View className="flex-row items-center gap-x-8"> */}
           {statusOptions.map((status, idx) => {
             return (
-              <View className="flex-row items-center flex-1" key={status.value}>
+              <View className="flex-row items-center flex-1 " key={status.value}>
                 <StatMetric
+                  // onPress={() => setSelectedStatus(status)}
                   iconName={getColors(status.value).iconName}
                   iconColor={getColors(status.value).iconColor}
                   bgClass={`${getColors(status.value).container} `}
@@ -503,7 +506,8 @@ const FiltersSummaryHeader: React.FC<{
               </View>
             );
           })}
-        </View>
+          </ScrollView>
+        {/* </View> */}
       </View>
       <View className="flex-row items-center justify-between">
         <AppText
@@ -576,9 +580,9 @@ export default function Demo_Partner({DifferentEmployeeCode}:{DifferentEmployeeC
       <DataStateView
         isLoading={isLoading}
         isError={isError}
-        isEmpty={!demoData?.length}
+        // isEmpty={!demoData?.length}
         onRetry={refetch}
-        EmptyComponent={checkIsParent ? <SelectSubCodesEmptyComponent /> : <EmptyComponent />}
+        // EmptyComponent={checkIsParent ? <SelectSubCodesEmptyComponent /> : <EmptyComponent />}
         LoadingComponent={<LoaderView />}>
         <FlatList
           data={sections}

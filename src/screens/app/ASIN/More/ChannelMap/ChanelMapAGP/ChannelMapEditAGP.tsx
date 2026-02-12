@@ -1,5 +1,5 @@
 import {View} from 'react-native';
-import { useCallback, useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import AppLayout from '../../../../../../components/layout/AppLayout';
 import FormSection, {FormField} from './FormSection';
 import AppButton from '../../../../../../components/customs/AppButton';
@@ -17,6 +17,7 @@ import {
 } from '../../../../../../utils/commonFunctions';
 import {validateSection, ValidationErrors} from './formValidation';
 import {
+  useEditAgpFinanceMutation,
   useEditAgpMutation,
   useGetAddChannelMapDropdown,
   useGetAGPDetails,
@@ -25,7 +26,11 @@ import {
 } from '../../../../../../hooks/queries/channelMap';
 import MaterialTabBar from '../../../../../../components/MaterialTabBar';
 import {ChannelMapInfoProps, FinanceMapProps} from '../ChannelMapTypes';
-import { ScrollView } from 'react-native-gesture-handler';
+import {ScrollView} from 'react-native-gesture-handler';
+import {AppColors} from '../../../../../../config/theme';
+import {useThemeStore} from '../../../../../../stores/useThemeStore';
+import Card from '../../../../../../components/Card';
+import AppInput from '../../../../../../components/customs/AppInput';
 
 // Utility to merge API data into section template, ensuring strings
 function mergeSection<T extends Record<string, string>>(
@@ -137,6 +142,26 @@ const initialMonthlyData = {
   DisplayNB: '',
 };
 
+const initialFinanceInfo = {
+  BajajDealerCode: '',
+  PaytmDealerCode: '',
+  KotakDealerCode: '',
+  PinelabsDealerCode: '',
+  ShopseDealerCode: '',
+  HDBDealerCode: '',
+  HDFCDealerCode: '',
+};
+
+const initialReFinanceInfo = {
+  BajajDealerCode: '',
+  PaytmDealerCode: '',
+  KotakDealerCode: '',
+  PinelabsDealerCode: '',
+  ShopseDealerCode: '',
+  HDBDealerCode: '',
+  HDFCDealerCode: '',
+};
+
 export default function ChannelMapEditAGP() {
   const navigation = useNavigation();
   const route = useRoute();
@@ -163,7 +188,9 @@ export default function ChannelMapEditAGP() {
     isLoading: isDetailsLoading,
     isError: isDetailsError,
   } = useGetAGPDetails(initialData || null);
+  const financeDetails = agpDetailsResp?.Table1?.[0] || null;
   const {mutate: editAgpMutate} = useEditAgpMutation();
+  const {mutate: editAgpFinanceMutate} = useEditAgpFinanceMutation();
 
   // store state
   const userInfo = useLoginStore(state => state.userInfo);
@@ -180,6 +207,9 @@ export default function ChannelMapEditAGP() {
   const [AIOCompetition, setAIOCompetition] = useState(initialAIOCompetition);
   const [monthlyData, setMonthlyData] = useState(initialMonthlyData);
 
+  const [financeInfo, setFinanceInfo] = useState(initialFinanceInfo);
+  const [reFinanceInfo, setReFinanceInfo] = useState(initialReFinanceInfo);
+
   // Additional identifiers for update
   const [branchName, setBranchName] = useState<string>('');
   const [channelMapCode, setChannelMapCode] = useState<string>('');
@@ -188,6 +218,7 @@ export default function ChannelMapEditAGP() {
   // Populate state from details when loaded
   useEffect(() => {
     const details = agpDetailsResp?.AGP_Info?.[0];
+    const financeDetails = agpDetailsResp?.Table1?.[0];
     if (!details) return;
 
     setBranchName(details.Branch_Name || '');
@@ -307,6 +338,20 @@ export default function ChannelMapEditAGP() {
         DisplayNB: details.NB_Display_Units,
       }),
     );
+    // console.log('financeDetails:', financeDetails);
+    if (financeDetails) {
+      setFinanceInfo(prev =>
+        mergeSection(prev, {
+          BajajDealerCode: financeDetails.BajajDealerCode,
+          PaytmDealerCode: financeDetails.PaytmDealerCode,
+          KotakDealerCode: financeDetails.KotakDealerCode,
+          PinelabsDealerCode: financeDetails.PinelabsDealerCode,
+          ShopseDealerCode: financeDetails.ShopseDealerCode,
+          HDBDealerCode: financeDetails.HDBDealerCode,
+          HDFCDealerCode: financeDetails.HDFCDealerCode,
+        }),
+      );
+    }
   }, [agpDetailsResp]);
 
   // Accordion state management - only one can be open at a time
@@ -321,6 +366,8 @@ export default function ChannelMapEditAGP() {
     gamingDTCompetition: ValidationErrors;
     AIOCompetition: ValidationErrors;
     monthlyData: ValidationErrors;
+    financeInfo: ValidationErrors;
+    reFinanceInfo: ValidationErrors;
   }>({
     shopInfo: {},
     asusInfo: {},
@@ -329,6 +376,8 @@ export default function ChannelMapEditAGP() {
     gamingDTCompetition: {},
     AIOCompetition: {},
     monthlyData: {},
+    financeInfo: {},
+    reFinanceInfo: {},
   });
 
   // make it Array for easy checking
@@ -396,6 +445,22 @@ export default function ChannelMapEditAGP() {
     setValidationErrors(prev => ({
       ...prev,
       monthlyData: {...prev.monthlyData, [key]: ''},
+    }));
+  }, []);
+
+  const updateFinanceInfo = useCallback((key: string, value: string) => {
+    setFinanceInfo(prev => ({...prev, [key]: value}));
+    setValidationErrors(prev => ({
+      ...prev,
+      financeInfo: {...prev.financeInfo, [key]: ''},
+    }));
+  }, []);
+
+  const updateReFinanceInfo = useCallback((key: string, value: string) => {
+    setReFinanceInfo(prev => ({...prev, [key]: value}));
+    setValidationErrors(prev => ({
+      ...prev,
+      reFinanceInfo: {...prev.reFinanceInfo, [key]: ''},
     }));
   }, []);
 
@@ -1287,6 +1352,67 @@ export default function ChannelMapEditAGP() {
     },
   ];
 
+  const financeFields: FormField[] = [
+    {
+      key: 'BajajDealerCode',
+      type: 'input',
+      label: 'BAJAJ',
+      leftIcon: 'credit-card',
+      keyboardType: 'default',
+      placeholder: 'Enter BAJAJ Dealer Code',
+      required: false,
+      width: 'full',
+    },
+    {
+      key: 'PaytmDealerCode',
+      type: 'input',
+      label: 'PAYTM',
+      leftIcon: 'credit-card',
+      placeholder: 'Enter PAYTM Dealer Code',
+      required: false,
+      width: 'full',
+    },
+    {
+      key: 'HDBDealerCode',
+      type: 'input',
+      label: 'HDB',
+      leftIcon: 'credit-card',
+      placeholder: 'Enter HDB Dealer Code',
+      required: false,
+      width: 'full',
+    },
+    {
+      key: 'KotakDealerCode',
+      type: 'input',
+      label: 'KOTAK',
+      leftIcon: 'credit-card',
+      placeholder: 'Enter KOTAK Dealer Code',
+      required: false,
+      width: 'full',
+      disabled: true,
+    },
+    {
+      key: 'ShopseDealerCode',
+      type: 'input',
+      label: 'ShopSe',
+      leftIcon: 'credit-card',
+      placeholder: 'Enter ShopSe Dealer Code',
+      required: false,
+      width: 'full',
+      disabled: true,
+    },
+    {
+      key: 'HDFCDealerCode',
+      type: 'input',
+      label: 'HDFC',
+      leftIcon: 'credit-card',
+      placeholder: 'Enter HDFC Dealer Code',
+      required: false,
+      width: 'full',
+      disabled: true,
+    },
+  ];
+
   const getSectionFields = useCallback((sectionId: string): FormField[] => {
     switch (sectionId) {
       case 'shopInfo':
@@ -1539,11 +1665,68 @@ export default function ChannelMapEditAGP() {
     channelMapCode,
   ]);
 
+  const handleSubmitFinance = useCallback(() => {
+    if (
+      Object.values(financeInfo).every(value => value === '') &&
+      Object.values(reFinanceInfo).every(value => value === '')
+    ) {
+      showToast(
+        'Please fill at least one field in Finance Info before submission.',
+      );
+      return;
+    }
+
+    setGlobalLoading(true);
+    const payload = {
+      UserName: userInfo.EMP_Code || '',
+      MachineName: getDeviceId(),
+      ChannelMapCode: agpDetailsResp?.AGP_Info?.[0]?.ChannelMapCode || '',
+      BajajDealerCode:
+        reFinanceInfo.BajajDealerCode ||
+        (agpDetailsResp?.Table1?.[0]?.BajajDealerCode
+          ? ''
+          : financeInfo.BajajDealerCode || ''),
+      PaytmDealerCode:
+        reFinanceInfo.PaytmDealerCode ||
+        (agpDetailsResp?.Table1?.[0]?.PaytmDealerCode
+          ? ''
+          : financeInfo.PaytmDealerCode || ''),
+      HDBDealerCode:
+        reFinanceInfo.HDBDealerCode ||
+        (agpDetailsResp?.Table1?.[0]?.HDBDealerCode
+          ? ''
+          : financeInfo.HDBDealerCode || ''),
+
+      KotakDealerCode: '',
+      PinelabsDealerCode: '',
+      ShopseDealerCode: '',
+      HDFCDealerCode: '',
+      // KotakDealerCode: reFinanceInfo.KotakDealerCode || (agpDetailsResp?.Table1?.[0]?.KotakDealerCode ? "" : financeInfo.KotakDealerCode || ""),
+      // PinelabsDealerCode: reFinanceInfo.PinelabsDealerCode || (agpDetailsResp?.Table1?.[0]?.PinelabsDealerCode ? "" : financeInfo.PinelabsDealerCode || ""),
+      // ShopseDealerCode: reFinanceInfo.ShopseDealerCode || (agpDetailsResp?.Table1?.[0]?.ShopseDealerCode ? "" : financeInfo.ShopseDealerCode || ""),
+      // HDFCDealerCode: reFinanceInfo.HDFCDealerCode || (agpDetailsResp?.Table1?.[0]?.HDFCDealerCode ? "" : financeInfo.HDFCDealerCode || ""),
+    };
+
+    editAgpFinanceMutate(payload, {
+      onSuccess: () => {
+        setGlobalLoading(false);
+        showToast('Channel Map updated successfully!');
+        navigation.goBack();
+      },
+      onError: error => {
+        setGlobalLoading(false);
+        console.error('Error updating Channel Map:', error);
+        showToast('Error updating Channel Map. Please try again.');
+      },
+    });
+  }, [financeInfo, reFinanceInfo, agpDetailsResp, userInfo]);
+
   const isLoading =
     isPinCodeLoading ||
     isAddChannelMapDropdownLoading ||
     isCSENameLoading ||
     isDetailsLoading;
+
   const Error =
     isPinCodeError ||
     isAddChannelMapDropdownError ||
@@ -1643,9 +1826,18 @@ export default function ChannelMapEditAGP() {
             },
             {
               name: 'Finance_Info',
-              component: <FinanceInfo
-              
-              />,
+              component: (
+                <FinanceInfo
+                  financeFields={financeFields}
+                  financeInfo={financeInfo}
+                  reFinanceInfo={reFinanceInfo}
+                  updateFinanceInfo={updateFinanceInfo}
+                  updateReFinanceInfo={updateReFinanceInfo}
+                  validationErrors={validationErrors.financeInfo}
+                  apiData={financeDetails}
+                  handleSubmit={handleSubmitFinance}
+                />
+              ),
               label: 'Finance Info',
             },
           ]}
@@ -1685,7 +1877,9 @@ const ChannelMapInfoComponent = (props: ChannelMapInfoProps) => {
     handleSubmit,
   } = props;
   return (
-    <ScrollView className="flex-1 bg-lightBg-base dark:bg-darkBg-base" showsVerticalScrollIndicator={false} >
+    <ScrollView
+      className="flex-1 bg-lightBg-base dark:bg-darkBg-base"
+      showsVerticalScrollIndicator={false}>
       <FormSection
         title="Shop Information"
         icon="shopping-bag"
@@ -1790,19 +1984,190 @@ const ChannelMapInfoComponent = (props: ChannelMapInfoProps) => {
   );
 };
 
-const FinanceInfo = (props:any) => {
-  const { financeFields, financeInfo, updateFinanceInfo, validationErrors, openAccordion, handleAccordionToggle } = props;
-  return <View className="flex-1">
-      <FormSection
-        title="Finance Information"
-        icon="info"
-        iconType="feather"
-        fields={financeFields}
-        values={financeInfo}
-        onValueChange={updateFinanceInfo}
-        validationErrors={validationErrors.financeInfo}
-        isOpen={openAccordion === 'financeInfo'}
-        onToggle={() => handleAccordionToggle('financeInfo')}
-      />
-  </View>;
+const formatLabel = (key: string, customLabel?: string) => {
+  if (customLabel) return customLabel;
+  return key
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, str => str.toUpperCase())
+    .trim();
+};
+const formatStringWithSuffix = (
+  input: string,
+  suffixToReplace: string,
+  newSuffix: string,
+): string => {
+  if (input.endsWith(suffixToReplace)) {
+    const prefix = input.slice(0, -suffixToReplace.length);
+    return `${prefix}${newSuffix}`;
+  }
+  return input; // return original if pattern doesn't match
+};
+
+const FinanceInfo = (props: FinanceMapProps) => {
+  const AppTheme = useThemeStore(state => state.AppTheme);
+  const {
+    financeFields,
+    financeInfo,
+    updateFinanceInfo,
+    reFinanceInfo,
+    updateReFinanceInfo,
+    validationErrors,
+    apiData,
+    handleSubmit,
+  } = props;
+  return (
+    <ScrollView
+      className="flex-1 bg-lightBg-base dark:bg-darkBg-base"
+      showsVerticalScrollIndicator={false}>
+      <Card noshadow className="border border-slate-200 dark:border-slate-700">
+        <View className="flex-row items-center gap-3 flex-1">
+          <View
+            className={`w-10 h-10 rounded-xl items-center justify-center bg-blue-100 dark:bg-blue-900/30`}>
+            <AppIcon
+              type={'fontAwesome'}
+              name={'money'}
+              size={20}
+              color={AppColors[AppTheme].primary}
+            />
+          </View>
+          <View className="flex-1">
+            <AppText
+              weight="bold"
+              size="lg"
+              className="text-gray-900 dark:text-gray-100">
+              Finance Information
+            </AppText>
+          </View>
+        </View>
+        <View className="mt-5 px-4 flex-row flex-wrap -mx-1.5 items-end">
+          {financeFields.map((field, index) => {
+            const fieldWidth = field.width || 'full';
+            const widthClass = fieldWidth === 'half' ? 'w-1/2' : 'w-full';
+            const isDisabled = field.disabled || false;
+            const value = financeInfo[field.key] || '';
+            const reValue = reFinanceInfo[field.key] || '';
+            const apiValue = apiData ? apiData[field.key] : null;
+            const hoRemark = apiData
+              ? apiData[
+                  formatStringWithSuffix(
+                    field.key,
+                    'DealerCode',
+                    'HOAccpetenceRemark',
+                  )
+                ]
+              : '';
+            const activationRemark = apiData
+              ? apiData[
+                  formatStringWithSuffix(
+                    field.key,
+                    'DealerCode',
+                    'Activation_Remarks',
+                  )
+                ]
+              : '';
+            const activationStatus = apiData
+              ? apiData[
+                  formatStringWithSuffix(
+                    field.key,
+                    'DealerCode',
+                    'ActivationStatus',
+                  )
+                ]
+              : '';
+            const colorCode = activationStatus
+              ? 'bg-green-400'
+              : activationRemark || hoRemark
+                ? 'bg-red-400'
+                : 'bg-grey-400';
+            return (
+              <View key={field.key} className={`${widthClass} px-1.5 mb-4`}>
+                <View>
+                  {apiValue === value && value !== '' && !isDisabled ? (
+                    <View>
+                      <AppText>{field.label}</AppText>
+                      <View
+                        className={`border border-gray-200 w-full h-11 rounded-md px-3 justify-center ${colorCode}`}>
+                        <AppText color="white" weight="bold">
+                          {value}
+                          {activationRemark && (
+                            <AppText color="white" weight="bold">
+                              {' '}
+                              - {activationRemark}
+                            </AppText>
+                          )}
+                          {hoRemark && (
+                            <AppText color="white" weight="bold">
+                              {' '}
+                              - {hoRemark}
+                            </AppText>
+                          )}
+                          {!activationRemark && !hoRemark && (
+                            <AppText color="white" weight="bold">
+                              {' '}
+                              - In Process
+                            </AppText>
+                          )}
+                        </AppText>
+                      </View>
+                      {!activationStatus && activationRemark && (
+                        <AppInput
+                          size="md"
+                          variant="border"
+                          value={reValue || ''}
+                          setValue={text =>
+                            updateReFinanceInfo(field.key, text)
+                          }
+                          isOptional={!field.required}
+                          placeholder={
+                            field.placeholder ||
+                            `Re Enter ${formatLabel(field.key, field.label).toLowerCase()}`
+                          }
+                          keyboardType={field.keyboardType}
+                          maxLength={field.maxLength}
+                          containerClassName="mt-2"
+                          error={validationErrors[field.key]}
+                        />
+                      )}
+                    </View>
+                  ) : (
+                    <AppInput
+                      size="md"
+                      variant="border"
+                      value={value || ''}
+                      setValue={text => updateFinanceInfo(field.key, text)}
+                      isOptional={!field.required}
+                      label={formatLabel(field.key, field.label)}
+                      placeholder={
+                        field.placeholder ||
+                        `Enter ${formatLabel(field.key, field.label).toLowerCase()}`
+                      }
+                      keyboardType={field.keyboardType}
+                      maxLength={field.maxLength}
+                      readOnly={isDisabled}
+                      inputWrapperStyle={
+                        isDisabled ? {backgroundColor: '#ccc'} : {}
+                      }
+                      containerClassName="mb-0"
+                      error={validationErrors[field.key]}
+                    />
+                  )}
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      </Card>
+
+      <View className="mt-6">
+        <AppButton
+          title="Submit"
+          onPress={handleSubmit}
+          iconName="check-circle"
+          className="bg-green-500 rounded-xl py-4 shadow-lg"
+          size="lg"
+          weight="bold"
+        />
+      </View>
+    </ScrollView>
+  );
 };

@@ -199,6 +199,7 @@ export default function Dashboard_ASE({
   const {months, selectedMonth, setSelectedMonth} = useMonthHook();
   const [isRefreshing, setIsRefreshing] = useState(false);
   console.log('Using Employee Code:', DifferentEmployeeCode);
+  console.log('months:', months,selectedMonth);
 
   // Fetch dashboard data for selected quarter
   const {
@@ -222,14 +223,17 @@ export default function Dashboard_ASE({
 
   const handleRefresh = () => {
     setIsRefreshing(true);
+    try{
+      refetchDashboard();
+    }finally{
+      setIsRefreshing(false);
+    }
   };
   const handleRetry = useCallback(() => {
     refetchDashboard();
   }, [refetchDashboard]);
 
   const isDataEmpty = !isLoading && !dashboardData;
-  console.log('Dashboard Data:', dashboardData);
-
   return (
     <ScrollView
       className={clsx(

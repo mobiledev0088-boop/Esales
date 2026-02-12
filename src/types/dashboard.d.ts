@@ -30,6 +30,8 @@ export interface ActivationData {
   CSE_Name?: string;
   Partner_Type?: string;
   ALP_Code?: string;
+  AGP_Code?: string;
+  BranchName?: string;
 }
 
 export interface ActivationPerformanceData {

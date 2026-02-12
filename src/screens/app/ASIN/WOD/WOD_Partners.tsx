@@ -102,8 +102,8 @@ export default function WOD_Partners() {
     const name =`${item.ACM_ShopName} - ${item.GST_Number} - ${branchName}`
     navigation.push('ChannelMap',{
         activeTab: 1,
-        AGP_PartnerName: name,
-        AGP_PartnerCode: item.GST_Number,
+        PartnerName: name,
+        PartnerCode: item.GST_Number,
     })
   };
 

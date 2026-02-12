@@ -18,6 +18,7 @@ import AppText from '../../../../../components/customs/AppText';
 import Card from '../../../../../components/Card';
 import {screenWidth} from '../../../../../utils/constant';
 import Skeleton from '../../../../../components/skeleton/skeleton';
+import { useThemeStore } from '../../../../../stores/useThemeStore';
 
 // Constants
 const SKELETON_CONFIG = {
@@ -43,6 +44,7 @@ const BRAND_CONFIGS: Record<string, BrandConfig> = {
 // Components
 export const InfoRow = memo<InfoRowProps>(
   ({label, value, icon, iconType = 'feather', isPhoneNumber = false}) => {
+    const AppTheme = useThemeStore.getState().AppTheme; 
     const handlePhonePress = () => {
       if (isPhoneNumber && value && value !== 'N/A') {
         const phoneNumber = value.replace(/[^0-9+]/g, ''); // Remove non-numeric characters except +
@@ -63,12 +65,12 @@ export const InfoRow = memo<InfoRowProps>(
               name={icon}
               type={iconType}
               size={18}
-              color={AppColors.text}
+              color={AppColors[AppTheme].text}
             />
           </View>
         )}
         <View className="flex-1">
-          <AppText size="sm" weight="medium" className="text-gray-500 mb-0.5">
+          <AppText size="sm" weight="medium" className="text-gray-500 dark:text-gray-400 mb-0.5">
             {label}
           </AppText>
           <ContentWrapper {...wrapperProps}>
@@ -112,7 +114,7 @@ export const BasicInfo = memo<BasicInfoProps>(({alpDetails}) => {
   return (
     <View>
       {/* Shop Information Card */}
-      <Card className="mb-4">
+      <Card className="mb-4 border border-slate-200 dark:border-slate-700">
         <SectionHeader title="Shop Information" icon="shopping-bag" />
         <View className="flex-row flex-wrap">
           <View className="w-1/2 mb-2">
@@ -208,7 +210,7 @@ export const BasicInfo = memo<BasicInfoProps>(({alpDetails}) => {
       </Card>
 
       {/* ASUS Information Card */}
-      <Card className="mb-6">
+      <Card className="mb-6 border border-slate-200 dark:border-slate-700">
         <SectionHeader
           title="ASUS Information"
           icon="domain"
@@ -324,7 +326,7 @@ export const CompetitionInfo = memo<CompetitionInfoProps>(({alpDetails}) => {
   );
   return (
     <View>
-      <Card className="mb-4">
+      <Card className="mb-4 border border-slate-200 dark:border-slate-700">
         <SectionHeader
           title="Competition Brands"
           icon="trending-up"
@@ -386,7 +388,7 @@ export const CompetitionInfo = memo<CompetitionInfoProps>(({alpDetails}) => {
       </Card>
 
       {/* Monthly Sales Card */}
-      <Card className="mb-6">
+      <Card className="mb-6 border border-slate-200 dark:border-slate-700">
         <SectionHeader
           title="Monthly Sales Information"
           icon="bar-chart-2"
@@ -533,7 +535,7 @@ export const AGPBasicInfo = memo<AGPBasicInfoProps>(
     return (
       <View>
         {/* Shop Information Card */}
-        <Card className="mb-4">
+        <Card className="mb-4 border border-slate-200 dark:border-slate-700">
           <View className="flex-row">
             <SectionHeader title="Shop Information" icon="shopping-bag" />
             <View className="flex-1">
@@ -648,7 +650,7 @@ export const AGPBasicInfo = memo<AGPBasicInfoProps>(
         </Card>
 
         {/* ASUS Information Card */}
-        <Card className="mb-6">
+        <Card className="mb-6 border border-slate-200 dark:border-slate-700">
           <SectionHeader
             title="ASUS Information"
             icon="domain"
@@ -1004,7 +1006,7 @@ export const AGPCompetitionInfo = memo<AGPCompetitionInfoProps>(
     return (
       <View>
         {/* Competition Brands Card */}
-        <Card className="mb-4">
+        <Card className="mb-4 border border-slate-200 dark:border-slate-700">
           <SectionHeader
             title="Competition Brands"
             icon="trending-up"
@@ -1066,7 +1068,7 @@ export const AGPCompetitionInfo = memo<AGPCompetitionInfoProps>(
         </Card>
 
         {/* Consumer Desktop Card */}
-        <Card className="mb-4">
+        <Card className="mb-4 border border-slate-200 dark:border-slate-700">
           <SectionHeader
             title="Consumer Desktop (CDT)"
             icon="monitor"
@@ -1182,7 +1184,7 @@ export const AGPCompetitionInfo = memo<AGPCompetitionInfoProps>(
         </Card>
 
         {/* Gaming Desktop Card */}
-        <Card className="mb-4">
+        <Card className="mb-4 border border-slate-200 dark:border-slate-700">
           <SectionHeader
             title="Gaming Desktop (GDT)"
             icon="cpu"
@@ -1266,7 +1268,7 @@ export const AGPCompetitionInfo = memo<AGPCompetitionInfoProps>(
         </Card>
 
         {/* All-in-One Desktop Card */}
-        <Card className="mb-6">
+        <Card className="mb-6 border border-slate-200 dark:border-slate-700">
           <SectionHeader
             title="All-in-One Desktop (AIO)"
             icon="monitor"
@@ -1374,7 +1376,7 @@ export const AGPCompetitionInfo = memo<AGPCompetitionInfoProps>(
         </Card>
 
         {/* Monthly Sales Card */}
-        <Card className="mb-6">
+        <Card className="mb-6 border border-slate-200 dark:border-slate-700">
           <SectionHeader
             title="Monthly Sales Information"
             icon="bar-chart-2"
@@ -1440,9 +1442,9 @@ export const AGPNoDetailsState = memo(() => (
 
 export const LFRBasicInfo = memo<LFRBasicInfoProps>(({lfrDetails}) => {
   return (
-    <View>
+    <View className='bg-lightBg-base dark:bg-darkBg-base'>
       {/* Shop Information Card */}
-      <Card className="mb-4">
+      <Card className="mb-4 border border-slate-200 dark:border-slate-700">
         <SectionHeader title="Shop Information" icon="shopping-bag" />
         <View className="flex-row flex-wrap">
           <View className="w-1/2 mb-2">
@@ -1555,7 +1557,7 @@ export const LFRBasicInfo = memo<LFRBasicInfoProps>(({lfrDetails}) => {
       </Card>
 
       {/* ASUS Information Card */}
-      <Card className="mb-6">
+      <Card className="mb-6 border border-slate-200 dark:border-slate-700">
         <SectionHeader
           title="ASUS Information"
           icon="domain"
@@ -1817,7 +1819,7 @@ export const LFRCompetitionInfo = memo<LFRCompetitionInfoProps>(
           <View className="flex-row flex-wrap -mx-1">
             {competitionBrands.map(brand => (
               <View key={brand.name} className="w-1/2 px-1 mb-2">
-                <View className="bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                <View className="bg-gray-50 dark:bg-gray-800 p-2.5 rounded-lg border border-gray-100 dark:border-gray-700">
                   <View className="flex-row items-center mb-2">
                     <View
                       className="p-1.5 rounded-md mr-2"

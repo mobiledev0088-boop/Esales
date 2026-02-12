@@ -70,49 +70,81 @@ type ModelItem = {
   total_act: number;
   total_stock: number;
 };
+interface DemoHubType {
+  Demo_Hub_Date: string;
+  Hours: string;
+}
+
+
+const useGetDemoHubDetails = (Serial_No: string, YearQtr: string) => {
+  return useQuery({
+    queryKey: ['demoHubDetails', Serial_No, YearQtr],
+    queryFn: async () => {
+      const response = await handleASINApiCall(
+        '/DemoForm/GetPartnerDemoSummaryHubInfo',
+        {Serial_No, YearQtr},
+      );
+      const result = response?.demoFormData;
+      if (!result?.Status) {
+        throw new Error('Failed to fetch demo hub data');
+      }
+      const table = result?.Datainfo?.HubInfo;
+      return (table || []) as DemoHubType[];
+    },
+    enabled: Boolean(Serial_No && YearQtr),
+  });
+};
 
 const useGetPartnerDemoSummary = (
   YearQtr: string,
   PartnerCode: string,
   enabled: boolean,
-  tab: string
+  tab: string,
 ) => {
   const queryPayload = {
     YearQtr,
     PartnerCode,
-    employeeCode:PartnerCode,
-    RoleId: tab !== 'reseller' && tab !== 'retailer' ? ASUS.ROLE_ID.PARTNERS : ''
+    employeeCode: PartnerCode,
+    RoleId:
+      tab !== 'reseller' && tab !== 'retailer' ? ASUS.ROLE_ID.PARTNERS : '',
   };
-  const Endpoint = tab === 'reseller' ? '/DemoForm/GetResellerPartnerDemoSummaryAGP' : tab === 'retailer' ?  '/DemoForm/GetPartnerDemoSummary' : '/DemoForm/GetPartnerDemoSummaryASE';
+  const Endpoint =
+    tab === 'reseller'
+      ? '/DemoForm/GetResellerPartnerDemoSummaryAGP'
+      : tab === 'retailer'
+        ? '/DemoForm/GetPartnerDemoSummary'
+        : '/DemoForm/GetPartnerDemoSummaryASE';
 
   return useQuery({
     queryKey: ['partnerDemoSummary', YearQtr, PartnerCode],
     queryFn: async () => {
-      const response = await handleASINApiCall(
-        Endpoint,
-        queryPayload,
-      );
+      const response = await handleASINApiCall(Endpoint, queryPayload);
       console.log('Partner Demo Summary Response:', response);
       const result = response?.demoFormData;
       if (!result?.Status) {
         throw new Error('Failed to fetch partner demo summary');
       }
-      return (result.Datainfo?.Table || result.Datainfo?.PartnerSummary  || []) as DemoSummaryItem[];
+      return (result.Datainfo?.Table ||
+        result.Datainfo?.PartnerSummary ||
+        []) as DemoSummaryItem[];
     },
     enabled: enabled && !!YearQtr && !!PartnerCode,
   });
 };
 
 const formatDate = (value: string | null) => {
-  console.log('Formatting date value:', value);
   if (!value) return '—';
   const m = moment(value);
   return m.isValid() ? m.format('YYYY/MM/DD') : value;
 };
 
-const showPartnerDetailsSheet = (partner: PartnerTypes, yearQtr: string, tab: string) => {
+const showPartnerDetailsSheet = (
+  partner: PartnerTypes,
+  yearQtr: string,
+  tab: string,
+) => {
   SheetManager.show('PartnerDetailsSheet', {
-    payload: {partner, yearQtr,tab},
+    payload: {partner, yearQtr, tab},
   });
 };
 
@@ -130,22 +162,24 @@ const showDemoROISheet = (partner: PartnerTypes) => {
 
 export const PartnerDetailsSheet = () => {
   const payload = useSheetPayload('PartnerDetailsSheet');
-  const {partner, yearQtr,tab} = payload || {};
+  const {partner, yearQtr, tab} = payload || {};
 
   const AppTheme = useThemeStore(state => state.AppTheme);
   const isDark = AppTheme === 'dark';
-
 
   // Fetch demo summary data
   const {data, isLoading, error} = useGetPartnerDemoSummary(
     yearQtr || '',
     partner?.AGP_Code || partner?.PartnerCode || '',
     !!partner && !!yearQtr,
-    tab
+    tab,
   );
-  console.log('PartnerDetailsSheet data:', yearQtr || '',
+  console.log(
+    'PartnerDetailsSheet data:',
+    yearQtr || '',
     partner?.AGP_Code || partner?.PartnerCode || '',
-    !!partner && !!yearQtr,);
+    !!partner && !!yearQtr,
+  );
 
   // Filter states
   const [selectedCategory, setSelectedCategory] =
@@ -643,10 +677,15 @@ export const DemoDetailsSheet = () => {
   const AppTheme = useThemeStore(state => state.AppTheme);
   const isDark = AppTheme === 'dark';
 
+  const {
+    data: hubData,
+    isLoading: isLoadingHub,
+    isError: isErrorHub,
+  } = useGetDemoHubDetails(demo?.Serial_No || '', demo?.YearQtr || '');
   if (!demo) return null;
 
   const isPending = demo.DemoExecutionDone === 'Pending';
-
+  console.log('DemoDetailsSheet demo data:', demo);
   return (
     <View>
       <ActionSheet
@@ -738,11 +777,136 @@ export const DemoDetailsSheet = () => {
               </View>
             ))}
           </View>
+          <View className="h-px bg-slate-200 my-4" />
+
+          {/* Demo Hub Details Section */}
+          <View className="mb-3">
+            <View className="flex-row items-center mb-3">
+              <AppIcon type="feather" name="clock" size={18} color="#64748b" />
+              <AppText
+                size="md"
+                weight="semibold"
+                className="text-slate-800 ml-2">
+                Demo Hub Activity
+              </AppText>
+            </View>
+
+            {/* Loading State */}
+            {isLoadingHub && (
+              <View className="space-y-3">
+                {[...Array(3)].map((_, i) => (
+                  <View
+                    key={i}
+                    className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 mb-3">
+                    <View className="mb-2">
+                      <Skeleton height={16} width={120} />
+                    </View>
+                    <Skeleton height={14} width={80} />
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Error State */}
+            {!isLoadingHub && isErrorHub && (
+              <View className="bg-rose-50 dark:bg-rose-900 rounded-xl p-4 items-center">
+                <AppIcon
+                  type="feather"
+                  name="alert-circle"
+                  size={20}
+                  color="#dc2626"
+                />
+                <AppText
+                  size="xs"
+                  weight="medium"
+                  className="text-rose-600 mt-2">
+                  Failed to load hub details
+                </AppText>
+              </View>
+            )}
+
+            {/* Empty State */}
+            {!isLoadingHub &&
+              !isErrorHub &&
+              (!hubData || hubData.length === 0) && (
+                <View className="bg-slate-50 dark:bg-slate-700 rounded-xl p-6 items-center">
+                  <AppIcon
+                    type="feather"
+                    name="inbox"
+                    size={24}
+                    color="#94a3b8"
+                  />
+                  <AppText
+                    size="xs"
+                    weight="medium"
+                    className="text-slate-500 mt-2">
+                    No hub activity recorded
+                  </AppText>
+                </View>
+              )}
+
+            {/* Data State */}
+            {!isLoadingHub && !isErrorHub && hubData && hubData.length > 0 && (
+              <View className="gap-y-5">
+                {hubData.map((hub, index) => (
+                  <View
+                    key={index}
+                    className="bg-gradient-to-br from-slate-50 dark:from-slate-700 to-slate-100 dark:to-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-600">
+                    <View className="flex-row items-center justify-between mb-2">
+                      <View className="flex-row items-center flex-1">
+                        <View className="bg-blue-100 dark:bg-blue-900 rounded-full p-2 mr-3">
+                          <AppIcon
+                            type="feather"
+                            name="calendar"
+                            size={16}
+                            color="#3b82f6"
+                          />
+                        </View>
+                        <View className="flex-1">
+                          <AppText
+                            size="xs"
+                            weight="medium"
+                            className="text-slate-500 mb-0.5">
+                            Hub Date
+                          </AppText>
+                          <AppText
+                            size="sm"
+                            weight="semibold"
+                            className="text-slate-800"
+                            numberOfLines={1}>
+                            {formatDate(hub.Demo_Hub_Date)}
+                          </AppText>
+                        </View>
+                      </View>
+                      <View className="ml-3">
+                        <View className="bg-indigo-100 dark:bg-indigo-900 px-3 py-1.5 rounded-full">
+                          <View className="flex-row items-center">
+                            <AppIcon
+                              type="feather"
+                              name="clock"
+                              size={12}
+                              color="#4f46e5"
+                            />
+                            <AppText
+                              size="xs"
+                              weight="bold"
+                              className="text-indigo-700 ml-1">
+                              {hub.Hours || '0'} hrs
+                            </AppText>
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
 
           {/* Footer Note */}
-          <View className="mt-2">
-            <AppText size="xs" className="text-slate-400 dark:text-slate-500">
-              These details reflect the latest recorded demo execution metadata.
+          <View className="mt-4">
+            <AppText size="xs" className="text-slate-400 text-center">
+              Detailed execution metadata for this demo unit.
             </AppText>
           </View>
         </ScrollView>
@@ -1188,24 +1352,28 @@ const PartnerCard = memo<{
   }, [item.TotalCompulsoryDemo, item.DemoExecuted]);
 
   return (
-    <Card className="mx-0" needSeeMore seeMoreText='Demo Details' seeMoreOnPress={()=>onPressView(item)}>
+    <Card
+      className="mx-0"
+      needSeeMore
+      seeMoreText="Demo Details"
+      seeMoreOnPress={() => onPressView(item)}>
       {/* Partner Name - Primary Information */}
       <View className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
         <View className="flex-row items-start justify-between">
           <View className="flex-1">
             {/* <View className="flex-row items-center justify-between"> */}
-              <TouchableOpacity
-                onPress={() => onPressDetails(item)}
-                activeOpacity={0.7}
-                className="flex-row items-center">
-                <AppText
-                  size="md"
-                  weight="bold"
-                  className="text-secondary dark:text-secondary-dark mb-1 underline">
-                  {item.AGP_Name || item?.PartnerName || '—-'}
-                </AppText>
-              </TouchableOpacity>
-              {/* <TouchableOpacity
+            <TouchableOpacity
+              onPress={() => onPressDetails(item)}
+              activeOpacity={0.7}
+              className="flex-row items-center">
+              <AppText
+                size="md"
+                weight="bold"
+                className="text-secondary dark:text-secondary-dark mb-1 underline">
+                {item.AGP_Name || item?.PartnerName || '—-'}
+              </AppText>
+            </TouchableOpacity>
+            {/* <TouchableOpacity
                 onPress={() => onPressView(item)}
                 activeOpacity={0.7}
                 hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
@@ -1364,7 +1532,7 @@ const PartnerCard = memo<{
                   name="alert-circle-outline"
                   type="material-community"
                   size={20}
-                  color={ AppColors.warning}
+                  color={AppColors.warning}
                 />
               </View>
               <AppText
@@ -1376,7 +1544,7 @@ const PartnerCard = memo<{
               <AppText
                 size="lg"
                 weight="bold"
-                className={ 'text-warning dark:text-warning'}
+                className={'text-warning dark:text-warning'}
                 style={{textAlign: 'center'}}>
                 {shortfall}
               </AppText>
@@ -1443,8 +1611,8 @@ export default function DemoPartners() {
       if (isROI) {
         showDemoROISheet(partner);
       } else {
-        console.log('Year Qtr:', yearQtr,partner);
-        showPartnerDetailsSheet(partner, yearQtr || '',tab || '');
+        console.log('Year Qtr:', yearQtr, partner);
+        showPartnerDetailsSheet(partner, yearQtr || '', tab || '');
       }
     },
     [yearQtr, tab],
@@ -1715,7 +1883,7 @@ export default function DemoPartners() {
         keyExtractor={keyExtractor}
         ListHeaderComponent={renderListHeader}
         ListEmptyComponent={renderEmptyComponent}
-        ItemSeparatorComponent={()=><View className='h-4'/>}
+        ItemSeparatorComponent={() => <View className="h-4" />}
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingTop: 16,

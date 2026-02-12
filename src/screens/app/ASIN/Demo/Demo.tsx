@@ -1,4 +1,4 @@
-import {FlatList, ScrollView, View} from 'react-native';
+import {FlatList, RefreshControl, ScrollView, View} from 'react-native';
 import {useCallback, useMemo, useState} from 'react';
 import MaterialTabBar from '../../../../components/MaterialTabBar';
 import AppDropdown, {
@@ -34,7 +34,6 @@ import {
   useGetDemoDataROI,
   useGetDemoDataReseller,
   useGetDemoDataRetailer,
-  useGetSummaryOverviewData,
 } from '../../../../hooks/queries/demo';
 import FilterButton from '../../../../components/FilterButton';
 import {showDemoFilterSheet} from './DemoFilterSheet';
@@ -66,21 +65,27 @@ const Reseller = () => {
     filters.pKiosk ?? 0,
     filters.rogKiosk ?? 0,
   );
-  const {data: categoriesData} = useGetDemoCategories(
-    selectedQuarter?.value || '',
-  );
+  const {data: categoriesData, refetch: refetchCategories} =
+    useGetDemoCategories(selectedQuarter?.value || '');
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const filteredData = useMemo(() => {
-    if (!data) return {
-      DemoDetailsList: [],
-      PartnerCount: [],
-    };
+    if (!data)
+      return {
+        DemoDetailsList: [],
+        PartnerCount: [],
+      };
     let temp = data.DemoDetailsList;
     if (selectedPartnerName?.value) {
-      temp = temp.filter((item:any) => item.AGP_Name.trim() === selectedPartnerName.value);
+      temp = temp.filter(
+        (item: any) => item.AGP_Name.trim() === selectedPartnerName.value,
+      );
     }
     if (filters.partnerType && filters.partnerType !== 'All') {
-      temp = temp.filter((item:any) => item.AGP_Or_T3.trim() === filters.partnerType);
+      temp = temp.filter(
+        (item: any) => item.AGP_Or_T3.trim() === filters.partnerType,
+      );
     }
     return {
       DemoDetailsList: temp,
@@ -243,12 +248,28 @@ const Reseller = () => {
   const handleRetry = useCallback(() => {
     refetch();
   }, [refetch]);
+
+  const handleRefresh = useCallback(() => {
+    setIsRefreshing(true);
+    try {
+      refetch();
+      refetchCategories();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refetch, refetchCategories]);
   const isError = !!error && transformedData.length === 0;
   const isEmpty = !isLoading && !error && transformedData.length === 0;
-  // console.log('rendering Reseller with data:', filteredData);
-  // console.log('transformed Data:', transformedData);
   return (
-    <ScrollView className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
+    <ScrollView className="flex-1 bg-lightBg-base dark:bg-darkBg-base"
+        refreshControl={
+      <RefreshControl
+      refreshing={isRefreshing}
+      onRefresh={handleRefresh}
+      />
+    }
+    
+    >
       <View className="flex-row justify-end gap-x-2 px-3 pt-2 mb-3 ">
         <AppDropdown
           mode="dropdown"
@@ -277,11 +298,6 @@ const Reseller = () => {
           zIndex={900}
         />
       </View>
-      {(isEmpty || isError) && (
-        <View className="px-3">
-          <SummaryOverView />
-        </View>
-      )}
       <DataStateView
         isLoading={isLoading}
         isError={isError}
@@ -338,8 +354,13 @@ const Retailer = () => {
     filters.category,
     filters.compulsory,
   );
-  const {data: categoriesData, isLoading: isCategoriesLoading} =
-    useGetDemoCategoriesRet(selectedQuarter?.value || '');
+  const {
+    data: categoriesData,
+    isLoading: isCategoriesLoading,
+    refetch: refetchCategories,
+  } = useGetDemoCategoriesRet(selectedQuarter?.value || '');
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const filteredData = useMemo(() => {
     if (!data) return null;
@@ -515,10 +536,27 @@ const Retailer = () => {
   const handleRetry = useCallback(() => {
     refetch();
   }, [refetch]);
+
+  const handleRefresh = useCallback(() => {
+    setIsRefreshing(true);
+    try {
+      refetch();
+      refetchCategories();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refetch, refetchCategories]);
   const isError = !!error && transformedData.length === 0;
   const isEmpty = !isLoading && !error && transformedData.length === 0;
   return (
-    <ScrollView className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
+    <ScrollView className="flex-1 bg-lightBg-base dark:bg-darkBg-base"
+    refreshControl={
+      <RefreshControl
+      refreshing={isRefreshing}
+      onRefresh={handleRefresh}
+      />
+    }
+    >
       <View className="flex-row justify-end gap-x-2 px-3 pt-2 mb-3 ">
         <AppDropdown
           mode="dropdown"
@@ -572,6 +610,7 @@ const Retailer = () => {
                 awp_count: null,
                 total_partners: summaryData.total_partners,
               }}
+              isRetailer={true}
             />
           }
           scrollEnabled={false}
@@ -599,6 +638,7 @@ const LFR = () => {
     selectedQuarter?.value || '',
     'All',
   );
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const filteredData = useMemo(() => {
     if (!data) return null;
@@ -759,11 +799,28 @@ const LFR = () => {
   const handleRetry = useCallback(() => {
     refetch();
   }, [refetch]);
+
+  const handleRefresh = useCallback(() => {
+    setIsRefreshing(true);
+    try {
+      refetch();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refetch]);
   const isError = !!error && transformedData.length === 0;
   const isEmpty = !isLoading && !error && transformedData.length === 0;
 
   return (
-    <ScrollView className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
+    <ScrollView className="flex-1 bg-lightBg-base dark:bg-darkBg-base"
+        refreshControl={
+      <RefreshControl
+      refreshing={isRefreshing}
+      onRefresh={handleRefresh}
+      />
+    }
+    
+    >
       <View className="flex-row justify-end gap-x-2 px-3 pt-2 mb-3 ">
         <AppDropdown
           mode="dropdown"
@@ -792,11 +849,6 @@ const LFR = () => {
           zIndex={900}
         />
       </View>
-      {(isEmpty || isError) && (
-        <View className="px-3">
-          <SummaryOverView />
-        </View>
-      )}
       <DataStateView
         isLoading={isLoading}
         isError={isError}
@@ -849,6 +901,8 @@ const ROI = () => {
 
   const {data: categoriesData, isLoading: isCategoriesLoading} =
     useGetDemoCategoriesRet(selectedQuarter?.value || '');
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const filteredData = useMemo(() => {
     if (!data) return null;
@@ -992,6 +1046,15 @@ const ROI = () => {
     refetch();
   }, [refetch]);
 
+    const handleRefresh = useCallback(() => {
+    setIsRefreshing(true);
+    try {
+      refetch();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refetch]);
+
   const handleFilter = useCallback(() => {
     showDemoFilterSheet({
       filters: {...filters},
@@ -1029,7 +1092,13 @@ const ROI = () => {
   const isEmpty = !isLoading && !error && transformedData.length === 0;
 
   return (
-    <ScrollView className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
+    <ScrollView className="flex-1 bg-lightBg-base dark:bg-darkBg-base"
+        refreshControl={
+      <RefreshControl
+      refreshing={isRefreshing}
+      onRefresh={handleRefresh}
+      />
+    }>
       <View className="flex-row justify-end gap-x-2 px-3 pt-2 mb-3 ">
         <AppDropdown
           mode="dropdown"
@@ -1058,11 +1127,6 @@ const ROI = () => {
           zIndex={999}
         />
       </View>
-      {(isEmpty || isError) && (
-        <View className="px-3">
-          <SummaryOverView />
-        </View>
-      )}
       <DataStateView
         isLoading={isLoading}
         isError={isError}
@@ -1094,8 +1158,8 @@ const ROI = () => {
 
 const TAB_CONFIG = {
   retailer: {label: 'Retailer', name: 'retailer', component: Retailer},
-  lfr: {label: 'LFR', name: 'lfr', component: LFR},
   reseller: {label: 'Reseller', name: 'reseller', component: Reseller},
+  lfr: {label: 'LFR', name: 'lfr', component: LFR},
   roi: {label: 'ROI', name: 'roi', component: ROI},
 } as const;
 
@@ -1108,7 +1172,7 @@ const ROLE_TABS = {
 } as const;
 
 export default function Demo() {
-  useGetSummaryOverviewData(); // Preload summary data
+  // useGetSummaryOverviewData(); // Preload summary data
   const {EMP_RoleId: role_id} = useLoginStore(state => state.userInfo);
   const {LFR_HO, ONLINE_HO, AM, TM, SALES_REPS} = ASUS.ROLE_ID;
   const [isLFR, isAM, isTM, isCSE] = [

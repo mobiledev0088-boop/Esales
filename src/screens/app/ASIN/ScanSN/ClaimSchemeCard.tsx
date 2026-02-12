@@ -78,6 +78,7 @@ export const EachClaim = ({values, needBorder}: any) => {
 
 export function ClaimSchemeInfo({data}: {data: any[]}) {
   const [expanded, setExpanded] = useState(false);
+  console.log('ClaimSchemeInfo data:', data);
   
   return (
     <Card className={'p-0 overflow-hidden border border-slate-200 dark:border-slate-700'}>

@@ -275,9 +275,13 @@ export interface FinanceMapProps {
   financeFields: FormField[];
   financeInfo: Record<string, any>;
   updateFinanceInfo: (key: string, value: any) => void;
-  validationErrors: Record<string, Record<string, string>>;
-  openAccordion: string;
-  handleAccordionToggle: (sectionId: string) => void;
+  reFinanceInfo: Record<string, any>;
+  updateReFinanceInfo: (key: string, value: any) => void;
+  validationErrors: Record<string, any>;
+  apiData: any;
+  handleSubmit: () => void;
+  // openAccordion: string;
+  // handleAccordionToggle: (sectionId: string) => void;
 }
 
 export interface InfoRowProps {

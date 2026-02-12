@@ -1,7 +1,9 @@
 import {View, FlatList, TouchableOpacity} from 'react-native';
 import {useMemo, useCallback, useState} from 'react';
 import MaterialTabBar from '../../../../components/MaterialTabBar';
-import AppDatePicker, {DatePickerState} from '../../../../components/customs/AppDatePicker';
+import AppDatePicker, {
+  DatePickerState,
+} from '../../../../components/customs/AppDatePicker';
 import moment from 'moment';
 import {
   buildGroups,
@@ -57,6 +59,8 @@ const ClaimCodeWise = () => {
     data: claimData = [],
     isLoading,
     isError,
+    refetch,
+    isRefetching,
   } = useClaimDashboardData({
     mode: 'code',
     partnerType: filterData.partnerType,
@@ -178,7 +182,9 @@ const ClaimCodeWise = () => {
   const isApiEmpty = claimData.length === 0;
   return (
     <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base px-3 pt-2">
-      {isLoading ? <ClaimListSkeleton /> : isError ? (
+      {isLoading ? (
+        <ClaimListSkeleton />
+      ) : isError ? (
         <View className="flex-1 items-center justify-center">
           <AppText>Failed to load claim data.</AppText>
         </View>
@@ -186,7 +192,9 @@ const ClaimCodeWise = () => {
         <FlatList
           data={sortedFilteredData}
           keyExtractor={item => item.Scheme_Category}
-          renderItem={({item}) => <GroupAccordion group={item} onNavigate={handleNavigate} />}
+          renderItem={({item}) => (
+            <GroupAccordion group={item} onNavigate={handleNavigate} />
+          )}
           contentContainerStyle={{paddingBottom: 24, rowGap: 16}}
           ListHeaderComponent={
             <View>
@@ -273,6 +281,8 @@ const ClaimCodeWise = () => {
               }
             />
           }
+          refreshing={isRefetching}
+          onRefresh={refetch}
         />
       )}
       <AppDatePicker
@@ -287,7 +297,7 @@ const ClaimCodeWise = () => {
       />
     </View>
   );
-};  
+};
 
 const PartnerWise = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -314,6 +324,8 @@ const PartnerWise = () => {
     data: claimData = [],
     isLoading,
     isError,
+    isRefetching,
+    refetch,
   } = useClaimDashboardData({
     mode: 'partner',
     selectedPartner,
@@ -524,6 +536,8 @@ const PartnerWise = () => {
               }
             />
           }
+          refreshing={isRefetching}
+          onRefresh={refetch}
         />
       )}
       <AppDatePicker
@@ -561,6 +575,8 @@ const GSTWise = () => {
     data: claimData = [],
     isLoading,
     isError,
+    isRefetching,
+    refetch,
   } = useClaimDashboardData({
     mode: 'partner',
     selectedPartner,
@@ -757,6 +773,8 @@ const GSTWise = () => {
               }
             />
           }
+          refreshing={isRefetching}
+          onRefresh={refetch}
         />
       )}
       <AppDatePicker
@@ -787,15 +805,15 @@ export default function Claim() {
           component: <PartnerWise />,
         },
       ];
-    }else if (isDistiUser) {
+    } else if (isDistiUser) {
       return [
         {
           name: 'ClaimCode Wise',
           label: 'Partner Type',
           component: <ClaimCodeWise />,
-        }
+        },
       ];
-    }else{
+    } else {
       return [
         {
           name: 'ClaimCode Wise',
@@ -810,7 +828,7 @@ export default function Claim() {
         {name: 'GST Wise', label: 'T3 Partners', component: <GSTWise />},
       ];
     }
-  }, [isPartnerUser,isDistiUser]);
+  }, [isPartnerUser, isDistiUser]);
 
   return (
     <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">

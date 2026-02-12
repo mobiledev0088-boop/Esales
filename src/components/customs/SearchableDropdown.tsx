@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, Keyboard, Pressable, TextInput, View } from 'react-native';
 import AppText from './AppText';
 import AppIcon from './AppIcon';
@@ -69,7 +69,7 @@ const SearchableDropdown = <T,>({
   const [internalValue, setInternalValue] = useState<string | null>(defaultValue);
   const selectedValue = controlledValue !== undefined ? controlledValue : internalValue;
 
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(defaultValue || '');
   const [hasTyped, setHasTyped] = useState(false); // controls showing list only after typing
 
   const debouncedSearchCallback = useDebouncedCallback((text) => {
@@ -135,7 +135,7 @@ const SearchableDropdown = <T,>({
   }, [selectedValue, valueMap]);
 
   // Sync query display with external changes to selected value (when not actively typing)
-  React.useEffect(() => {
+  useEffect(() => {
     if (!hasTyped) {
       if (selectedValue) {
         const lbl = data.find(d => d.value === selectedValue)?.label;

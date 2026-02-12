@@ -101,19 +101,22 @@ const TableRow = ({
   isLast: boolean;
   columns: TableColumn[];
   isAGPorALP: boolean;
-  handlePress: (name: string) => void;
+  handlePress: (item: ActivationData) => void;
 }) => (
   <TouchableOpacity
     disabled={!isAGPorALP}
-    onPress={() => handlePress(item.name)}
+    onPress={() => handlePress(item)}
     className={`flex-row items-center px-4 py-3 ${!isLast ? 'border-b border-gray-100' : ''}`}>
-    {columns.map(column => (
+    {columns.map(column => {
+      const cellValue = column.key === 'name' && isAGPorALP ? `${String(item[column.dataKey] || '0')}\n ${item?.ALP_Code || item?.AGP_Code || ''}` :   String(item[column.dataKey] || '0');
+      return(
       <View
         key={column.key}
         className={`${column.width} ${column.key === 'name' ? 'flex-row items-center' : 'items-center'}`}>
-        <AppText>{String(item[column.dataKey] || '0')}</AppText>
+        <AppText>{cellValue}</AppText>
       </View>
-    ))}
+    )}
+  )}
   </TouchableOpacity>
 );
 
@@ -224,15 +227,26 @@ const DataTable = ({
     () => sortedData.slice(0, visibleCount),
     [sortedData, visibleCount],
   );
-
   const handlePress = useCallback(
-    (name: string) => {
-      if (!needNavigation) return;
-      let AGP_Code = name.match(/\(([^)]+)\)/)?.[1];
-      console.log('Extracted AGP_Code:', AGP_Code);
-      navigation.navigate('TargetPartnerDashboard', {partner: {AGP_Code}});
+    (item: ActivationData) => {
+      const name = item.name;
+      if (activeTab === 'alp') {
+        const code = item.ALP_Code;
+        navigation.push('ChannelMap', {
+          activeTab: 0,
+          PartnerName: name,
+          PartnerCode: code,
+        });
+      } else {
+        const code = item.AGP_Code;
+        navigation.push('ChannelMap', {
+          activeTab: 1,
+          PartnerName: name,
+          PartnerCode: code,
+        });
+      }
     },
-    [navigation, needNavigation],
+    [navigation, activeTab],
   );
 
   const renderItem = useCallback(

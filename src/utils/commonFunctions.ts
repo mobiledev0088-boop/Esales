@@ -100,7 +100,7 @@ export const getPastMonths = (
   const months: {label: string; value: string}[] = [];
   const baseDate = startFrom
     ? moment(startFrom, 'YYYYM')
-    : moment().subtract(15, 'days');
+    : moment().subtract(10, 'days');
   const date = isOneMinus ? baseDate.clone().subtract(1, 'months') : baseDate;
   if (isForward) {
     for (let i = 0; i < count; i++) {

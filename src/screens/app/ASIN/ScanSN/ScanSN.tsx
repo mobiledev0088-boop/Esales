@@ -19,8 +19,8 @@ export default function ScanSN() {
   const addRecentSearch = useScanSNStore(state => state.addRecentSearch);
   const appTheme = useThemeStore(state => state.AppTheme);
 
-  // const [searchValue, setSearchValue] = useState('S8N0KD018850325');
-  const [searchValue, setSearchValue] = useState('');
+  const [searchValue, setSearchValue] = useState('S8N0KD018850325');
+  // const [searchValue, setSearchValue] = useState('');
   const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   const layoutRef = useRef<AppLayoutRef>(null);

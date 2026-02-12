@@ -169,9 +169,6 @@ const AppTabBar: React.FC<AppTabBarProps> = ({
   activeTextColor,
   inactiveTextColor,
 }) => {
-  const appTheme = useThemeStore(state => state.AppTheme);
-  const isDarkTheme = appTheme === 'dark';
-
   // Resolve initial index
   const derivedInitialIndex = useMemo(() => {
     if (activeTabName) {
@@ -234,8 +231,8 @@ const AppTabBar: React.FC<AppTabBarProps> = ({
         tabBarStyle={tabBarStyle}
       />
       <View
-        className={`${isDarkTheme ? '' : 'bg-white'}`}
-        style={[{ backgroundColor: isDarkTheme ? AppColors.dark.bgSurface : undefined }, contentContainerStyle]}
+        className={`bg-lightBg-surface dark:bg-darkBg-surface`}
+        style={[contentContainerStyle]}
       >
         {ActiveContent}
       </View>

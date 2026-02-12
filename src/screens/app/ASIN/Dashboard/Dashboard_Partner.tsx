@@ -414,6 +414,7 @@ export default function Dashboard_Partner({
     selectedSubCode?.value || '',
     DifferentEmployeeCode,
   );
+  console.log('Dashboard data fetched:', dashboardData, 'Error:', dashboardError);
   const {data: subCodeData, isLoading: isLoadingSubCode} = useGetSubCodeData();
 
   // Target vs Achievement summary
@@ -510,6 +511,7 @@ export default function Dashboard_Partner({
   };
 
   const isDataEmpty = !isLoading && !dashboardData;
+  console.log('Dashboard Data:', dashboardData);
   return (
     <ScrollView
       className={clsx(
@@ -649,7 +651,7 @@ export default function Dashboard_Partner({
               <AppButton
               title="See Demo Data"
               // onPress={() => navigation.push('DemoPartnerDashboard')}
-              onPress={()=>{}}
+              onPress={() => navigation.push('TargetDemoPartner', {differentEmployeeCode: DifferentEmployeeCode || ''})}
               className='rounded-lg bg-white border border-slate-200 dark:border-slate-700'
               color='primary'
               weight='extraBold'

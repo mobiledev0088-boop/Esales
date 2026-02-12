@@ -1,61 +1,57 @@
-import RNFS from 'react-native-fs';
 import AppLayout from '../../../../components/layout/AppLayout';
 import AppButton from '../../../../components/customs/AppButton';
 import Card from '../../../../components/Card';
 import AppText from '../../../../components/customs/AppText';
-import AppDropdown, { AppDropdownItem } from '../../../../components/customs/AppDropdown';
+import AppDropdown, {
+  AppDropdownItem,
+} from '../../../../components/customs/AppDropdown';
 
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 import {useQuery} from '@tanstack/react-query';
-import { ASUS } from '../../../../utils/constant';
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useState} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
-import { useLoginStore } from '../../../../stores/useLoginStore';
-import { useLoaderStore } from '../../../../stores/useLoaderStore';
-import { handleASINApiCall } from '../../../../utils/handleApiCall';
-import { ensureFolderExists, getPastQuarters } from '../../../../utils/commonFunctions';
+import {useLoginStore} from '../../../../stores/useLoginStore';
+import {useLoaderStore} from '../../../../stores/useLoaderStore';
+import {handleASINApiCall} from '../../../../utils/handleApiCall';
+import {formatUnique} from '../../../../utils/commonFunctions';
+import { downloadFile } from '../../../../utils/services';
+import useQuarterHook from '../../../../hooks/useQuarterHook';
 
-
-// API fetch function
-const fetchAuditReportData = async (
-  EMP_Code: string,
-  yearQtrSelected: string,
-): Promise<AppDropdownItem[]> => {
-  const res = await handleASINApiCall('/Download/GetEmployee_PerformanceLink', {
-    employeeCode: EMP_Code || '',
-    YearQtr: yearQtrSelected,
-  });
-
-  const result = res?.DashboardData;
-  if (!result?.Status) throw new Error('Failed to fetch Audit Report data');
-
-  const EmployeePerformanceLink =
-    result?.Datainfo?.Employee_PerformanceLink || [];
-
-  // Deduplicate by PartnerName
-  return Array.from(
-    new Map(
-      EmployeePerformanceLink.map((item: any) => [
-        item.PartnerName,
+const useGetAuditReportData = (yearQtrSelected: string) => {
+  const {EMP_Code = ''} = useLoginStore(state => state.userInfo);
+  return useQuery({
+    queryKey: ['auditReport', EMP_Code, yearQtrSelected],
+    queryFn: async () => {
+      const res = await handleASINApiCall(
+        '/Download/GetEmployee_PerformanceLink',
         {
-          label: item.PartnerName.trim(),
-          value: item.PerformanceLink.trim(),
+          employeeCode: EMP_Code || '',
+          YearQtr: yearQtrSelected,
         },
-      ]),
-    ).values(),
-  ) as any;
+      );
+      const result = res?.DashboardData;
+      if (!result?.Status) throw new Error('Failed to fetch Audit Report data');
+      return result?.Datainfo?.Employee_PerformanceLink || [];
+    },
+    select: (EmployeePerformanceLink: any[]) => {
+      if (!EmployeePerformanceLink) return [];
+      return formatUnique(
+        EmployeePerformanceLink,
+        'PerformanceLink',
+        'PartnerName',
+      );
+    },
+    enabled: !!EMP_Code && !!yearQtrSelected,
+  });
 };
 
 export default function AuditReport() {
-  const userInfo = useLoginStore(state => state.userInfo);
   const setLoading = useLoaderStore(state => state.setLoading);
-
-  const quarters = useMemo(() => getPastQuarters(), []);
-
-  const defaultQuarter = quarters[0]?.value;
-  const [yearQtrSelected, setYearQtrSelected] = useState(defaultQuarter);
-  const [selectedPartner, setSelectedPartner] =useState<AppDropdownItem | null>(null);
+  const {quarters, selectedQuarter, setSelectedQuarter} = useQuarterHook();
+  const [selectedPartner, setSelectedPartner] = useState<AppDropdownItem | null>(null);
   const [downloadLink, setDownloadLink] = useState<string | null>(null);
+
+  const {data, isLoading, error} = useGetAuditReportData(selectedQuarter?.value || '');
 
   const resetStates = () => {
     setSelectedPartner(null);
@@ -68,38 +64,17 @@ export default function AuditReport() {
     }, []),
   );
 
-  const {data, isLoading, isError} = useQuery({
-    queryKey: ['auditReport', userInfo?.EMP_Code, yearQtrSelected],
-    queryFn: () =>
-      fetchAuditReportData(userInfo?.EMP_Code || '', yearQtrSelected),
-    enabled: !!userInfo?.EMP_Code && !!yearQtrSelected,
-  });
-
   const handleDownload = async () => {
     if (!selectedPartner) return;
-
     try {
       setLoading(true);
-
       const fileName = 'report.pdf';
-      const downloadsDir = Platform.select({
-        ios: `${RNFS.DocumentDirectoryPath}/Downloads/`,
-        android: `${RNFS.DownloadDirectoryPath}/${ASUS.APP_NAME}`,
-      }) as string;
-
-      await ensureFolderExists(downloadsDir);
-
-      const localPath = `${downloadsDir}/${fileName}`;
-      const result = await RNFS.downloadFile({
-        fromUrl: selectedPartner.value,
-        toFile: localPath,
-      }).promise;
-
-      if (result.statusCode === 200) {
-        setDownloadLink(localPath);
-      } else {
-        console.warn('Download failed with status:', result.statusCode);
-      }
+      await downloadFile({
+          url: selectedPartner.value,
+          fileName,
+          autoOpen: false,
+        }
+      )
     } catch (error) {
       console.error('Error downloading report:', error);
     } finally {
@@ -108,7 +83,7 @@ export default function AuditReport() {
   };
   const handleQuarterChange = (obj: AppDropdownItem | null) => {
     if (!obj) return;
-    setYearQtrSelected(obj.value);
+    setSelectedQuarter(obj);
     resetStates();
   };
 
@@ -118,7 +93,7 @@ export default function AuditReport() {
         <AppDropdown
           placeholder="Choose quarter"
           data={quarters}
-          selectedValue={defaultQuarter}
+          selectedValue={selectedQuarter?.value || null}
           onSelect={handleQuarterChange}
           mode="dropdown"
           style={{width: '35%', marginTop: 10}}
@@ -154,4 +129,4 @@ export default function AuditReport() {
       )}
     </AppLayout>
   );
-};
+}

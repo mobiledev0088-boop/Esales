@@ -86,7 +86,7 @@ interface SubmitPayload {
 enum FieldStatus {
   REJECTED = 'red',
   APPROVED = 'green',
-  IN_PROCESS = 'gray',
+  IN_PROCESS = '#A9A9A9',
 }
 
 const INITIAL_FORM_DATA: FormData = {
@@ -280,8 +280,6 @@ const FinancerFirstTimeInput: React.FC<{
   />
 ));
 
-FinancerFirstTimeInput.displayName = 'FinancerFirstTimeInput';
-
 const FinancerExistingInput: React.FC<{
   formValue: string;
   label: string;
@@ -311,7 +309,7 @@ const FinancerExistingInput: React.FC<{
         label={label}
         setValue={() => {}}
         placeholder="Type Dealer Code"
-        inputClassName='ml-3'
+        inputClassName='ml-3 text-gray-900'
         inputWrapperStyle={{backgroundColor}}
         isOptional
         readOnly={!isEditable}
