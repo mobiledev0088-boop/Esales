@@ -1,7 +1,7 @@
 import AppLayout from '../../../../../components/layout/AppLayout';
 import {useUserStore} from '../../../../../stores/useUserStore';
 
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import {useMemo} from 'react';
 import {useRoute} from '@react-navigation/native';
 import {ASUS} from '../../../../../utils/constant';
@@ -35,7 +35,7 @@ const Account = (props: {noHeader?: boolean}) => {
 
   // Render account details content
   const renderAccountContent = () => (
-    <View className="flex-1 px-4 pt-4 dark:bg-darkBg-base">
+    <View className="flex-1 px-4 pt-4 dark:bg-darkBg-base ">
       {/* Profile Card */}
       <ProfileCard userInfo={currentUser} empInfo={employeeDetails} />
 
@@ -61,7 +61,11 @@ const Account = (props: {noHeader?: boolean}) => {
   );
 
   if (noHeader) {
-    return renderAccountContent();
+    return (
+      <ScrollView>
+        {renderAccountContent()}
+      </ScrollView>
+    );
   }
   return (
     <AppLayout title="Account" needScroll>

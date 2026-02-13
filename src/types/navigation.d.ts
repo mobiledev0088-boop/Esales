@@ -20,7 +20,7 @@ type AppNavigationParamList = {
   TargetASEDashboard: {partner: any};
 
   // Demo Screen
-  DemoPartners: {partners: Array<any>; yearQtr: string,isROI?: boolean,tab?:string};
+  DemoPartners: {partners: Array<any>; yearQtr: string,isROI?: boolean,tab?:string,stats?: any};
   UploadDemoData: undefined;
   // Claim Screen
   ClaimInfo: {
@@ -181,6 +181,17 @@ type AppNavigationParamList = {
     StartDate: string;
     EndDate: string;
   };
+  TargetSummarySalesPerformance:{
+    Year_Qtr: string;
+    ALP: string;
+    masterTabType: string;
+  }
+  Dashboard_Partner:{
+    ALP: string;
+    Year_Qtr: string;
+    Partner_Code: string;
+    Partner_Name: string;
+  }
 };
 
 export type AuthNavigationProp = NativeStackNavigationProp<AuthStackParamList>;

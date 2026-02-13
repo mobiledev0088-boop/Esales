@@ -37,6 +37,7 @@ const userInfo = useLoginStore(state => state.userInfo);
       name: 'Account',
       component: Account,
       icon: 'person',
+       params: {noHeader: true},
     });
     arr.push({
       name: 'More',

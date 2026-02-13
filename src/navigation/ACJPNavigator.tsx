@@ -1,5 +1,7 @@
 
 import Index from "../screens/app/APAC/ACJP";
+import Dashboard_Partner from "../screens/app/APAC/ACJP/Dashboard/Dashboard_Partner";
+import TargetSummarySalesPerformance from "../screens/app/APAC/ACJP/Dashboard/TargetSummarySalesPerformance";
 import AppPermissions from "../screens/app/ASIN/User/AppPermissions/AppPermissions";
 
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -9,6 +11,8 @@ const Stack = createNativeStackNavigator();
 const screens = [
   {name: 'Index', component: Index},
   {name: 'AppPermissions', component: AppPermissions},
+  {name: 'TargetSummarySalesPerformance', component: TargetSummarySalesPerformance},
+  {name: 'Dashboard_Partner', component: Dashboard_Partner},
   // dashbaord Screens
 //   {name: 'TargetSummaryAPAC', component: TargetSummaryAPAC},
 //   {name: 'DealerHitRate', component: DealerHitRate},

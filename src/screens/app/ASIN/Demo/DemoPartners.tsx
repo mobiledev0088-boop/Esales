@@ -28,6 +28,7 @@ import {ASUS, screenHeight, screenWidth} from '../../../../utils/constant';
 import {useThemeStore} from '../../../../stores/useThemeStore';
 import clsx from 'clsx';
 import SheetIndicator from '../../../../components/SheetIndicator';
+import { ROITable } from './components';
 
 type PartnerTypes = {
   AGP_Code: string;
@@ -74,7 +75,6 @@ interface DemoHubType {
   Demo_Hub_Date: string;
   Hours: string;
 }
-
 
 const useGetDemoHubDetails = (Serial_No: string, YearQtr: string) => {
   return useQuery({
@@ -1471,6 +1471,7 @@ const PartnerCard = memo<{
                 size="lg"
                 weight="bold"
                 className="text-secondary dark:text-secondary text-center">
+                {/* {item.Activation_count}/{item?.model?.length} */}
                 {item.Activation_count}
               </AppText>
             </View>
@@ -1564,13 +1565,23 @@ export default function DemoPartners() {
     yearQtr,
     isROI = false,
     tab,
+    stats,
   } = params as {
     partners: PartnerTypes[];
     yearQtr: string;
     isROI?: boolean;
     tab?: string;
+    stats: {
+      total_demo: number;
+      total_act: number;
+      total_stock: number;
+      out_of_demo: number;
+      out_of_act: number;
+      out_of_stock: number;
+      partner_count : number;
+    };
   };
-
+  console.log('stats:', stats);
   // Partner selection state for filtering
   const [selectedPartner, setSelectedPartner] =
     useState<AppDropdownItem | null>(null);
@@ -1661,7 +1672,7 @@ export default function DemoPartners() {
         </AppText>
       </View>
     );
-  }, []);
+  }, [filteredPartners, stats]);
 
   // List header with summary
   const renderListHeader = useCallback(() => {
@@ -1675,24 +1686,6 @@ export default function DemoPartners() {
         const diff = partner.TotalCompulsoryDemo - partner.DemoExecuted;
         return sum + (diff >= 0 ? diff : 0);
       }, 0) || 0;
-    const totalDemo = isROI
-      ? filteredPartners?.reduce(
-          (sum, partner) => sum + (partner.Total_Demo_Count || 0),
-          0,
-        )
-      : 0;
-    const totalActive = isROI
-      ? filteredPartners?.reduce(
-          (sum, partner) => sum + (partner.Activation_count || 0),
-          0,
-        )
-      : 0;
-    const totalStock = isROI
-      ? filteredPartners?.reduce(
-          (sum, partner) => sum + (partner.Inventory_Count || 0),
-          0,
-        )
-      : 0;
 
     return (
       <View className="mb-4">
@@ -1725,85 +1718,7 @@ export default function DemoPartners() {
 
           {/* Demo Metrics */}
           {isROI ? (
-            <View className="flex-row justify-around mt-4">
-              <View className="flex-1 items-center">
-                <View className="w-12 h-12 rounded-xl bg-teal-500 items-center justify-center mb-2 shadow-sm">
-                  <AppIcon
-                    name="laptop-outline"
-                    type="ionicons"
-                    size={20}
-                    color="white"
-                  />
-                </View>
-                <AppText
-                  size="xs"
-                  weight="medium"
-                  numberOfLines={2}
-                  className="text-center leading-tight text-teal-600 dark:text-teal-400">
-                  Total Demos
-                </AppText>
-                <AppText
-                  size="lg"
-                  weight="semibold"
-                  className="mt-1 text-teal-600 dark:text-teal-400">
-                  {totalDemo}
-                </AppText>
-              </View>
-
-              <View className="w-px bg-slate-100 dark:bg-slate-700 mx-3" />
-
-              <View className="flex-1 items-center">
-                <View
-                  className={`w-12 h-12 rounded-xl items-center justify-center mb-2 shadow-sm bg-secondary`}>
-                  <AppIcon
-                    name="trending-up"
-                    type="feather"
-                    size={20}
-                    color="white"
-                  />
-                </View>
-                <AppText
-                  size="xs"
-                  weight="medium"
-                  numberOfLines={2}
-                  className={`text-center leading-tight text-secondary dark:text-secondary-dark`}>
-                  Total Active
-                </AppText>
-                <AppText
-                  size="lg"
-                  weight="semibold"
-                  className={`mt-1 text-secondary dark:text-secondary-dark`}>
-                  {totalActive}
-                </AppText>
-              </View>
-
-              <View className="w-px bg-slate-100 dark:bg-slate-700 mx-3" />
-
-              <View className="flex-1 items-center">
-                <View
-                  className={`w-12 h-12 rounded-xl items-center justify-center mb-2 shadow-sm bg-warning`}>
-                  <AppIcon
-                    name="percent"
-                    type="feather"
-                    size={20}
-                    color="white"
-                  />
-                </View>
-                <AppText
-                  size="xs"
-                  weight="medium"
-                  numberOfLines={2}
-                  className={`text-center leading-tight text-warning dark:text-warning-dark`}>
-                  Total Stock
-                </AppText>
-                <AppText
-                  size="lg"
-                  weight="semibold"
-                  className={`mt-1 text-warning dark:text-warning-dark`}>
-                  {totalStock}
-                </AppText>
-              </View>
-            </View>
+            <ROITable item={stats} />
           ) : (
             <View className="flex-row justify-around mt-4">
               <View className="flex-1 items-center">
@@ -1829,9 +1744,7 @@ export default function DemoPartners() {
                   {totalDemosExecuted}
                 </AppText>
               </View>
-
               <View className="w-px bg-slate-100 dark:bg-slate-700 mx-3" />
-
               <View className="flex-1 items-center">
                 <View
                   className={`w-12 h-12 rounded-xl items-center justify-center mb-2 shadow-sm bg-amber-500`}>
@@ -1861,7 +1774,7 @@ export default function DemoPartners() {
         </Card>
       </View>
     );
-  }, [filteredPartners]);
+  }, [filteredPartners, stats, isROI]);
 
   return (
     <AppLayout title="Demo Partners" needBack>

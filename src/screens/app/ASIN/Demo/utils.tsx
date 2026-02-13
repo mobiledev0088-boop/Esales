@@ -45,20 +45,26 @@ export interface DemoItemROI {
 }
 
 interface DemoItemROIWithMeta extends DemoItemROI {
-  model: Map<string, {
-    name: string;
-    total_demo: number;
-    total_act: number;
-    total_stock: number;
-  }>;
+  model: Map<
+    string,
+    {
+      name: string;
+      total_demo: number;
+      total_act: number;
+      total_stock: number;
+    }
+  >;
 }
 interface GroupROI {
   id: string;
   state: string;
   partner_count: number;
   total_demo: number;
+  out_of_demo: number;
   total_act: number;
+  out_of_act: number;
   total_stock: number;
+  out_of_stock: number;
   partners: Map<string, DemoItemROIWithMeta>;
 }
 
@@ -106,8 +112,11 @@ export interface TransformedBranchROI {
   id: string;
   state: string;
   total_demo: number;
+  out_of_demo: number;
   total_act: number;
+  out_of_act: number;
   total_stock: number;
+  out_of_stock: number;
   partner_count: number;
   partners: DemoItemROI[];
 }
@@ -183,6 +192,15 @@ export interface Filters {
   compulsory?: string | null;
 }
 
+type BranchMap = Record<
+  string,
+  {
+    BranchName: string;
+    DemoExecuted: number;
+    TotalCompulsoryDemo: number;
+  }
+>;
+
 // helpers
 export const STAT_PALETTE = {
   lap_icon: {tint: 'text-violet-600', iconBg: 'bg-violet-500'},
@@ -225,7 +243,6 @@ export const METRIC_ICON_COLOR: Record<MetricProps['tint'], string> = {
   blue: '#3b82f6',
   yellow: '#eab308',
 };
-
 
 // Reseller Demo - Unified
 export const transformDemoData = (apiData: {
@@ -339,8 +356,7 @@ export const transformTerritoryData = (apiData: {
     territory.rog_kiosk += item.ROG_Kiosk_cnt || 0;
     territory.pkiosk += item.Pkiosk_Cnt || 0;
     territory.pkiosk_rogkiosk += item.PKIOSK_ROG_KIOSK || 0;
-    territory.pending += (item.TotalCompulsoryDemo - item.DemoExecuted) || 0;
-   
+    territory.pending += item.TotalCompulsoryDemo - item.DemoExecuted || 0;
 
     // Increment demo counters based on percentage
     if (percentage > 0 && percentage <= 50) {
@@ -415,7 +431,7 @@ export const transformDemoDataRetailer = (
         existingPartner.Demo_UnitModel = [...models].join(',');
       }
     } else {
-      group.partners.set(partnerKey, { ...item });
+      group.partners.set(partnerKey, {...item});
       group.partner_count++;
     }
   }
@@ -445,10 +461,8 @@ export const transformDemoDataRetailer = (
   }));
 };
 
-// LFR Demo 
-export const transformDemoDataLFR = (
-  apiData: DemoItemRetailer[]
-) => {
+// LFR Demo
+export const transformDemoDataLFR = (apiData: DemoItemRetailer[]) => {
   const map = new Map<
     string,
     {
@@ -504,7 +518,7 @@ export const transformDemoDataLFR = (
         existingPartner.Demo_UnitModel = [...models].join(',');
       }
     } else {
-      group.partners.set(partnerKey, { ...item });
+      group.partners.set(partnerKey, {...item});
       group.partner_count++;
     }
   }
@@ -534,9 +548,11 @@ export const transformDemoDataLFR = (
   }));
 };
 
-export const transformDemoDataROI = (apiData: DemoItemROI[]) => {
+export const transformDemoDataROI = (
+  apiData: DemoItemROI[],
+  retailerDemo: DemoItemRetailer[],
+) => {
   const groupMap = new Map<string, GroupROI>();
-
   for (const item of apiData) {
     const {
       BranchName,
@@ -560,8 +576,11 @@ export const transformDemoDataROI = (apiData: DemoItemROI[]) => {
         state: BranchName,
         partner_count: 0,
         total_demo: 0,
+        out_of_demo: 0,
         total_act: 0,
+        out_of_act: 0,
         total_stock: 0,
+        out_of_stock: 0,
         partners: new Map(),
       };
       groupMap.set(groupKey, group);
@@ -574,6 +593,7 @@ export const transformDemoDataROI = (apiData: DemoItemROI[]) => {
       existingPartner.Total_Demo_Count += Total_Demo_Count;
       existingPartner.Activation_count += Activation_count;
       existingPartner.Inventory_Count += Inventory_Count;
+
       // Model-wise aggregation
       const modelData = existingPartner.model.get(Model_Series);
       if (modelData) {
@@ -589,12 +609,20 @@ export const transformDemoDataROI = (apiData: DemoItemROI[]) => {
         });
       }
     } else {
-      group.partners.set(partnerKey, { ...item, model: new Map([[Model_Series, {
-        name: Model_Series,
-        total_demo: Total_Demo_Count,
-        total_act: Activation_count,
-        total_stock: Inventory_Count,
-      }]]) });
+      group.partners.set(partnerKey, {
+        ...item,
+        model: new Map([
+          [
+            Model_Series,
+            {
+              name: Model_Series,
+              total_demo: Total_Demo_Count,
+              total_act: Activation_count,
+              total_stock: Inventory_Count,
+            },
+          ],
+        ]),
+      });
       group.partner_count++;
     }
 
@@ -603,13 +631,52 @@ export const transformDemoDataROI = (apiData: DemoItemROI[]) => {
     group.total_act += Activation_count;
     group.total_stock += Inventory_Count;
   }
-
   /* ---------- Normalize output ---------- */
-  return Array.from(groupMap.values()).map(group => ({
-  ...group,
-  partners: Array.from(group.partners.values()).map(p => ({
-    ...p,
-    model: Array.from(p.model.values()),
-  })),
-}));
+  const data = Array.from(groupMap.values()).map(group => ({
+    ...group,
+    partners: Array.from(group.partners.values()).map(p => ({
+      ...p,
+      model: Array.from(p.model.values()),
+    })),
+  }));
+
+  /* ---------- add Logic of Out of  ---------- */
+  const retailerBranch = retailerDemo.reduce<BranchMap>((acc, item) => {
+    const {BranchName, DemoExecuted, TotalCompulsoryDemo} = item;
+    if (!acc[BranchName]) {
+      acc[BranchName] = {
+        BranchName,
+        DemoExecuted: 0,
+        TotalCompulsoryDemo: 0,
+      };
+    }
+
+    acc[BranchName].DemoExecuted += DemoExecuted;
+    acc[BranchName].TotalCompulsoryDemo += TotalCompulsoryDemo;
+
+    return acc;
+  }, {});
+
+  const output = Object.values(retailerBranch);
+
+  return data.map(branch => {
+    const {out_of_act, out_of_stock} = branch.partners.reduce(
+      (acc, p) => {
+        if (p.Activation_count > 0) acc.out_of_act++;
+        if (p.Inventory_Count > 0) acc.out_of_stock++;
+        return acc;
+      },
+      {out_of_act: 0, out_of_stock: 0},
+    );
+    const foundBranch = output.find(b => b.BranchName === branch.state);
+    const total_demo = foundBranch?.TotalCompulsoryDemo || 0;
+    const out_of_demo = foundBranch?.DemoExecuted || 0  ;
+    return {
+      ...branch,
+      total_demo,
+      out_of_demo,
+      out_of_act,
+      out_of_stock,
+    };
+  });
 };

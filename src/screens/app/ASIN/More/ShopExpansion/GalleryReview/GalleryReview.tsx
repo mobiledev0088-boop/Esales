@@ -175,17 +175,35 @@ const QuarterGallerySection = ({
                   style={{flexGrow: 1}}
                   paginationStyle={{bottom: 2}}>
                   {item.Image_Links.map((image, idx) => (
-                    <AppImage
-                      key={idx}
-                      source={{uri: image}}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        borderRadius: 12,
-                      }}
-                      resizeMode={'contain'}
-                      enableModalZoom
-                    />
+                    <View key={idx} style={{position: 'relative', flex: 1}}>
+                      <AppImage
+                        source={{uri: image}}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          borderRadius: 12,
+                        }}
+                        resizeMode={'contain'}
+                        enableModalZoom
+                      />
+                      <View
+                        style={{
+                          position: 'absolute',
+                          bottom: 8,
+                          left: 8,
+                          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                          paddingHorizontal: 8,
+                          paddingVertical: 4,
+                          borderRadius: 6,
+                        }}>
+                        <AppText
+                          size="xs"
+                          weight="medium"
+                          style={{color: '#FFFFFF'}}>
+                          {idx + 1}/{item.Image_Links.length}
+                        </AppText>
+                      </View>
+                    </View>
                   ))}
                 </Swiper>
               )}

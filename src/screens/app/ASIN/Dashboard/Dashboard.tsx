@@ -26,7 +26,7 @@ import {
   DashboardSkeleton,
 } from '../../../../components/skeleton/DashboardSkeleton';
 
-import {useDashboardData} from '../../../../hooks/queries/dashboard';
+import {useDashboardBanner, useDashboardData} from '../../../../hooks/queries/dashboard';
 
 import {
   HeaderProps,
@@ -997,7 +997,7 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
     error: dashboardError,
     refetch: refetchDashboard,
   } = useDashboardData(selectedQuarter?.value || '', route.name);
-
+    const {refetch} = useDashboardBanner();
   // Process sales data
   const salesData: SalesHeaderData | undefined = useMemo(() => {
     const masterTabItem = dashboardData?.MasterTab?.find(
@@ -1099,6 +1099,7 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
     setIsRefreshing(true);
     try {
       await refetchDashboard();
+      await refetch();
     } catch (error) {
       console.warn('Refresh failed:', error);
     } finally {

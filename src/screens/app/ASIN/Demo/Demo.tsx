@@ -25,6 +25,7 @@ import {
   BranchCardROI,
   DemoSkeleton,
   StatsHeader,
+  StatsHeaderROI,
   SummaryOverView,
 } from './components';
 import {
@@ -899,8 +900,9 @@ const ROI = () => {
     filters.category,
   );
 
-  const {data: categoriesData, isLoading: isCategoriesLoading} =
-    useGetDemoCategoriesRet(selectedQuarter?.value || '');
+    const {data:retailerDemo, isLoading: isRetailerLoading, error: retailerError, refetch: refetchRetailer} = useGetDemoDataRetailer(selectedQuarter?.value || '','All','bonus');
+
+  const {data: categoriesData, isLoading: isCategoriesLoading} = useGetDemoCategoriesRet(selectedQuarter?.value || '');
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -919,32 +921,41 @@ const ROI = () => {
 
   const transformedData = useMemo(() => {
     if (filteredData?.length) {
-      return transformDemoDataROI(filteredData);
+      return transformDemoDataROI(filteredData,retailerDemo);
     } else {
       return [];
     }
-  }, [filteredData]);
+  }, [filteredData,retailerDemo]);
 
   const summaryData = useMemo(() => {
     if (!transformedData || transformedData.length === 0) {
       return {
         total_demo: 0,
+        out_of_demo: 0,
         total_act: 0,
+        out_of_act: 0,
         total_stock: 0,
+        out_of_stock: 0,
         total_partners: 0,
       };
     }
     return transformedData.reduce(
       (acc, branch) => ({
         total_demo: acc.total_demo + branch.total_demo,
+        out_of_demo: acc.out_of_demo + branch.out_of_demo,
         total_act: acc.total_act + branch.total_act,
+        out_of_act: acc.out_of_act + branch.out_of_act,
         total_stock: acc.total_stock + branch.total_stock,
+        out_of_stock: acc.out_of_stock + branch.out_of_stock,
         total_partners: acc.total_partners + branch.partner_count,
       }),
       {
         total_demo: 0,
+        out_of_demo: 0,
         total_act: 0,
+        out_of_act: 0,
         total_stock: 0,
+        out_of_stock: 0, 
         total_partners: 0,
       },
     );
@@ -1015,32 +1026,6 @@ const ROI = () => {
     [summaryData, selectedQuarter, filters],
   );
   const keyExtractor = useCallback((item: TransformedBranchROI) => item.id, []);
-
-  const stats = useMemo(() => {
-    return [
-      {
-        label: 'Total Demo',
-        value: summaryData.total_demo,
-        icon: 'laptop-outline',
-        iconType: 'ionicons',
-        name: 'lap_icon',
-      },
-      {
-        label: 'Total Active',
-        value: summaryData.total_act,
-        icon: 'trending-up',
-        iconType: 'feather',
-        name: 'grow_icon',
-      },
-      {
-        label: 'Stock',
-        value: summaryData.total_stock,
-        icon: 'percent',
-        iconType: 'feather',
-        name: 'perc_icon',
-      },
-    ] as any;
-  }, [summaryData]);
 
   const handleRetry = useCallback(() => {
     refetch();
@@ -1141,10 +1126,9 @@ const ROI = () => {
           showsVerticalScrollIndicator={false}
           maxToRenderPerBatch={16}
           ListHeaderComponent={
-            <StatsHeader
-              stats={stats}
+            <StatsHeaderROI
+              stats={summaryData}
               counts={{
-                awp_count: null,
                 total_partners: summaryData.total_partners,
               }}
             />

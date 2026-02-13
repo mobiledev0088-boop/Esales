@@ -240,7 +240,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
   );
 };
 
-export const BannerComponent = () => {
+export const BannerComponent = ({}) => {
   const {
     data: banners,
     isLoading,

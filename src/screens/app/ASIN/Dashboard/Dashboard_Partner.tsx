@@ -8,6 +8,7 @@ import AppDropdown, {
 } from '../../../../components/customs/AppDropdown';
 import {getPastQuarters} from '../../../../utils/commonFunctions';
 import {
+  useDashboardBanner,
   useDashboardData,
   useGetSubCodeData,
 } from '../../../../hooks/queries/dashboard';
@@ -23,7 +24,7 @@ import {ASUS} from '../../../../utils/constant';
 import clsx from 'clsx';
 import {useNavigation} from '@react-navigation/native';
 import {AppNavigationProp} from '../../../../types/navigation';
-import { useLoginStore } from '../../../../stores/useLoginStore';
+import {useLoginStore} from '../../../../stores/useLoginStore';
 import AppButton from '../../../../components/customs/AppButton';
 
 // Map an array to a standardized top-N shape
@@ -381,7 +382,7 @@ export default function Dashboard_Partner({
   noPadding,
   noAnalytics,
   needSeeDemo,
-  employeeType
+  employeeType,
 }: {
   DifferentEmployeeCode?: string;
   DifferentEmployeeName?: string;
@@ -393,7 +394,7 @@ export default function Dashboard_Partner({
 }) {
   const navigation = useNavigation<AppNavigationProp>();
   const quarters = useMemo(getPastQuarters, []); // Static quarter list
-  const {EMP_Type} = useLoginStore(s =>s.userInfo)
+  const {EMP_Type} = useLoginStore(s => s.userInfo);
   const empInfo = useUserStore(s => s.empInfo);
 
   const [selectedQuarter, setSelectedQuarter] =
@@ -414,7 +415,13 @@ export default function Dashboard_Partner({
     selectedSubCode?.value || '',
     DifferentEmployeeCode,
   );
-  console.log('Dashboard data fetched:', dashboardData, 'Error:', dashboardError);
+  const {refetch} = useDashboardBanner();
+  console.log(
+    'Dashboard data fetched:',
+    dashboardData,
+    'Error:',
+    dashboardError,
+  );
   const {data: subCodeData, isLoading: isLoadingSubCode} = useGetSubCodeData();
 
   // Target vs Achievement summary
@@ -490,6 +497,9 @@ export default function Dashboard_Partner({
     setIsRefreshing(true);
     try {
       await refetchDashboard();
+      if (!noBanner) {
+        await refetch();
+      }
     } catch (e) {
       console.warn('Refresh failed:', e);
     } finally {
@@ -497,7 +507,7 @@ export default function Dashboard_Partner({
     }
   }, [refetchDashboard]);
 
-  const handleSeeMore = (data:any) => {
+  const handleSeeMore = (data: any) => {
     const source = data || dashboardData;
     const dataToSend = {
       fromPartnerScreen: !DifferentEmployeeCode,
@@ -531,15 +541,16 @@ export default function Dashboard_Partner({
         />
       }>
       {!noBanner && <BannerComponent />}
-      {
-        DifferentEmployeeName && (
-          <Card className='p-4 rounded-2xl bg-blue-50 border border-blue-200'>
-            <AppText className='text-blue-900 text-center' size='md' weight='bold'>
-              Viewing Dashboard for: {DifferentEmployeeName}
-            </AppText>
-          </Card>
-        ) 
-      }
+      {DifferentEmployeeName && (
+        <Card className="p-4 rounded-2xl bg-blue-50 border border-blue-200">
+          <AppText
+            className="text-blue-900 text-center"
+            size="md"
+            weight="bold">
+            Viewing Dashboard for: {DifferentEmployeeName}
+          </AppText>
+        </Card>
+      )}
       <View className="mb-2 flex-row items-center justify-between px-3 border-b border-slate-300 pb-4">
         <View>
           <AppText weight="semibold" className="text-md  text-slate-700">
@@ -649,12 +660,16 @@ export default function Dashboard_Partner({
           {needSeeDemo && (
             <View className="">
               <AppButton
-              title="See Demo Data"
-              // onPress={() => navigation.push('DemoPartnerDashboard')}
-              onPress={() => navigation.push('TargetDemoPartner', {differentEmployeeCode: DifferentEmployeeCode || ''})}
-              className='rounded-lg bg-white border border-slate-200 dark:border-slate-700'
-              color='primary'
-              weight='extraBold'
+                title="See Demo Data"
+                // onPress={() => navigation.push('DemoPartnerDashboard')}
+                onPress={() =>
+                  navigation.push('TargetDemoPartner', {
+                    differentEmployeeCode: DifferentEmployeeCode || '',
+                  })
+                }
+                className="rounded-lg bg-white border border-slate-200 dark:border-slate-700"
+                color="primary"
+                weight="extraBold"
               />
             </View>
           )}

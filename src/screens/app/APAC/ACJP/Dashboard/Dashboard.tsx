@@ -543,119 +543,14 @@ const RetailerPerformance: React.FC<RetailerPerformanceProps> = ({
   const darkMode = AppTheme === 'dark';
   const navigation = useNavigation<AppNavigationProp>();
 
-  const getPartnerConfig = useCallback((type: string) => {
-    const typeLower = type.toLowerCase();
-    if (typeLower.includes('retailer') || typeLower.includes('retail')) {
-      return { 
-        icon: 'store', 
-        iconType: 'materialIcons', 
-        color: '#3b82f6', 
-        lightBg: '#eff6ff',
-        darkBg: '#1e3a8a' 
-      };
-    } else if (typeLower.includes('distributor') || typeLower.includes('disti')) {
-      return { 
-        icon: 'truck-delivery', 
-        iconType: 'material-community', 
-        color: '#8b5cf6',
-        lightBg: '#f5f3ff',
-        darkBg: '#581c87'
-      };
-    } else if (typeLower.includes('partner') || typeLower.includes('agp')) {
-      return { 
-        icon: 'handshake', 
-        iconType: 'material-community', 
-        color: '#10b981',
-        lightBg: '#ecfdf5',
-        darkBg: '#065f46'
-      };
-    } else if (typeLower.includes('online') || typeLower.includes('ecommerce')) {
-      return { 
-        icon: 'shopping', 
-        iconType: 'material-community', 
-        color: '#f59e0b',
-        lightBg: '#fffbeb',
-        darkBg: '#78350f'
-      };
-    } else {
-      return { 
-        icon: 'briefcase', 
-        iconType: 'material-community', 
-        color: '#6366f1',
-        lightBg: '#eef2ff',
-        darkBg: '#3730a3'
-      };
-    }
-  }, []);
-
-  const renderRetailerRow = useCallback((item: any, index: number) => {
-    const partnerType = item.PartnerType || 'N/A';
-    const config = getPartnerConfig(partnerType);
-    const percent = item.Percent || 0;
-
-    return (
-      <TouchableOpacity
-        key={`retailer-${index}`}
-        activeOpacity={0.7}
-        className={clsx(
-          'px-4 py-3',
-          index !== data.length - 1 && 'border-b border-gray-100 dark:border-gray-800'
-        )}
-        onPress={() => {
-          console.log('Retailer pressed:', item);
-        }}>
-        <View className="flex-row items-center justify-between">
-          {/* Left: Icon + Name */}
-          <View className="flex-row items-center flex-1">
-            <View 
-              className="w-10 h-10 rounded-xl items-center justify-center"
-              style={{ backgroundColor: darkMode ? config.darkBg : config.lightBg }}>
-              <AppIcon
-                name={config.icon}
-                size={20}
-                color={config.color}
-                type={config.iconType as any}
-              />
-            </View>
-            <View className="ml-3 flex-1">
-              <AppText size="sm" weight="semibold" color="text" numberOfLines={1}>
-                {partnerType}
-              </AppText>
-              <View className="flex-row items-center mt-0.5">
-                <AppText size="xs" color="gray">
-                  {convertToAPACUnits(item.Achieved || 0)}
-                </AppText>
-                <AppText size="xs" className="text-gray-400 mx-1">/</AppText>
-                <AppText size="xs" color="gray">
-                  {convertToAPACUnits(item.Target || 0)}
-                </AppText>
-              </View>
-            </View>
-          </View>
-
-          {/* Right: Progress Badge */}
-          <View className="items-end ml-3">
-            <View 
-              className="px-3 py-1.5 rounded-full"
-              style={{ backgroundColor: `${config.color}15` }}>
-              <AppText size="sm" weight="bold" style={{ color: config.color }}>
-                {percent}%
-              </AppText>
-            </View>
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
-  }, [data, getPartnerConfig, darkMode]);
-
   if (error) {
     return (
-      <View className="mt-5 px-3">
-        <View className="flex-row items-center mb-3">
-          <View className="rounded-xl bg-blue-100 dark:bg-blue-900/30 p-2.5">
-            <AppIcon type="materialIcons" name="store" size={20} color="#3b82f6" />
+      <View className="mt-4 px-3">
+        <View className="flex-row items-center mb-2">
+          <View className="rounded-lg bg-blue-100 dark:bg-blue-900/30 p-1.5">
+            <AppIcon type="materialIcons" name="store" size={16} color="#3b82f6" />
           </View>
-          <AppText size="base" weight="semibold" color="text" className="ml-3">
+          <AppText size="sm" weight="semibold" color="text" className="ml-2">
             Retailer Performance
           </AppText>
         </View>
@@ -671,29 +566,28 @@ const RetailerPerformance: React.FC<RetailerPerformanceProps> = ({
 
   if (isLoading) {
     return (
-      <View className="mt-5 px-3">
-        <View className="flex-row items-center mb-3">
-          <View className="rounded-xl bg-blue-100 dark:bg-blue-900/30 p-2.5">
-            <AppIcon type="materialIcons" name="store" size={20} color="#3b82f6" />
+      <View className="mt-4 px-3">
+        <View className="flex-row items-center mb-2">
+          <View className="rounded-lg bg-blue-100 dark:bg-blue-900/30 p-1.5">
+            <AppIcon type="materialIcons" name="store" size={16} color="#3b82f6" />
           </View>
-          <AppText size="base" weight="semibold" color="text" className="ml-3">
+          <AppText size="sm" weight="semibold" color="text" className="ml-2">
             Retailer Performance
           </AppText>
         </View>
-        <Card className="rounded-2xl overflow-hidden">
+        <Card className="rounded-xl overflow-hidden">
           {[1, 2, 3].map((_, index) => (
             <View
               key={`skeleton-${index}`}
               className={clsx(
-                'px-4 py-3 flex-row items-center',
+                'px-3 py-2 flex-row items-center',
                 index !== 2 && 'border-b border-gray-100 dark:border-gray-800'
               )}>
-              <View className="w-10 h-10 rounded-xl bg-gray-200 dark:bg-gray-700 animate-pulse" />
-              <View className="ml-3 flex-1">
-                <View className="w-24 h-4 rounded bg-gray-200 dark:bg-gray-700 animate-pulse mb-2" />
-                <View className="w-16 h-3 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+              <View className="w-8 h-8 rounded-lg bg-gray-200 dark:bg-gray-700 animate-pulse" />
+              <View className="ml-2.5 flex-1">
+                <View className="w-24 h-3.5 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
               </View>
-              <View className="w-12 h-7 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+              <View className="w-4 h-4 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
             </View>
           ))}
         </Card>
@@ -702,41 +596,86 @@ const RetailerPerformance: React.FC<RetailerPerformanceProps> = ({
   }
 
   if (!data || data.length === 0) {
-    return null;
-  }
-
-  return (
-    <View className="mt-5 px-3">
-      <View className="flex-row items-center justify-between mb-3">
-        <View className="flex-row items-center">
-          <View className="rounded-xl bg-blue-100 dark:bg-blue-900/30 p-2.5">
-            <AppIcon type="materialIcons" name="store" size={20} color="#3b82f6" />
+    return (
+      <View className="mt-4 px-3">
+        <View className="flex-row items-center mb-2">
+          <View className="rounded-lg bg-blue-100 dark:bg-blue-900/30 p-1.5">
+            <AppIcon type="materialIcons" name="store" size={16} color="#3b82f6" />
           </View>
-          <AppText size="base" weight="semibold" color="text" className="ml-3">
+          <AppText size="sm" weight="semibold" color="text" className="ml-2">
             Retailer Performance
           </AppText>
         </View>
-        <TouchableOpacity
-          className="flex-row items-center"
-          activeOpacity={0.7}
-          onPress={() => {
-            console.log('View all retailers');
-          }}>
-          <AppText size="xs" weight="medium" className="text-blue-600 dark:text-blue-400 mr-1">
-            View All
+        <Card className="rounded-xl p-4">
+          <View className="items-center py-2">
+            <AppIcon 
+              type="materialIcons" 
+              name="store-mall-directory" 
+              size={32} 
+              color={darkMode ? '#6B7280' : '#9CA3AF'} 
+            />
+            <AppText
+              size="sm"
+              weight="medium"
+              color="gray"
+              className="text-center mt-2">
+              No retailer data available
+            </AppText>
+          </View>
+        </Card>
+      </View>
+    );
+  }
+
+  const handlePartnerPress = useCallback((partner: {PartnerType: string}) => {
+    console.log('Partner pressed:', partner.PartnerType);
+    navigation.push('TargetSummarySalesPerformance', {
+      Year_Qtr:quarter,
+      ALP: partner.PartnerType,
+      masterTabType: tabName,
+    });
+  }, [navigation, tabName, quarter]);
+
+  return (
+    <View className="mt-4 px-3">
+      <View className="flex-row items-center justify-between mb-2">
+        <View className="flex-row items-center">
+          <View className="rounded-lg bg-blue-100 dark:bg-blue-900/30 p-1.5">
+            <AppIcon type="materialIcons" name="store" size={16} color="#3b82f6" />
+          </View>
+          <AppText size="sm" weight="semibold" color="text" className="ml-2">
+            Retailer Performance
           </AppText>
-          <AppIcon
-            name="chevron-right"
-            type="feather"
-            color={darkMode ? '#60a5fa' : '#2563eb'}
-            size={16}
-          />
-        </TouchableOpacity>
+        </View>
+        <AppText size="xs" color="gray" weight="medium">
+          {data.length} {data.length === 1 ? 'Type' : 'Types'}
+        </AppText>
       </View>
       
-      <Card className="rounded-2xl overflow-hidden">
-        {data.map((item, index) => renderRetailerRow(item, index))}
-      </Card>
+      <View className="flex-row flex-wrap gap-2">
+        {data.map((partner, index) => (
+          <TouchableOpacity
+            key={`${partner.PartnerType}-${index}`}
+            activeOpacity={0.7}
+            onPress={() => handlePartnerPress(partner)}
+            style={{width: (screenWidth - 32) / 2 - 4}}
+            className="bg-white dark:bg-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700">
+            <View className="items-center">
+              <View className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 items-center justify-center mb-2">
+                <AppIcon
+                  type="materialIcons"
+                  name="business"
+                  size={20}
+                  color="#3b82f6"
+                />
+              </View>
+              <AppText size="sm" weight="semibold" color="text" className="text-center">
+                {partner.PartnerType}
+              </AppText>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </View>
     </View>
   );
 };

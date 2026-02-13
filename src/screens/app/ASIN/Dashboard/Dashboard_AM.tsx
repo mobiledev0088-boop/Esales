@@ -32,7 +32,7 @@ import {
   DashboardSkeleton,
   TargetVsAchievementSkeleton,
 } from '../../../../components/skeleton/DashboardSkeleton';
-import {useDashboardDataAM} from '../../../../hooks/queries/dashboard';
+import {useDashboardBanner, useDashboardDataAM} from '../../../../hooks/queries/dashboard';
 import {formatDisplayValue} from './dashboardUtils';
 import {DASHBOARD} from '../../../../utils/constant';
 import AppDropdown, {
@@ -876,6 +876,7 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
     error: dashboardError,
     refetch: refetchDashboard,
   } = useDashboardDataAM(selectedMonth?.value || '', route.name);
+  const {refetch} = useDashboardBanner();
 
   // Process sales data
   const salesData: SalesHeaderData | undefined = useMemo(() => {
@@ -917,6 +918,7 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
     setIsRefreshing(true);
     try {
       await refetchDashboard();
+      await refetch(); // refresh banner data as well
     } catch (error) {
       console.warn('Refresh failed:', error);
     } finally {

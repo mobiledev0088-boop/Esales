@@ -1,18 +1,16 @@
-import React, {
+import {
   useState,
   useRef,
   useEffect,
   memo,
   useCallback,
   useMemo,
-  use,
 } from 'react';
 import {
   View,
   TouchableOpacity,
   Animated,
   Image,
-  BackHandler,
   ScrollView,
 } from 'react-native';
 import {useQuery} from '@tanstack/react-query';
@@ -139,7 +137,7 @@ const useGetShopExpData = (selectedRegion: Region | null, isHo: boolean) => {
       }
       return (result.Datainfo?.PartnerCount || []) as ShopExpType[];
     },
-    enabled: isHo ? !!selectedRegion : true, // HO needs region selected, others can fetch immediately
+    enabled: true, // API handles filtering based on role
   });
 };
 
@@ -619,9 +617,7 @@ export default function ShopExpansion() {
   const {EMP_RoleId} = useLoginStore(state => state.userInfo);
   const [selectedRegion, setSelectedRegion] = useState<Region | null>(null);
   const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
-  const [selectedStoreType, setSelectedStoreType] = useState<string | null>(
-    null,
-  );
+  const [selectedStoreType, setSelectedStoreType] = useState<string | null>(null);
   const contentAnim = useRef(new Animated.Value(0)).current;
   const navigation = useNavigation<AppNavigationProp>();
   const {DIR_HOD_MAN, HO_EMPLOYEES, COUNTRY_HEAD, RSM, CHANNEL_MARKETING} =
@@ -635,49 +631,72 @@ export default function ShopExpansion() {
   const isRegionManager = EMP_RoleId === RSM;
   const isOtherRole = !isHo && !isRegionManager;
 
-  const {data: shopData = [], isLoading} = useGetShopExpData(
-    selectedRegion,
-    isHo,
-  );
+  const {data: shopData = [], isLoading} = useGetShopExpData(selectedRegion, isHo);
 
   // Group data by region, branch, and store type based on role
   const groupedData = useMemo(() => {
-    // For HO: Need region selected first
-    if (isHo && !selectedRegion) return null;
+    // HO: Region → Branch → StoreType → Stores
+    if (isHo) {
+      // Show regions first (no filtering needed, just return null to show region cards)
+      if (!selectedRegion) {
+        return null;
+      }
 
-    // Filter data based on role and selections
-    let filteredData = shopData;
-    console.log('Shop Data:', shopData);
-    if (isHo && selectedRegion) {
-      filteredData = shopData.filter(item => item.Region === selectedRegion);
+      // Filter by selected region
+      const regionData = shopData.filter(item => item.Region === selectedRegion);
+
+      // If no branch selected, show branches in this region
+      if (!selectedBranch) {
+        const branchesData = groupDataBy(regionData, 'Branch');
+        return {branches: branchesData};
+      }
+
+      // Filter by selected branch
+      const branchData = regionData.filter(item => item.Branch === selectedBranch);
+
+      // If no store type selected, show store types in this branch
+      if (!selectedStoreType) {
+        const storeTypesData = groupDataBy(branchData, 'StoreType');
+        return {storeTypes: storeTypesData};
+      }
+
+      // Show stores of selected store type
+      const stores = branchData.filter(item => item.StoreType === selectedStoreType);
+      return {stores};
     }
-    // For RegionManager and Others, use all data from backend (already filtered)
 
-    const branchesData = groupDataBy(filteredData, 'Branch');
-    console.log('Branches Data:', branchesData);
+    // RegionManager: Branch → StoreType → Stores
+    if (isRegionManager) {
+      // If no branch selected, show all branches (API already filtered by region)
+      if (!selectedBranch) {
+        const branchesData = groupDataBy(shopData, 'Branch');
+        return {branches: branchesData};
+      }
 
-    // If branch not selected yet, return branches data
-    if (!selectedBranch) {
-      return {branches: branchesData};
+      // Filter by selected branch
+      const branchData = shopData.filter(item => item.Branch === selectedBranch);
+
+      // If no store type selected, show store types in this branch
+      if (!selectedStoreType) {
+        const storeTypesData = groupDataBy(branchData, 'StoreType');
+        return {storeTypes: storeTypesData};
+      }
+
+      // Show stores of selected store type
+      const stores = branchData.filter(item => item.StoreType === selectedStoreType);
+      return {stores};
     }
 
-    console.log('Filtered Data for Branches:', filteredData);
-    const branchData = filteredData.filter(
-      item => item.Branch === selectedBranch,
-    );
-    const storeTypesData = groupDataBy(branchData, 'StoreType');
-    console.log('Store Types Data:', storeTypesData);
+    // Others: StoreType → Stores (API already filtered by their specific data)
     if (!selectedStoreType) {
-      return {branches: branchesData, storeTypes: storeTypesData};
+      const storeTypesData = groupDataBy(shopData, 'StoreType');
+      return {storeTypes: storeTypesData};
     }
 
-    console.log('Filtered Data for Store Types:', branchData);
-    const stores = branchData.filter(
-      item => item.StoreType === selectedStoreType,
-    );
-    console.log('Stores Data:', stores);
-    return {branches: branchesData, storeTypes: storeTypesData, stores};
-  }, [shopData, selectedRegion, selectedBranch, selectedStoreType, isHo]);
+    // Show stores of selected store type
+    const stores = shopData.filter(item => item.StoreType === selectedStoreType);
+    return {stores};
+  }, [shopData, selectedRegion, selectedBranch, selectedStoreType, isHo, isRegionManager]);
 
   // Animate content on selection change
   useEffect(() => {
@@ -712,10 +731,13 @@ export default function ShopExpansion() {
 
   const handleBack = useCallback(() => {
     if (selectedStoreType) {
+      // Go back to store types
       setSelectedStoreType(null);
     } else if (selectedBranch) {
+      // Go back to branches (or regions for HO)
       setSelectedBranch(null);
     } else if (isHo && selectedRegion) {
+      // HO only: Go back to regions
       setSelectedRegion(null);
     }
   }, [selectedRegion, selectedBranch, selectedStoreType, isHo]);
@@ -729,13 +751,15 @@ export default function ShopExpansion() {
           <AppText size="xl" weight="bold" className="mb-2">
             {isHo && !selectedRegion
               ? 'Select Region'
-              : !selectedBranch
-                ? isHo && selectedRegion
-                  ? `${selectedRegion} - Select Branch`
-                  : 'Select Branch'
-                : !selectedStoreType
-                  ? `${selectedBranch} - Store Types`
-                  : `${selectedStoreType} Stores`}
+              : isHo && !selectedBranch
+                ? `${selectedRegion} - Select Branch`
+                : isRegionManager && !selectedBranch
+                  ? 'Select Branch'
+                  : isOtherRole && !selectedStoreType
+                    ? 'Select Store Type'
+                    : !selectedStoreType && selectedBranch
+                      ? `${selectedBranch} - Store Types`
+                      : `${selectedStoreType} Stores`}
           </AppText>
           <AppText
             size="sm"
@@ -743,17 +767,21 @@ export default function ShopExpansion() {
             className="text-gray-600 dark:text-gray-400">
             {isHo && !selectedRegion
               ? 'Choose a region to explore shop expansion data'
-              : !selectedBranch
-                ? 'Select a branch to view store types'
-                : !selectedStoreType
-                  ? `${Object.keys(groupedData?.storeTypes || {}).length} store type${
-                      Object.keys(groupedData?.storeTypes || {}).length !== 1
-                        ? 's'
-                        : ''
-                    } available`
-                  : `${groupedData?.stores?.length || 0} store${
-                      groupedData?.stores?.length !== 1 ? 's' : ''
-                    } in ${selectedBranch}${isHo && selectedRegion ? `, ${selectedRegion}` : ''}`}
+              : isHo && !selectedBranch
+                ? `Branches available in ${selectedRegion} region`
+                : isRegionManager && !selectedBranch
+                  ? 'Select a branch to view store types'
+                  : isOtherRole && !selectedStoreType
+                    ? 'Select a store type to view stores'
+                    : !selectedStoreType
+                      ? `${Object.keys(groupedData?.storeTypes || {}).length} store type${
+                          Object.keys(groupedData?.storeTypes || {}).length !== 1
+                            ? 's'
+                            : ''
+                        } available in ${selectedBranch}`
+                      : `${groupedData?.stores?.length || 0} store${
+                          groupedData?.stores?.length !== 1 ? 's' : ''
+                        } available${selectedBranch ? ` in ${selectedBranch}` : ''}${isHo && selectedRegion ? `, ${selectedRegion}` : ''}`}
           </AppText>
         </View>
 
@@ -772,9 +800,9 @@ export default function ShopExpansion() {
           </View>
         )}
 
-        {/* Branch Selection - For HO after region selection, or RegionManager/Others immediately */}
+        {/* Branch Selection - For HO after region selection, or RegionManager directly */}
         {((isHo && selectedRegion && !selectedBranch) ||
-          (!isHo && !selectedBranch)) && (
+          (isRegionManager && !selectedBranch)) && (
           <Animated.View
             style={{
               opacity: contentAnim,
@@ -813,9 +841,9 @@ export default function ShopExpansion() {
           </Animated.View>
         )}
 
-        {/* StoreType Display - For HO/RegionManager after branch, or Others immediately */}
-        {((isHo || isRegionManager) && selectedBranch && !selectedStoreType) ||
-        (isOtherRole && !selectedBranch && !selectedStoreType) ? (
+        {/* StoreType Display - After branch selection for HO/RegionManager, or immediately for Others */}
+        {(((isHo || isRegionManager) && selectedBranch && !selectedStoreType) ||
+          (isOtherRole && !selectedStoreType)) && (
           <Animated.View
             style={{
               opacity: contentAnim,
@@ -846,10 +874,16 @@ export default function ShopExpansion() {
                 )}
               </View>
             ) : (
-              <EmptyState message="No store types found in this branch" />
+              <EmptyState
+                message={
+                  isOtherRole
+                    ? 'No store types found'
+                    : 'No store types found in this branch'
+                }
+              />
             )}
           </Animated.View>
-        ) : null}
+        )}
 
         {/* Store List Display - After store type selection for all roles */}
         {selectedStoreType && (
@@ -889,8 +923,10 @@ export default function ShopExpansion() {
           </Animated.View>
         )}
       </ScrollView>
-      {((isHo && selectedRegion) ||
-        (!isHo && (selectedBranch || selectedStoreType))) && (
+      {/* Show back button based on navigation state */}
+      {((isHo && (selectedRegion || selectedBranch || selectedStoreType)) ||
+        (isRegionManager && (selectedBranch || selectedStoreType)) ||
+        (isOtherRole && selectedStoreType)) && (
         <BackButton
           onPress={handleBack}
           Title={
@@ -898,18 +934,20 @@ export default function ShopExpansion() {
               ? 'Back to Store Types'
               : selectedBranch
                 ? 'Back to Branches'
-                : isHo
+                : isHo && selectedRegion
                   ? 'Back to Regions'
                   : ''
           }
           SubTitle={
             selectedStoreType
-              ? `View all store types in ${selectedBranch}`
+              ? isOtherRole
+                ? 'View all store types'
+                : `View all store types in ${selectedBranch}`
               : selectedBranch
-                ? isHo
+                ? isHo && selectedRegion
                   ? `View all branches in ${selectedRegion}`
                   : 'View all branches'
-                : isHo
+                : isHo && selectedRegion
                   ? 'Select a different region'
                   : ''
           }

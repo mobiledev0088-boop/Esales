@@ -71,6 +71,39 @@ const ProgressStat: React.FC<ProgressStatProps> = ({
   );
 };
 
+const IconStat = ({
+  label,
+  value,
+  icon,
+  iconBg = '',
+  textColor = 'text-secondary',
+}: {
+  label: string;
+  value: number | string;
+  icon: string;
+  iconBg: string;
+  textColor: string;
+}) => {
+  return (
+    <View className="flex-1 items-center">
+      <View
+        className={`w-12 h-12 rounded-xl items-center justify-center mb-1 shadow-sm ${iconBg}`}>
+        <AppIcon name={icon} type="feather" size={20} color="white" />
+      </View>
+      <AppText size="lg" weight="semibold" className={``}>
+        {value}
+      </AppText>
+      <AppText
+        size="xs"
+        weight="medium"
+        numberOfLines={2}
+        className={`text-center leading-tight ${textColor} mt-1`}>
+        {label}
+      </AppText>
+    </View>
+  );
+};
+
 const Metric: React.FC<MetricProps> = memo(({label, value, icon, tint}) => (
   <View className="w-1/3 mb-4 px-1">
     <View className="flex-row items-center">
@@ -112,8 +145,8 @@ export const SummaryOverView = memo(() => {
   if (!data) return null;
   return (
     <Accordion
-    containerClassName="mt-2 border border-slate-200 dark:border-slate-700 rounded-2xl"
-    headerClassName="bg-lightBg-surface dark:bg-darkBg-surface px-3 py-3"
+      containerClassName="mt-2 border border-slate-200 dark:border-slate-700 rounded-2xl"
+      headerClassName="bg-lightBg-surface dark:bg-darkBg-surface px-3 py-3"
       needBottomBorder={false}
       header={
         <View className="flex-row items-center gap-x-1">
@@ -158,7 +191,7 @@ export const SummaryOverView = memo(() => {
               {Totals.models.toLocaleString('en-US')}
             </AppText>
           </View>
-           <View className="flex-1 p-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg items-center">
+          <View className="flex-1 p-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg items-center">
             <AppText
               weight="medium"
               size="xs"
@@ -255,96 +288,98 @@ export const SummaryOverView = memo(() => {
   );
 });
 
-export const StatsHeader = memo(({stats, counts,isRetailer=false}: StatsHeaderProps) => {
-  return (
-    <View className="mb-3">
-      <Card
-        className="p-3 border border-slate-200 dark:border-slate-700"
-        noshadow>
-        <View className="pb-2 border-b border-slate-100 dark:border-slate-700">
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center gap-2">
-              <View className="w-8 h-8 rounded-full bg-primary/10 dark:bg-primary-dark/20 items-center justify-center">
-                <AppIcon
-                  name="bar-chart-2"
-                  type="feather"
-                  size={16}
-                  color={AppColors.primary}
-                />
+export const StatsHeader = memo(
+  ({stats, counts, isRetailer = false}: StatsHeaderProps) => {
+    return (
+      <View className="mb-3">
+        <Card
+          className="p-3 border border-slate-200 dark:border-slate-700"
+          noshadow>
+          <View className="pb-2 border-b border-slate-100 dark:border-slate-700">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center gap-2">
+                <View className="w-8 h-8 rounded-full bg-primary/10 dark:bg-primary-dark/20 items-center justify-center">
+                  <AppIcon
+                    name="bar-chart-2"
+                    type="feather"
+                    size={16}
+                    color={AppColors.primary}
+                  />
+                </View>
+                <AppText
+                  size="base"
+                  weight="semibold"
+                  className="text-slate-800 dark:text-slate-100">
+                  Overall Summary
+                </AppText>
               </View>
-              <AppText
-                size="base"
-                weight="semibold"
-                className="text-slate-800 dark:text-slate-100">
-                Overall Summary
-              </AppText>
             </View>
           </View>
-        </View>
 
-        <View className="flex-row  -mx-1 mt-2">
-          {stats.map((s, idx) => {
-            const palette = STAT_PALETTE[s.name];
-            const isLastInRow = idx === stats.length - 1;
-            return (
-              <View
-                key={s.label}
-                className={clsx(
-                  'flex-1 px-1 mb-2',
-                  !isLastInRow && 'border-r border-slate-200',
-                )}>
-                <View className="items-center p-2.5 dark:border-slate-700 dark:bg-slate-800/70">
-                  <View
-                    className={twMerge(
-                      'mb-1.5 h-9 w-9 items-center justify-center rounded-md',
-                      palette.iconBg,
-                    )}>
-                    <AppIcon
-                      name={s.icon}
-                      type={s.iconType as any}
-                      size={18}
-                      color="white"
-                    />
+          <View className="flex-row  -mx-1 mt-2">
+            {stats.map((s, idx) => {
+              const palette = STAT_PALETTE[s.name];
+              const isLastInRow = idx === stats.length - 1;
+              return (
+                <View
+                  key={s.label}
+                  className={clsx(
+                    'flex-1 px-1 mb-2',
+                    !isLastInRow && 'border-r border-slate-200',
+                  )}>
+                  <View className="items-center p-2.5 dark:border-slate-700 dark:bg-slate-800/70">
+                    <View
+                      className={twMerge(
+                        'mb-1.5 h-9 w-9 items-center justify-center rounded-md',
+                        palette.iconBg,
+                      )}>
+                      <AppIcon
+                        name={s.icon}
+                        type={s.iconType as any}
+                        size={18}
+                        color="white"
+                      />
+                    </View>
+                    <AppText
+                      size="md"
+                      weight="semibold"
+                      className="text-slate-900 dark:text-slate-50 leading-snug text-center">
+                      {s.value}
+                    </AppText>
+                    <AppText
+                      size="xs"
+                      weight="semibold"
+                      className={twMerge(
+                        'mt-0.5 uppercase text-slate-600 dark:text-slate-300 text-center',
+                        palette.tint,
+                      )}
+                      numberOfLines={2}>
+                      {s.label}
+                    </AppText>
                   </View>
-                  <AppText
-                    size="md"
-                    weight="semibold"
-                    className="text-slate-900 dark:text-slate-50 leading-snug text-center">
-                    {s.value}
-                  </AppText>
-                  <AppText
-                    size="xs"
-                    weight="semibold"
-                    className={twMerge(
-                      'mt-0.5 uppercase text-slate-600 dark:text-slate-300 text-center',
-                      palette.tint,
-                    )}
-                    numberOfLines={2}>
-                    {s.label}
-                  </AppText>
                 </View>
-              </View>
-            );
-          })}
+              );
+            })}
+          </View>
+        </Card>
+        {isRetailer && <SummaryOverView />}
+        <View className="flex-row items-center justify-between px-1 mt-2">
+          {counts.awp_count !== null && (
+            <AppText className="text-slate-700 dark:text-slate-300">
+              AWP Partners: <AppText weight="bold">{counts.awp_count}</AppText>
+            </AppText>
+          )}
+          {counts.total_partners !== null && (
+            <AppText className="text-slate-700 dark:text-slate-300">
+              Total Partners:{' '}
+              <AppText weight="bold">{counts.total_partners}</AppText>
+            </AppText>
+          )}
         </View>
-      </Card>
-      {isRetailer && <SummaryOverView />}
-      <View className="flex-row items-center justify-between px-1 mt-2">
-        {counts.awp_count !== null && (
-          <AppText className="text-slate-700 dark:text-slate-300">
-            AWP Partners: <AppText weight="bold">{counts.awp_count}</AppText>
-          </AppText>
-        )}
-        {counts.total_partners !== null && (
-          <AppText className="text-slate-700 dark:text-slate-300">
-            Total Partners:{' '}
-            <AppText weight="bold">{counts.total_partners}</AppText>
-          </AppText>
-        )}
       </View>
-    </View>
-  );
-});
+    );
+  },
+);
 
 export const DemoSkeleton: React.FC = () => {
   return (
@@ -1407,23 +1442,13 @@ export const BranchCardROI = memo(
       total_demo: number;
       total_act: number;
       total_stock: number;
+      out_of_demo: number;
+      out_of_act: number;
+      out_of_stock: number;
     };
     yearQtr: string;
   }) => {
     const navigation = useNavigation<AppNavigationProp>();
-
-    const totalDemoPercent = useMemo(() => {
-      if (summaryData.total_demo === 0) return 0;
-      return Math.round((item.total_demo / summaryData.total_demo) * 100);
-    }, [item.total_demo, summaryData.total_demo]);
-    const totalActPercent = useMemo(() => {
-      if (summaryData.total_demo === 0) return 0;
-      return Math.round((item.total_act / summaryData.total_demo) * 100);
-    }, [item.total_act, summaryData.total_demo]);
-    const totalStockPercent = useMemo(() => {
-      if (!summaryData.total_stock || summaryData.total_stock === 0) return 0;
-      return Math.round((item.total_stock / summaryData.total_stock) * 100);
-    }, [item.total_stock, summaryData.total_stock]);
     return (
       <TouchableOpacity
         className="mb-3"
@@ -1433,6 +1458,15 @@ export const BranchCardROI = memo(
             partners: item.partners,
             yearQtr,
             isROI: true,
+            stats: {
+              total_demo: item.total_demo,
+              total_act: item.total_act,
+              total_stock: item.total_stock,
+              out_of_demo: item.out_of_demo,
+              out_of_act: item.out_of_act,
+              out_of_stock: item.out_of_stock,
+              partner_count: item.partner_count,
+            },
           });
         }}>
         <Card
@@ -1467,47 +1501,192 @@ export const BranchCardROI = memo(
               tint="slate"
             />
           </View>
-          {/* Progress section */}
-          <View className="mt-5 px-3 gap-3 pb-4">
-            {item.total_demo != null ? (
-              <ProgressStat
-                label="Total Demo"
-                percent={totalDemoPercent}
-                current={item.total_demo}
-                total={summaryData.total_demo}
-                barTint="bg-violet-500"
-                percentTint="text-violet-600"
-              />
-            ) : (
-              false
-            )}
-            {item.total_act != null ? (
-              <ProgressStat
-                label="Total Active"
-                percent={totalActPercent}
-                current={item.total_act}
-                total={summaryData.total_act || 0}
-                barTint="bg-sky-500"
-                percentTint="text-sky-600"
-              />
-            ) : (
-              false
-            )}
-            {item.total_stock != null ? (
-              <ProgressStat
-                label="Total Stock"
-                percent={totalStockPercent}
-                current={item.total_stock}
-                total={summaryData.total_stock}
-                barTint="bg-teal-500"
-                percentTint="text-teal-600"
-              />
-            ) : (
-              false
-            )}
-          </View>
+          <ROITable item={item} />
         </Card>
       </TouchableOpacity>
     );
   },
 );
+
+export const StatsHeaderROI = memo(
+  ({
+    stats,
+    counts,
+  }: {
+    counts: {
+      total_partners: number | null;
+    };
+    stats: {
+      total_demo: number;
+      out_of_demo: number;
+      total_act: number;
+      out_of_act: number;
+      total_stock: number;
+      out_of_stock: number;
+      total_partners: number;
+    };
+  }) => {
+    return (
+      <View className="mb-3">
+        <Card
+          className="p-3 border border-slate-200 dark:border-slate-700"
+          noshadow>
+          <View className="pb-2 border-b border-slate-100 dark:border-slate-700">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center gap-2">
+                <View className="w-8 h-8 rounded-full bg-primary/10 dark:bg-primary-dark/20 items-center justify-center">
+                  <AppIcon
+                    name="bar-chart-2"
+                    type="feather"
+                    size={16}
+                    color={AppColors.primary}
+                  />
+                </View>
+                <AppText
+                  size="base"
+                  weight="bold"
+                  className="text-slate-800 dark:text-slate-100">
+                  Overall Summary
+                </AppText>
+              </View>
+            </View>
+          </View>
+          <ROITable
+            item={{...stats, partner_count: counts.total_partners ?? 0}}
+          />
+        </Card>
+        <View className="flex-row items-center justify-between px-1 my-2">
+          {counts.total_partners !== null && (
+            <AppText className="text-slate-700 dark:text-slate-300">
+              Total Partners:{' '}
+              <AppText weight="bold">{counts.total_partners}</AppText>
+            </AppText>
+          )}
+        </View>
+      </View>
+    );
+  },
+);
+
+export const ROITable = ({
+  item,
+}: {
+  item: {
+    out_of_demo: number;
+    out_of_act: number;
+    out_of_stock: number;
+    total_demo: number;
+    total_act: number;
+    total_stock: number;
+    partner_count: number;
+  };
+}) => {
+  return (
+    <View className="mt-3 px-3 pb-4">
+      {/* Table Container */}
+      <View className="border border-slate-200 rounded-lg overflow-hidden">
+        {/* Table Header */}
+        <View className="flex-row bg-slate-100">
+          <View className="flex-1 py-3 px-3 border-r border-slate-200">
+            <AppText size="xs" weight="semibold" className="text-slate-600">
+              {''}
+            </AppText>
+          </View>
+          <View className="w-24 py-3 px-2 border-r border-slate-200 items-center bg-blue-50">
+            <AppText size="xs" weight="bold" className="text-blue-700">
+              DEMO
+            </AppText>
+          </View>
+          <View className="w-24 py-3 px-2 border-r border-slate-200 items-center bg-green-50">
+            <AppText size="xs" weight="bold" className="text-green-700">
+              ACT
+            </AppText>
+          </View>
+          <View className="w-24 py-3 px-2 items-center bg-sky-50">
+            <AppText size="xs" weight="bold" className="text-sky-700">
+              STOCK
+            </AppText>
+          </View>
+        </View>
+
+        {/* Table Row - Demo Store */}
+        <View className="flex-row bg-white border-t border-slate-200">
+          <View className="flex-1 py-3 px-3 border-r border-slate-200 justify-center">
+            <AppText size="xs" weight="semibold" className="text-slate-700">
+              DEMO STORE
+            </AppText>
+          </View>
+          <View className="w-24 py-3 px-2 border-r border-slate-200 items-center justify-center">
+            <AppText size="sm" weight="semibold" className="text-blue-600">
+              {item.out_of_demo || 0}
+            </AppText>
+          </View>
+          <View className="w-24 py-3 px-2 border-r border-slate-200 items-center justify-center">
+            <AppText size="sm" weight="semibold" className="text-green-600">
+              {item.out_of_act || 0}
+            </AppText>
+          </View>
+          <View className="w-24 py-3 px-2 items-center justify-center">
+            <AppText size="sm" weight="semibold" className="text-sky-600">
+              {item.out_of_stock || 0}
+            </AppText>
+          </View>
+        </View>
+
+        {/* Table Row - Demo QTY/Units */}
+        <View className="flex-row bg-white border-t border-slate-200">
+          <View className="flex-1 py-3 px-3 border-r border-slate-200 justify-center">
+            <AppText size="xs" weight="semibold" className="text-slate-700">
+              DEMO QTY/UNITS
+            </AppText>
+          </View>
+          <View className="w-24 py-3 px-2 border-r border-slate-200 items-center justify-center">
+            <AppText size="sm" weight="semibold" className="text-blue-600">
+              {item.total_demo || 0}
+            </AppText>
+          </View>
+          <View className="w-24 py-3 px-2 border-r border-slate-200 items-center justify-center">
+            <AppText size="sm" weight="semibold" className="text-green-600">
+              {item.total_act || 0}
+            </AppText>
+          </View>
+          <View className="w-24 py-3 px-2 items-center justify-center">
+            <AppText size="sm" weight="semibold" className="text-sky-600">
+              {item.total_stock || 0}
+            </AppText>
+          </View>
+        </View>
+
+        {/* Table Row - Hit Rate */}
+        <View className="flex-row bg-white border-t border-slate-200">
+          <View className="flex-1 py-3 px-3 border-r border-slate-200 justify-center">
+            <AppText size="xs" weight="semibold" className="text-slate-700">
+              HIT RATE
+            </AppText>
+          </View>
+          <View className="w-24 py-3 px-2 border-r border-slate-200 items-center justify-center">
+            <AppText size="sm" weight="bold" className="text-blue-700">
+              {(item.out_of_demo / item.partner_count) * 100
+                ? `${Math.round((item.out_of_demo / item.partner_count) * 100)}%`
+                : '0%'}
+            </AppText>
+          </View>
+          <View className="w-24 py-3 px-2 border-r border-slate-200 items-center justify-center">
+            <AppText size="sm" weight="bold" className="text-green-700">
+              {(item.out_of_act / item.partner_count) * 100
+                ? `${Math.round((item.out_of_act / item.partner_count) * 100)}%`
+                : '0%'}
+            </AppText>
+          </View>
+          <View className="w-24 py-3 px-2 items-center justify-center">
+            <AppText size="sm" weight="bold" className="text-sky-700">
+              {(item.out_of_stock / item.partner_count) * 100
+                ? `${Math.round((item.out_of_stock / item.partner_count) * 100)}%`
+                : '0%'}
+            </AppText>
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+};
