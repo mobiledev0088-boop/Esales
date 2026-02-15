@@ -26,6 +26,9 @@ import DemoFilterSheetAPAC from '../screens/app/APAC/ATID/Demo/DemoFilterSheetAP
 import DropdownActionSheet from '../screens/app/ASIN/More/ChannelMap/ChanelMapAGP/DropdownActionSheet';
 import SourceOptionSheet from '../components/SourceOptionSheet';
 import DiscontinuedProductsSheet from '../screens/app/ASIN/Demo/DiscontinuedProductsSheet';
+import ProgramFilterSheet, {
+  ProgramFilterPayload,
+} from '../screens/app/APAC/ATID/Program/ProgramFilterSheet';
 
 registerSheet('MoreSheet', MoreSheet);
 registerSheet('ConfirmationSheet', ConfirmationSheet);
@@ -51,6 +54,7 @@ registerSheet('ClaimViewMoreSheet', ClaimViewMoreSheet);
 registerSheet('DemoFilterSheetAPAC', DemoFilterSheetAPAC);
 registerSheet('DropdownActionSheet', DropdownActionSheet);
 registerSheet('DiscontinuedProductsSheet', DiscontinuedProductsSheet);
+registerSheet('ProgramFilterSheet', ProgramFilterSheet);
 
 // We extend some of the types here to give us great intellisense
 // across the app for all registered sheets.
@@ -98,6 +102,9 @@ declare module 'react-native-actions-sheet' {
     ChannelMapFilterSheet: SheetDefinition;
     ClaimFilterSheetAPAC: SheetDefinition;
     DemoFilterSheetAPAC: SheetDefinition;
+    ProgramFilterSheet: SheetDefinition<{
+      payload: ProgramFilterPayload;
+    }>;
   }
 }
 

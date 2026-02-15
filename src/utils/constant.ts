@@ -104,7 +104,9 @@ export const ASUS = {
 
 // APAC (Singapore)
 
-// Marco_Tim          SG2500001   HO_EMPLOYEES      Asus@12345678
+// Marco_Tim          SG2500001         HO_EMPLOYEES      Asus@12345678
+//                    ATID000080        PARTNERS          m(tEv%*IP@nB!Oz   AGP Partner
+ 
 
 
 // Demo LFR => Demo but Only LFR

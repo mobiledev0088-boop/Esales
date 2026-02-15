@@ -1,11 +1,11 @@
 import {View} from 'react-native';
-import AppDropdown, {AppDropdownItem} from '../../../../components/customs/AppDropdown';
+import {AppDropdownItem} from '../../../../../components/customs/AppDropdown';
 import {useMutation, useQuery} from '@tanstack/react-query';
-import {handleASINApiCall} from '../../../../utils/handleApiCall';
-import {useLoginStore} from '../../../../stores/useLoginStore';
+import {handleAPACApiCall} from '../../../../../utils/handleApiCall';
+import {useLoginStore} from '../../../../../stores/useLoginStore';
 import React from 'react';
-import SearchableDropdown from '../../../../components/customs/SearchableDropdown';
-import {showToast} from '../../../../utils/commonFunctions';
+import SearchableDropdown from '../../../../../components/customs/SearchableDropdown';
+import {showToast} from '../../../../../utils/commonFunctions';
 
 interface RawModel {
   Model_Name?: string | null;
@@ -15,6 +15,7 @@ interface RawModel {
 interface ModelInfoResponse {
   Model_Info_Historic?: any[];
   Model_Info_Ongoing?: any[];
+  Scheme_List?: any[]; // Fallback for different API response structure
 }
 
 interface ModelSchemesByCategory {
@@ -22,26 +23,26 @@ interface ModelSchemesByCategory {
   lapsed: any[];
 }
 
-interface SchemeSearchProps {
+interface ProgramSearchProps {
   selectedModelName: string;
   onModelLoading?: (loading: boolean) => void;
   onModelSchemes?: (schemesByCategory: ModelSchemesByCategory, modelName: string) => void;
   onClearSearch?: () => void;
 }
 
-export default function SchemeSearch({
+export default function ProgramSearch({
   selectedModelName,
   onModelLoading,
   onModelSchemes,
   onClearSearch,
-}: SchemeSearchProps) {
+}: ProgramSearchProps) {
   const userInfo = useLoginStore(state => state.userInfo);
   // API call to fetch model list
   const {data: modelOptions, isLoading: isLoadingModels, isError} = useQuery<AppDropdownItem[], Error>({
     queryKey: ['getModelList', userInfo?.EMP_Code, userInfo?.EMP_RoleId],
     enabled: Boolean(userInfo?.EMP_Code && userInfo?.EMP_RoleId),
     queryFn: async () => {
-      const res = await handleASINApiCall('/Information/GetModelList', {
+      const res = await handleAPACApiCall('/Information/GetModelList', {
         employeeCode: userInfo?.EMP_Code,
         RoleId: userInfo?.EMP_RoleId,
       });
@@ -62,10 +63,11 @@ export default function SchemeSearch({
       return unique;
     },
   });
-  const {mutate,isPending: isSelectingModel,data}= useMutation({
+  
+  const {mutate, isPending: isSelectingModel} = useMutation({
     mutationKey: ['selectedModel'],
     mutationFn: async (selectedModel: AppDropdownItem) => {
-      const res = await handleASINApiCall('/Information/GetModelInfo', {
+      const res = await handleAPACApiCall('/Information/GetModelInfo', {
         employeeCode: userInfo?.EMP_Code,
         RoleId: userInfo?.EMP_RoleId,
         ModelName: selectedModel?.value,
@@ -77,13 +79,23 @@ export default function SchemeSearch({
       return result.Datainfo as ModelInfoResponse;
     },
     onSuccess: (data) => {
-      // Separate historic (lapsed) and ongoing schemes for model search
-      const lapsed = Array.isArray(data?.Model_Info_Historic)
-        ? data.Model_Info_Historic
-        : [];
-      const ongoing = Array.isArray(data?.Model_Info_Ongoing)
-        ? data.Model_Info_Ongoing
-        : [];
+      // Check for different response structures
+      // Some APAC APIs return Model_Info_Historic/Model_Info_Ongoing
+      // Others return Scheme_List
+      let lapsed: any[] = [];
+      let ongoing: any[] = [];
+
+      if (data.Model_Info_Historic || data.Model_Info_Ongoing) {
+        lapsed = Array.isArray(data?.Model_Info_Historic)
+          ? data.Model_Info_Historic
+          : [];
+        ongoing = Array.isArray(data?.Model_Info_Ongoing)
+          ? data.Model_Info_Ongoing
+          : [];
+      } else if (data.Scheme_List) {
+        // If only Scheme_List is returned, treat all as ongoing
+        ongoing = Array.isArray(data.Scheme_List) ? data.Scheme_List : [];
+      }
 
       if (onModelSchemes && currentModelNameRef.current) {
         onModelSchemes({ongoing, lapsed}, currentModelNameRef.current);
@@ -91,7 +103,7 @@ export default function SchemeSearch({
     },
     onError: (err: any) => {
       console.log('Model info fetch error:', err);
-      const errorMessage = err?.message || 'Failed to load model schemes';
+      const errorMessage = err?.message || 'Failed to load model programs';
       showToast(errorMessage);
     },
     onSettled: () => {
@@ -101,7 +113,8 @@ export default function SchemeSearch({
       currentModelNameRef.current = variables?.value as string;
       onModelLoading?.(true);
     }
-  })
+  });
+  
   const currentModelNameRef = React.useRef<string>('');
 
   const handleSelect = (item: AppDropdownItem | null) => {
@@ -119,8 +132,9 @@ export default function SchemeSearch({
     console.log('Error fetching model list');
     return null;
   }
+  
   console.log('Selected Model Data:', selectedModelName);
-  // Debug logs can be retained or removed as needed
+  
   return (
     <View className="px-3 pt-4 pb-2 ">
       <SearchableDropdown
@@ -132,11 +146,6 @@ export default function SchemeSearch({
           onClearSearch?.();
         }}
         defaultValue={selectedModelName}
-        // label="Model Number"
-        // labelIcon="search"
-        // allowClear
-        // needIndicator
-        // listHeight={250}
       />
     </View>
   );

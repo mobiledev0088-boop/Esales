@@ -1,10 +1,7 @@
 import {FlatList, Pressable, View, RefreshControl} from 'react-native';
 import {useLoginStore} from '../../../../../stores/useLoginStore';
 import {handleAPACApiCall} from '../../../../../utils/handleApiCall';
-import {useInfiniteQuery, useMutation, useQuery} from '@tanstack/react-query';
-import AppDropdown, {
-  AppDropdownItem,
-} from '../../../../../components/customs/AppDropdown';
+import {useInfiniteQuery} from '@tanstack/react-query';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import RNCB from '@react-native-clipboard/clipboard';
 import Animated, {
@@ -19,12 +16,16 @@ import AppIcon from '../../../../../components/customs/AppIcon';
 import AppText from '../../../../../components/customs/AppText';
 import {TabHeader} from '../../../ASIN/WOD/components';
 import Skeleton from '../../../../../components/skeleton/skeleton';
+import SchemeSkeleton from '../../../../../components/skeleton/SchemesSkeleton';
 import {ASUS, screenWidth} from '../../../../../utils/constant';
 import {showToast} from '../../../../../utils/commonFunctions';
 import moment from 'moment';
 import Card from '../../../../../components/Card';
 import AppButton from '../../../../../components/customs/AppButton';
 import {downloadFile} from '../../../../../utils/services';
+import ProgramSearch from './ProgramSearch';
+import {showProgramFilterSheet} from './ProgramFilterSheet';
+import FilterButton from '../../../../../components/FilterButton';
 
 type SchemeCategory = typeof ONGOING | typeof LAPSED;
 
@@ -44,10 +45,7 @@ interface Scheme {
   Scheme_Month?: number;
   ActivatedTillDate?: number;
   ActivatedWithinPeriod?: number;
-}
-
-interface RawModel {
-  Model_Name?: string | null;
+  Product_Category?: string;
 }
 
 interface PaginationEnvelope {
@@ -57,14 +55,9 @@ interface PaginationEnvelope {
   __page: number;
 }
 
-interface ModelInfoResponse {
-  Scheme_List?: any[]; // We'll keep it generic; parent will cast / adapt
-}
-
-interface ProgramSearchProps {
-  onModelLoading?: (loading: boolean) => void;
-  onModelSchemes?: (schemes: any[], modelName: string) => void;
-  onClearSearch?: () => void;
+interface ModelSchemesByCategory {
+  ongoing: Scheme[];
+  lapsed: Scheme[];
 }
 
 interface SchemeCardProps {
@@ -110,64 +103,7 @@ function formatCountdown(msRemaining: number): string {
   return `${d}d ${h}h ${m}m ${s.toString().padStart(2, '0')}s`;
 }
 
-// API CAll
-const useGetModelList = () => {
-  const {EMP_Code: employeeCode = '', EMP_RoleId: RoleId = ''} = useLoginStore(
-    state => state.userInfo,
-  );
-
-  return useQuery<AppDropdownItem[], Error>({
-    queryKey: ['getModelList', employeeCode, RoleId],
-    enabled: Boolean(employeeCode && RoleId),
-    queryFn: async () => {
-      const res = await handleAPACApiCall('/Information/GetModelList', {
-        employeeCode,
-        RoleId,
-      });
-
-      const dashboard = res.DashboardData;
-      if (!dashboard.Status) {
-        return [];
-      }
-
-      const list: RawModel[] = dashboard.Datainfo?.Model_List ?? [];
-      const unique = Array.from(
-        new Set(
-          list
-            .map(m => m.Model_Name?.trim())
-            .filter((name): name is string => !!name),
-        ),
-      ).map(name => ({label: name, value: name}));
-      return unique;
-    },
-  });
-};
-
-const useGetModelInfo = () => {
-  const userInfo = useLoginStore(state => state.userInfo);
-  return useMutation({
-    mutationKey: ['selectedModel'],
-    mutationFn: async (selectedModel: AppDropdownItem) => {
-      const res = await handleAPACApiCall('/Information/GetModelInfo', {
-        employeeCode: userInfo?.EMP_Code,
-        RoleId: userInfo?.EMP_RoleId,
-        ModelName: selectedModel?.value,
-      });
-      const result = res.DashboardData;
-      if (!result.Status) {
-        throw new Error('Failed to fetch model info');
-      }
-      console.log('Model Info Response:', result);
-      return result.Datainfo as ModelInfoResponse;
-    },
-    onSuccess: data => {
-      const schemes = data?.Scheme_List ?? [];
-      console.log('Fetched schemes for model:', schemes);
-      return schemes;
-    },
-  });
-};
-
+// API Calls
 const fetchOngoingSchemes = async (
   roleId: number,
   empCode: string,
@@ -293,67 +229,6 @@ const InfoRow: React.FC<{
     {trailingAction && trailingAction()}
   </View>
 );
-
-const ProgramSearch: React.FC<ProgramSearchProps> = ({
-  onModelLoading,
-  onModelSchemes,
-  onClearSearch,
-}) => {
-  const currentModelNameRef = useRef<string>('');
-  const {
-    data: modelOptions,
-    isLoading: isLoadingModels,
-    isError,
-  } = useGetModelList();
-  const {mutate} = useGetModelInfo();
-
-  const handleSelect = (item: AppDropdownItem | null) => {
-    if (item) {
-      // Start loading state
-      onModelLoading?.(true);
-      currentModelNameRef.current = item.value as string;
-      mutate(item, {
-        onSuccess: (data: ModelInfoResponse) => {
-          const schemes = (data?.Scheme_List ?? []) as any[];
-          onModelSchemes?.(schemes, currentModelNameRef.current);
-          onModelLoading?.(false);
-        },
-        onError: (err: any) => {
-          console.log('Model info fetch error:', err);
-          onModelLoading?.(false);
-          onClearSearch?.();
-          showToast('Failed to load model programs');
-        },
-      });
-    } else {
-      // cleared
-      currentModelNameRef.current = '';
-      onClearSearch?.();
-    }
-  };
-
-  // Handle error
-  if (isError) {
-    console.log('Error fetching model list');
-    return null;
-  }
-
-  return (
-    <View className="px-3 pt-4 pb-2 ">
-      <AppDropdown
-        data={modelOptions ?? []}
-        mode="autocomplete"
-        placeholder={isLoadingModels ? 'Loading...' : 'Search Model Number'}
-        onSelect={handleSelect}
-        label="Model Number"
-        labelIcon="search"
-        allowClear
-        needIndicator
-        listHeight={250}
-      />
-    </View>
-  );
-};
 
 const AnimatedFAB: React.FC<{
   visible: boolean;
@@ -493,12 +368,22 @@ export default function Program() {
   const roleId = Number(userInfo?.EMP_RoleId ?? 0);
 
   const [modelLoading, setModelLoading] = useState(false);
-  const [modelSchemes, setModelSchemes] = useState<Scheme[]>([]);
+  const [modelSchemes, setModelSchemes] = useState<ModelSchemesByCategory>({
+    ongoing: [],
+    lapsed: [],
+  });
   const [modelSearchActive, setModelSearchActive] = useState(false);
   const [selectedModelName, setSelectedModelName] = useState<string>('');
+  const [modelTabIndex, setModelTabIndex] = useState(0); // 0 = ongoing, 1 = lapsed
   const [activeTabidx, setActiveTabidx] = useState<number>(TabIndex.ONGOING);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const fabVisible = useSharedValue(0);
+  
+  // Filter state
+  const [selectedFilters, setSelectedFilters] = useState<{
+    Months?: any[];
+    'Product Lines'?: string[];
+  }>({});
 
   const keyExtractor = useCallback(
     (item: Scheme, index: number) =>
@@ -563,6 +448,121 @@ export default function Program() {
     return dedupeSchemes(arr as Scheme[]);
   }, [historicData]);
 
+  // Dynamic product lines extracted from scheme data
+  const dynamicProductLines = useMemo(() => {
+    const productCategories = new Set<string>();
+
+    // Extract from ongoing schemes
+    ongoingList.forEach(scheme => {
+      if (scheme?.Product_Category) {
+        productCategories.add(scheme.Product_Category);
+      }
+    });
+
+    // Extract from lapsed schemes
+    historicList.forEach(scheme => {
+      if (scheme?.Product_Category) {
+        productCategories.add(scheme.Product_Category);
+      }
+    });
+
+    // Extract from model schemes when in model search mode
+    if (modelSearchActive) {
+      modelSchemes.ongoing.forEach(scheme => {
+        if (scheme?.Product_Category) {
+          productCategories.add(scheme.Product_Category);
+        }
+      });
+      modelSchemes.lapsed.forEach(scheme => {
+        if (scheme?.Product_Category) {
+          productCategories.add(scheme.Product_Category);
+        }
+      });
+    }
+
+    return Array.from(productCategories).sort();
+  }, [ongoingList, historicList, modelSchemes, modelSearchActive]);
+
+  // Filter function for scheme data
+  const filterSchemeData = useCallback((data: Scheme[], filters: any) => {
+    if (!data || data.length === 0) return data;
+    if (!filters || Object.keys(filters).length === 0) return data;
+
+    return data.filter(item => {
+      // Check month filters
+      if (filters.Months && filters.Months.length > 0) {
+        const matchesMonth = filters.Months.some((monthFilter: any) => {
+          // Get the comparison value (could be string or object with value property)
+          const compareValue =
+            typeof monthFilter === 'object' && monthFilter.value
+              ? monthFilter.value
+              : monthFilter;
+
+          // Direct comparison with Scheme_Month field
+          return item?.Scheme_Month === compareValue;
+        });
+
+        if (!matchesMonth) return false;
+      }
+
+      // Check product line filters
+      if (filters['Product Lines'] && filters['Product Lines'].length > 0) {
+        const matchesProductLine = filters['Product Lines'].some(
+          (productFilter: any) => {
+            // Get the comparison value
+            const compareValue =
+              typeof productFilter === 'object' && productFilter.value
+                ? productFilter.value
+                : productFilter;
+
+            // Check against Product_Category field
+            return item?.Product_Category === compareValue;
+          },
+        );
+
+        if (!matchesProductLine) return false;
+      }
+
+      return true;
+    });
+  }, []);
+
+  // Filtered data using useMemo for performance
+  const filteredOngoingList = useMemo(() => {
+    return filterSchemeData(ongoingList, selectedFilters);
+  }, [ongoingList, selectedFilters, filterSchemeData]);
+
+  const filteredHistoricList = useMemo(() => {
+    return filterSchemeData(historicList, selectedFilters);
+  }, [historicList, selectedFilters, filterSchemeData]);
+
+  const filteredModelOngoing = useMemo(() => {
+    return filterSchemeData(modelSchemes.ongoing, selectedFilters);
+  }, [modelSchemes.ongoing, selectedFilters, filterSchemeData]);
+
+  const filteredModelLapsed = useMemo(() => {
+    return filterSchemeData(modelSchemes.lapsed, selectedFilters);
+  }, [modelSchemes.lapsed, selectedFilters, filterSchemeData]);
+
+  // Calculate total active filters
+  const getTotalActiveFilters = useMemo(() => {
+    if (!selectedFilters || Object.keys(selectedFilters).length === 0) return 0;
+
+    return Object.values(selectedFilters).reduce((total, filterArray) => {
+      return total + (Array.isArray(filterArray) ? filterArray.length : 0);
+    }, 0);
+  }, [selectedFilters]);
+
+  // Toggle filter modal
+  const toggleFilterModal = useCallback(() => {
+    showProgramFilterSheet({
+      selectedFilters,
+      onFiltersChange: setSelectedFilters,
+      dynamicProductLines,
+      hasModelSelected: modelSearchActive,
+    });
+  }, [selectedFilters, dynamicProductLines, modelSearchActive]);
+
   // const handleEndReached = useCallback(() => {
   //   if (hasMore && !loadingMore) loadNext?.();
   // }, [hasMore, loadingMore, loadNext]);
@@ -570,8 +570,10 @@ export default function Program() {
   const {selectedData, hasMore, loadingMore, loadNext, onRefresh} =
     useMemo(() => {
       if (modelSearchActive) {
+        const selectedModelData =
+          modelTabIndex === 0 ? filteredModelOngoing : filteredModelLapsed;
         return {
-          selectedData: modelSchemes,
+          selectedData: selectedModelData,
           hasMore: false,
           loadingMore: modelLoading,
           loadNext: () => {},
@@ -579,7 +581,7 @@ export default function Program() {
         } as const;
       } else if (activeTabidx === TabIndex.ONGOING) {
         return {
-          selectedData: ongoingList,
+          selectedData: filteredOngoingList,
           hasMore: !!hasMoreOngoing,
           loadingMore: fetchingOngoing,
           loadNext: fetchNextOngoing,
@@ -587,7 +589,7 @@ export default function Program() {
         } as const;
       } else {
         return {
-          selectedData: historicList,
+          selectedData: filteredHistoricList,
           hasMore: !!hasMoreHistoric,
           loadingMore: fetchingHistoric,
           loadNext: fetchNextHistoric,
@@ -596,17 +598,21 @@ export default function Program() {
       }
     }, [
       activeTabidx,
-      ongoingList,
+      filteredOngoingList,
       hasMoreOngoing,
       fetchingOngoing,
       fetchNextOngoing,
-      historicList,
+      filteredHistoricList,
       hasMoreHistoric,
       fetchingHistoric,
       fetchNextHistoric,
+      onRefreshOngoing,
+      onRefreshHistoric,
       modelSearchActive,
-      modelSchemes,
+      filteredModelOngoing,
+      filteredModelLapsed,
       modelLoading,
+      modelTabIndex,
     ]);
 
   const handleScroll = useCallback(
@@ -640,11 +646,20 @@ export default function Program() {
               : 'Programs'}
           </AppText>
         </View>
-        {!modelSearchActive && (
+        {modelSearchActive ? (
           <TabHeader
             tabs={[
-              `${userInfo?.EMP_CountryID === ASUS.COUNTRIES.ATID ? 'Sedang Berlangsung ' : 'Ongoing'} (${ongoingList.length})`,
-              `${userInfo?.EMP_CountryID === ASUS.COUNTRIES.ATID ? 'Bekas ' : 'Lapsed'} (${historicList.length})`,
+              `${userInfo?.EMP_CountryID === ASUS.COUNTRIES.ATID ? 'Sedang Berlangsung' : 'Ongoing'} (${filteredModelOngoing.length})`,
+              `${userInfo?.EMP_CountryID === ASUS.COUNTRIES.ATID ? 'Bekas' : 'Lapsed'} (${filteredModelLapsed.length})`,
+            ]}
+            activeIndex={modelTabIndex}
+            onChange={setModelTabIndex}
+          />
+        ) : (
+          <TabHeader
+            tabs={[
+              `${userInfo?.EMP_CountryID === ASUS.COUNTRIES.ATID ? 'Sedang Berlangsung ' : 'Ongoing'} (${filteredOngoingList.length})`,
+              `${userInfo?.EMP_CountryID === ASUS.COUNTRIES.ATID ? 'Bekas ' : 'Lapsed'} (${filteredHistoricList.length})`,
             ]}
             activeIndex={activeTabidx}
             onChange={setActiveTabidx}
@@ -655,10 +670,14 @@ export default function Program() {
     [
       activeTabidx,
       setActiveTabidx,
-      historicList.length,
-      ongoingList.length,
+      filteredHistoricList.length,
+      filteredOngoingList.length,
       modelSearchActive,
       selectedModelName,
+      filteredModelOngoing.length,
+      filteredModelLapsed.length,
+      modelTabIndex,
+      userInfo?.EMP_CountryID,
     ],
   );
   const scrollToTop = useCallback(() => {
@@ -666,7 +685,7 @@ export default function Program() {
   }, []);
 
   const currentCategory = activeTabidx === TabIndex.ONGOING ? ONGOING : LAPSED;
-  const searchCategory = ONGOING;
+  const searchCategory: SchemeCategory = modelTabIndex === 0 ? ONGOING : LAPSED;
   const handleDownload = useCallback(async (url: string) => {
     if (!url) {
       showToast('File not available');
@@ -715,46 +734,47 @@ export default function Program() {
     );
   }, [modelSearchActive, activeTabidx]);
 
-  if (loadingOngoing) {
-    return (
-      <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base px-3 pt-3">
-        <Skeleton width={screenWidth - 24} height={60} borderRadius={12} />
-        <View className="gap-2">
-          <Skeleton width={100} height={20} borderRadius={8} />
-          <Skeleton width={screenWidth - 24} height={50} borderRadius={8} />
-        </View>
-        <View className="gap-3 mt-3">
-          {[...Array(5)].map((_, idx) => (
-            <Skeleton
-              key={idx}
-              width={screenWidth - 24}
-              height={80}
-              borderRadius={12}
-            />
-          ))}
-        </View>
-      </View>
-    );
-  }
+  const showSkeleton =
+    modelLoading ||
+    (loadingOngoing && !ongoingList.length) ||
+    (loadingHistoric && !historicList.length);
+
+  if (showSkeleton) return <SchemeSkeleton />;
 
   console.log('Rendering Program with', selectedData);
 
   return (
     <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
-      <ProgramSearch
-        onModelLoading={setModelLoading}
-        onModelSchemes={(schemes, modelName) => {
-          setModelSchemes(schemes as Scheme[]);
-          setModelSearchActive(true);
-          setSelectedModelName(modelName);
-        }}
-        onClearSearch={() => {
-          setModelSearchActive(false);
-          setModelSchemes([]);
-          setSelectedModelName('');
-          setModelLoading(false);
-        }}
-      />
+      {/* Search and Filter Header */}
+      <View className="flex-row items-center px-3 pt-3 pb-2 border-b border-slate-200 dark:border-slate-700">
+        <View className="flex-1 mr-2">
+          <ProgramSearch
+            selectedModelName={selectedModelName}
+            onModelLoading={setModelLoading}
+            onModelSchemes={(schemesByCategory, modelName) => {
+              setModelSchemes(schemesByCategory);
+              setModelSearchActive(true);
+              setSelectedModelName(modelName);
+              setModelTabIndex(0); // Reset to ongoing tab when new model is selected
+            }}
+            onClearSearch={() => {
+              setModelSearchActive(false);
+              setModelSchemes({ongoing: [], lapsed: []});
+              setSelectedModelName('');
+              setModelLoading(false);
+              setModelTabIndex(0);
+            }}
+          />
+        </View>
+        
+        {/* Filter Button */}
+        <FilterButton
+          onPress={toggleFilterModal}
+          hasActiveFilters={getTotalActiveFilters > 0}
+          // iconSize={}
+          containerClassName='p-3'
+        />
+      </View>
 
       <FlatList
         ref={flatListRef}
