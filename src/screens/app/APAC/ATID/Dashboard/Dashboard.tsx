@@ -1136,6 +1136,7 @@ export default function Dashboard() {
     isLoading: isTabsLoading,
     error: tabsError,
   } = useDashboardDataAPAC(quarters[0]?.value || '', initialTab);
+  console.log('Dashboard Data:', dashboardData);
 
   const dashboardTabs = useMemo(() => {
     if (dashboardData?.MasterTab && Array.isArray(dashboardData.MasterTab)) {

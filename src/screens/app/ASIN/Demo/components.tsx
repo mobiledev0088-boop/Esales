@@ -64,7 +64,7 @@ const ProgressStat: React.FC<ProgressStatProps> = ({
           {percent}% ({current})
         </AppText>
       </View>
-      <View className="w-full h-2 rounded-full bg-slate-100 overflow-hidden mt-1">
+      <View className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-900 overflow-hidden mt-1">
         <View style={{width: `${barWidth}%`}} className={`h-full ${barTint}`} />
       </View>
     </View>
@@ -104,15 +104,15 @@ const IconStat = ({
   );
 };
 
-const Metric: React.FC<MetricProps> = memo(({label, value, icon, tint}) => (
+const Metric: React.FC<MetricProps> = memo(({label, value, icon, tint,isDarkMode}) => (
   <View className="w-1/3 mb-4 px-1">
     <View className="flex-row items-center">
-      <View className="w-7 h-7 rounded-md bg-slate-100 items-center justify-center mr-2">
+      <View className="w-7 h-7 rounded-md bg-slate-100 dark:bg-slate-900 items-center justify-center mr-2">
         <AppIcon
           name={icon as any}
           type="feather"
           size={14}
-          color={tint === 'slate' ? '#475569' : undefined}
+          color={isDarkMode ? '#e2e8f0' : '#475569'}
         />
       </View>
       <View className="flex-1">
@@ -131,14 +131,18 @@ const Metric: React.FC<MetricProps> = memo(({label, value, icon, tint}) => (
 export const SummaryOverView = memo(() => {
   const {data, isLoading} = useGetSummaryOverviewData();
   const Totals = useMemo(() => {
-    if (!data) return {models: 0, stores: 0};
-    let modelSum = 0;
+    if (!data) return {offlineModels: 0, onlineModels: 0, stores: 0};
+
+    let offline_model_Sum = 0;
+    let online_model_Sum = 0;
     let storeSum = 0;
+    
     data.forEach(item => {
-      modelSum += item.Total_Offline_Models;
+      offline_model_Sum += item.Total_Offline_Models;
+      online_model_Sum += item.TotalActiveModels;
       storeSum += item.Store_count;
     });
-    return {models: modelSum, stores: storeSum};
+    return {offlineModels: offline_model_Sum, onlineModels: online_model_Sum, stores: storeSum};
   }, [data]);
   if (isLoading)
     return <Skeleton width={screenWidth - 20} height={50} borderRadius={12} />;
@@ -180,30 +184,30 @@ export const SummaryOverView = memo(() => {
             <AppText
               weight="medium"
               size="xs"
-              className="text-slate-400 dark:text-slate-400 uppercase mb-0.5"
+              className="text-red-600 dark:text-red-600 uppercase mb-0.5"
               numberOfLines={1}>
               Offline
             </AppText>
             <AppText
               size="lg"
               weight="bold"
-              className="text-slate-900 dark:text-slate-50">
-              {Totals.models.toLocaleString('en-US')}
+              className="text-red-600 dark:text-red-600">
+              {Totals.offlineModels.toLocaleString('en-US')}
             </AppText>
           </View>
           <View className="flex-1 p-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg items-center">
             <AppText
               weight="medium"
               size="xs"
-              className="text-slate-400 dark:text-slate-400 uppercase mb-0.5"
+              className="text-green-600 dark:text-green-600 uppercase mb-0.5"
               numberOfLines={1}>
               Online
             </AppText>
             <AppText
               size="lg"
               weight="bold"
-              className="text-slate-900 dark:text-slate-50">
-              {Totals.models.toLocaleString('en-US')}
+              className="text-green-600 dark:text-green-600">
+              {Totals.onlineModels.toLocaleString('en-US')}
             </AppText>
           </View>
         </View>
@@ -269,14 +273,14 @@ export const SummaryOverView = memo(() => {
                 <AppText
                   weight="semibold"
                   size="sm"
-                  className="w-24 text-center text-slate-800 dark:text-slate-50">
+                  className="w-24 text-center text-red-600 dark:text-red-600">
                   {convertToASINUnits(item?.Total_Offline_Models || 0, true)}
                 </AppText>
 
                 <AppText
                   weight="semibold"
                   size="sm"
-                  className="w-24 text-center text-slate-800 dark:text-slate-50">
+                  className="w-24 text-center text-green-600 dark:text-green-600 ">
                   {convertToASINUnits(item?.TotalActiveModels || 0, true)}
                 </AppText>
               </View>
@@ -410,6 +414,7 @@ export const BranchCard = memo(
     partnerType,
     IsCompulsory = 'Yes',
     noTerritoryButton,
+    isDarkMode,
   }: {
     item: TransformedBranchRes;
     summaryData: {
@@ -424,6 +429,7 @@ export const BranchCard = memo(
     partnerType: string | null;
     IsCompulsory?: string;
     noTerritoryButton: boolean;
+    isDarkMode: boolean;
   }) => {
     const [showFront, setShowFront] = useState(true);
     const [frontCardHeight, setFrontCardHeight] = useState(0);
@@ -550,13 +556,13 @@ export const BranchCard = memo(
               <Card
                 className="p-0 border border-slate-200 dark:border-slate-700"
                 noshadow>
-                <View className="flex-row items-center gap-2 pb-2 border-b border-slate-100 pt-4 px-3">
-                  <View className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center">
+                <View className="flex-row items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-700 pt-4 px-3">
+                  <View className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-600 items-center justify-center">
                     <AppIcon
                       name="map-pin"
                       type="feather"
                       size={16}
-                      color="black"
+                      color={isDarkMode ? "#e2e8f0" : "black"}
                     />
                   </View>
                   <AppText
@@ -566,22 +572,23 @@ export const BranchCard = memo(
                     numberOfLines={1}>
                     {item.state}
                   </AppText>
-                  <View className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center">
+                  <View className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-600 items-center justify-center">
                     <AppIcon
                       name="chevron-right"
                       type="feather"
                       size={16}
-                      color="#475569"
+                      color={isDarkMode ? "#e2e8f0" : "#475569"}
                     />
                   </View>
                 </View>
                 {/* Metric grid */}
-                <View className="mt-3 px-3 flex-row flex-wrap pb-2 border-b border-slate-100">
+                <View className="mt-3 px-3 flex-row flex-wrap pb-2 border-b border-slate-100 dark:border-slate-700">
                   <Metric
                     label={partnerType ? partnerType : 'Partners'}
                     value={item.partner_count}
                     icon="users"
                     tint="slate"
+                    isDarkMode={isDarkMode}
                   />
                   {item.awp_Count !== null && (
                     <Metric
@@ -589,6 +596,7 @@ export const BranchCard = memo(
                       value={item.awp_Count}
                       icon="users"
                       tint="blue"
+                      isDarkMode={isDarkMode}
                     />
                   )}
                   {item.rog_kiosk !== null && (
@@ -597,6 +605,7 @@ export const BranchCard = memo(
                       value={item.rog_kiosk}
                       icon="monitor"
                       tint="teal"
+                      isDarkMode={isDarkMode}
                     />
                   )}
 
@@ -606,6 +615,7 @@ export const BranchCard = memo(
                       value={item.pkiosk}
                       icon="star"
                       tint="amber"
+                      isDarkMode={isDarkMode}
                     />
                   )}
                   {item.pkiosk_rogkiosk !== null && (
@@ -614,6 +624,7 @@ export const BranchCard = memo(
                       value={item.pkiosk_rogkiosk}
                       icon="layers"
                       tint="violet"
+                      isDarkMode={isDarkMode}
                     />
                   )}
                   {item.pending !== null && (
@@ -622,6 +633,7 @@ export const BranchCard = memo(
                       value={item.pending}
                       icon="pause-circle"
                       tint="yellow"
+                      isDarkMode={isDarkMode}
                     />
                   )}
                 </View>
@@ -1584,102 +1596,102 @@ export const ROITable = ({
   return (
     <View className="mt-3 px-3 pb-4">
       {/* Table Container */}
-      <View className="border border-slate-200 rounded-lg overflow-hidden">
+      <View className="border border-slate-200 dark:border-slate-700 rounded-lg  bg-lightBg-surface dark:bg-darkBg-surface overflow-hidden">
         {/* Table Header */}
-        <View className="flex-row bg-slate-100">
-          <View className="flex-1 py-3 px-3 border-r border-slate-200">
-            <AppText size="xs" weight="semibold" className="text-slate-600">
+        <View className="flex-row">
+          <View className="flex-1 py-3 px-3 border-r border-slate-200 dark:border-slate-700">
+            <AppText size="xs" weight="semibold" className="text-slate-600 dark:text-slate-300">
               {''}
             </AppText>
           </View>
-          <View className="w-24 py-3 px-2 border-r border-slate-200 items-center bg-blue-50">
-            <AppText size="xs" weight="bold" className="text-blue-700">
+          <View className="w-24 py-3 px-2 border-r border-slate-200 dark:border-slate-700 items-center bg-blue-50 dark:bg-blue-800">
+            <AppText size="xs" weight="bold" className="text-blue-700 dark:text-blue-400">
               DEMO
             </AppText>
           </View>
-          <View className="w-24 py-3 px-2 border-r border-slate-200 items-center bg-green-50">
-            <AppText size="xs" weight="bold" className="text-green-700">
+          <View className="w-24 py-3 px-2 border-r border-slate-200 dark:border-slate-700 items-center bg-green-50 dark:bg-green-800">
+            <AppText size="xs" weight="bold" className="text-green-700 dark:text-green-400">
               ACT
             </AppText>
           </View>
-          <View className="w-24 py-3 px-2 items-center bg-sky-50">
-            <AppText size="xs" weight="bold" className="text-sky-700">
+          <View className="w-24 py-3 px-2 items-center bg-sky-50 dark:bg-sky-800">
+            <AppText size="xs" weight="bold" className="text-sky-700 dark:text-sky-400">
               STOCK
             </AppText>
           </View>
         </View>
 
         {/* Table Row - Demo Store */}
-        <View className="flex-row bg-white border-t border-slate-200">
-          <View className="flex-1 py-3 px-3 border-r border-slate-200 justify-center">
-            <AppText size="xs" weight="semibold" className="text-slate-700">
+        <View className="flex-row  border-t border-slate-200 dark:border-slate-700">
+          <View className="flex-1 py-3 px-3 border-r border-slate-200 dark:border-slate-700 justify-center">
+            <AppText size="xs" weight="semibold" className="text-slate-700 dark:text-slate-300">
               DEMO STORE
             </AppText>
           </View>
-          <View className="w-24 py-3 px-2 border-r border-slate-200 items-center justify-center">
-            <AppText size="sm" weight="semibold" className="text-blue-600">
+          <View className="w-24 py-3 px-2 border-r border-slate-200 dark:border-slate-700 items-center justify-center">
+            <AppText size="sm" weight="semibold" className="text-blue-600 dark:text-blue-400">
               {item.out_of_demo || 0}
             </AppText>
           </View>
-          <View className="w-24 py-3 px-2 border-r border-slate-200 items-center justify-center">
-            <AppText size="sm" weight="semibold" className="text-green-600">
+          <View className="w-24 py-3 px-2 border-r border-slate-200 dark:border-slate-700 items-center justify-center">
+            <AppText size="sm" weight="semibold" className="text-green-600 dark:text-green-400">
               {item.out_of_act || 0}
             </AppText>
           </View>
-          <View className="w-24 py-3 px-2 items-center justify-center">
-            <AppText size="sm" weight="semibold" className="text-sky-600">
+          <View className="w-24 py-3 px-2 border-r border-slate-200 dark:border-slate-700 items-center justify-center">
+            <AppText size="sm" weight="semibold" className="text-sky-600 dark:text-sky-400">
               {item.out_of_stock || 0}
             </AppText>
           </View>
         </View>
 
         {/* Table Row - Demo QTY/Units */}
-        <View className="flex-row bg-white border-t border-slate-200">
-          <View className="flex-1 py-3 px-3 border-r border-slate-200 justify-center">
-            <AppText size="xs" weight="semibold" className="text-slate-700">
+        <View className="flex-row  border-t border-slate-200 dark:border-slate-700">
+          <View className="flex-1 py-3 px-3 border-r border-slate-200 dark:border-slate-700 justify-center">
+            <AppText size="xs" weight="semibold" className="text-slate-700 dark:text-slate-300">
               DEMO QTY/UNITS
             </AppText>
           </View>
-          <View className="w-24 py-3 px-2 border-r border-slate-200 items-center justify-center">
-            <AppText size="sm" weight="semibold" className="text-blue-600">
+          <View className="w-24 py-3 px-2 border-r border-slate-200 dark:border-slate-700 items-center justify-center">
+            <AppText size="sm" weight="semibold" className="text-blue-600 dark:text-blue-400">
               {item.total_demo || 0}
             </AppText>
           </View>
-          <View className="w-24 py-3 px-2 border-r border-slate-200 items-center justify-center">
-            <AppText size="sm" weight="semibold" className="text-green-600">
+          <View className="w-24 py-3 px-2 border-r border-slate-200 dark:border-slate-700 items-center justify-center">
+            <AppText size="sm" weight="semibold" className="text-green-600 dark:text-green-400">
               {item.total_act || 0}
             </AppText>
           </View>
-          <View className="w-24 py-3 px-2 items-center justify-center">
-            <AppText size="sm" weight="semibold" className="text-sky-600">
+          <View className="w-24 py-3 px-2 border-r border-slate-200 dark:border-slate-700 items-center justify-center">
+            <AppText size="sm" weight="semibold" className="text-sky-600 dark:text-sky-400">
               {item.total_stock || 0}
             </AppText>
           </View>
         </View>
 
         {/* Table Row - Hit Rate */}
-        <View className="flex-row bg-white border-t border-slate-200">
-          <View className="flex-1 py-3 px-3 border-r border-slate-200 justify-center">
-            <AppText size="xs" weight="semibold" className="text-slate-700">
+        <View className="flex-row border-t border-slate-200 dark:border-slate-700">
+          <View className="flex-1 py-3 px-3 border-r border-slate-200 dark:border-slate-700 justify-center">
+            <AppText size="xs" weight="semibold" className="text-slate-700 dark:text-slate-300">
               HIT RATE
             </AppText>
           </View>
-          <View className="w-24 py-3 px-2 border-r border-slate-200 items-center justify-center">
-            <AppText size="sm" weight="bold" className="text-blue-700">
+          <View className="w-24 py-3 px-2 border-r border-slate-200 dark:border-slate-700 items-center justify-center">
+            <AppText size="sm" weight="bold" className="text-blue-700 dark:text-blue-400">
               {(item.out_of_demo / item.partner_count) * 100
                 ? `${Math.round((item.out_of_demo / item.partner_count) * 100)}%`
                 : '0%'}
             </AppText>
           </View>
-          <View className="w-24 py-3 px-2 border-r border-slate-200 items-center justify-center">
-            <AppText size="sm" weight="bold" className="text-green-700">
+          <View className="w-24 py-3 px-2 border-r border-slate-200 dark:border-slate-700 items-center justify-center">
+            <AppText size="sm" weight="bold" className="text-green-700 dark:text-green-400">
               {(item.out_of_act / item.partner_count) * 100
                 ? `${Math.round((item.out_of_act / item.partner_count) * 100)}%`
                 : '0%'}
             </AppText>
           </View>
-          <View className="w-24 py-3 px-2 items-center justify-center">
-            <AppText size="sm" weight="bold" className="text-sky-700">
+          <View className="w-24 py-3 px-2 border-r border-slate-200 dark:border-slate-700 items-center justify-center">
+            <AppText size="sm" weight="bold" className="text-sky-700 dark:text-sky-400">
               {(item.out_of_stock / item.partner_count) * 100
                 ? `${Math.round((item.out_of_stock / item.partner_count) * 100)}%`
                 : '0%'}

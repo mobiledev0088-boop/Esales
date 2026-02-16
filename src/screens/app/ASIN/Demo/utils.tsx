@@ -181,6 +181,7 @@ export interface MetricProps {
   value: number;
   icon: string;
   tint: 'slate' | 'violet' | 'teal' | 'amber' | 'blue' | 'yellow';
+  isDarkMode?: boolean;
 }
 
 export interface Filters {
@@ -192,14 +193,14 @@ export interface Filters {
   compulsory?: string | null;
 }
 
-type BranchMap = Record<
-  string,
-  {
+type BranchMap = {
+  [key: string]: {
     BranchName: string;
     DemoExecuted: number;
     TotalCompulsoryDemo: number;
-  }
->;
+    _partnerSeen: Set<string>; // internal helper
+  };
+};
 
 // helpers
 export const STAT_PALETTE = {
@@ -641,21 +642,31 @@ export const transformDemoDataROI = (
   }));
 
   /* ---------- add Logic of Out of  ---------- */
-  const retailerBranch = retailerDemo.reduce<BranchMap>((acc, item) => {
-    const {BranchName, DemoExecuted, TotalCompulsoryDemo} = item;
-    if (!acc[BranchName]) {
-      acc[BranchName] = {
-        BranchName,
-        DemoExecuted: 0,
-        TotalCompulsoryDemo: 0,
-      };
+const retailerBranch = retailerDemo?.reduce<BranchMap>((acc, item) => {
+  const {
+    BranchName,
+    DemoExecuted,
+    TotalCompulsoryDemo,
+    PartnerName,
+  } = item;
+  if (!acc[BranchName]) {
+    acc[BranchName] = {
+      BranchName,
+      DemoExecuted: 0,
+      TotalCompulsoryDemo: 0,
+      _partnerSeen: new Set(),
+    };
+  }
+  if (!acc[BranchName]._partnerSeen.has(PartnerName)) {
+    acc[BranchName]._partnerSeen.add(PartnerName);
+    if (DemoExecuted > 0) {
+      acc[BranchName].DemoExecuted += 1;
+      acc[BranchName].TotalCompulsoryDemo += TotalCompulsoryDemo
     }
+  }
+  return acc;
+}, {});
 
-    acc[BranchName].DemoExecuted += DemoExecuted;
-    acc[BranchName].TotalCompulsoryDemo += TotalCompulsoryDemo;
-
-    return acc;
-  }, {});
 
   const output = Object.values(retailerBranch);
 

@@ -855,6 +855,7 @@ export default function Dashboard_Partner({
     '',
     DifferentEmployeeCode,
   );
+  console.log('Fetched Dashboard Data:', dashboardData);
 
   const activeTabsArray = useMemo(
     () =>

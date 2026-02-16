@@ -1,5 +1,5 @@
 import {FlatList, RefreshControl, ScrollView, View} from 'react-native';
-import {useCallback, useMemo, useState} from 'react';
+import {use, useCallback, useMemo, useState} from 'react';
 import MaterialTabBar from '../../../../components/MaterialTabBar';
 import AppDropdown, {
   AppDropdownItem,
@@ -41,9 +41,11 @@ import {showDemoFilterSheet} from './DemoFilterSheet';
 import {DataStateView} from '../../../../components/DataStateView';
 import {useLoginStore} from '../../../../stores/useLoginStore';
 import {ASUS} from '../../../../utils/constant';
+import { useThemeStore } from '../../../../stores/useThemeStore';
 
 const Reseller = () => {
   const quarters = useMemo(() => getPastQuarters(), []);
+  const isDarkMode = useThemeStore(state => state.AppTheme === 'dark'); 
   const [selectedQuarter, setSelectedQuarter] =
     useState<AppDropdownItem | null>(quarters?.[0] ?? null);
   const [selectedPartnerName, setSelectedPartnerName] =
@@ -66,8 +68,7 @@ const Reseller = () => {
     filters.pKiosk ?? 0,
     filters.rogKiosk ?? 0,
   );
-  const {data: categoriesData, refetch: refetchCategories} =
-    useGetDemoCategories(selectedQuarter?.value || '');
+  const {data: categoriesData, refetch: refetchCategories} = useGetDemoCategories(selectedQuarter?.value || '');
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -177,10 +178,11 @@ const Reseller = () => {
           rogKiosk={filters.rogKiosk ?? null}
           partnerType={filters.partnerType ?? null}
           noTerritoryButton={noTerritoryButton}
+          isDarkMode={isDarkMode}
         />
       );
     },
-    [summaryData, selectedQuarter, filters, noTerritoryButton],
+    [summaryData, selectedQuarter, filters, noTerritoryButton, isDarkMode],
   );
 
   const stats = useMemo(
@@ -1096,7 +1098,7 @@ const ROI = () => {
         />
         <FilterButton
           onPress={handleFilter}
-          containerClassName="p-3 border border-[#ccc] dark:border-[#444] rounded-lg "
+          containerClassName="p-3 border border-[#ccc] dark:border-[#e2e8f0] rounded-lg "
           noShadow
         />
       </View>

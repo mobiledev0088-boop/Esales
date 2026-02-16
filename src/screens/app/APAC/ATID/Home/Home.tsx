@@ -13,6 +13,8 @@ import ChannelMap from '../ChannelMap/ChannelMap';
 import Program from '../Program/Program';
 import ClaimDashboard from '../Claim/ClaimDashboard';
 import Demo from '../Demo/Demo';
+import Dashboard_Partner from '../Dashboard/Dashboard_Partner';
+import { ASUS } from '../../../../../utils/constant';
 
 const Tab = createBottomTabNavigator();
 
@@ -69,8 +71,7 @@ const CustomTabBar: React.FC<MyTabBarProps> = ({
             <AppText
               size="sm"
               className={`${isFocused ? 'text-primary font-bold' : 'text-gray-400'}`}
-              numberOfLines={1}
-              >
+              numberOfLines={1}>
               {route.name}
             </AppText>
           </Pressable>
@@ -82,14 +83,24 @@ const CustomTabBar: React.FC<MyTabBarProps> = ({
 
 export default function Home() {
   const userInfo = useLoginStore(state => state.userInfo);
+  const isPartner = userInfo?.EMP_RoleId === ASUS.ROLE_ID.PARTNERS;
 
   const getScreens = () => {
     const arr: TabScreens[] = [];
-    arr.push({
-      name: 'Dashboard',
-      component: Dashboard,
-      icon: 'bar-chart',
-    });
+    if (isPartner) {
+      arr.push({
+        name: 'Dashboard',
+        component: Dashboard_Partner,
+        icon: 'bar-chart',
+      });
+    } else {
+      arr.push({
+        name: 'Dashboard',
+        component: Dashboard,
+        icon: 'bar-chart',
+      });
+    }
+
     arr.push({
       name: 'Demo',
       component: Demo,
