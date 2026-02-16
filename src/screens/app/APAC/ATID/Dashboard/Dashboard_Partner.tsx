@@ -1,4 +1,4 @@
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {RefreshControl, ScrollView, View} from 'react-native';
 import AppText from '../../../../../components/customs/AppText';
 import AppDropdown from '../../../../../components/customs/AppDropdown';
@@ -75,9 +75,11 @@ interface TargetAchievementProps {
 
 interface MonthlyPerformanceItem {
   Month_Name: string; // e.g. "July 2025" or "Jul 2025"
+  Month_No: number; // Month number (1-12)
   Qty_Target: number; // Target
   Achieved_Qty: number; // ST (Sell Through)
   Percent_Contri: number; // % Contribution
+  target_type?: string; // Product Line
 }
 
 const mapTopFive = (
@@ -425,25 +427,62 @@ const formatMonthYear = (monthStr: string) => {
 
 const MonthlyDataTiles = ({data}: {data: MonthlyPerformanceItem[]}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedProductLine, setSelectedProductLine] = useState<string>('NB');
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  // Extract unique product lines from data
+  const productLines = useMemo(() => {
+    // Extract unique non-empty product lines
+    const uniqueLines = Array.from(
+      new Set((data || []).map(item => item.target_type).filter(Boolean))
+    ) as string[];
+    
+    return uniqueLines.map(line => ({label: line as string, value: line as string}));
+  }, [data]);
+
+  // Set default to 'NB' if available, otherwise first product line
+  useEffect(() => {
+    if (productLines.length > 0 && !selectedProductLine) {
+      const nbLine = productLines.find(pl => pl.value === 'NB');
+      const defaultValue = nbLine?.value || productLines[0]?.value || '';
+      setSelectedProductLine(defaultValue);
+    }
+  }, [productLines, selectedProductLine]);
+
+  // Filter data based on selected product line
+  const filteredData = useMemo(() => {
+    if (!selectedProductLine) return data || [];
+    const filtered = (data || []).filter(item => item.target_type === selectedProductLine);
+    return filtered;
+  }, [data, selectedProductLine]);
 
   const processed = useMemo(
-    () =>
-      (data || []).map(m => {
+    () => {
+      const result = (filteredData || []).map(m => {
         const tgt = m.Qty_Target || 0;
         const st = m.Achieved_Qty || 0;
         const so = m.Percent_Contri || 0;
         const stPct = tgt ? Math.round((st / tgt) * 100) : 0;
         const soPct = tgt ? Math.round((so / tgt) * 100) : 0;
+        
+        // Convert Month_No to number if it's a string
+        const monthNo = typeof m.Month_No === 'string' ? parseInt(m.Month_No, 10) : m.Month_No;
+        
         return {
           month: formatMonthYear(m.Month_Name),
+          monthNo: monthNo,
           tgt,
           st,
           so,
           stPct,
           soPct,
         };
-      }),
-    [data],
+      })
+      // Sort in ascending order by month number
+      .sort((a, b) => (a.monthNo || 0) - (b.monthNo || 0));
+      return result;
+    },
+    [filteredData],
   );
 
   if (!processed.length) {
@@ -463,6 +502,34 @@ const MonthlyDataTiles = ({data}: {data: MonthlyPerformanceItem[]}) => {
 
   const cardWidth = screenWidth * 0.85;
   const cardGap = 12;
+
+  // Find and scroll to current month on mount or when product line changes
+  useEffect(() => {
+    if (processed.length === 0) return;
+    
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-11, convert to 1-12
+    
+    // Find index of current month
+    let currentMonthIndex = processed.findIndex(item => item.monthNo === currentMonth);
+
+    // Fallback: if current month not found, default to first month
+    if (currentMonthIndex === -1) {
+      currentMonthIndex = 0;
+    }
+
+    setCurrentIndex(currentMonthIndex);
+    
+    // Scroll to target month with a slight delay for rendering
+    const timeoutId = setTimeout(() => {
+      scrollViewRef.current?.scrollTo({
+        x: currentMonthIndex * (cardWidth + cardGap),
+        animated: true,
+      });
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [selectedProductLine, processed.length, cardWidth, cardGap]);
 
   return (
     <View className="border-t border-slate-200 dark:border-slate-700">
@@ -489,8 +556,29 @@ const MonthlyDataTiles = ({data}: {data: MonthlyPerformanceItem[]}) => {
         </View>
       </View>
 
+      {/* Product Line Dropdown */}
+        <View className="px-5 pb-3">
+          <AppText size="xs" weight="semibold" className="text-slate-600 dark:text-slate-400 mb-2 uppercase tracking-wide">
+            Filter by Product Line
+          </AppText>
+          <AppDropdown
+            data={productLines}
+            selectedValue={selectedProductLine}
+            onSelect={(item) => {
+              if (item?.value) {
+                setSelectedProductLine(item.value);
+                setCurrentIndex(0);
+              }
+            }}
+            mode="dropdown"
+            placeholder="Select Product Line"
+            style={{zIndex: 1000}}
+          />
+        </View>
+
       {/* Scrollable Cards */}
       <ScrollView
+        ref={scrollViewRef}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{paddingHorizontal: 20, paddingBottom: 20}}
@@ -503,8 +591,7 @@ const MonthlyDataTiles = ({data}: {data: MonthlyPerformanceItem[]}) => {
           setCurrentIndex(Math.max(0, Math.min(index, processed.length - 1)));
         }}
         scrollEventThrottle={16}>
-        {processed
-          .map((item, idx) => {
+        {processed.map((item, idx) => {
             return (
               <View
                 key={`${item.month}-${idx}`}
@@ -618,8 +705,7 @@ const MonthlyDataTiles = ({data}: {data: MonthlyPerformanceItem[]}) => {
                 </View>
               </View>
             );
-          })
-          .reverse()}
+          })}
       </ScrollView>
 
       {/* Pagination Dots */}

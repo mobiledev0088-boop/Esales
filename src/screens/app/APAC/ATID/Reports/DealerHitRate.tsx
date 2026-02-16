@@ -20,7 +20,7 @@ import AppText from '../../../../../components/customs/AppText';
 import {CircularProgressBar} from '../../../../../components/customs/AppChart';
 import AppIcon from '../../../../../components/customs/AppIcon';
 import {AppColors} from '../../../../../config/theme';
-import { AppNavigationProp } from '../../../../../types/navigation';
+import { AppNavigationParamList, AppNavigationProp } from '../../../../../types/navigation';
 
 interface DealerHitRateData {
   Achieved_Qty: number;
@@ -29,6 +29,7 @@ interface DealerHitRateData {
   Partner_Type: string;
   Percent: number;
   Target_Qty: number;
+  Product_Category: string;
 }
 
 interface DropdownOption {
@@ -54,6 +55,7 @@ const useGetDealerHitRateData = (branchName: string, YearQtr: string) => {
       return {
         dealerHitrateData: data as DealerHitRateData[],
         partnerType: formatUnique(data, 'Partner_Type'),
+        productCategories: formatUnique(data, 'Product_Category'),
       };
     },
   });
@@ -244,6 +246,8 @@ export default function DealerHitRate() {
 
   const [selectedPartnerType, setSelectedPartnerType] =
     useState<AppDropdownItem | null>(null);
+  const [selectedProductLine, setSelectedProductLine] =
+    useState<AppDropdownItem | null>(null);
 
   const {data, isLoading, isError, refetch} = useGetDealerHitRateData(
     BranchName,
@@ -267,6 +271,40 @@ export default function DealerHitRate() {
       );
     }
 
+    // Apply product line filter
+    if (selectedProductLine?.value) {
+      filtered = filtered.filter(
+        d => d.Product_Category === selectedProductLine?.value,
+      );
+    }
+
+    // Group by Partner_Code when no product line is selected
+    if (!selectedProductLine?.value) {
+      const groupedMap = new Map<string, DealerHitRateData>();
+      
+      filtered.forEach(item => {
+        if (groupedMap.has(item.Partner_Code)) {
+          const existing = groupedMap.get(item.Partner_Code)!;
+          existing.Target_Qty += item.Target_Qty;
+          existing.Achieved_Qty += item.Achieved_Qty;
+          existing.Percent = existing.Target_Qty > 0 
+            ? (existing.Achieved_Qty / existing.Target_Qty) * 100 
+            : 0;
+        } else {
+          groupedMap.set(item.Partner_Code, {
+            ...item,
+            Target_Qty: item.Target_Qty,
+            Achieved_Qty: item.Achieved_Qty,
+            Percent: item.Target_Qty > 0 
+              ? (item.Achieved_Qty / item.Target_Qty) * 100 
+              : 0,
+          });
+        }
+      });
+      
+      filtered = Array.from(groupedMap.values());
+    }
+
     // Calculate summary
     const totalDealers = filtered.length;
     const avgHitRate =
@@ -283,40 +321,63 @@ export default function DealerHitRate() {
       filteredData: filtered,
       summary: {totalDealers, avgHitRate},
     };
-  }, [data?.dealerHitrateData, selectedPartnerType]);
+  }, [data?.dealerHitrateData, selectedPartnerType, selectedProductLine]);
 
   const partnerTypes: DropdownOption[] = data?.partnerType || [];
+  const productCategories: DropdownOption[] = data?.productCategories || [];
   const renderDealerCard = ({item}: {item: DealerHitRateData}) => (
     <DealerCard dealer={item} handlePress={handlePress} />
   );
   return (
     <AppLayout title="Dealer Hit Rate" needBack needPadding>
-      <View className="w-full my-4 flex-row justify-between items-center">
+      <View className="w-full my-4 space-y-3">
+        <View className="flex-row justify-between items-center">
+          {isLoading ? (
+            <Skeleton
+              width={screenWidth * 0.65 - 14}
+              height={45}
+              borderRadius={8}
+            />
+          ) : (
+            <AppDropdown
+              mode="dropdown"
+              data={partnerTypes}
+              selectedValue={selectedPartnerType?.value}
+              onSelect={setSelectedPartnerType}
+              placeholder="Select Partner Type"
+              style={{width: '65%'}}
+              zIndex={4}
+            />
+          )}
+          <View className="w-[32%]">
+            <AppDropdown
+              mode="dropdown"
+              data={quarters}
+              selectedValue={selectedQuarter?.value}
+              onSelect={setSelectedQuarter}
+              placeholder="Select Quarter"
+              zIndex={4}
+            />
+          </View>
+        </View>
         {isLoading ? (
           <Skeleton
-            width={screenWidth * 0.65 - 14}
+            width={screenWidth - 32}
             height={45}
             borderRadius={8}
           />
         ) : (
           <AppDropdown
             mode="dropdown"
-            data={partnerTypes}
-            selectedValue={selectedPartnerType?.value}
-            onSelect={setSelectedPartnerType}
-            placeholder="Select Partner Type"
-            style={{width: '65%'}}
+            data={productCategories}
+            selectedValue={selectedProductLine?.value}
+            onSelect={setSelectedProductLine}
+            placeholder="Select Product Line"
+            allowClear
+            style={{marginTop:'3%'}}
+            zIndex={3}
           />
         )}
-        <View className="w-[30%]">
-          <AppDropdown
-            mode="dropdown"
-            data={quarters}
-            selectedValue={selectedQuarter?.value}
-            onSelect={setSelectedQuarter}
-            placeholder="Select Quarter"
-          />
-        </View>
       </View>
 
       <DataStateView
