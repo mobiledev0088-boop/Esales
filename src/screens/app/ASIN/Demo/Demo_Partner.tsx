@@ -322,7 +322,7 @@ const StatMetric: React.FC<StatMetricProps> = memo(
 const DemoItem: React.FC<{row: PartnerDemoData}> = memo(({row}) => {
   const statusColors = getStatusColors(row.DemoExecutionDone);
   const normalizedStatus = row.DemoExecutionDone?.trim().toLowerCase() || '';
-  const isDoneStatus = /(done)/.test(normalizedStatus);
+  const isDoneStatus = normalizedStatus === 'done'
   const handleSeeMore = useCallback(() => {
     SheetManager.show('PartnerDemoDetailsSheet', {payload: {demo: row}});
   }, [row]);
@@ -580,9 +580,7 @@ export default function Demo_Partner({DifferentEmployeeCode}:{DifferentEmployeeC
       <DataStateView
         isLoading={isLoading}
         isError={isError}
-        // isEmpty={!demoData?.length}
         onRetry={refetch}
-        // EmptyComponent={checkIsParent ? <SelectSubCodesEmptyComponent /> : <EmptyComponent />}
         LoadingComponent={<LoaderView />}>
         <FlatList
           data={sections}

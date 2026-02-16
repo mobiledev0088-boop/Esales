@@ -44,6 +44,17 @@ export interface DemoItemROI {
   Model_Series: string;
 }
 
+export interface DemoROIStats {
+  BranchName: string;
+  Total_Store_Count: number;
+  Total_Active_Store_Count: number;
+  Total_Active_Units: number;
+  Total_Stock_Store_Count: number;
+  Total_Stock_Units: number;
+  Total_Demo_Units: number;
+  Total_Demo_Store_Count: number;
+}
+
 interface DemoItemROIWithMeta extends DemoItemROI {
   model: Map<
     string,
@@ -551,7 +562,7 @@ export const transformDemoDataLFR = (apiData: DemoItemRetailer[]) => {
 
 export const transformDemoDataROI = (
   apiData: DemoItemROI[],
-  retailerDemo: DemoItemRetailer[],
+  Table1: DemoROIStats[],
 ) => {
   const groupMap = new Map<string, GroupROI>();
   for (const item of apiData) {
@@ -626,68 +637,26 @@ export const transformDemoDataROI = (
       });
       group.partner_count++;
     }
-
-    /* ---------- Increment group totals ---------- */
-    group.total_demo += Total_Demo_Count;
-    group.total_act += Activation_count;
-    group.total_stock += Inventory_Count;
   }
   /* ---------- Normalize output ---------- */
-  const data = Array.from(groupMap.values()).map(group => ({
+  const data = Array.from(groupMap.values()).map(group => {
+    const stats = Table1.find(stat => stat.BranchName === group.state);
+    console.log('Stats for group', group.state, stats);
+    return({
     ...group,
+      out_of_act: stats ? stats.Total_Active_Store_Count : 0,
+      total_act: stats ? stats.Total_Active_Units : 0,
+      total_stock: stats ? stats.Total_Stock_Units : 0,
+      out_of_stock: stats ? stats.Total_Stock_Store_Count : 0,
+      out_of_demo:  stats ? stats.Total_Demo_Store_Count : 0,
+      total_demo: stats ? stats.Total_Demo_Units : 0,
     partners: Array.from(group.partners.values()).map(p => ({
       ...p,
       model: Array.from(p.model.values()),
     })),
-  }));
+  })
 
-  /* ---------- add Logic of Out of  ---------- */
-const retailerBranch = retailerDemo?.reduce<BranchMap>((acc, item) => {
-  const {
-    BranchName,
-    DemoExecuted,
-    TotalCompulsoryDemo,
-    PartnerName,
-  } = item;
-  if (!acc[BranchName]) {
-    acc[BranchName] = {
-      BranchName,
-      DemoExecuted: 0,
-      TotalCompulsoryDemo: 0,
-      _partnerSeen: new Set(),
-    };
-  }
-  if (!acc[BranchName]._partnerSeen.has(PartnerName)) {
-    acc[BranchName]._partnerSeen.add(PartnerName);
-    if (DemoExecuted > 0) {
-      acc[BranchName].DemoExecuted += 1;
-      acc[BranchName].TotalCompulsoryDemo += TotalCompulsoryDemo
-    }
-  }
-  return acc;
-}, {});
+});
 
-
-  const output = Object.values(retailerBranch);
-
-  return data.map(branch => {
-    const {out_of_act, out_of_stock} = branch.partners.reduce(
-      (acc, p) => {
-        if (p.Activation_count > 0) acc.out_of_act++;
-        if (p.Inventory_Count > 0) acc.out_of_stock++;
-        return acc;
-      },
-      {out_of_act: 0, out_of_stock: 0},
-    );
-    const foundBranch = output.find(b => b.BranchName === branch.state);
-    const total_demo = foundBranch?.TotalCompulsoryDemo || 0;
-    const out_of_demo = foundBranch?.DemoExecuted || 0  ;
-    return {
-      ...branch,
-      total_demo,
-      out_of_demo,
-      out_of_act,
-      out_of_stock,
-    };
-  });
+  return data;
 };

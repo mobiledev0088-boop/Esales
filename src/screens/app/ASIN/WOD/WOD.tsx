@@ -18,6 +18,7 @@ import {useRef} from 'react';
 import {
   BranchBlock,
   Territory,
+  CSEStat,
   buildBranchBlocks,
   BranchCard,
   TabHeader,
@@ -28,15 +29,15 @@ import {
   BuildBranchBlocksResult,
 } from './components';
 import {showWODFilterSheet} from './WODFilterSheet';
-import { useNavigation } from '@react-navigation/native';
-import { AppNavigationProp } from '../../../../types/navigation';
-import { useThemeStore } from '../../../../stores/useThemeStore';
+import {useNavigation} from '@react-navigation/native';
+import {AppNavigationProp} from '../../../../types/navigation';
+import {useThemeStore} from '../../../../stores/useThemeStore';
 
 const useGetWODData = (ModelName = '') => {
   const userInfo = useLoginStore((state: any) => state.userInfo);
   const employeeCode = userInfo?.EMP_Code || '';
   const roleId = userInfo?.EMP_RoleId || '';
-  return useQuery<string[]>({
+  return useQuery({
     queryKey: ['getWODData', employeeCode, roleId, ModelName],
     queryFn: async () => {
       console.log('Calling WOD API...', employeeCode, roleId, ModelName);
@@ -68,7 +69,7 @@ const useGetCategories = () => {
       const raw = result?.Datainfo?.Channelmap_CategoryList || [];
       return raw;
     },
-    select: (data: {Category: string,SubCategory: string}[]) => {
+    select: (data: {Category: string; SubCategory: string}[]) => {
       // merge all subcategories into their categories
       const categoryMap: Record<string, Set<string>> = {};
       data.forEach(item => {
@@ -80,10 +81,12 @@ const useGetCategories = () => {
         categoryMap[category].add(subCategory);
       });
       // convert to array of objects
-      const categories = Object.entries(categoryMap).map(([category, subCats]) => ({
-        category,
-        subCategories: Array.from(subCats),
-      }));
+      const categories = Object.entries(categoryMap).map(
+        ([category, subCats]) => ({
+          category,
+          subCategories: Array.from(subCats),
+        }),
+      );
       return categories;
     },
   });
@@ -117,7 +120,8 @@ export default function WOD() {
     refetch,
     isRefetching,
   } = useGetWODData(filter.subCategory);
-  const {data: categories = [], isLoading: isCategoriesLoading} =useGetCategories();
+  const {data: categories = [], isLoading: isCategoriesLoading} =
+    useGetCategories();
 
   // Filter states
   useEffect(() => {
@@ -129,13 +133,13 @@ export default function WOD() {
     data: branchBlocks,
     branchList,
     partnerTypeList,
-  }: BuildBranchBlocksResult = useMemo(
-    () =>
-      wodRaw.length
-        ? buildBranchBlocks(wodRaw as any, activeMode)
-        : {data: [], branchList: [], partnerTypeList: []},
-    [wodRaw, activeMode],
-  );
+  }: BuildBranchBlocksResult = useMemo(() => {
+    let result = wodRaw;
+    if(filter.partnerType.length > 0){
+      result = wodRaw.filter((r: any) => filter.partnerType.includes(r.ACM_Partner_Type));
+    }
+    return buildBranchBlocks(result as any, activeMode, wodRaw);
+  }, [wodRaw, activeMode, filter.partnerType]);
   const summary = useMemo(() => {
     return branchBlocks.reduce(
       (acc: {active: number; sleeping: number; inactive: number}, r) => {
@@ -154,62 +158,11 @@ export default function WOD() {
   const filteredBranchBlocks: BranchBlock[] = useMemo(() => {
     let result = branchBlocks;
 
-    // Apply branch and partner type filters
-    if (filter.branch.length > 0 || filter.partnerType.length > 0) {
-      // Create a map of CSE names that match the filter criteria
-      const validCSENames = new Set<string>();
-
-      (wodRaw as any[]).forEach((row: any) => {
-        const matchesBranch =
-          filter.branch.length === 0 ||
-          filter.branch.includes((row.ACM_BranchName || '').toString().trim());
-        const matchesPartnerType =
-          filter.partnerType.length === 0 ||
-          filter.partnerType.includes(
-            (row.ACM_Partner_Type || '').toString().trim(),
-          );
-
-        if (matchesBranch && matchesPartnerType) {
-          const cseName = (row.CSE_Name || row.ACM_CSE_Name || '')
-            .toString()
-            .trim();
-          if (cseName && cseName.toLowerCase() !== 'null') {
-            validCSENames.add(cseName);
-          }
-        }
-      });
-
-      // Filter branch blocks based on valid CSE names
-      const filtered: BranchBlock[] = [];
-      for (const branch of result) {
-        const filteredTerritories: Territory[] = [];
-        for (const terr of branch.territories) {
-          const matchedCSE = (terr.CSE || []).filter(c =>
-            validCSENames.has(c.name),
-          );
-          if (matchedCSE.length) {
-            const active = matchedCSE.reduce((sum, c) => sum + c.active, 0);
-            const sleeping = matchedCSE.reduce((sum, c) => sum + c.sleeping, 0);
-            const inactive = matchedCSE.reduce((sum, c) => sum + c.inactive, 0);
-            filteredTerritories.push({
-              ...terr,
-              CSE: matchedCSE,
-              active,
-              sleeping,
-              inactive,
-            });
-          }
-        }
-        if (filteredTerritories.length) {
-          const total = filteredTerritories.reduce(
-            (sum, t) => sum + (t.active + t.sleeping + t.inactive),
-            0,
-          );
-          filtered.push({...branch, territories: filteredTerritories, total});
-        }
-      }
-      result = filtered;
+    // First, filter by branch names if specified
+    if (filter.branch.length > 0) {
+      result = result.filter(branch => filter.branch.includes(branch.branch));
     }
+
 
     // Apply search filter
     const q = debouncedSearch.toLowerCase();
@@ -324,7 +277,7 @@ export default function WOD() {
   }, [isLoading]);
 
   const handleOpenStatusInfo = useCallback(() => setShowStatusInfo(true), []);
-  const handleCloseStatusInfo = useCallback(() => setShowStatusInfo(false), []); 
+  const handleCloseStatusInfo = useCallback(() => setShowStatusInfo(false), []);
 
   const activeCount = useMemo(() => {
     const isActive = false;

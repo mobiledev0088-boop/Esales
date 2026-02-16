@@ -349,7 +349,9 @@ const WODFilterSheet: React.FC = () => {
     setPartnerType([]);
     setCategory('');
     setSubCategory('');
+
     payload.onReset?.();
+    SheetManager.hide('WODFilterSheet');
   };
 
   const handleApply = () => {

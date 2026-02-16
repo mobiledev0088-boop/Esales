@@ -717,7 +717,7 @@ export const TargetAchievementCard = ({
         ) : (
           data.map((item: any, index: number) => {
             const achievement = item?.Achieved_Qty || 0;
-            const target = item?.Target_Qty || 1;
+            const target = item?.Target_Qty || 0;
             const percentage = Math.min(
               Math.round((achievement / target) * 100),
               100,

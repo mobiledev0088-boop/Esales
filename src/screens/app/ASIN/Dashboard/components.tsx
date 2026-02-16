@@ -153,14 +153,18 @@ const TableRow = ({
   item,
   isLast,
   columns,
+  isAGPorALP,
 }: {
   item: ActivationData;
   isLast: boolean;
   columns: TableColumn[];
+  isAGPorALP: boolean;
 }) => (
   <View
     className={`flex-row items-center px-4 py-3 ${!isLast ? 'border-b border-gray-100' : ''}`}>
-    {columns.map(column => (
+    {columns.map(column => {
+      const cellValue =  isAGPorALP ? `${String(item[column.dataKey] || '0')} \n (${String(item?.ALP_Code || item?.AGP_Code || '')})` : String(item[column.dataKey] || '0');
+      return(
       <View
         key={column.key}
         className={`${column.width} ${column.key === 'name' ? 'flex-row items-center' : 'items-center'}`}>
@@ -170,13 +174,14 @@ const TableRow = ({
           color={column.colorType}>
           {/* {item[column.dataKey] || '0'} */}
           {column.key === 'name'
-            ? item[column.dataKey] || '---'
+            ? cellValue
             : column.key === 'h-rate'
               ? `${item[column.dataKey] ? Math.round(Number(item[column.dataKey])) : '0'} %`
               : convertToASINUnits(Number(item[column.dataKey]), true)}
         </AppText>
       </View>
-    ))}
+    )}
+  )}
   </View>
 );
 
@@ -196,6 +201,7 @@ const DataTable = ({
         item={item}
         isLast={index === data.length - 1}
         columns={columns}
+        isAGPorALP={activeTab === 'agp' || activeTab === 'alp'}
       />
     ))}
   </View>

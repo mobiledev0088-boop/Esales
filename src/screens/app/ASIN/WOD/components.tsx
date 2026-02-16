@@ -103,6 +103,7 @@ export interface BuildBranchBlocksResult {
 
 export interface PartnerUnderCSEData {
   ACM_ShopName: string;
+  ACM_Partner_Type: string;
   ACM_ChannelMapCode: string;
   Year_On_Year_Status: string;
   Quarter_On_Quarter_Status: string;
@@ -114,6 +115,7 @@ export interface PartnerUnderCSEData {
 export function buildBranchBlocks(
   rows: RawRow[],
   mode: StatusMode,
+  wodRaw: RawRow[],
 ): BuildBranchBlocksResult {
   const statusField = STATUS_FIELD[mode];
   const branchMap = new Map<
@@ -188,6 +190,7 @@ export function buildBranchBlocks(
       }
       cseEntry[bucket] += 1;
       cseEntry.data.push({
+        ACM_Partner_Type: r.ACM_Partner_Type,
         ACM_ShopName: r.ACM_ShopName,
         ACM_ChannelMapCode: r.ACM_ChannelMapCode,
         Year_On_Year_Status: r.Year_On_Year_Status,
@@ -221,12 +224,21 @@ export function buildBranchBlocks(
   branchBlocks.forEach(r =>
     r.territories.sort((a, b) => a.name.localeCompare(b.name)),
   );
-  const branchList = Array.from(branchSet.values()).sort((a, b) =>
-    a.localeCompare(b),
-  );
-  const partnerTypeList = Array.from(partnerTypeSet.values()).sort((a, b) =>
-    a.localeCompare(b),
-  );
+  // const branchList = Array.from(branchSet.values()).sort((a, b) =>
+  //   a.localeCompare(b),
+  // );
+  // const partnerTypeList = Array.from(partnerTypeSet.values()).sort((a, b) =>
+  //   a.localeCompare(b),
+  // );
+  // make Unique branch List from wodRaw 
+  const branchList = Array.from(
+    new Set(wodRaw.map(r => (r.ACM_BranchName || 'UNKNOWN').trim())),
+  ).sort((a, b) => a.localeCompare(b));
+  // make unique partner type list from wodRaw
+  const partnerTypeList = Array.from(
+    new Set(wodRaw.map(r => (r.ACM_Partner_Type || 'UNKNOWN').trim())),
+  ).sort((a, b) => a.localeCompare(b));
+  
   return {data: branchBlocks, branchList, partnerTypeList};
 }
 

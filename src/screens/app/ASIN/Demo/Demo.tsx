@@ -902,32 +902,32 @@ const ROI = () => {
     filters.category,
   );
 
-    const {data:retailerDemo, isLoading: isRetailerLoading, error: retailerError, refetch: refetchRetailer} = useGetDemoDataRetailer(selectedQuarter?.value || '','All','bonus');
-
   const {data: categoriesData, isLoading: isCategoriesLoading} = useGetDemoCategoriesRet(selectedQuarter?.value || '');
+  const ROI_Details = data?.ROI_Details || [];
+  const Table1 = data?.Table1 || [];
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const filteredData = useMemo(() => {
-    if (!data) return null;
+    if (!ROI_Details) return null;
     if (selectedPartnerName?.value) {
-      return data.filter(
+      return ROI_Details.filter(
         (item: DemoItemROI) => item.PartnerName === selectedPartnerName.value,
       );
     }
-    if (!filters.partnerType || filters.partnerType === '') return data;
-    return data.filter(
+    if (!filters.partnerType || filters.partnerType === '') return ROI_Details;
+    return ROI_Details.filter(
       (item: DemoItemROI) => item.PartnerType === filters.partnerType,
     );
-  }, [data, filters.partnerType, selectedPartnerName?.value]);
+  }, [ROI_Details, filters.partnerType, selectedPartnerName?.value]);
 
   const transformedData = useMemo(() => {
     if (filteredData?.length) {
-      return transformDemoDataROI(filteredData,retailerDemo);
+      return transformDemoDataROI(filteredData,Table1);
     } else {
       return [];
     }
-  }, [filteredData,retailerDemo]);
+  }, [filteredData, Table1]);
 
   const summaryData = useMemo(() => {
     if (!transformedData || transformedData.length === 0) {
