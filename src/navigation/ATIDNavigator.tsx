@@ -14,11 +14,13 @@ import Notification from '../screens/app/ASIN/Notification/Notification';
 import ScanSN from '../screens/app/ASIN/ScanSN/ScanSN';
 import AppPermissions from '../screens/app/ASIN/User/AppPermissions/AppPermissions';
 import ActPerformanceATID from '../screens/app/ASIN/Reports/APAC/ActPerformanceATID';
+import ChangePassword from '../screens/app/ASIN/User/ChangePassword/ChangePassword';
 
 const Stack = createNativeStackNavigator();
 
 const screens = [
   {name: 'Index', component: Index},
+    {name: 'ChangePassword', component: ChangePassword},
   {name: 'AppPermissions', component: AppPermissions},
   // dashbaord Screens
   {name: 'TargetSummaryAPAC', component: TargetSummaryAPAC},

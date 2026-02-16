@@ -12,11 +12,13 @@ import DealerHitRate from '../screens/app/ASIN/Reports/APAC/DealerHitRate';
 import TargetPartnerDashboard from '../screens/app/ASIN/Reports/APAC/TargetPartnerDashboard';
 import Notification from '../screens/app/ASIN/Notification/Notification';
 import ScanSN from '../screens/app/ASIN/ScanSN/ScanSN';
+import ChangePassword from '../screens/app/ASIN/User/ChangePassword/ChangePassword';
 
 const Stack = createNativeStackNavigator();
 
 const screens = [
   {name: 'Index', component: Index},
+    {name: 'ChangePassword', component: ChangePassword},
   // dashbaord Screens
   {name: 'TargetSummaryAPAC', component: TargetSummaryAPAC},
   {name: 'DealerHitRate', component: DealerHitRate},

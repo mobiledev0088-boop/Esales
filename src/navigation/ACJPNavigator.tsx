@@ -5,11 +5,13 @@ import TargetSummarySalesPerformance from "../screens/app/APAC/ACJP/Dashboard/Ta
 import AppPermissions from "../screens/app/ASIN/User/AppPermissions/AppPermissions";
 
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import ChangePassword from "../screens/app/ASIN/User/ChangePassword/ChangePassword";
 
 const Stack = createNativeStackNavigator();
 
 const screens = [
   {name: 'Index', component: Index},
+    {name: 'ChangePassword', component: ChangePassword},
   {name: 'AppPermissions', component: AppPermissions},
   {name: 'TargetSummarySalesPerformance', component: TargetSummarySalesPerformance},
   {name: 'Dashboard_Partner', component: Dashboard_Partner},
