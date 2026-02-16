@@ -21,17 +21,16 @@ import {
   getActivationTabData,
   getCurrentTabConfig,
   TAB_LABEL_TO_ID,
-} from '../../Dashboard/dashboardUtils';
+} from '../../../ASIN/Dashboard/dashboardUtils';
 import {ActivationData, TableColumn} from '../../../../../types/dashboard';
 import {
   convertToAPACUnits,
   getDaysBetween,
 } from '../../../../../utils/commonFunctions';
-import {AppDropdownItem} from '../../../../../components/customs/AppDropdown';
 import AppInput from '../../../../../components/customs/AppInput';
 import {AppNavigationProp} from '../../../../../types/navigation';
 import clsx from 'clsx';
-import { showActivationFilterSheet } from '../ActivationFilterSheet';
+import {showActivationFilterSheet} from './ActivationFilterSheet';
 
 interface ActParams {
   masterTab: string;
@@ -120,7 +119,9 @@ const useGetActPerformanceDetails = (
   });
 };
 
-const buildActData = (data: ActPerformanceAPIResponse): [string[], Record<string, any[]>] => {
+const buildActData = (
+  data: ActPerformanceAPIResponse,
+): [string[], Record<string, any[]>] => {
   if (!data) return [[], {}];
   const ORDER = ['Branch', 'ALP', 'Model', 'Disti'];
   const topKeys = Object.keys(data).filter(key =>
@@ -421,7 +422,7 @@ const TotalsRow = ({
       (totals, column) => {
         if (column.key === 'name') {
           totals[column.key] = 'Total';
-        }else if (column.key === 'h-rate') {
+        } else if (column.key === 'h-rate') {
           const totalAct = data.reduce((acc, item) => {
             const value = Number(item['Act_Cnt']) || 0;
             return acc + value;
@@ -429,10 +430,10 @@ const TotalsRow = ({
           const totalNonAct = data.reduce((acc, item) => {
             const value = Number(item['NonAct_Cnt']) || 0;
             return acc + value;
-          }, 0);  
+          }, 0);
           const hitRate = totalNonAct > 0 ? (totalAct / totalNonAct) * 100 : 0;
-          totals[column.key] =  hitRate.toFixed(2);
-        }else {
+          totals[column.key] = hitRate.toFixed(2);
+        } else {
           const sum = data.reduce((acc, item) => {
             const value = Number(item[column.dataKey]) || 0;
             return acc + value;
@@ -486,7 +487,10 @@ const TableRow = ({
     onPress={() => handlePress(item.name)}
     className={`flex-row items-center px-4 py-3 ${!isLast ? 'border-b border-gray-100' : ''}`}>
     {columns.map(column => {
-      const text =   isAGPorALP && column.key === 'name' ? `${item[column.dataKey]}\n(${item?.ALP_Code})` :  String(item[column.dataKey] || '0');
+      const text =
+        isAGPorALP && column.key === 'name'
+          ? `${item[column.dataKey]}\n(${item?.ALP_Code})`
+          : String(item[column.dataKey] || '0');
       return (
         <View
           key={column.key}
@@ -540,27 +544,6 @@ const HighlightedText = ({
     </AppText>
   );
 };
-
-const DisclaimerNotice = () => (
-  <View className="bg-red-50 rounded-xl p-3 mb-6 border border-red-600 mt-4">
-    <View className="flex-row items-center mb-1 gap-1">
-      <AppIcon
-        type="ionicons"
-        name="information-circle-outline"
-        size={18}
-        color="#DC2626"
-        style={{marginTop: 3}}
-      />
-      <AppText size="md" weight="semibold" className="text-error">
-        Disclaimer
-      </AppText>
-    </View>
-    <AppText className="text-error leading-5 text-sm">
-      Please Note that the activation of Serial Number may be delayed by up to 7
-      days.
-    </AppText>
-  </View>
-);
 
 const DateRangeSelector = ({
   setIsVisible,
@@ -809,7 +792,7 @@ const ActivationPerformanceView = ({
 
   if (isLoading) return <ActivationPerformanceSkeleton />;
   return (
-    <View className="py-3">
+    <View className="py-3 pt-5">
       <View className="flex-row gap-3 items-center">
         <View className="flex-1">
           <DateRangeSelector
@@ -868,50 +851,75 @@ export default function ActPerformanceATID() {
     masterTab,
     dateRange,
   );
-  const [tabs, tabData] = (data as [string[], Record<string, any[]>]) || [[], {}];
-  const handleDateRangeChange = () => {};
-
-    const handleFilterPress = useCallback(() => {
-      showActivationFilterSheet({
-        masterTab,
-        // territory: Territory, // Pass territory to hide branch filter if provided
-        // Pass current filter values
-        branches: filters.branchName.split(',').map(branch => branch.trim()), // Convert comma-separated string to array
-        model: filters.ModelName.split(',').map(model => model.trim()),
-        type: filters.TargetType.split(',').map(type => type.trim()),
-        alp: filters.AlpType.split(',').map(alp => alp.trim()),
-        cpu: filters.CPU_Type.split(',').map(cpu => cpu.trim()),
-        PartnerName: filters.PartnerName.split(',').map(partner => partner.trim()),
-        StoreName: filters.StoreName.split(',').map(store => store.trim()),
-        onApply: appliedFilters => {
-          setFilters({
-            branchName: appliedFilters.branches.join(', '), // Convert array back to comma-separated string
-            ModelName: appliedFilters.model.join(', '),
-            TargetType: appliedFilters.type.join(', '),
-            AlpType: appliedFilters.alp.join(', '),
-            CPU_Type: appliedFilters.cpu.join(', '),
-            PartnerName: appliedFilters?.PartnerName?.join(', ') || '',
-            StoreName: appliedFilters?.StoreName?.join(', ') || '',
-          });
-        },
-        onReset: () => {
-          console.log('Reset filters');
-          setFilters({
-            branchName:  '', // Preserve territory branch if provided
-            ModelName: '',
-            TargetType: '',
-            AlpType: '',
-            CPU_Type: '',
-            PartnerName: '',
-            StoreName: '',
-          });
-        },
+  const [tabs, tabData] = (data as [string[], Record<string, any[]>]) || [
+    [],
+    {},
+  ];
+  const handleDateRangeChange = useCallback(
+    (startDate: Date, endDate: Date) => {
+      setDateRange({
+        StartDate: moment(startDate).format('YYYY-MM-DD'),
+        EndDate: moment(endDate).format('YYYY-MM-DD'),
       });
-    }, [masterTab, filters]);
+    },
+    [moment],
+  );
+
+  const handleFilterPress = useCallback(() => {
+    showActivationFilterSheet({
+      masterTab,
+      // territory: Territory, // Pass territory to hide branch filter if provided
+      // Pass current filter values
+      branches: filters.branchName
+        .split(',')
+        .map(branch => branch.trim())
+        .filter(Boolean), // Convert comma-separated string to array
+      model: filters.ModelName.split(',')
+        .map(model => model.trim())
+        .filter(Boolean),
+      type: filters.TargetType.split(',')
+        .map(type => type.trim())
+        .filter(Boolean),
+      alp: filters.AlpType.split(',')
+        .map(alp => alp.trim())
+        .filter(Boolean),
+      cpu: filters.CPU_Type.split(',')
+        .map(cpu => cpu.trim())
+        .filter(Boolean),
+      PartnerName: filters.PartnerName.split(',')
+        .map(partner => partner.trim())
+        .filter(Boolean),
+      StoreName: filters.StoreName.split(',')
+        .map(store => store.trim())
+        .filter(Boolean),
+      onApply: appliedFilters => {
+        setFilters({
+          branchName: appliedFilters.branches.join(', '), // Convert array back to comma-separated string
+          ModelName: appliedFilters.model.join(', '),
+          TargetType: appliedFilters.type.join(', '),
+          AlpType: appliedFilters.alp.join(', '),
+          CPU_Type: appliedFilters.cpu.join(', '),
+          PartnerName: appliedFilters?.PartnerName?.join(', ') || '',
+          StoreName: appliedFilters?.stores?.join(', ') || '',
+        });
+      },
+      onReset: () => {
+        console.log('Reset filters');
+        setFilters({
+          branchName: '', // Preserve territory branch if provided
+          ModelName: '',
+          TargetType: '',
+          AlpType: '',
+          CPU_Type: '',
+          PartnerName: '',
+          StoreName: '',
+        });
+      },
+    });
+  }, [masterTab, filters]);
   const hasActiveFilters = Object.values(filters).some(value => value);
   return (
     <AppLayout needBack title="Activation Performance" needPadding needScroll>
-      <DisclaimerNotice />
       <ActivationPerformanceView
         tabs={tabs}
         data={tabData}

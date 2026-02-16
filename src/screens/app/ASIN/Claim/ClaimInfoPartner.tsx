@@ -611,10 +611,11 @@ export default function ClaimInfoPartner() {
         isLoading={isLoading}
         isError={isError}
         onRetry={refetch}
-        isEmpty={!isLoading && filteredData.length === 0}
+        // isEmpty={!isLoading && filteredData.length === 0}
         LoadingComponent={<SkeletonList />}
         ErrorComponent={<ErrorState onRetry={refetch} />}
-        EmptyComponent={<EmptyState />}>
+        // EmptyComponent={<EmptyState />}
+        >
         <View className="mb-4 pt-4 px-3">
           {/* Filter Params Card */}
           <Card className="mb-4">

@@ -1,20 +1,22 @@
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import Index from '../screens/app/APAC/ATID';
-import EDMInfo from '../screens/app/ASIN/More/EDMInfo/EDMInfo';
 import Promoter from '../screens/app/APAC/ATID/More/Promoter/Promoter';
 import PromoterUpload from '../screens/app/APAC/ATID/More/Promoter/PromoterUpload';
 import SelloutInfo from '../screens/app/APAC/ATID/More/Promoter/SelloutInfo';
 import ProductInfo from '../screens/app/APAC/ATID/More/ProductInfo/ProductInfo';
 import ProductDescription from '../screens/app/APAC/ATID/More/ProductInfo/ProductDescription';
 import ChannelMapDealerInfo from '../screens/app/APAC/ATID/ChannelMap/ChannelMapDealerInfo';
-import TargetSummaryAPAC from '../screens/app/ASIN/Reports/APAC/TargetSummaryAPAC';
-import DealerHitRate from '../screens/app/ASIN/Reports/APAC/DealerHitRate';
-import TargetPartnerDashboard from '../screens/app/ASIN/Reports/APAC/TargetPartnerDashboard';
+import DealerHitRate from '../screens/app/APAC/ATID/Reports/DealerHitRate';
+import TargetPartnerDashboard from '../screens/app/APAC/ATID/Reports/TargetPartnerDashboard';
+import TargetSummaryAPAC from '../screens/app/APAC/ATID/Reports/TargetSummaryAPAC';
+
 import Notification from '../screens/app/ASIN/Notification/Notification';
 import ScanSN from '../screens/app/ASIN/ScanSN/ScanSN';
 import AppPermissions from '../screens/app/ASIN/User/AppPermissions/AppPermissions';
-import ActPerformanceATID from '../screens/app/ASIN/Reports/APAC/ActPerformanceATID';
 import ChangePassword from '../screens/app/ASIN/User/ChangePassword/ChangePassword';
+import EDMInfo from '../screens/app/ASIN/More/EDMInfo/EDMInfo';
+import ActPerformanceATID from '../screens/app/APAC/ATID/Reports/ActPerformanceATID';
+import ActivationFilterSheetAPAC from '../screens/app/APAC/ATID/Reports/ActivationFilterSheet';
 
 const Stack = createNativeStackNavigator();
 
@@ -27,6 +29,7 @@ const screens = [
   {name: 'DealerHitRate', component: DealerHitRate},
   {name: 'TargetPartnerDashboard', component: TargetPartnerDashboard},
   {name: 'ActPerformanceATID', component: ActPerformanceATID},
+  {name: 'ActivationFilterSheetAPAC', component: ActivationFilterSheetAPAC},
   // Channel Map
   {name: 'ChannelMapDealerInfo', component: ChannelMapDealerInfo},
 

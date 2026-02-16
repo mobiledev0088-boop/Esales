@@ -29,6 +29,7 @@ import DiscontinuedProductsSheet from '../screens/app/ASIN/Demo/DiscontinuedProd
 import ProgramFilterSheet, {
   ProgramFilterPayload,
 } from '../screens/app/APAC/ATID/Program/ProgramFilterSheet';
+import ActivationFilterSheetAPAC from '../screens/app/APAC/ATID/Reports/ActivationFilterSheet';
 
 registerSheet('MoreSheet', MoreSheet);
 registerSheet('ConfirmationSheet', ConfirmationSheet);
@@ -55,6 +56,9 @@ registerSheet('DemoFilterSheetAPAC', DemoFilterSheetAPAC);
 registerSheet('DropdownActionSheet', DropdownActionSheet);
 registerSheet('DiscontinuedProductsSheet', DiscontinuedProductsSheet);
 registerSheet('ProgramFilterSheet', ProgramFilterSheet);
+registerSheet('ActivationFilterSheetAPAC', ActivationFilterSheetAPAC);
+
+
 
 // We extend some of the types here to give us great intellisense
 // across the app for all registered sheets.

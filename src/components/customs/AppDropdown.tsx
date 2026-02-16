@@ -24,6 +24,7 @@ import {useThemeStore} from '../../stores/useThemeStore';
 import {AppColors} from '../../config/theme';
 import AppIcon from './AppIcon';
 import AppText from './AppText';
+import { screenHeight } from '../../utils/constant';
 
 export interface AppDropdownItem {
   label: string;
@@ -72,7 +73,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
   style,
   dropDownContainerStyle,
   textStyle,
-  listHeight = 200,
+  listHeight = screenHeight * 0.4,
   disabled = false,
   zIndex = 1000,
   onOpenChange,

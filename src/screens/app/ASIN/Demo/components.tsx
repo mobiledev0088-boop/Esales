@@ -1614,8 +1614,8 @@ export const ROITable = ({
               ACT
             </AppText>
           </View>
-          <View className="w-24 py-3 px-2 items-center bg-sky-50 dark:bg-sky-800">
-            <AppText size="xs" weight="bold" className="text-sky-700 dark:text-sky-400">
+          <View className="w-24 py-3 px-2 items-center bg-rose-50 dark:bg-rose-800">
+            <AppText size="xs" weight="bold" className="text-rose-700 dark:text-rose-400">
               STOCK
             </AppText>
           </View>
@@ -1639,7 +1639,7 @@ export const ROITable = ({
             </AppText>
           </View>
           <View className="w-24 py-3 px-2 border-r border-slate-200 dark:border-slate-700 items-center justify-center">
-            <AppText size="sm" weight="semibold" className="text-sky-600 dark:text-sky-400">
+            <AppText size="sm" weight="semibold" className="text-rose-600 dark:text-rose-400">
               {item.out_of_stock || 0}
             </AppText>
           </View>
@@ -1663,7 +1663,7 @@ export const ROITable = ({
             </AppText>
           </View>
           <View className="w-24 py-3 px-2 border-r border-slate-200 dark:border-slate-700 items-center justify-center">
-            <AppText size="sm" weight="semibold" className="text-sky-600 dark:text-sky-400">
+            <AppText size="sm" weight="semibold" className="text-rose-600 dark:text-rose-400">
               {item.total_stock || 0}
             </AppText>
           </View>
@@ -1691,7 +1691,7 @@ export const ROITable = ({
             </AppText>
           </View>
           <View className="w-24 py-3 px-2 border-r border-slate-200 dark:border-slate-700 items-center justify-center">
-            <AppText size="sm" weight="bold" className="text-sky-700 dark:text-sky-400">
+            <AppText size="sm" weight="bold" className="text-rose-700 dark:text-rose-400">
               {(item.out_of_stock / item.partner_count) * 100
                 ? `${Math.round((item.out_of_stock / item.partner_count) * 100)}%`
                 : '0%'}

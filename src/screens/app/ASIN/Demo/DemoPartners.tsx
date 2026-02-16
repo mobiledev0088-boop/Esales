@@ -1097,6 +1097,13 @@ export const DemoROISheet = () => {
         <ScrollView
           contentContainerStyle={{paddingBottom: 64}}
           showsVerticalScrollIndicator={false}>
+          {/* show Total Count */}
+          <AppText 
+            size="sm"
+            weight="semibold"
+            className="text-slate-700 dark:text-slate-300 mt-4 mb-2 px-4">
+            Total Partner Count:  {partner?.PartnerCount}
+          </AppText>
           {/* Key Metrics Cards */}
           <View className="p-4">
             <View className="flex-row gap-2 mb-4">
@@ -1477,12 +1484,12 @@ const PartnerCard = memo<{
             </View>
             {/* Total Stock */}
             <View className="w-1/3 items-center">
-              <View className="w-10 h-10 bg-warning/10 dark:bg-warning/20 rounded-lg items-center justify-center mb-2">
+              <View className="w-10 h-10 bg-error/10 dark:bg-error/20 rounded-lg items-center justify-center mb-2">
                 <AppIcon
-                  name="percent"
-                  type="feather"
+                  name="inventory"
+                  type="materialIcons"
                   size={20}
-                  color={AppColors[isDark ? 'dark' : 'light'].warning}
+                  color={AppColors[isDark ? 'dark' : 'light'].error}
                 />
               </View>
               <AppText
@@ -1494,7 +1501,7 @@ const PartnerCard = memo<{
               <AppText
                 size="lg"
                 weight="bold"
-                className="text-warning dark:text-warning"
+                className="text-error dark:text-error"
                 style={{textAlign: 'center'}}>
                 {item.Inventory_Count}
               </AppText>
@@ -1772,6 +1779,9 @@ export default function DemoPartners() {
             </View>
           )}
         </Card>
+        <AppText size="md" weight="semibold" className="text-slate-700 dark:text-slate-300 mt-4 mb-2 px-4">
+          Total Partners: {filteredPartners.length}
+        </AppText>
       </View>
     );
   }, [filteredPartners, stats, isROI]);

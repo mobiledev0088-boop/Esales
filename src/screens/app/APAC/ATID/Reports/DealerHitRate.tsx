@@ -20,7 +20,7 @@ import AppText from '../../../../../components/customs/AppText';
 import {CircularProgressBar} from '../../../../../components/customs/AppChart';
 import AppIcon from '../../../../../components/customs/AppIcon';
 import {AppColors} from '../../../../../config/theme';
-import { AppNavigationParamList, AppNavigationProp } from '../../../../../types/navigation';
+import { AppNavigationProp } from '../../../../../types/navigation';
 
 interface DealerHitRateData {
   Achieved_Qty: number;
