@@ -9,9 +9,9 @@ import {
   buildGroups,
   GroupAccordion,
   MonthRangeCard,
-  FilterButton,
   ClaimListSkeleton,
   EmptyState,
+  FilterButton,
 } from './components';
 import AppText from '../../../../components/customs/AppText';
 import {showClaimFilterSheet} from './ClaimFilterSheet';
@@ -228,6 +228,7 @@ const ClaimCodeWise = () => {
                         })),
                     })
                   }
+                  hasActiveFilters={Boolean(filterData.partnerType) || Boolean(filterData.schemeCategory) || Boolean(filterData.productLine)}
                 />
               </View>
               {pills.length > 0 && (
@@ -484,6 +485,7 @@ const PartnerWise = () => {
                         })),
                     })
                   }
+                  hasActiveFilters={Boolean(filterData.schemeCategory) || Boolean(filterData.productLine)}
                 />
               </View>
               {pills.length > 0 && (
@@ -721,6 +723,7 @@ const GSTWise = () => {
                         })),
                     })
                   }
+                  hasActiveFilters={Boolean(filterData.schemeCategory) || Boolean(filterData.productLine)}
                 />
               </View>
               {pills.length > 0 && (
