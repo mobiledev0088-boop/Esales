@@ -41,11 +41,11 @@ import {showDemoFilterSheet} from './DemoFilterSheet';
 import {DataStateView} from '../../../../components/DataStateView';
 import {useLoginStore} from '../../../../stores/useLoginStore';
 import {ASUS} from '../../../../utils/constant';
-import { useThemeStore } from '../../../../stores/useThemeStore';
+import {useThemeStore} from '../../../../stores/useThemeStore';
 
 const Reseller = () => {
   const quarters = useMemo(() => getPastQuarters(), []);
-  const isDarkMode = useThemeStore(state => state.AppTheme === 'dark'); 
+  const isDarkMode = useThemeStore(state => state.AppTheme === 'dark');
   const [selectedQuarter, setSelectedQuarter] =
     useState<AppDropdownItem | null>(quarters?.[0] ?? null);
   const [selectedPartnerName, setSelectedPartnerName] =
@@ -65,10 +65,11 @@ const Reseller = () => {
   const {data, isLoading, error, refetch} = useGetDemoDataReseller(
     selectedQuarter?.value ?? '',
     filters.category,
-    filters.pKiosk ?? 0,
-    filters.rogKiosk ?? 0,
+    filters.pKiosk,
+    filters.rogKiosk,
   );
-  const {data: categoriesData, refetch: refetchCategories} = useGetDemoCategories(selectedQuarter?.value || '');
+  const {data: categoriesData, refetch: refetchCategories} =
+    useGetDemoCategories(selectedQuarter?.value || '');
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -231,8 +232,8 @@ const Reseller = () => {
       onApply: appliedFilters => {
         setFilters({
           category: String(appliedFilters.category) || 'All',
-          pKiosk: Number(appliedFilters.pKiosk) || null,
-          rogKiosk: Number(appliedFilters.rogKiosk) || null,
+          pKiosk: Number(appliedFilters.pKiosk) ?? null,
+          rogKiosk: Number(appliedFilters.rogKiosk) ?? null,
           partnerType: String(appliedFilters.partnerType) || '',
         });
       },
@@ -264,15 +265,11 @@ const Reseller = () => {
   const isError = !!error && transformedData.length === 0;
   const isEmpty = !isLoading && !error && transformedData.length === 0;
   return (
-    <ScrollView className="flex-1 bg-lightBg-base dark:bg-darkBg-base"
-        refreshControl={
-      <RefreshControl
-      refreshing={isRefreshing}
-      onRefresh={handleRefresh}
-      />
-    }
-    
-    >
+    <ScrollView
+      className="flex-1 bg-lightBg-base dark:bg-darkBg-base"
+      refreshControl={
+        <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+      }>
       <View className="flex-row justify-end gap-x-2 px-3 pt-2 mb-3 ">
         <AppDropdown
           mode="dropdown"
@@ -287,6 +284,9 @@ const Reseller = () => {
           onPress={handleFilter}
           containerClassName="p-3 border border-[#ccc] dark:border-[#444] rounded-lg "
           noShadow
+          hasActiveFilters={Object.values(filters).some(
+            val => val !== null && val !== '',
+          )}
         />
       </View>
       <View className="px-3 pt-2 mb-3">
@@ -552,14 +552,11 @@ const Retailer = () => {
   const isError = !!error && transformedData.length === 0;
   const isEmpty = !isLoading && !error && transformedData.length === 0;
   return (
-    <ScrollView className="flex-1 bg-lightBg-base dark:bg-darkBg-base"
-    refreshControl={
-      <RefreshControl
-      refreshing={isRefreshing}
-      onRefresh={handleRefresh}
-      />
-    }
-    >
+    <ScrollView
+      className="flex-1 bg-lightBg-base dark:bg-darkBg-base"
+      refreshControl={
+        <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+      }>
       <View className="flex-row justify-end gap-x-2 px-3 pt-2 mb-3 ">
         <AppDropdown
           mode="dropdown"
@@ -574,6 +571,9 @@ const Retailer = () => {
           onPress={handleFilter}
           containerClassName="p-3 border border-[#ccc] dark:border-[#444] rounded-lg "
           noShadow
+          hasActiveFilters={Object.values(filters).some(
+            val => val !== null && val !== '',
+          )}
         />
       </View>
       <View className="px-3 ">
@@ -815,15 +815,11 @@ const LFR = () => {
   const isEmpty = !isLoading && !error && transformedData.length === 0;
 
   return (
-    <ScrollView className="flex-1 bg-lightBg-base dark:bg-darkBg-base"
-        refreshControl={
-      <RefreshControl
-      refreshing={isRefreshing}
-      onRefresh={handleRefresh}
-      />
-    }
-    
-    >
+    <ScrollView
+      className="flex-1 bg-lightBg-base dark:bg-darkBg-base"
+      refreshControl={
+        <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+      }>
       <View className="flex-row justify-end gap-x-2 px-3 pt-2 mb-3 ">
         <AppDropdown
           mode="dropdown"
@@ -838,6 +834,9 @@ const LFR = () => {
           onPress={handleFilter}
           containerClassName="p-3 border border-[#ccc] dark:border-[#444] rounded-lg "
           noShadow
+          hasActiveFilters={Object.values(filters).some(
+            val => val !== null && val !== '',
+          )}
         />
       </View>
       <View className="flex-1 px-3">
@@ -902,7 +901,8 @@ const ROI = () => {
     filters.category,
   );
 
-  const {data: categoriesData, isLoading: isCategoriesLoading} = useGetDemoCategoriesRet(selectedQuarter?.value || '');
+  const {data: categoriesData, isLoading: isCategoriesLoading} =
+    useGetDemoCategoriesRet(selectedQuarter?.value || '');
   const ROI_Details = data?.ROI_Details || [];
   const Table1 = data?.Table1 || [];
 
@@ -923,7 +923,7 @@ const ROI = () => {
 
   const transformedData = useMemo(() => {
     if (filteredData?.length) {
-      return transformDemoDataROI(filteredData,Table1);
+      return transformDemoDataROI(filteredData, Table1);
     } else {
       return [];
     }
@@ -957,7 +957,7 @@ const ROI = () => {
         total_act: 0,
         out_of_act: 0,
         total_stock: 0,
-        out_of_stock: 0, 
+        out_of_stock: 0,
         total_partners: 0,
       },
     );
@@ -1033,7 +1033,7 @@ const ROI = () => {
     refetch();
   }, [refetch]);
 
-    const handleRefresh = useCallback(() => {
+  const handleRefresh = useCallback(() => {
     setIsRefreshing(true);
     try {
       refetch();
@@ -1079,13 +1079,11 @@ const ROI = () => {
   const isEmpty = !isLoading && !error && transformedData.length === 0;
 
   return (
-    <ScrollView className="flex-1 bg-lightBg-base dark:bg-darkBg-base"
-        refreshControl={
-      <RefreshControl
-      refreshing={isRefreshing}
-      onRefresh={handleRefresh}
-      />
-    }>
+    <ScrollView
+      className="flex-1 bg-lightBg-base dark:bg-darkBg-base"
+      refreshControl={
+        <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+      }>
       <View className="flex-row justify-end gap-x-2 px-3 pt-2 mb-3 ">
         <AppDropdown
           mode="dropdown"
@@ -1100,6 +1098,7 @@ const ROI = () => {
           onPress={handleFilter}
           containerClassName="p-3 border border-[#ccc] dark:border-[#e2e8f0] rounded-lg "
           noShadow
+          hasActiveFilters={Object.values(filters).some(val => val !== null && val !== '')}
         />
       </View>
       <View className="flex-1 px-3">
