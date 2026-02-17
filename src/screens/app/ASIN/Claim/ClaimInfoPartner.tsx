@@ -64,11 +64,12 @@ const usePartnerCaseIdData = (
   SchemeCategory: string,
   Product_Line: boolean,
   MonthAPI?: string,
+  partnerCode ?: string,
 ) => {
   const {EMP_Code, EMP_RoleId} = useLoginStore(state => state.userInfo);
 
   const dataToSend = {
-    PartnerCode: EMP_Code,
+    PartnerCode: partnerCode || EMP_Code,
     RoleID: EMP_RoleId,
     SchemeCategory: SchemeCategory ? SchemeCategory : '',
     ProductLine: Product_Line ? Product_Line : '',
@@ -78,6 +79,7 @@ const usePartnerCaseIdData = (
   return useQuery({
     queryKey: ['claimforPartner', ...Object.values(dataToSend)],
     queryFn: async () => {
+      console.log('Fetching partner claim data with', dataToSend);
       const response = await handleASINApiCall(
         '/ClaimMaster/GetClaimDashboardCaseIdWiseForPartner',
         dataToSend,
@@ -88,6 +90,7 @@ const usePartnerCaseIdData = (
       }
       const table = result?.Datainfo
         ?.ClaimDashboardPartnerDetailsCaseIdWise as ClaimPartnerCaseItem[];
+      console.log('Fetched partner claim data:', table);
       return table;
     },
     select: data => {
@@ -539,7 +542,7 @@ const PartnerClaimCard: React.FC<PartnerClaimCardProps> = memo(
 
 export default function ClaimInfoPartner() {
   const {params} = useRoute();
-  const {SchemeCategory, Product_Line, MonthAPI} = params as any;
+  const {SchemeCategory, Product_Line, MonthAPI,partnerCode} = params as any;
   const {
     data: claimData,
     isLoading,
@@ -547,7 +550,7 @@ export default function ClaimInfoPartner() {
     error,
     refetch,
     isRefetching,
-  } = usePartnerCaseIdData(SchemeCategory, Product_Line, MonthAPI);
+  } = usePartnerCaseIdData(SchemeCategory, Product_Line, MonthAPI, partnerCode);
 
   const {mutate} = useSendEmailMutation();
 
@@ -611,10 +614,8 @@ export default function ClaimInfoPartner() {
         isLoading={isLoading}
         isError={isError}
         onRetry={refetch}
-        // isEmpty={!isLoading && filteredData.length === 0}
         LoadingComponent={<SkeletonList />}
         ErrorComponent={<ErrorState onRetry={refetch} />}
-        // EmptyComponent={<EmptyState />}
         >
         <View className="mb-4 pt-4 px-3">
           {/* Filter Params Card */}

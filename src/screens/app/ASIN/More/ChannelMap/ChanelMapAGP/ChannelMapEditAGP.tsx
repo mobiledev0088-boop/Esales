@@ -2005,6 +2005,7 @@ const formatStringWithSuffix = (
 
 const FinanceInfo = (props: FinanceMapProps) => {
   const AppTheme = useThemeStore(state => state.AppTheme);
+
   const {
     financeFields,
     financeInfo,
@@ -2078,7 +2079,10 @@ const FinanceInfo = (props: FinanceMapProps) => {
               ? 'bg-green-400'
               : activationRemark || hoRemark
                 ? 'bg-red-400'
-                : 'bg-grey-400';
+                : 'bg-gray-400';
+            console.log(
+              `Rendering field: ${field.key}, API Value: ${apiValue}, Local Value: ${value}, Re-Value: ${reValue}, Activation Status: ${activationStatus}, Activation Remark: ${activationRemark}, HO Remark: ${hoRemark}`,
+            );
             return (
               <View key={field.key} className={`${widthClass} px-1.5 mb-4`}>
                 <View>

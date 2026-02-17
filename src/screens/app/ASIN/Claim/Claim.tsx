@@ -306,7 +306,7 @@ const PartnerWise = () => {
   const isPartnerUser = userInfo?.EMP_RoleId === ASUS.ROLE_ID.PARTNERS;
   const {data: partnerList, isLoading: partnerListLoading} = useT2PartnerList();
   const Date = {
-    startMonth: moment().subtract(11, 'months').format('YYYYMM'),
+    startMonth: moment().subtract(12, 'months').format('YYYYMM'),
     endMonth: moment().format('YYYYMM'),
   };
   const [selectedPartner, setSelectedPartner] = useState<string | null>(
@@ -384,7 +384,7 @@ const PartnerWise = () => {
         type: params.type,
       });
     },
-    [navigation, userInfo?.EMP_Code],
+    [navigation, userInfo?.EMP_Code,selectedPartner],
   );
 
   const pills = useMemo(
@@ -561,7 +561,7 @@ const GSTWise = () => {
   const userInfo = useLoginStore(state => state.userInfo);
   const {data: partnerList, isLoading: partnerListLoading} = useT3PartnerList();
   const Date = {
-    startMonth: moment().subtract(11, 'months').format('YYYYMM'),
+    startMonth: moment().subtract(12, 'months').format('YYYYMM'),
     endMonth: moment().format('YYYYMM'),
   };
   const [selectedPartner, setSelectedPartner] = useState<string | null>(null);

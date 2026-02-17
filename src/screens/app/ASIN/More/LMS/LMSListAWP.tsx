@@ -247,9 +247,9 @@ export default function LMSListAWP() {
       <DataStateView
         isLoading={isLoading}
         isError={!!error}
-        isEmpty={!data?.length}
+        // isEmpty={!data?.length}
         LoadingComponent={renderSkeleton()}
-        EmptyComponent={renderEmptyState()}>
+        >
         <FlatList
           data={data}
           renderItem={renderAccordionItem}
@@ -261,6 +261,11 @@ export default function LMSListAWP() {
           maxToRenderPerBatch={10}
           windowSize={5}
           removeClippedSubviews={true}
+          ListEmptyComponent={
+            <View>
+              {renderEmptyState()}
+            </View>
+          }
         />
       </DataStateView>
     </AppLayout>

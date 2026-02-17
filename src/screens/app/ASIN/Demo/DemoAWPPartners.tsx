@@ -885,7 +885,7 @@ export default function DemoAWPPartners() {
       <DataStateView
         isLoading={isLoading}
         isError={isError}
-        isEmpty={!demoData}
+        // isEmpty={!demoData}
         onRetry={refetch}
         LoadingComponent={<LoaderView />}>
         <FlatList

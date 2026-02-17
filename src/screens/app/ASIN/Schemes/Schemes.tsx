@@ -516,6 +516,7 @@ const SchemeBanner = memo(
     refetch: any;
     isLoading: boolean;
   }) => {
+    console.log('Rendering SchemeBanner with banners:', banners, 'error:', queryError);
     const handleBannerPress = () => {
       // Future: navigate or deep link. Currently no-op.
     };
@@ -545,7 +546,42 @@ const SchemeBanner = memo(
       [banners],
     );
 
-    if (!filterBanners.length) return null; // Hide section gracefully if no proper banner
+    if (!filterBanners.length){
+      return(
+      <View className="w-full pt-4">
+        <View className="flex-row items-center mb-2">
+          <View className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/40 items-center justify-center mr-2">
+            <AppIcon
+              type="feather"
+              name="bar-chart-2"
+              size={18}
+              color="#2563eb"
+            />
+          </View>
+          <AppText
+            size="lg"
+            weight="bold"
+            className="text-heading dark:text-heading-dark">
+            Summary Banner
+          </AppText>
+        </View>
+        <View className='bg-lightBg-surface py-6 rounded-lg items-center justify-center border border-slate-200 dark:border-slate-700'>
+          <AppText className="text-center text-gray-500 dark:text-gray-400 ">
+            No banners available at the moment.
+          </AppText>
+          <TouchableOpacity
+          className="bg-secondary px-6 py-3 rounded-lg flex-row items-center mt-3"
+          activeOpacity={0.7}
+          onPress={refetch}>
+          <AppIcon name="refresh-cw" type="feather" color="white" size={16} />
+          <AppText size="sm" weight="semibold" color="white" className="ml-2">
+            Try Again
+          </AppText>
+        </TouchableOpacity>
+        </View>
+      </View>
+      )
+    }
 
     return (
       <View className="w-full pt-4">

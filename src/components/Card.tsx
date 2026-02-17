@@ -41,7 +41,7 @@ const Card: React.FC<CardProps> = ({
   needSeeMoreIcon = false,
   seeMoreText = 'See More',
   seeMoreOnPress = () => {},
-  watermark,
+  watermark=true,
   watermarkText,
   watermarkTextOpacity,
   watermarkTextVerticalCount,

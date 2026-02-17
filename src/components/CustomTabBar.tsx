@@ -3,6 +3,7 @@ import { Animated, TouchableOpacity, View, ViewStyle, StyleProp } from "react-na
 import { useThemeStore } from "../stores/useThemeStore";
 import AppText from "./customs/AppText";
 import { AppColors } from "../config/theme";
+import { Watermark } from "./Watermark";
 
 
 export interface TabItem {
@@ -235,6 +236,7 @@ const AppTabBar: React.FC<AppTabBarProps> = ({
         style={[contentContainerStyle]}
       >
         {ActiveContent}
+        <Watermark/>
       </View>
     </View>
   );

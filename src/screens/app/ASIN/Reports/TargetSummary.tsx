@@ -100,19 +100,6 @@ type ViewMode = 'branch' | 'territory';
 type ButtonType = 'seemore' | 'disti';
 type WiseType = 'POD' | 'SELL';
 
-const FALLBACK_COLORS = [
-  '#3EBC5C',
-  '#2D7ABC',
-  '#EE4949',
-  '#F3C12A',
-  '#5BC0DE',
-  '#E975BD',
-  '#9C76F7',
-  '#EF8B60',
-  '#A5A662',
-  '#1498EB',
-  '#DEE2E680',
-];
 
 const PARTNER_COLORS: Record<string, string> = {
   AES: '#3EBC5C', // Deep Navy Blue
@@ -122,10 +109,14 @@ const PARTNER_COLORS: Record<string, string> = {
   ROG: '#5BC0DE', // Light Steel Gray
   SFR: '#E975BD', // Light Green
   HYBRID: '#9C76F7', // Amber
+  OMP: '#FF7F50', // Light Coral
   'AES+Creator': '#EF8B60', // Professional Blue
   'ASUS SEL.': '#A5A662', // Muted Amber
   'MFR+ACCY': '#1498EB', // Soft Indigo
   'ROG+SIS': '#DEE2E680', // Charcoal
+  'AWP+ACCY': '#7B68EE', // Royal Purple
+  'MFR+ROG_SIS': '#FF6347', // Tomato
+  Default: '#ccc', // Fallback Green
 };
 
 interface ChartItem {
@@ -140,10 +131,10 @@ interface PartnerItem {
   Percent_Contri?: number;
 }
 
-const getPartnerColor = (type: string | undefined, index: number): string => {
-  if (!type) return FALLBACK_COLORS[index % FALLBACK_COLORS.length];
+const getPartnerColor = (type: string | undefined, fallback: string = 'Default'): string => {
+  if (!type) return PARTNER_COLORS[fallback] || '#ccc';
   const key = type.toUpperCase();
-  return PARTNER_COLORS[key] || FALLBACK_COLORS[index % FALLBACK_COLORS.length];
+  return PARTNER_COLORS[key] || PARTNER_COLORS[fallback] || '#ccc';
 };
 
 const API_ENDPOINTS = {
@@ -468,7 +459,7 @@ const GroupAccordionItem = memo(
                   label,
                   value: 0,
                   percent: 0,
-                  color: getPartnerColor(label, 0),
+                  color: getPartnerColor(label, 'Default'),
                 };
               }
 
@@ -518,8 +509,9 @@ const GroupAccordionItem = memo(
                 {/* Legend for all partner types to avoid relying only on slice labels */}
                 {PartnerWise?.data?.length ? (
                   <View className="mt-3 w-full flex-row flex-wrap gap-x-3  gap-y-2">
+                    <Watermark/>
                     {chartData.map((item, idx) => {
-                      const color = getPartnerColor(item.label, idx);
+                      const color = getPartnerColor(item.label, 'Default');
                       return (
                         <TouchableOpacity
                           key={`${item.label || 'PARTNER'}-${idx}`}
@@ -827,7 +819,7 @@ export default function TargetSummary() {
         keyExtractor={keyExtractor}
         extraData={viewMode}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{paddingBottom: 20}}
+        contentContainerStyle={{paddingBottom: 100}}
         maxToRenderPerBatch={16}
         windowSize={10}
         initialNumToRender={10}

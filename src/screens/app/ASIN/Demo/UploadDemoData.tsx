@@ -103,8 +103,8 @@ export default function UploadDemoData() {
   } = useUploadMutation();
 
   const [formData, setFormData] = useState({
-    serialNumber1: 'T2N0CX096057090',
-    serialNumber2: 'T2N0CX096064091',
+    serialNumber1: '',
+    serialNumber2: '',
   });
   const [isVisible, setIsVisible] = useState(false);
   const [activeInput, setActiveInput] = useState<

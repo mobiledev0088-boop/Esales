@@ -33,6 +33,7 @@ import Account from '../User/Account/Account';
 import Dashboard_ASE from '../Dashboard/Dashboard_ASE';
 import AutoUpdate from '../../../../components/AutoUpdate';
 import DemoAWPPartners from '../Demo/DemoAWPPartners';
+import { useLocation } from '../../../../hooks/useLocation';
 interface TabScreens {
   name: string;
   component: ComponentType<any>;
@@ -53,6 +54,7 @@ type MyTabBarProps = BottomTabBarProps & {
 const Tab = createBottomTabNavigator();
 
 const Home: React.FC = () => {
+  const {location} = useLocation();
   const userInfo = useLoginStore(state => state.userInfo);
   const getScreens = () => {
     const arr: TabScreens[] = [];

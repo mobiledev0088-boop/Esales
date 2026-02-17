@@ -2,6 +2,7 @@ import React, {memo, useMemo, useState} from 'react';
 import {View, Text, Pressable} from 'react-native';
 import Svg, {G, Path} from 'react-native-svg';
 import AppText from './customs/AppText';
+import { Watermark } from './Watermark';
 
 /* ===================== Types ===================== */
 
@@ -83,7 +84,8 @@ export default function PartnerPieChart({
   const center = radius;
 
   const slices = useMemo(() => {
-    const valid = data.filter(d => d.value > 0);
+    // const valid = data.filter(d => d.value);
+    const valid = data;
 
     const sorted = [...valid].sort((a, b) => {
       if (sort === 'asc') return a.value - b.value;

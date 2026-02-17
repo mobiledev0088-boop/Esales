@@ -42,7 +42,7 @@ import {CircularProgressBar} from '../../../../components/customs/AppChart';
 import {useNavigation} from '@react-navigation/native';
 import {AppNavigationProp} from '../../../../types/navigation';
 import {useLoginStore} from '../../../../stores/useLoginStore';
-import { Watermark } from '../../../../components/Watermark';
+import {Watermark} from '../../../../components/Watermark';
 
 const reduceToFrstFive = (data: {[key: string]: any[]}) => {
   return Object.entries(data).reduce(
@@ -78,7 +78,7 @@ export const buildActivationTabItems = (
         <View>
           <TableHeader columns={cfg.columns} />
           <DataTable data={tabData} activeTab={id} columns={cfg.columns} />
-          <Watermark  verticalCount={2} rowGap={100} />
+          <Watermark verticalCount={2} rowGap={100} />
         </View>
       ),
     } as TabItem;
@@ -164,25 +164,27 @@ const TableRow = ({
   <View
     className={`flex-row items-center px-4 py-3 ${!isLast ? 'border-b border-gray-100' : ''}`}>
     {columns.map(column => {
-      const cellValue =  isAGPorALP ? `${String(item[column.dataKey] || '0')} \n (${String(item?.ALP_Code || item?.AGP_Code || '')})` : String(item[column.dataKey] || '0');
-      return(
-      <View
-        key={column.key}
-        className={`${column.width} ${column.key === 'name' ? 'flex-row items-center' : 'items-center'}`}>
-        <AppText
-          size="sm"
-          weight={column.key === 'name' ? 'semibold' : 'bold'}
-          color={column.colorType}>
-          {/* {item[column.dataKey] || '0'} */}
-          {column.key === 'name'
-            ? cellValue
-            : column.key === 'h-rate'
-              ? `${item[column.dataKey] ? Math.round(Number(item[column.dataKey])) : '0'} %`
-              : convertToASINUnits(Number(item[column.dataKey]), true)}
-        </AppText>
-      </View>
-    )}
-  )}
+      const cellValue = isAGPorALP
+        ? `${String(item[column.dataKey] || '0')} \n (${String(item?.ALP_Code || item?.AGP_Code || '')})`
+        : String(item[column.dataKey] || '0');
+      return (
+        <View
+          key={column.key}
+          className={`${column.width} ${column.key === 'name' ? 'flex-row items-center' : 'items-center'}`}>
+          <AppText
+            size="sm"
+            weight={column.key === 'name' ? 'semibold' : 'bold'}
+            color={column.colorType}>
+            {/* {item[column.dataKey] || '0'} */}
+            {column.key === 'name'
+              ? cellValue
+              : column.key === 'h-rate'
+                ? `${item[column.dataKey] ? Math.round(Number(item[column.dataKey])) : '0'} %`
+                : convertToASINUnits(Number(item[column.dataKey]), true)}
+          </AppText>
+        </View>
+      );
+    })}
   </View>
 );
 
@@ -254,12 +256,12 @@ export const BannerComponent = ({}) => {
     error: queryError,
     refetch,
   } = useDashboardBanner();
-  const navigation = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation<any>();
 
   const handleBannerPress = useCallback(
     (item: any) => {
       if (item.BannerURL_Link?.includes('Summary')) {
-        //  Move To Scheme Summary Screen
+        navigation.navigate('Schemes');
       } else if (!item?.BannerURL_Link?.endsWith('pdf')) {
         console.log('Opening link:', item?.BannerURL_Link);
         Linking.canOpenURL(item?.BannerURL_Link)
@@ -311,7 +313,17 @@ export const BannerComponent = ({}) => {
 
 export const ActivationPerformanceComponent: React.FC<
   ActivationPerformanceProps
-> = ({data, isLoading, error, onRetry, name, tabs, quarter, handleSeeMore,isT3Partner=false}) => {
+> = ({
+  data,
+  isLoading,
+  error,
+  onRetry,
+  name,
+  tabs,
+  quarter,
+  handleSeeMore,
+  isT3Partner = false,
+}) => {
   const {
     mutate,
     data: activationData,
@@ -337,7 +349,8 @@ export const ActivationPerformanceComponent: React.FC<
   const maximumDate = useMemo(() => new Date(), []);
   const minimumDate = useMemo(() => moment().subtract(5, 'years').toDate(), []);
   const tabItems: TabItem[] = useMemo(
-    () => buildActivationTabItems(tabs, data, activationData, isAPAC, isT3Partner),
+    () =>
+      buildActivationTabItems(tabs, data, activationData, isAPAC, isT3Partner),
     [tabs, data, activationData, isAPAC, isT3Partner],
   );
 
@@ -501,7 +514,13 @@ const getPctTextColor = (p: number) =>
         : 'text-rose-600';
 
 // Modern Monthly Data tiles
-const MonthlyDataTiles = ({data,isT3Partner}: {data: MonthlyPerformanceItem[], isT3Partner: boolean}) => {
+const MonthlyDataTiles = ({
+  data,
+  isT3Partner,
+}: {
+  data: MonthlyPerformanceItem[];
+  isT3Partner: boolean;
+}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollViewRef = useRef<ScrollView | null>(null);
 
@@ -516,7 +535,7 @@ const MonthlyDataTiles = ({data,isT3Partner}: {data: MonthlyPerformanceItem[], i
         return {
           month: m.Month_Name,
           tgt,
-          ...(!isT3Partner && { st }),
+          ...(!isT3Partner && {st}),
           so,
           stPct,
           soPct,
@@ -541,7 +560,7 @@ const MonthlyDataTiles = ({data,isT3Partner}: {data: MonthlyPerformanceItem[], i
       return;
     }
     const today = moment();
-    const renderedOrder = [...processed]
+    const renderedOrder = [...processed];
     const index = renderedOrder.findIndex(item =>
       moment(item.month, ['MMMM YYYY', 'MMM YYYY']).isSame(today, 'month'),
     );
@@ -567,29 +586,26 @@ const MonthlyDataTiles = ({data,isT3Partner}: {data: MonthlyPerformanceItem[], i
           setCurrentIndex(index);
         }}
         scrollEventThrottle={16}>
-        {processed
-          .map(item => (
-            <View
-              key={item.month}
-              style={{width: screenWidth * 0.55}}
-              className="p-4 py-6 rounded bg-lightBg-surface border border-slate-200 dark:bg-darkBg-surface dark:border-slate-700 shadow-sm">
-              <View className="flex-row items-center justify-between mb-2">
-                <AppText weight="semibold" className="text-slate-800" size="sm">
-                  {item.month}
+        {processed.map(item => (
+          <View
+            key={item.month}
+            style={{width: screenWidth * 0.55}}
+            className="p-4 py-6 rounded bg-lightBg-surface border border-slate-200 dark:bg-darkBg-surface dark:border-slate-700 shadow-sm">
+            <View className="flex-row items-center justify-between mb-2">
+              <AppText weight="semibold" className="text-slate-800" size="sm">
+                {item.month}
+              </AppText>
+              <View className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700">
+                <AppText size="xs" weight="semibold" className="text-slate-500">
+                  TGT {convertToASINUnits(item.tgt)}
                 </AppText>
-                <View className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700">
-                  <AppText
-                    size="xs"
-                    weight="semibold"
-                    className="text-slate-500">
-                    TGT {convertToASINUnits(item.tgt)}
-                  </AppText>
-                </View>
               </View>
+            </View>
 
-              {/* Dual progress representation */}
-              <View className="mb-3 gap-2">
-                {item.st !== undefined && (<View>
+            {/* Dual progress representation */}
+            <View className="mb-3 gap-2">
+              {item.st !== undefined && (
+                <View>
                   <View className="flex-row justify-between mb-1">
                     <AppText size="xs" className="text-slate-500">
                       ST - {convertToASINUnits(item.st)}
@@ -607,29 +623,30 @@ const MonthlyDataTiles = ({data,isT3Partner}: {data: MonthlyPerformanceItem[], i
                       style={{width: `${Math.min(item.stPct, 100)}%`}}
                     />
                   </View>
-                </View>)}
-                <View>
-                  <View className="flex-row justify-between mb-1">
-                    <AppText size="xs" className="text-slate-500">
-                      SO - {convertToASINUnits(item.so)}
-                    </AppText>
-                    <AppText
-                      size="xs"
-                      weight="bold"
-                      className={getPctTextColor(item.soPct)}>
-                      {item.soPct}%
-                    </AppText>
-                  </View>
-                  <View className="h-2 rounded-full bg-slate-100 overflow-hidden">
-                    <View
-                      className={`h-full ${getPctColor(item.soPct)} rounded-full`}
-                      style={{width: `${Math.min(item.soPct, 100)}%`}}
-                    />
-                  </View>
+                </View>
+              )}
+              <View>
+                <View className="flex-row justify-between mb-1">
+                  <AppText size="xs" className="text-slate-500">
+                    SO - {convertToASINUnits(item.so)}
+                  </AppText>
+                  <AppText
+                    size="xs"
+                    weight="bold"
+                    className={getPctTextColor(item.soPct)}>
+                    {item.soPct}%
+                  </AppText>
+                </View>
+                <View className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                  <View
+                    className={`h-full ${getPctColor(item.soPct)} rounded-full`}
+                    style={{width: `${Math.min(item.soPct, 100)}%`}}
+                  />
                 </View>
               </View>
             </View>
-          ))}
+          </View>
+        ))}
       </ScrollView>
       <View className="justify-center gap-1">
         {processed.map((item, index) => (
@@ -710,14 +727,16 @@ export const TargetAchievementCard = ({
             strokeWidth={10}
             duration={1000}
           />
-          <AppText size="xs" className="text-gray-500 mt-3 self-start mb-1 ml-4">
+          <AppText
+            size="xs"
+            className="text-gray-500 mt-3 self-start mb-1 ml-4">
             ACH / TGT
           </AppText>
           <View className="items-end flex-row">
-            <AppText size='lg' weight='bold'>
+            <AppText size="lg" weight="bold">
               {convertToASINUnits(achievement)}
             </AppText>
-            <AppText size='md' className="text-gray-500">
+            <AppText size="md" className="text-gray-500">
               {' '}
               / {convertToASINUnits(target)}
             </AppText>

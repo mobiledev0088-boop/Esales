@@ -43,6 +43,7 @@ import {AppColors} from '../../../../config/theme';
 import FilterButton from '../../../../components/FilterButton';
 import clsx from 'clsx';
 import {convertToASINUnits} from '../../../../utils/commonFunctions';
+import { Watermark } from '../../../../components/Watermark';
 
 // helper component
 const ProgressStat: React.FC<ProgressStatProps> = ({
@@ -298,7 +299,9 @@ export const StatsHeader = memo(
       <View className="mb-3">
         <Card
           className="p-3 border border-slate-200 dark:border-slate-700"
-          noshadow>
+          noshadow
+          watermark
+          >
           <View className="pb-2 border-b border-slate-100 dark:border-slate-700">
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center gap-2">
@@ -531,6 +534,7 @@ export const BranchCard = memo(
     }));
     return (
       <View className="mb-3">
+
         <Animated.View style={[containerStyle]} className="relative">
           {/* Front Card */}
           <Animated.View
@@ -555,7 +559,9 @@ export const BranchCard = memo(
               }}>
               <Card
                 className="p-0 border border-slate-200 dark:border-slate-700"
-                noshadow>
+                noshadow
+                watermark
+                >
                 <View className="flex-row items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-700 pt-4 px-3">
                   <View className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-600 items-center justify-center">
                     <AppIcon
@@ -691,7 +697,11 @@ export const BranchCard = memo(
               }}>
               <Card
                 className="p-0 border border-slate-200 dark:border-slate-700"
-                noshadow>
+                noshadow
+                watermark
+                watermarkTextVerticalCount={3}
+                watermarkRowGap={200}
+                >
                 {/* Header with flip back button */}
                 <Pressable
                   onPress={flipCard}
@@ -1029,7 +1039,9 @@ export const BranchCardRet = memo(
               }}>
               <Card
                 className="p-0 border border-slate-200 dark:border-slate-700"
-                noshadow>
+                noshadow
+                watermark
+                >
                 <View className="flex-row items-center gap-2 pb-2 border-b border-slate-100 pt-4 px-3">
                   <View className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center">
                     <AppIcon
@@ -1140,7 +1152,12 @@ export const BranchCardRet = memo(
               }}>
               <Card
                 className="p-0 border border-slate-200 dark:border-slate-700"
-                noshadow>
+                noshadow
+                watermark
+                watermarkTextVerticalCount={3}
+                watermarkRowGap={200}
+                
+                >
                 {/* Header with flip back button */}
                 <Pressable
                   onPress={flipCard}
@@ -1363,7 +1380,9 @@ export const BranchCardLFR = memo(
         }}>
         <Card
           className="p-0 border border-slate-200 dark:border-slate-700"
-          noshadow>
+          noshadow
+          watermark
+          >
           <View className="flex-row items-center gap-2 pb-2 border-b border-slate-100 pt-4 px-3">
             <View className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center">
               <AppIcon name="map-pin" type="feather" size={16} color="black" />
@@ -1483,7 +1502,8 @@ export const BranchCardROI = memo(
         }}>
         <Card
           className="p-0 border border-slate-200 dark:border-slate-700"
-          noshadow>
+          noshadow
+          >
           <View className="flex-row items-center gap-2 pb-2 border-b border-slate-100 pt-4 px-3">
             <View className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center">
               <AppIcon name="map-pin" type="feather" size={16} color="black" />
@@ -1597,6 +1617,7 @@ export const ROITable = ({
     <View className="mt-3 px-3 pb-4">
       {/* Table Container */}
       <View className="border border-slate-200 dark:border-slate-700 rounded-lg  bg-lightBg-surface dark:bg-darkBg-surface overflow-hidden">
+        <Watermark/>
         {/* Table Header */}
         <View className="flex-row">
           <View className="flex-1 py-3 px-3 border-r border-slate-200 dark:border-slate-700">

@@ -315,7 +315,7 @@ const PartnerCard = memo(
                 weight="bold"
                 numberOfLines={1}
                 className={
-                  achievementPercent >= 100
+                  achievementPercent >= 70
                     ? 'text-green-600'
                     : 'text-orange-600'
                 }>
@@ -505,7 +505,6 @@ export default function VerticalASE_HO() {
         isError={isError}
         onRetry={onRefresh}
         LoadingComponent={renderLoadingSkeleton()}
-        // isEmpty={!isLoading && filteredFullData.length === 0}
         >
         <View className="flex-1 bg-gray-50 dark:bg-darkBg">
           {/* Filter section - only show when data is loaded */}

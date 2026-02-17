@@ -290,7 +290,6 @@ export default function Attendance_HO() {
       <DataStateView
         isLoading={isLoading}
         isError={!!error}
-        isEmpty={!isLoading && !error && filteredData.length === 0}
         LoadingComponent={<AttendanceHOBranchSkeleton />}>
         <View className="px-3 py-4">
           <AppDropdown
@@ -311,6 +310,13 @@ export default function Attendance_HO() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{paddingBottom: 24, paddingHorizontal: 12}}
           ItemSeparatorComponent={() => <View className="h-3" />}
+          ListEmptyComponent={
+            <View>
+              <AppText size="md" className="text-center text-gray-500 mt-6">
+                No ASE attendance records found.
+              </AppText>
+            </View>
+          }
         />
       </DataStateView>
     </AppLayout>

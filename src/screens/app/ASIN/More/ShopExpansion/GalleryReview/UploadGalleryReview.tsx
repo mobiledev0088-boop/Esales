@@ -13,13 +13,17 @@ import {useLoginStore} from '../../../../../../stores/useLoginStore';
 import ImageCropModal from '../../../../../../components/ImageCropModal';
 import {screenHeight, screenWidth} from '../../../../../../utils/constant';
 import {showSourceOptionSheet} from '../../../../../../components/SourceOptionSheet';
-import {convertImageToBase64, convertSnakeCaseToSentence, showToast} from '../../../../../../utils/commonFunctions';
+import {
+  convertImageToBase64,
+  convertSnakeCaseToSentence,
+  showToast,
+} from '../../../../../../utils/commonFunctions';
 import AppModal from '../../../../../../components/customs/AppModal';
 import {useMutation} from '@tanstack/react-query';
 import {handleASINApiCall} from '../../../../../../utils/handleApiCall';
 import {getDeviceId} from 'react-native-device-info';
-import { queryClient } from '../../../../../../stores/providers/QueryProvider';
-import { SheetManager } from 'react-native-actions-sheet';
+import {queryClient} from '../../../../../../stores/providers/QueryProvider';
+import {SheetManager} from 'react-native-actions-sheet';
 
 interface ImageTypeData {
   ImageType: string;
@@ -57,7 +61,7 @@ const useUploadImagesMutation = () => {
         '/Partner/ShopExpansionGalleryImages_Insert',
         payload,
         {},
-        true
+        true,
       );
       const result = response?.DashboardData;
       if (!result?.Status) {
@@ -78,10 +82,10 @@ const buildPayload = async (formData: ImageTypeData[]) => {
 
         return {
           ImageType: item.ImageType.replace(/ /g, '_').toLowerCase(),
-          ImageName : ImageLink,
+          ImageName: ImageLink,
         };
-      })
-    )
+      }),
+    ),
   );
   return payload;
 };
@@ -100,17 +104,36 @@ const ReferenceImageModal = ({
       isOpen={isModalOpen}
       onClose={() => setIsModalOpen(false)}
       animationType="slide"
-      noCard>
-      <AppImage
-        source={{uri: url}}
+      noCard
+      modalStyle={{
+        height: screenHeight,
+        width: screenWidth,
+      }}
+      disableOverlayPress={false}>
+      <View
         style={{
-          width: screenWidth * 0.9,
-          height: screenHeight * 0.7,
-          alignSelf: 'center',
-        }}
-        resizeMode="contain"
-        enableModalZoom
-      />
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+        <TouchableOpacity
+          onPressOut={() => setIsModalOpen(false)}
+          activeOpacity={0.7}
+          className="absolute top-20 w-11 h-11 rounded-full bg-primary justify-center items-center z-10 "
+          accessibilityRole="button"
+          accessibilityLabel="Close modal">
+          <AppIcon type="ionicons" name="close" size={28} color="#fff" />
+        </TouchableOpacity>
+        <AppImage
+          source={{uri: url}}
+          style={{
+            width: screenWidth * 0.9,
+            height: screenHeight * 0.6,
+          }}
+          resizeMode="contain"
+          zoomable
+        />
+      </View>
     </AppModal>
   );
 };
@@ -122,9 +145,11 @@ export default function UploadGalleryReview() {
 
   const {EMP_Name, EMP_Code} = useLoginStore(state => state.userInfo);
   const {mutate} = useUploadImagesMutation();
-  
+
   const [formData, setFormData] = useState(data);
-  const [activeImageTypeIndex, setActiveImageTypeIndex] = useState<number | null>(null);
+  const [activeImageTypeIndex, setActiveImageTypeIndex] = useState<
+    number | null
+  >(null);
   const [isReferenceModalOpen, setIsReferenceModalOpen] = useState(false);
   const [referenceModalUrl, setReferenceModalUrl] = useState('');
 
@@ -144,7 +169,7 @@ export default function UploadGalleryReview() {
   });
 
   const openSourceModal = (index: number) => {
-    console.log({index})
+    console.log({index});
     setActiveImageTypeIndex(index);
     showSourceOptionSheet({
       onSelect: source => handleSelectSource(source),
@@ -183,19 +208,22 @@ export default function UploadGalleryReview() {
   const handleUpload = async () => {
     console.log('Form data to upload', formData);
     const payload = await buildPayload(formData);
-    mutate({
-      storeCode,
-      formatedData: payload,
-    },{
-      onSuccess: () => {
-        showToast('Images uploaded successfully.');
-        queryClient.invalidateQueries({ queryKey: ['StoreDetails'] });
-        navigation.goBack();
+    mutate(
+      {
+        storeCode,
+        formatedData: payload,
       },
-      onError: (error: any) => {
-        showToast(error.message || 'Failed to upload images.');
+      {
+        onSuccess: () => {
+          showToast('Images uploaded successfully.');
+          queryClient.invalidateQueries({queryKey: ['StoreDetails']});
+          navigation.goBack();
+        },
+        onError: (error: any) => {
+          showToast(error.message || 'Failed to upload images.');
+        },
       },
-    });
+    );
   };
 
   useEffect(() => {
@@ -226,7 +254,9 @@ export default function UploadGalleryReview() {
         contentContainerClassName="flex-grow px-3 pt-3"
         showsVerticalScrollIndicator={false}>
         {formData.map((item, index) => {
-          const foundReference = referenceImages.find(ref => ref.StandType === convertSnakeCaseToSentence(item.ImageType));
+          const foundReference = referenceImages.find(
+            ref => ref.StandType === convertSnakeCaseToSentence(item.ImageType),
+          );
           return (
             <Card key={index} className="w-full mb-3">
               <AppText size="sm" className="text-center" weight="bold">
@@ -276,7 +306,9 @@ export default function UploadGalleryReview() {
               </View>
               {!!foundReference && (
                 <TouchableOpacity
-                  onPress={() =>handleReferenceImagePress(foundReference.Image_Link)}>
+                  onPress={() =>
+                    handleReferenceImagePress(foundReference.Image_Link)
+                  }>
                   <AppText
                     size="xs"
                     className="mt-1 underline"
