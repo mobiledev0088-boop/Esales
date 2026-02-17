@@ -12,10 +12,7 @@ import {isIOS, screenWidth} from '../utils/constant';
 const AutoUpdate = () => {
   const {android_version, ios_version} = useUserStore(state => state.empInfo);
   const appVersion = DeviceInfo.getVersion();
-  // const isUpdateAvailable = isIOS
-  //   ? ios_version !== appVersion
-  //   : android_version !== appVersion;
-  const isUpdateAvailable = false; // For testing purpose, set to false
+  const isUpdateAvailable = isIOS ? ios_version !== appVersion : android_version !== appVersion;
 
   const handlePress = () => {
     if (isIOS) {
