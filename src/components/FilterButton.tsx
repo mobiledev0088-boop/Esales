@@ -49,7 +49,7 @@ const FilterButton: React.FC<FilterButtonProps> = ({
         />
 
         {hasActiveFilters && (
-          <View className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-red-500" />
+          <View className="absolute -top-2 -right-2 w-2 h-2 rounded-full bg-red-500" />
         )}
       </View>
     </TouchableOpacity>

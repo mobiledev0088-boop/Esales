@@ -26,6 +26,7 @@ interface TSPartnerParams {
   Year_Qtr: string;
   AlpType: string;
   Branch: string;
+  Territory?: string;
 }
 
 interface PartnerData {
@@ -71,6 +72,7 @@ const useGetTrgtVsAchvPartnerTypeWise = (
   YearQtr: string,
   AlpType: string,
   BranchName: string,
+  TerritoryName: string = '',
 ) => {
   const {EMP_Code: employeeCode = '', EMP_RoleId: RoleId = ''} = useLoginStore(
     state => state.userInfo,
@@ -81,12 +83,17 @@ const useGetTrgtVsAchvPartnerTypeWise = (
     YearQtr,
     AlpType,
     BranchName,
+    TerritoryName,
   };
+  let endpoint = '/TrgtVsAchvDetail/GetTrgtVsAchvPartnerTypeWise_Branch';
+  if (TerritoryName){
+    endpoint = '/TrgtVsAchvDetail/GetTrgtVsAchvPartnerTypeWise';
+  }
   return useQuery({
     queryKey: ['TrgtVsAchvPartnerTypeWise', [...Object.values(payload)]],
     queryFn: async () => {
       const response = await handleASINApiCall(
-        '/TrgtVsAchvDetail/GetTrgtVsAchvPartnerTypeWise_Branch',
+        endpoint,
         payload,
       );
       const result = response?.DashboardData;
@@ -161,8 +168,6 @@ const QuantityChart = memo(
       ];
       return data;
     }, [partner]);
-
-    console.log('chartData', chartData);
 
     const axis = useMemo(() => {
       const values = chartData.map(b => b.value).filter(v => v > 0);
@@ -241,13 +246,18 @@ const PartnerCard = memo(
     return (
       <Card className="mb-3">
         {/* Partner name header */}
-        <View className="">
+        <View className="flex-row items-center gap-x-2">
           <AppText
             size="base"
             weight="bold"
             className="text-gray-900 dark:text-gray-100">
             {partner.Partner_Name || 'N/A'}
           </AppText>
+          {partner.isParent && (
+            <AppText size="2xl" color="primary" >
+              *
+            </AppText>
+          )}
         </View>
 
         {/* Grid layout - 2 rows x 2 columns */}
@@ -372,20 +382,18 @@ const PartnerCard = memo(
 export default function TargetSummaryPartner() {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
-  const {Year_Qtr, AlpType, Branch} = route.params as TSPartnerParams;
+  const {Year_Qtr, AlpType, Branch, Territory} = route.params as TSPartnerParams;
   const {quarters, selectedQuarter, setSelectedQuarter} =
     useQuarterHook(Year_Qtr);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPartnerType, setSelectedPartnerType] =
     useState<AppDropdownItem | null>(null);
-
   const {
     data: partnerData,
     isLoading,
     isError,
     refetch,
-  } = useGetTrgtVsAchvPartnerTypeWise(Year_Qtr, AlpType, Branch);
-  console.log('partnerASEData', partnerData);
+  } = useGetTrgtVsAchvPartnerTypeWise(Year_Qtr, AlpType, Branch,Territory);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -439,27 +447,28 @@ export default function TargetSummaryPartner() {
       title="Target Partner Wise"
       needPadding={false}
       needBack
-      needScroll={false}>
+      needScroll={false}
+      >
       <DataStateView
         isLoading={isLoading}
         isError={isError}
         onRetry={onRefresh}
         LoadingComponent={renderLoadingSkeleton()}
-        isEmpty={!isLoading && filteredFullData.length === 0}>
+        >
         <View className="flex-1 bg-gray-50 dark:bg-darkBg">
           <View className="px-3 py-3 bg-white dark:bg-darkCard border-b border-gray-200 dark:border-darkBorder">
             <View className="mb-3 rounded-lg border border-gray-200 dark:border-darkBorder bg-gray-50/80 dark:bg-darkBg px-3 py-2">
               <View className="flex-row items-start justify-between">
                 <View className="flex-1 mr-2">
                   <AppText size="xs" color="gray" className="mb-0.5">
-                    Branch
+                    {Territory ? "Territory" : "Branch"}
                   </AppText>
                   <AppText
                     size="sm"
                     weight="semibold"
                     numberOfLines={2}
                     className="text-gray-900 dark:text-gray-100">
-                    {convertSnakeCaseToSentence(Branch)}
+                    {convertSnakeCaseToSentence(Territory || Branch)}
                   </AppText>
                 </View>
                 <View className="w-px h-8 bg-gray-200 dark:bg-darkBorder" />
@@ -485,6 +494,8 @@ export default function TargetSummaryPartner() {
                   placeholder="Partners"
                   selectedValue={selectedPartnerType?.value}
                   onSelect={setSelectedPartnerType}
+                  allowClear
+                  onClear={() => setSelectedPartnerType(null)}
                 />
               </View>
               <View className="flex-[3]">
@@ -497,7 +508,14 @@ export default function TargetSummaryPartner() {
                 />
               </View>
             </View>
-            <View className="mt-2 flex-row justify-between items-center"></View>
+            <View className="mt-2 flex-row justify-between items-center">
+              <AppText size="xs" color="gray">
+                {filteredFullData.length} Partners
+              </AppText>
+                <AppText size="xs" weight="bold">
+                  * Indicates Parent Code
+                </AppText>
+            </View>
           </View>
           {/* Partner list with pagination and optimized performance */}
           <FlatList
@@ -512,6 +530,13 @@ export default function TargetSummaryPartner() {
             removeClippedSubviews={true}
             refreshing={refreshing}
             onRefresh={onRefresh}
+            ListEmptyComponent={
+              <View className="flex-1 justify-center items-center mt-20">
+                <AppText size="lg" color="gray">
+                  No partners found.
+                </AppText>
+              </View>
+            }
           />
         </View>
       </DataStateView>

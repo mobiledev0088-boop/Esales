@@ -107,6 +107,7 @@ export interface ActivationPerformanceProps {
   onRetry?: () => void;
   quarter: string;
   handleSeeMore?: (data: any) => void;
+  isT3Partner?: boolean;
 }
 
 export interface ASEDataProps {

@@ -26,8 +26,8 @@ export const useGetDemoDataReseller = (
     RoleId,
     employeeCode,
     Category,
-    KioskCnt: KioskCnt || null,
-    RogKioskCnt: RogKioskCnt || null,
+    KioskCnt: KioskCnt ?? null,
+    RogKioskCnt: RogKioskCnt ?? null,
     sync_date: empInfo?.Sync_Date,
     demo_tab: 'Reseller',
   };

@@ -262,6 +262,99 @@ export const TAB_CONFIGS: TabConfig[] =  [
   },
 ];
 
+export const TAB_CONFIGS_T3: TabConfig[] =  [
+  {
+    id: 'branch',
+    label: 'Branch',
+    columns: [
+      ...NAME_COLUMN,
+      {
+        key: 'pod',
+        label: 'POD',
+        width: 'w-16',
+        dataKey: 'POD_Cnt',
+        colorType: 'text',
+      },
+      ...COMMON_COLUMNS,
+    ],
+  },
+  {
+    id: 'alp',
+    label: 'ALP',
+    columns: [
+      ...NAME_COLUMN,
+      {
+        key: 'so',
+        label: 'SO',
+        width: 'w-16',
+        dataKey: 'SO_Cnt',
+        colorType: 'secondary',
+      },
+      ...COMMON_COLUMNS,
+    ],
+  },
+  {
+    id: 'model',
+    label: 'Model',
+    columns: [
+      ...NAME_COLUMN,
+      {
+        key: 'so',
+        label: 'SO',
+        width: 'w-16',
+        dataKey: 'SO_Cnt',
+        colorType: 'secondary',
+      },
+      ...COMMON_COLUMNS,
+    ],
+  },
+  {
+    id: 'agp',
+    label: 'AGP',
+    columns: [
+      ...NAME_COLUMN,
+      {
+        key: 'so',
+        label: 'SO',
+        width: 'w-16',
+        dataKey: 'SO_Cnt',
+        colorType: 'secondary',
+      },
+      ...COMMON_COLUMNS,
+    ],
+  },
+  {
+    id: 'asp',
+    label: 'ASP',
+    columns: [
+      ...NAME_COLUMN,
+      {
+        key: 'so',
+        label: 'SO',
+        width: 'w-16',
+        dataKey: 'SO_Cnt',
+        colorType: 'secondary',
+      },
+      ...COMMON_COLUMNS,
+    ],
+  },
+  {
+    id: 'disti',
+    label: 'Disti',
+    columns: [
+      ...NAME_COLUMN,
+      {
+        key: 'pod',
+        label: 'POD',
+        width: 'w-16',
+        dataKey: 'POD_Cnt',
+        colorType: 'text',
+      },
+      ...COMMON_COLUMNS,
+    ],
+  },
+];
+
 export const TAB_CONFIGS_APAC: TabConfig[] = [
   {
     id: 'branch',
@@ -390,8 +483,8 @@ export const TAB_CONFIGS_APAC: TabConfig[] = [
   },
 ];
 
-export const getCurrentTabConfig = (tabId: string, isAPAC: boolean): TabConfig => {
-  return (isAPAC ? TAB_CONFIGS_APAC : TAB_CONFIGS).find(config => config.id === tabId) || TAB_CONFIGS[0];
+export const getCurrentTabConfig = (tabId: string, isAPAC: boolean, isT3Partner = false): TabConfig => {
+  return (isAPAC ? TAB_CONFIGS_APAC : isT3Partner ? TAB_CONFIGS_T3 : TAB_CONFIGS).find(config => config.id === tabId) || TAB_CONFIGS[0];
 };
 
 // ---------------------------------------------

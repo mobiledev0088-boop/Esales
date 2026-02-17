@@ -26,7 +26,7 @@ import {Watermark} from '../../../../components/Watermark';
 import PartnerPieChart, {
   PartnerPieSlice,
 } from '../../../../components/PartnerPieChart';
-import { AppNavigationProp } from '../../../../types/navigation';
+import {AppNavigationProp} from '../../../../types/navigation';
 import BackButton from '../../../../components/BackButton';
 
 interface PartnerWise {
@@ -38,6 +38,7 @@ interface PartnerWise {
 
 interface GroupedPartnerWise {
   Branch_Name: string;
+  Territory_Name?: string;
   data: {
     ALP_Type: string;
     Achieved_Qty: number;
@@ -69,7 +70,11 @@ interface GroupAccordionItemProps {
   wise: WiseType;
   PartnerWise: GroupedPartnerWise | undefined;
   onViewTerritory: (branchName: string) => void;
-  handlePartnerPress: (AlpType: string, Branch: string) => void;
+  handlePartnerPress: (
+    AlpType: string,
+    Branch: string,
+    Territory?: string,
+  ) => void;
 }
 
 interface SummaryHeaderProps {
@@ -96,32 +101,44 @@ type ButtonType = 'seemore' | 'disti';
 type WiseType = 'POD' | 'SELL';
 
 const FALLBACK_COLORS = [
-"#3EBC5C", 
-"#2D7ABC",  
-"#EE4949", 
-"#F3C12A", 
-"#5BC0DE", 
-"#E975BD", 
-"#9C76F7", 
-"#EF8B60", 
-"#A5A662", 
-"#1498EB", 
-"#DEE2E680",
+  '#3EBC5C',
+  '#2D7ABC',
+  '#EE4949',
+  '#F3C12A',
+  '#5BC0DE',
+  '#E975BD',
+  '#9C76F7',
+  '#EF8B60',
+  '#A5A662',
+  '#1498EB',
+  '#DEE2E680',
 ];
 
 const PARTNER_COLORS: Record<string, string> = {
-  AES: "#3EBC5C", // Deep Navy Blue
-  AWP: "#2D7ABC", // Burnt Orange
-  MFR: "#EE4949", // Deep Red
-  RLFR: "#F3C12A", // Teal Green
-  ROG: "#5BC0DE", // Light Steel Gray
-  SFR: "#E975BD", // Light Green
+  AES: '#3EBC5C', // Deep Navy Blue
+  AWP: '#2D7ABC', // Burnt Orange
+  MFR: '#EE4949', // Deep Red
+  RLFR: '#F3C12A', // Teal Green
+  ROG: '#5BC0DE', // Light Steel Gray
+  SFR: '#E975BD', // Light Green
   HYBRID: '#9C76F7', // Amber
-  'AES+Creator': "#EF8B60", // Professional Blue
-  'ASUS SEL.': "#A5A662", // Muted Amber
-  'MFR+ACCY': "#1498EB", // Soft Indigo
-  'ROG+SIS': "#DEE2E680", // Charcoal
+  'AES+Creator': '#EF8B60', // Professional Blue
+  'ASUS SEL.': '#A5A662', // Muted Amber
+  'MFR+ACCY': '#1498EB', // Soft Indigo
+  'ROG+SIS': '#DEE2E680', // Charcoal
 };
+
+interface ChartItem {
+  label: string;
+  value: number;
+  percent: number;
+  color: string;
+}
+interface PartnerItem {
+  ALP_Type?: string;
+  Achieved_Qty?: number;
+  Percent_Contri?: number;
+}
 
 const getPartnerColor = (type: string | undefined, index: number): string => {
   if (!type) return FALLBACK_COLORS[index % FALLBACK_COLORS.length];
@@ -253,30 +270,54 @@ const groupDemoData = (
   return Object.values(groups);
 };
 
-const getGroupKey = (viewMode: ViewMode, item: GroupedData) => `${viewMode}-${item.territoryName || item.branchName}`;
+const getGroupKey = (viewMode: ViewMode, item: GroupedData) =>
+  `${viewMode}-${item.territoryName || item.branchName}`;
 
-const groupedPartnerData = (demoData: PartnerWise[]) => {
+const groupedPartnerData = (demoData: PartnerWise[], isTerritory: boolean) => {
   if (!demoData) return [];
-  const group = demoData.reduce(
-    (acc: Record<string, any>, item: any) => {
-      const Branch_Name = item.Branch_Name;
-      if (!acc[Branch_Name]) {
-        acc[Branch_Name] = {
-          Branch_Name: Branch_Name,
-          data: [],
+  if (isTerritory) {
+    const group = demoData.reduce(
+      (acc: Record<string, any>, item: any) => {
+        const Territory_Name = item.Territory;
+        if (!acc[Territory_Name]) {
+          acc[Territory_Name] = {
+            Territory_Name: Territory_Name,
+            data: [],
+          };
+        }
+        const obj = {
+          ALP_Type: item.ALP_Type,
+          Achieved_Qty: item.Achieved_Qty,
+          Percent_Contri: item.Percent_Contri,
         };
-      }
-      const obj = {
-        ALP_Type: item.ALP_Type,
-        Achieved_Qty: item.Achieved_Qty,
-        Percent_Contri: item.Percent_Contri,
-      };
-      acc[Branch_Name].data.push(obj);
-      return acc;
-    },
-    {} as Record<string, any>,
-  );
-  return Object.values(group);
+        acc[Territory_Name].data.push(obj);
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
+    return Object.values(group);
+  } else {
+    const group = demoData.reduce(
+      (acc: Record<string, any>, item: any) => {
+        const Branch_Name = item.Branch_Name;
+        if (!acc[Branch_Name]) {
+          acc[Branch_Name] = {
+            Branch_Name: Branch_Name,
+            data: [],
+          };
+        }
+        const obj = {
+          ALP_Type: item.ALP_Type,
+          Achieved_Qty: item.Achieved_Qty,
+          Percent_Contri: item.Percent_Contri,
+        };
+        acc[Branch_Name].data.push(obj);
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
+    return Object.values(group);
+  }
 };
 
 const ProductCard = memo(
@@ -415,15 +456,31 @@ const GroupAccordionItem = memo(
         <Watermark horizontalCount={2} columnGap={30} />
       </>
     );
+    console.log('PartnerWise in GroupAccordionItem:', PartnerWise);
+    const chartData: ChartItem[] = PartnerWise
+      ? Object.values(
+          (PartnerWise.data as PartnerItem[]).reduce<Record<string, ChartItem>>(
+            (acc, item) => {
+              const label = item.ALP_Type || 'Others';
 
-    const chartData =PartnerWise ? PartnerWise?.data.map((item => {
-      return {
-        label: item.ALP_Type || 'Others',
-        value: item.Achieved_Qty || 0,
-        color: getPartnerColor(item.ALP_Type, 0),
-        percent: item.Percent_Contri || 0,
-      };
-    })) : [];
+              if (!acc[label]) {
+                acc[label] = {
+                  label,
+                  value: 0,
+                  percent: 0,
+                  color: getPartnerColor(label, 0),
+                };
+              }
+
+              acc[label].value += item.Achieved_Qty ?? 0;
+              acc[label].percent += item.Percent_Contri ?? 0;
+
+              return acc;
+            },
+            {},
+          ),
+        )
+      : [];
 
     return (
       <View className="mb-3">
@@ -450,7 +507,7 @@ const GroupAccordionItem = memo(
           </ScrollView>
           {button === 'seemore' &&
             wise === 'SELL' &&
-            viewMode === 'branch' &&
+            // viewMode === 'branch' &&
             chartData.length > 0 && (
               <View className="py-4 px-4">
                 <PartnerPieChart
@@ -461,14 +518,19 @@ const GroupAccordionItem = memo(
                 {/* Legend for all partner types to avoid relying only on slice labels */}
                 {PartnerWise?.data?.length ? (
                   <View className="mt-3 w-full flex-row flex-wrap gap-x-3  gap-y-2">
-                    {PartnerWise.data.map((item, idx) => {
-                      const color = getPartnerColor(item.ALP_Type, idx);
+                    {chartData.map((item, idx) => {
+                      const color = getPartnerColor(item.label, idx);
                       return (
                         <TouchableOpacity
-                          key={`${item.ALP_Type || 'PARTNER'}-${idx}`}
-                          className='w-[29%]'
-                          onPress={() => handlePartnerPress(item.ALP_Type, group.branchName)}
-                          >
+                          key={`${item.label || 'PARTNER'}-${idx}`}
+                          className="w-[29%]"
+                          onPress={() =>
+                            handlePartnerPress(
+                              item.label,
+                              group.branchName,
+                              group.territoryName || '',
+                            )
+                          }>
                           <View
                             className="rounded-md px-2 py-1.5 bg-white border"
                             style={{borderColor: color}}>
@@ -482,7 +544,7 @@ const GroupAccordionItem = memo(
                                 weight="semibold"
                                 className="text-gray-800"
                                 numberOfLines={1}>
-                                {item.ALP_Type || 'Others'}
+                                {item.label || 'Others'}
                               </AppText>
                             </View>
                             <View className="flex-row items-baseline">
@@ -493,7 +555,7 @@ const GroupAccordionItem = memo(
                                 size="xs"
                                 weight="semibold"
                                 className="text-gray-900">
-                                {item.Achieved_Qty}
+                                {item.value}
                               </AppText>
                             </View>
                           </View>
@@ -564,10 +626,6 @@ const SummaryHeader = memo(
           </AppText>
         </View>
 
-
-
-
-
         {/* {viewMode === 'territory' && (
           <TouchableOpacity
             onPress={onBackToBranch}
@@ -596,10 +654,9 @@ const SummaryHeader = memo(
             ? viewMode === 'branch'
               ? 'Distributors'
               : 'Territories'
-            :viewMode === 'branch'
+            : viewMode === 'branch'
               ? 'Branches'
-              : 'Territories'
-            }{' '}
+              : 'Territories'}{' '}
           • {selectedQuarter?.label || 'All Time'}
         </AppText>
       </View>
@@ -650,27 +707,28 @@ export default function TargetSummary() {
   const navigation = useNavigation<AppNavigationProp>();
   const {params} = useRoute();
   const {EMP_RoleId: roleID} = useLoginStore(state => state.userInfo);
-  console.log('Role ID in TargetSummary:', roleID);
+  // console.log('Role ID in TargetSummary:', roleID);
   const {Quarter, masterTab, button, wise} = params as {
     Quarter: string;
     masterTab: string;
     button: ButtonType;
     wise: WiseType;
   };
-  console.log('Params in TargetSummary:', params);
   const {BSM, RSM, BPM, CHANNEL_MARKETING, SALES_REPS} = ASUS.ROLE_ID;
   const managerArr: number[] = [BSM, RSM, BPM, CHANNEL_MARKETING];
 
   const isBranchManager = useMemo(() => managerArr.includes(roleID), [roleID]);
   const isPartner = useMemo(() => roleID === SALES_REPS, [roleID]);
-  
+
   const quarter = useMemo(() => getPastQuarters(), []);
   const foundQuarter = quarter.find(q => q.value === Quarter);
   const [selectedQuarter, setSelectedQuarter] =
-  useState<AppDropdownItem | null>(foundQuarter || null);
-  const [viewMode, setViewMode] = useState<ViewMode>(isBranchManager ? 'territory' : 'branch');
+    useState<AppDropdownItem | null>(foundQuarter || null);
+  const [viewMode, setViewMode] = useState<ViewMode>(
+    isBranchManager ? 'territory' : 'branch',
+  );
   const isTerritory = useMemo(() => viewMode === 'territory', [viewMode]);
-  console.log('isTerritory:', isTerritory, 'isPartner:', isPartner);
+  // console.log('isTerritory:', isTerritory, 'isPartner:', isPartner);
   const [selectedBranch, setSelectedBranch] = useState<string>('');
 
   // Dynamic endpoint based on current view mode (not role)
@@ -680,7 +738,7 @@ export default function TargetSummary() {
     button,
     isPartner,
   );
-  console.log('API Endpoint in TargetSummary:', apiEndpoint);
+  // console.log('API Endpoint in TargetSummary:', apiEndpoint);
 
   // Single unified hook call
   const {data, isLoading} = useGetTrgtVsAchvDetail({
@@ -690,6 +748,7 @@ export default function TargetSummary() {
     BranchName: selectedBranch,
     viewMode,
   });
+
   const {ProductCategory: demoData, PartnerWise} = data || {};
 
   // Group data (memoized) using external utility
@@ -699,11 +758,11 @@ export default function TargetSummary() {
   );
 
   const groupedPartnerWise = useMemo<GroupedPartnerWise[]>(
-    () => groupedPartnerData(PartnerWise),
-    [PartnerWise],
+    () => groupedPartnerData(PartnerWise, isTerritory),
+    [PartnerWise, isTerritory],
   );
 
-  console.log('groupedPartnerWise', groupedPartnerWise);
+  // console.log('groupedPartnerWise', groupedPartnerWise);
 
   // Handle view territory press
   const handleViewTerritory = useCallback((branchName: string) => {
@@ -717,14 +776,26 @@ export default function TargetSummary() {
     setTimeout(() => setSelectedBranch(''), 0);
   }, []);
 
-  const handlePartnerPress = useCallback((AlpType: string, Branch: string) => {
-    // Placeholder for partner press action
-    navigation.push('TargetSummaryPartner', {
-      AlpType,
-      Branch,
-      Year_Qtr: selectedQuarter?.value || '',
+  const handlePartnerPress = useCallback(
+    (AlpType: string, Branch: string, Territory?: string) => {
+      console.log('Partner Pressed:', AlpType, Branch, Territory);
+      if (Territory) {
+        navigation.push('TargetSummaryPartner', {
+          AlpType,
+          Branch,
+          Territory,
+          Year_Qtr: selectedQuarter?.value || '',
         });
-  }, [navigation, selectedQuarter]);
+      } else {
+        navigation.push('TargetSummaryPartner', {
+          AlpType,
+          Branch,
+          Year_Qtr: selectedQuarter?.value || '',
+        });
+      }
+    },
+    [navigation, selectedQuarter],
+  );
 
   const keyExtractor = useCallback(
     (item: GroupedData) => getGroupKey(viewMode, item),
@@ -736,8 +807,10 @@ export default function TargetSummary() {
       <FlatList
         data={groupedData}
         renderItem={({item}) => {
-          const found = groupedPartnerWise.find(
-            p => p.Branch_Name === item.branchName,
+          const found = groupedPartnerWise.find(p =>
+            isTerritory
+              ? p.Territory_Name === item.territoryName
+              : p.Branch_Name === item.branchName,
           );
           return (
             <GroupAccordionItem
@@ -775,14 +848,14 @@ export default function TargetSummary() {
           isLoading ? <LoadingSkeletonComponent /> : <EmptyDataComponent />
         }
       />
-      {viewMode === 'territory' && !isBranchManager &&(
+      {viewMode === 'territory' && !isBranchManager && (
         <BackButton
-        onPress={handleBackToBranch}
-        Title='Back to Branch'
-        SubTitle={selectedBranch}
-        className='w-[99%]'
+          onPress={handleBackToBranch}
+          Title="Back to Branch"
+          SubTitle={selectedBranch}
+          className="w-[99%]"
         />
-      ) }
+      )}
     </AppLayout>
   );
 }

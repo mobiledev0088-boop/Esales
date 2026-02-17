@@ -304,10 +304,11 @@ const buildTabItems = (
   handleSort: (tabId: string, columnKey: string) => void,
   needNavigation: boolean,
   filters: Record<string, string | null>,
+  isT3Partner: boolean,
 ): TabItem[] => {
   return labels.map(label => {
     const id = TAB_LABEL_TO_ID[label];
-    const config = getCurrentTabConfig(id, false);
+    const config = getCurrentTabConfig(id, false,isT3Partner);
     const visibleCount = visibleCounts[id] || 10;
     const sortConfig = sortConfigs[id] || null;
 
@@ -353,10 +354,12 @@ const buildTabItems = (
 const ActivationPerformanceView = ({
   tabs,
   data,
+  isT3Partner,
   needNavigation,
 }: {
   tabs: string[];
   data: any;
+  isT3Partner: boolean;
   needNavigation: boolean;
 }) => {
   const [visibleCounts, setVisibleCounts] = useState<Record<string, number>>(
@@ -414,6 +417,7 @@ const ActivationPerformanceView = ({
         handleSort,
         needNavigation,
         filters,
+        isT3Partner
       ),
     [
       providedTabs,
@@ -423,6 +427,7 @@ const ActivationPerformanceView = ({
       handleSort,
       needNavigation,
       filters,
+      isT3Partner
     ],
   );
 
@@ -542,6 +547,7 @@ export default function ActPerformance() {
   const route = useRoute();
   const params = route.params as Record<string, any>;
   const fromPartnerScreen = params?.fromPartnerScreen || false;
+  const isT3Partner = params?.isT3Partner || false;
   const [tabLabels, transformedData] = useMemo(() => {
     const ORDER = ['Branch', 'ALP', 'Model', 'AGP', 'ASP', 'Disti'];
 
@@ -585,6 +591,7 @@ export default function ActPerformance() {
         <ActivationPerformanceView
           data={transformedData}
           tabs={tabLabels}
+          isT3Partner={isT3Partner}
           needNavigation={fromPartnerScreen}
         />
       </View>

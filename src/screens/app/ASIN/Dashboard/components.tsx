@@ -61,6 +61,7 @@ export const buildActivationTabItems = (
   baseData: any,
   overrideData: any,
   isAPAC: boolean,
+  isT3Partner: boolean,
 ): TabItem[] => {
   const reduceOverrideData = Object.keys(overrideData || {}).length
     ? reduceToFrstFive(overrideData)
@@ -68,7 +69,7 @@ export const buildActivationTabItems = (
   const source = reduceOverrideData || baseData;
   return labels.map(label => {
     const id = TAB_LABEL_TO_ID[label];
-    const cfg = getCurrentTabConfig(id, isAPAC);
+    const cfg = getCurrentTabConfig(id, isAPAC, isT3Partner);
     const tabData = getActivationTabData(source, id);
     return {
       label,
@@ -310,7 +311,7 @@ export const BannerComponent = ({}) => {
 
 export const ActivationPerformanceComponent: React.FC<
   ActivationPerformanceProps
-> = ({data, isLoading, error, onRetry, name, tabs, quarter, handleSeeMore}) => {
+> = ({data, isLoading, error, onRetry, name, tabs, quarter, handleSeeMore,isT3Partner=false}) => {
   const {
     mutate,
     data: activationData,
@@ -336,8 +337,8 @@ export const ActivationPerformanceComponent: React.FC<
   const maximumDate = useMemo(() => new Date(), []);
   const minimumDate = useMemo(() => moment().subtract(5, 'years').toDate(), []);
   const tabItems: TabItem[] = useMemo(
-    () => buildActivationTabItems(tabs, data, activationData, isAPAC),
-    [tabs, data, activationData, isAPAC],
+    () => buildActivationTabItems(tabs, data, activationData, isAPAC, isT3Partner),
+    [tabs, data, activationData, isAPAC, isT3Partner],
   );
 
   const handleActivationDataFetch = useCallback(
@@ -476,6 +477,7 @@ interface TargetAchievementProps {
   achievement: number;
   isLoading?: boolean;
   monthlyData?: MonthlyPerformanceItem[]; // Optional monthly breakdown
+  isT3Partner?: boolean; // Flag to indicate if the partner is T3
 }
 
 // Helper to color percentages consistently
@@ -499,21 +501,22 @@ const getPctTextColor = (p: number) =>
         : 'text-rose-600';
 
 // Modern Monthly Data tiles
-const MonthlyDataTiles = ({data}: {data: MonthlyPerformanceItem[]}) => {
+const MonthlyDataTiles = ({data,isT3Partner}: {data: MonthlyPerformanceItem[], isT3Partner: boolean}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollViewRef = useRef<ScrollView | null>(null);
+
   const processed = useMemo(
     () =>
       (data || []).map(m => {
         const tgt = m.Qty_Target || 0;
         const st = m.Achieved_Qty || 0;
-        const so = m.SO_Achieved_Qty || 0;
+        const so = m.SO_Achieved_Qty || m.Achieved_Qty || 0; // Fallback to ST if SO not provided
         const stPct = tgt ? Math.round((st / tgt) * 100) : 0;
         const soPct = tgt ? Math.round((so / tgt) * 100) : 0;
         return {
           month: m.Month_Name,
           tgt,
-          st,
+          ...(!isT3Partner && { st }),
           so,
           stPct,
           soPct,
@@ -548,6 +551,7 @@ const MonthlyDataTiles = ({data}: {data: MonthlyPerformanceItem[]}) => {
       setCurrentIndex(index);
     }
   }, [processed]);
+
   return (
     <View className="flex-row items-center h-36">
       <ScrollView
@@ -585,7 +589,7 @@ const MonthlyDataTiles = ({data}: {data: MonthlyPerformanceItem[]}) => {
 
               {/* Dual progress representation */}
               <View className="mb-3 gap-2">
-                <View>
+                {item.st !== undefined && (<View>
                   <View className="flex-row justify-between mb-1">
                     <AppText size="xs" className="text-slate-500">
                       ST - {convertToASINUnits(item.st)}
@@ -603,7 +607,7 @@ const MonthlyDataTiles = ({data}: {data: MonthlyPerformanceItem[]}) => {
                       style={{width: `${Math.min(item.stPct, 100)}%`}}
                     />
                   </View>
-                </View>
+                </View>)}
                 <View>
                   <View className="flex-row justify-between mb-1">
                     <AppText size="xs" className="text-slate-500">
@@ -644,6 +648,7 @@ export const TargetAchievementCard = ({
   achievement,
   isLoading = false,
   monthlyData,
+  isT3Partner = false,
 }: TargetAchievementProps) => {
   const percentage = target ? Math.round((achievement / target) * 100) : 0;
 
@@ -720,7 +725,7 @@ export const TargetAchievementCard = ({
         </View>
         <View className="w-px bg-gray-200 mx-3 border-1 h-full mt-3" />
         {monthlyData && monthlyData.length > 0 && (
-          <MonthlyDataTiles data={monthlyData} />
+          <MonthlyDataTiles data={monthlyData} isT3Partner={isT3Partner} />
         )}
       </View>
     </Card>

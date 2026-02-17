@@ -506,6 +506,8 @@ export default function Dashboard_Partner({
       setIsRefreshing(false);
     }
   }, [refetchDashboard]);
+  
+  const isT3Partner = useMemo(() => dashboardData?.Table?.[0]?.EMP_Type === ASUS.PARTNER_TYPE.T3.T3, [dashboardData]);
 
   const handleSeeMore = (data: any) => {
     const source = data || dashboardData;
@@ -516,12 +518,12 @@ export default function Dashboard_Partner({
           key.toLowerCase().startsWith('top'),
         ),
       ),
+      isT3Partner: isT3Partner,
     };
     navigation.push('ActPerformance', dataToSend);
   };
 
   const isDataEmpty = !isLoading && !dashboardData;
-  console.log('Dashboard Data:', dashboardData);
   return (
     <ScrollView
       className={clsx(
@@ -539,7 +541,9 @@ export default function Dashboard_Partner({
           title="Pull to refresh"
           titleColor="#6B7280"
         />
-      }>
+      }
+       scrollEventThrottle={16}
+      >
       {!noBanner && <BannerComponent />}
       {DifferentEmployeeName && (
         <Card className="p-4 rounded-2xl bg-blue-50 border border-blue-200">
@@ -638,6 +642,7 @@ export default function Dashboard_Partner({
             achievement={achievementData.achievement}
             isLoading={isLoading}
             monthlyData={dashboardData?.TRGTSummaryMonth}
+            isT3Partner={isT3Partner}
           />
           <ActivationPerformanceComponent
             tabs={tabLabels}
@@ -648,6 +653,7 @@ export default function Dashboard_Partner({
             name="Total"
             quarter={selectedQuarter?.value || ''}
             handleSeeMore={handleSeeMore}
+            isT3Partner={isT3Partner}
           />
           {!noAnalytics && (
             <PartnerAnalytics

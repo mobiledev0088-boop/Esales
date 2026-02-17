@@ -146,7 +146,7 @@ type AppNavigationParamList = {
     [key: string]: any;
   };
   TargetSummary: {masterTab: string; Quarter: string, button: 'seemore' | 'disti',wise: 'POD' | 'SELL'};
-  TargetSummaryPartner: {Year_Qtr:string; AlpType: string, Branch: string};
+  TargetSummaryPartner: {Year_Qtr:string; AlpType: string, Branch: string, Territory?: string};
   TargetDemoPartner: {differentEmployeeCode: string};
   VerticalASE : {
     aseData: any;

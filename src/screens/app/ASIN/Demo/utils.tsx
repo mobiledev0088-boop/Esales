@@ -641,7 +641,6 @@ export const transformDemoDataROI = (
   /* ---------- Normalize output ---------- */
   const data = Array.from(groupMap.values()).map(group => {
     const stats = Table1.find(stat => stat.BranchName === group.state);
-    console.log('Stats for group', group.state, stats);
     return({
     ...group,
       out_of_act: stats ? stats.Total_Active_Store_Count : 0,
