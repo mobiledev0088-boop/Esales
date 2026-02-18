@@ -10,7 +10,7 @@ import {useState, useMemo, useCallback, useEffect, useRef} from 'react';
 import Card from '../../../../../components/Card';
 import AppText from '../../../../../components/customs/AppText';
 import AppInput from '../../../../../components/customs/AppInput';
-import AppDropdown from '../../../../../components/customs/AppDropdown';
+import AppDropdown, { AppDropdownItem } from '../../../../../components/customs/AppDropdown';
 import {DatePickerInput} from '../../../../../components/customs/AppDatePicker';
 import AppButton from '../../../../../components/customs/AppButton';
 import AppIcon from '../../../../../components/customs/AppIcon';
@@ -78,6 +78,16 @@ export default function AddRollingFunnel() {
   const layoutRef = useRef<AppLayoutRef | null>(null);
 
   const {data: dropdownData, isLoading} = useGetDropdownData();
+
+  const seriseList = useMemo(() => {
+    if(!dropdownData?.ProductSeriesNameList && formData.productLine) return [];
+    const arr = dropdownData?.ProductSeriesNameList?.filter((item:any) => item.PD_HQName === formData.productLine).map((item:any) => item.Series_Name) || [];
+    return arr.map((item: AppDropdownItem) => ({
+      label: item,
+      value: item,
+    }));
+
+  }, [dropdownData?.ProductSeriesNameList, formData.productLine]);
   const {data: accountDropdownData, isLoading: isAccountLoading} =
     useGetAccountDropdownList(formData.ownerDivision);
   const {
@@ -620,12 +630,12 @@ export default function AddRollingFunnel() {
                         <AppIcon
                           type="feather"
                           name="plus-circle"
-                          size={16}
+                          size={18}
                           color="#3B82F6"
                         />
                         <AppText
-                          size="sm"
-                          className="text-blue-500 ml-1 font-medium">
+                          weight='medium'
+                          className="text-blue-500 ml-1 ">
                           Add New Indirect Account
                         </AppText>
                       </TouchableOpacity>
@@ -664,7 +674,8 @@ export default function AddRollingFunnel() {
                         />
                         <AppText
                           size="sm"
-                          className="text-red-500 ml-1 font-medium">
+                          weight="medium"
+                          className="text-red-500 ml-1">
                           Cancel
                         </AppText>
                       </TouchableOpacity>
@@ -723,11 +734,11 @@ export default function AddRollingFunnel() {
                       <AppIcon
                         type="feather"
                         name="plus-circle"
-                        size={16}
+                        size={18}
                         color="#3B82F6"
                       />
                       <AppText
-                        size="sm"
+                      weight='medium'
                         className="text-blue-500 ml-1 font-medium">
                         Add New End Customer
                       </AppText>
@@ -897,7 +908,7 @@ export default function AddRollingFunnel() {
               <AppDropdown
                 label="Quoted Product"
                 placeholder={isLoading ? 'Loading...' : 'Select Quoted Product'}
-                data={dropdownData?.ProductSeriesNameList || []}
+                data={seriseList || []}
                 selectedValue={formData.quotedProduct}
                 onSelect={item =>
                   updateField('quotedProduct', item?.value || '')

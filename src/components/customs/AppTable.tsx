@@ -22,7 +22,7 @@ type AppTableProps<T> = {
     cellTextColor?: string;
     tableBgColor?: string;
     zebraRow?: boolean;
-    watermarkText?: string;
+    watermarkText?: boolean;
     watermarkTextOpacity?: number;
     watermarkTextVerticalCount?: number;
     watermarkTextHorizontalCount?: number;
@@ -40,7 +40,7 @@ export function AppTable<T>({
     cellTextColor = 'text-black',
     tableBgColor = 'bg-white',
     zebraRow = false,
-    watermarkText,
+    watermarkText= true,
     watermarkTextOpacity = 0.2,
     watermarkTextVerticalCount = 1,
     watermarkTextHorizontalCount = 1,
@@ -81,9 +81,8 @@ export function AppTable<T>({
                     </View>
 
                     {/* Watermark */}
-                    {watermarkText && (
+                    {/* {watermarkText && (
                         <Watermark
-                            text={watermarkText}
                             opacity={watermarkTextOpacity}
                             verticalCount={watermarkTextVerticalCount}
                             horizontalCount={watermarkTextHorizontalCount}
@@ -92,7 +91,7 @@ export function AppTable<T>({
                             textSize={watermarkTextSize}
                             textWeight={watermarkTextWeight}
                         />
-                    )}
+                    )} */}
 
                     {/* Rows */}
                     {data.map((item, rowIndex) => {
@@ -111,11 +110,13 @@ export function AppTable<T>({
                                         style={{ width: columnWidths[colIndex] }}
                                         className="pr-1 border-r border-gray-100"
                                     >
+                                        {/* <Watermark/>  */}
                                         <AppText className={twMerge(clsx('p-2', cellTextColor))}>
                                             {col.render ? col.render(item[col.key], item) : String(item[col.key])}
                                         </AppText>
                                     </View>
                                 ))}
+                                 <Watermark/>
                             </View>
                         );
                     })}

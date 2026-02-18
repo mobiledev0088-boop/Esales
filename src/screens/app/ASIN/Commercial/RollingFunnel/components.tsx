@@ -374,12 +374,15 @@ const SwipeableWrapper = ({
           className="w-20 bg-red-500 items-center justify-center">
           <View className="w-12 h-12 rounded-full bg-white/20 items-center justify-center">
             <AppIcon
-              type="material-community"
+              type="antdesign"
               name="close"
               size={28}
               color="#fff"
             />
           </View>
+          <AppText weight="semibold" size="xs" className="text-white mt-1">
+            Close
+          </AppText>
         </TouchableOpacity>
       </View>
 

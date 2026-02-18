@@ -24,6 +24,7 @@ import {handleASINApiCall} from '../../../../../../utils/handleApiCall';
 import {getDeviceId} from 'react-native-device-info';
 import {queryClient} from '../../../../../../stores/providers/QueryProvider';
 import {SheetManager} from 'react-native-actions-sheet';
+import { twMerge } from 'tailwind-merge';
 
 interface ImageTypeData {
   ImageType: string;
@@ -304,6 +305,7 @@ export default function UploadGalleryReview() {
                   </TouchableOpacity>
                 )}
               </View>
+              <View className={twMerge('flex-row items-center justify-between',!foundReference && 'justify-end')}>
               {!!foundReference && (
                 <TouchableOpacity
                   onPress={() =>
@@ -318,6 +320,10 @@ export default function UploadGalleryReview() {
                   </AppText>
                 </TouchableOpacity>
               )}
+              <AppText size="sm" color="primary" className="mt-1">
+                {item.Image_Links.length}/5 
+              </AppText>
+              </View>
             </Card>
           );
         })}

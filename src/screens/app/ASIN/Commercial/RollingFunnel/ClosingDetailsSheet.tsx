@@ -273,12 +273,12 @@ const ClosingDetailsSheet: React.FC = () => {
                   setValue={value => handleChange('CloseDescription', value)}
                   label="Close Description"
                   placeholder="Enter closing description"
-                  multiline
-                  numberOfLines={4}
+                  // multiline
+                  // numberOfLines={4}
                   variant="border"
                   size="md"
                   containerClassName="bg-white dark:bg-gray-800"
-                  inputWrapperStyle={{height: 100, alignItems: 'flex-start'}}
+                  // inputWrapperStyle={{height: 100, alignItems: 'flex-start'}}
                   style={{textAlignVertical: 'top'}}
                 />
               </View>

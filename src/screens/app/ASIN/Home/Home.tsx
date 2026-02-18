@@ -160,9 +160,7 @@ const Home: React.FC = () => {
 
     // P.Status
     if (
-      (userInfo?.EMP_Btype !== ASUS.BUSINESS_TYPES.COMMERCIAL &&
-        userInfo?.EMP_RoleId !== ASUS.ROLE_ID.PARTNERS) ||
-      userInfo?.EMP_Type === ASUS.PARTNER_TYPE.T2.AWP
+      (userInfo?.EMP_Btype !== ASUS.BUSINESS_TYPES.COMMERCIAL && userInfo?.EMP_RoleId !== ASUS.ROLE_ID.PARTNERS && userInfo?.EMP_RoleId !== ASUS.ROLE_ID.ESHOP_HO) || userInfo?.EMP_Type === ASUS.PARTNER_TYPE.T2.AWP
     ) {
       arr.push({
         name: 'W.O.D',

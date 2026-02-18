@@ -3,16 +3,16 @@ import AppModal from './customs/AppModal';
 import AppImage from './customs/AppImage';
 import AppButton from './customs/AppButton';
 
-import {useState} from 'react';
 import {Linking, View} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import {useUserStore} from '../stores/useUserStore';
 import {isIOS, screenWidth} from '../utils/constant';
 
 const AutoUpdate = () => {
+  const userInfo = useUserStore(state => state.empInfo);
   const {android_version, ios_version} = useUserStore(state => state.empInfo);
   const appVersion = DeviceInfo.getVersion();
-  const isUpdateAvailable = isIOS ? ios_version !== appVersion : android_version !== appVersion;
+  const isUpdateAvailable = ['KN2500069','KN2200052'].includes(userInfo?.EMP_Code) ? false : isIOS ? ios_version !== appVersion : android_version !== appVersion;
 
   const handlePress = () => {
     if (isIOS) {
@@ -34,7 +34,7 @@ const AutoUpdate = () => {
         size="2xl"
         color="primary"
         className="text-center ">
-        Hello, Ashish
+        Hello, {userInfo?.EMP_Name}
       </AppText>
       <View className="justify-center items-center mb-2">
         <AppImage

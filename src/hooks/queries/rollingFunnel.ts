@@ -43,12 +43,9 @@ export const useGetDropdownData = () => {
         CategoryList: formatUnique(CategoryList, 'Id', 'Sector'),
         StageList: formatUnique(StageList, 'Id', 'Stage'),
         WinRateList: formatUnique(WinRateList, 'Id', 'WinRate_Display'),
-        ProductLine: formatUnique(ProductLine, 'PD_HQName'),
+        ProductLine: formatUnique(ProductLine, 'Id','PD_HQName'),
         MainIndustryList: formatUnique(MainIndustryList, 'Main_Industry'),
-        ProductSeriesNameList: formatUnique(
-          ProductSeriesNameList,
-          'Series_Name',
-        ),
+        ProductSeriesNameList: ProductSeriesNameList,
         EndCustomerList: formatUnique(
           EndCustomerList,
           'End_Customer_CompanyID',
@@ -117,7 +114,7 @@ export const useGetAccountDropdownList = (BranchName: string) => {
 
 export const useGetIndirectAccountList = (BranchName: string) => {
   return useQuery({
-    queryKey: ['rollingFunnelDropdownData', BranchName],
+    queryKey: ['rollingFunnelDropdownDataIndirect', BranchName],
     enabled: !!BranchName,
     queryFn: async () => {
       const response = await handleASINApiCall(

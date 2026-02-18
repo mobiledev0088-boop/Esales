@@ -136,7 +136,7 @@ const AppInput = forwardRef<TextInput, CustomInputProps>(({
                     secureTextEntry={hidePassword}
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
-                    className={twMerge('flex-1 text-gray-900 dark:text-gray-100 font-manropeMedium ', isDisabled && 'text-gray-400', inputClassName)}
+                    className={twMerge('flex-1 text-gray-900 dark:text-gray-100 font-manropeMedium pl-2', isDisabled && 'text-gray-400', inputClassName)}
                     editable={!isDisabled}
                     // for screen readers
                     accessibilityLabel={label}

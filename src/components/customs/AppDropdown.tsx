@@ -316,6 +316,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
           }}
           disabledItemLabelStyle={{color: theme.text + '40'}}
           theme={AppTheme === 'dark' ? 'DARK' : 'LIGHT'}
+           dropDownDirection="BOTTOM"
         />
       </View>
       {error && (
