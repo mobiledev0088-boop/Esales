@@ -108,8 +108,8 @@ export default function AddRollingFunnel() {
       ...prev,
       // Page 1
       ownerDivision: editData.Opportunity_Owner_Division || prev.ownerDivision,
-      accountName: editData.Direct_Account || prev.accountName,
-      indirectAccount: editData.Indirect_Account || prev.indirectAccount,
+      accountName: editData.Direct_Account_Id || prev.accountName,
+      indirectAccount: editData.Indirect_Account_Id || prev.indirectAccount,
       newIndirectPartnerName: '', // Reset for edit mode
       newIndirectPartnerGST: '', // Reset for edit mode
       endCustomer: editData.End_Customer_CompanyID || prev.endCustomer,
@@ -117,17 +117,17 @@ export default function AddRollingFunnel() {
       endCustomerTam:
         editData.End_Customer_TAM?.toString?.() || prev.endCustomerTam,
       category: editData.Category_Id || prev.category,
-      mainIndustry: editData.Main_Industry_Id || prev.mainIndustry,
-      standardIndustry: editData.Standard_Industry_Id || prev.standardIndustry,
+      mainIndustry: editData.Main_Industry || prev.mainIndustry,
+      standardIndustry: editData.Standard_Industry || prev.standardIndustry,
       stage: editData.Stage_Id || prev.stage,
       winRate: editData.Win_Rate_Id  || prev.winRate,
       // Page 2
       productLine: editData.Product_Line || prev.productLine,
-      quotedProduct: editData.Quoted_Product || prev.quotedProduct,
-      product: editData.Product || prev.product,
+      quotedProduct: editData.Series_Name || prev.quotedProduct,
+      product: editData.Model_Name || prev.product,
       newProduct: '', // Reset for edit mode
-      qty: editData.Qty?.toString?.() || prev.qty,
-      description: editData.Description || prev.description,
+      qty: String(editData.Quantity || '')|| prev.qty,
+      description: editData.Overall_Description || prev.description,
       CRADDate: editData.CRAD_Date ? new Date(editData.CRAD_Date) : prev.CRADDate,
     }));
     // Ensure dependent UI states are consistent in edit mode
@@ -135,6 +135,8 @@ export default function AddRollingFunnel() {
     setIsAddingNewEndCustomer(false);
     setIsAddingNewModel(editData.Product === OTHERS);
   }, [isEditMode, editData]);
+
+
 
   const updateField = useCallback((field: keyof FormData, value: any) => {
     setFormData(prev => {
@@ -906,14 +908,14 @@ export default function AddRollingFunnel() {
               />
 
               <AppDropdown
-                label="Quoted Product"
+                label="Quoted Product: Series"
                 placeholder={isLoading ? 'Loading...' : 'Select Quoted Product'}
                 data={seriseList || []}
                 selectedValue={formData.quotedProduct}
                 onSelect={item =>
                   updateField('quotedProduct', item?.value || '')
                 }
-                mode="dropdown"
+                mode="autocomplete"
                 required
                 error={errors.quotedProduct}
                 disabled={isLoading}
@@ -929,7 +931,7 @@ export default function AddRollingFunnel() {
                   data={dependentDropdownData?.ProductSeriesNameList || []}
                   selectedValue={formData.product}
                   onSelect={item => updateField('product', item?.value || '')}
-                  mode="dropdown"
+                  mode="autocomplete"
                   required
                   error={errors.product}
                   disabled={

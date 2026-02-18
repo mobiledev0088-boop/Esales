@@ -176,6 +176,12 @@ export const DatePickerInput = ({
   const [selectedEndDate, setSelectedEndDate] = useState<DateState>(initialEndDate || undefined);
   const [selectedTime, setSelectedTime] = useState<TimeState>(initialTime || undefined);
 
+  useEffect(() => {
+    if (mode === 'date' && initialDate && !selectedDate) {
+      setSelectedDate(initialDate);
+    }
+  }, [mode, initialDate, selectedDate]);
+
   const isDarkTheme = theme === 'dark';
 
   const formatDate = useCallback((date: Date) => {
@@ -323,8 +329,10 @@ export const DatePickerInput = ({
   const placeholderText = getPlaceholderText();
 
   useEffect(() => {
-    if (!initialStartDate && !initialEndDate) reset();
-  }, [initialStartDate, initialEndDate]);
+    if (mode === 'dateRange' || mode === 'month') {
+      if (!initialStartDate && !initialEndDate) reset();
+    }
+  }, [mode, initialStartDate, initialEndDate]);
 
   const reset = () => {
     setSelectedDate(undefined);
