@@ -37,6 +37,7 @@ const OTHERS = 'OTHERS';
 
 const initialFormData: FormData = {
   // Page 1
+  Funnel_type: 'Rolling_Funnel',
   ownerDivision: '',
   accountName: '',
   indirectAccount: '',
@@ -129,6 +130,8 @@ export default function AddRollingFunnel() {
       qty: String(editData.Quantity || '')|| prev.qty,
       description: editData.Overall_Description || prev.description,
       CRADDate: editData.CRAD_Date ? new Date(editData.CRAD_Date) : prev.CRADDate,
+      // Funnel type is not editable, but we set it here to ensure consistency in the payload
+      Funnel_type: editData.Funnel_Type || prev.Funnel_type,
     }));
     // Ensure dependent UI states are consistent in edit mode
     setIsAddingNewIndirect(false);
