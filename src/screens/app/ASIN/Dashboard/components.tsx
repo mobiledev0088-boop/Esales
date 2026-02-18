@@ -260,7 +260,7 @@ export const BannerComponent = ({}) => {
 
   const handleBannerPress = useCallback(
     (item: any) => {
-      if (item.BannerURL_Link?.includes('Summary')) {
+      if (item.BannerURL_Link?.includes('Summary')|| item.BannerURL_Link?.includes('KV')) {
         navigation.navigate('Schemes');
       } else if (!item?.BannerURL_Link?.endsWith('pdf')) {
         console.log('Opening link:', item?.BannerURL_Link);
