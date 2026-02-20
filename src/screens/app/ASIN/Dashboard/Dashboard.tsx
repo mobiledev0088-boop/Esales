@@ -26,7 +26,10 @@ import {
   DashboardSkeleton,
 } from '../../../../components/skeleton/DashboardSkeleton';
 
-import {useDashboardBanner, useDashboardData} from '../../../../hooks/queries/dashboard';
+import {
+  useDashboardBanner,
+  useDashboardData,
+} from '../../../../hooks/queries/dashboard';
 
 import {
   HeaderProps,
@@ -164,6 +167,8 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
   const navigation = useNavigation<AppNavigationProp>();
   const AppTheme = useThemeStore(state => state.AppTheme);
   const darkMode = AppTheme === 'dark';
+  const {SALES_REPS} = ASUS.ROLE_ID;
+  const isSALES_REPS = userInfo?.EMP_RoleId === SALES_REPS;
 
   const handleDistributorWisePress = useCallback((wise: 'POD' | 'SELL') => {
     navigation.push('TargetSummary', {
@@ -175,13 +180,23 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
   }, []);
 
   const handleSeeMorePress = useCallback((wise: 'POD' | 'SELL') => {
-    navigation.push('TargetSummary', {
-      masterTab: tabName,
-      Quarter: quarter,
-      button: 'seemore',
-      wise: wise,
-    });
-  }, []);
+    if (isSALES_REPS) {
+      const Territory = empInfo?.Territory_Name || '';
+      return navigation.push('TargetSummaryPartner', {
+        AlpType: tabName,
+        Branch: '',
+        Territory: Territory,
+        Year_Qtr: quarter,
+      });
+    } else {
+      navigation.push('TargetSummary', {
+        masterTab: tabName,
+        Quarter: quarter,
+        button: 'seemore',
+        wise: wise,
+      });
+    }
+  }, [isSALES_REPS, empInfo?.Territory_Name, tabName, quarter, navigation]);
 
   const renderProductCard = useCallback(
     (
@@ -191,6 +206,7 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
       onPress?: (item: ProductCategoryData) => void,
     ) => {
       const config = getProductConfig(item.Product_Category);
+      console.log
       return (
         <TouchableOpacity
           disabled={!onPress}
@@ -214,42 +230,46 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
                 </AppText>
               </View>
               <CircularProgressBar
-                progress={item.Percent || 0}
+                progress={isSALES_REPS ? 100 : item.Percent || 0}
                 progressColor={config.color}
                 size={70}
                 strokeWidth={6}
                 duration={1000 + animationDelay}
+                value={isSALES_REPS ? String(item.Achieved_Qty) : undefined}
               />
-              <View className="mt-3 flex-row items-center justify-between ">
-                <View className="flex-1 items-start">
-                  <AppText size="sm" className="text-gray-400 ">
-                    Target
-                  </AppText>
-                  <AppText size="sm" weight="semibold">
-                    {convertToASINUnits(item.Target_Qty || 0, true)}
-                  </AppText>
+              {!isSALES_REPS && (
+                <View className="mt-3 flex-row items-center justify-between ">
+                  <View className="flex-1 items-start">
+                    <AppText size="sm" className="text-gray-400 ">
+                      Target
+                    </AppText>
+                    <AppText size="sm" weight="semibold">
+                      {convertToASINUnits(item.Target_Qty || 0, true)}
+                    </AppText>
+                  </View>
+                  <View className="flex-1 items-end">
+                    <AppText size="xs" className="text-gray-400 ">
+                      Achieved
+                    </AppText>
+                    <AppText size="sm" weight="semibold">
+                      {convertToASINUnits(item.Achieved_Qty || 0, true)}
+                    </AppText>
+                  </View>
                 </View>
-                <View className="flex-1 items-end">
-                  <AppText size="xs" className="text-gray-400 ">
-                    Achieved
-                  </AppText>
-                  <AppText size="sm" weight="semibold">
-                    {convertToASINUnits(item.Achieved_Qty || 0, true)}
-                  </AppText>
-                </View>
-              </View>
+              )}
             </View>
           </Card>
         </TouchableOpacity>
       );
     },
-    [],
+    [isSALES_REPS],
   );
   // Determine if Distributor Wise button should be shown
   const needDistributorAccess = ![
     ASUS.ROLE_ID.DISTRIBUTORS,
     ASUS.ROLE_ID.DISTI_HO,
     ASUS.ROLE_ID.LFR_HO,
+    ASUS.ROLE_ID.SALES_REPS,
   ].includes(userInfo?.EMP_RoleId as any);
 
   const renderActionButtons = useCallback(
@@ -298,7 +318,12 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
         </TouchableOpacity>
       </View>
     ),
-    [handleDistributorWisePress, handleSeeMorePress],
+    [
+      handleDistributorWisePress,
+      handleSeeMorePress,
+      needDistributorAccess,
+      darkMode,
+    ],
   );
 
   if (error) {
@@ -362,32 +387,33 @@ const TargetVsAchievementComponent: React.FC<TargetVsAchievementProps> = ({
       </AppText>
 
       {/* POD Wise Section */}
-      <View className="mt-3">
-        <View className="flex-row items-center pl-3 ">
-          <View className="rounded-full bg-emerald-100 p-2">
-            <AppIcon
-              type="material-community"
-              name="watermark"
-              size={20}
-              color="#10b981"
-            />
+      {userInfo.EMP_RoleId !== ASUS.ROLE_ID.SALES_REPS && (
+        <View className="mt-3">
+          <View className="flex-row items-center pl-3 ">
+            <View className="rounded-full bg-emerald-100 p-2">
+              <AppIcon
+                type="material-community"
+                name="watermark"
+                size={20}
+                color="#10b981"
+              />
+            </View>
+            <AppText size="md" color="gray" weight="semibold" className="pl-3">
+              POD Wise
+            </AppText>
           </View>
-          <AppText size="md" color="gray" weight="semibold" className="pl-3">
-            POD Wise
-          </AppText>
+          <ScrollView
+            horizontal
+            contentContainerClassName="gap-3 py-2 px-3"
+            className="mt-2"
+            showsHorizontalScrollIndicator={false}>
+            {data.PODwise.map((item, index) =>
+              renderProductCard(item, index, index * 100),
+            )}
+          </ScrollView>
+          {renderActionButtons('POD')}
         </View>
-
-        <ScrollView
-          horizontal
-          contentContainerClassName="gap-3 py-2 px-3"
-          className="mt-2"
-          showsHorizontalScrollIndicator={false}>
-          {data.PODwise.map((item, index) =>
-            renderProductCard(item, index, index * 100),
-          )}
-        </ScrollView>
-        {renderActionButtons('POD')}
-      </View>
+      )}
 
       {/* Sell Through Section */}
       <View className="mt-5">
@@ -971,13 +997,13 @@ const DistiSelloutQtyComponent: React.FC<{
  * Dashboard Container Component - Main dashboard logic and data management
  */
 const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
+  const navigation = useNavigation<AppNavigationProp>();
   const userInfo = useLoginStore(state => state.userInfo);
   const quarters = useMemo(() => getPastQuarters(), []);
   const [selectedQuarter, setSelectedQuarter] =
     useState<AppDropdownItem | null>(quarters[0] || null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const {
-    AM,
     BPM,
     BSM,
     CHANNEL_MARKETING,
@@ -986,8 +1012,9 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
     DIR_HOD_MAN,
     TM,
     RSM,
-    SALES_REPS
+    SALES_REPS,
   } = ASUS.ROLE_ID;
+  const isSALES_REPS = userInfo?.EMP_RoleId === SALES_REPS;
   const isBranchManager = useMemo(() => {
     return [BSM, BPM].includes(userInfo?.EMP_RoleId as any);
   }, [userInfo?.EMP_RoleId]);
@@ -998,7 +1025,7 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
     error: dashboardError,
     refetch: refetchDashboard,
   } = useDashboardData(selectedQuarter?.value || '', route.name);
-    const {refetch} = useDashboardBanner();
+  const {refetch} = useDashboardBanner();
   // Process sales data
   const salesData: SalesHeaderData | undefined = useMemo(() => {
     const masterTabItem = dashboardData?.MasterTab?.find(
@@ -1107,6 +1134,18 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
       setIsRefreshing(false);
     }
   }, [refetchDashboard]);
+
+  const handleSeeMore = () => {
+    const source = dashboardData;
+    const dataToSend = {
+      ...Object.fromEntries(
+        Object.entries(source).filter(([key]) =>
+          key.toLowerCase().startsWith('top'),
+        ),
+      ),
+    };
+    navigation.push('ActPerformance', dataToSend);
+  };
   return (
     <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
       <ScrollView
@@ -1152,6 +1191,7 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
             onRetry={handleRetry}
             name={route.name}
             quarter={selectedQuarter?.value || ''}
+            handleSeeMore={SALES_REPS ? handleSeeMore : undefined}
           />
         </View>
         {[DIR_HOD_MAN, HO_EMPLOYEES, COUNTRY_HEAD].includes(
@@ -1173,10 +1213,10 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
             />
           )}
 
-        {['Total', 'CHANNEL'].includes(route.name) &&
+        {(['Total', 'CHANNEL'].includes(route.name) &&
           ![ASUS.ROLE_ID.DISTI_HO, ASUS.ROLE_ID.DISTRIBUTORS].includes(
             userInfo?.EMP_RoleId as any,
-          ) && (
+          )  || isSALES_REPS)&& (
             <PartnerAnalyticsComponent
               data={partnerData}
               isLoading={isLoading}
