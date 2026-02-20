@@ -63,6 +63,7 @@ const useValidateMutation = () => {
 const useUploadMutation = () => {
   return useMutation({
     mutationFn: async (dataToSend: any) => {
+      console.log('Uploading Demo Form Data:', dataToSend);
       const res = await handleASINApiCall(
         '/DemoForm/SubmitDemoFormData',
         dataToSend,
@@ -73,6 +74,7 @@ const useUploadMutation = () => {
       if (!result.Status) {
         throw new Error(result.Message || 'Upload failed');
       }
+      console.log('Upload Response:', result);
       return result;
     },
     onError: (error: any) => {

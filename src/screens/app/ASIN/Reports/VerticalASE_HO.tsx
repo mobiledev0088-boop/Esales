@@ -255,8 +255,8 @@ const PartnerCard = memo(
     const handlePress = useCallback(() => {
       console.log('Navigating to TargetPartnerDashboard with AGP_Code:', partner);
       if(partner.IchannelID){
-        let {IchannelID,ASE_Name} = partner;
-         navigation.push('TargetASEDashboard', {partner: {IchannelID,ASE_Name}});
+        let {IchannelID,ASE_Name,Partner_Code} = partner;
+         navigation.push('TargetASEDashboard', {partner: {IchannelID,ASE_Name,Partner_Code}});
       }else{
         let AGP_Code = partner.Partner_Code;
         navigation.push('TargetPartnerDashboard', {partner: {AGP_Code}});

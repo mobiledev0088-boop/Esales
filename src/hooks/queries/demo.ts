@@ -261,7 +261,7 @@ export const useGetDemoCategoriesRet = (yearQtr: string) => {
   };
 
   return useQuery({
-    queryKey: ['demoCategories', yearQtr],
+    queryKey: ['demoCategoriesRet', yearQtr],
     queryFn: async () => {
       const response = await handleASINApiCall(
         '/DemoForm/GetPartnerDemoCategoryList_Retailer',
@@ -278,7 +278,32 @@ export const useGetDemoCategoriesRet = (yearQtr: string) => {
       }));
     },
     enabled: !!yearQtr,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+};
+
+export const useGetDemoCategoriesLFR = (yearQtr: string) => {
+  const queryPayload = {
+    YearQtr: yearQtr,
+  };
+
+  return useQuery({
+    queryKey: ['demoCategoriesLFR', yearQtr],
+    queryFn: async () => {
+      const response = await handleASINApiCall(
+        '/DemoForm/GetPartnerDemoCategoryList_LFR_New',
+        queryPayload,
+      );
+      const result = response?.demoFormData;
+      if (!result?.Status) {
+        throw new Error('Failed to fetch categories');
+      }
+      const categories = result.Datainfo?.Table || [];
+      return categories.map((item: {Demo_Category: string; Demo_Category_Value: string}) => ({
+        label: item.Demo_Category,
+        value: item.Demo_Category_Value,
+      }));
+    },
+    enabled: !!yearQtr,
   });
 };
 

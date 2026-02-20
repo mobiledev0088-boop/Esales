@@ -8,11 +8,14 @@ import AppIcon from '../../../../components/customs/AppIcon';
 import AppInput from '../../../../components/customs/AppInput';
 import FilterSheet from '../../../../components/FilterSheet';
 import { useDebounce } from '../../../../hooks/useDebounce';
+
 interface DemoFilterPayload {
-  filters: Record<string, string | number | null>;
+  filters: Record<string, string | number | null | string[]>;
   data: Record<string, Array<{label: string; value: string | number}>>;
+  compulsory?: Array<keyof DemoFilterPayload['filters']>;
+  multiSelect?: Array<keyof DemoFilterPayload['filters']>; // Fields that support multiple selection
   loading: boolean;
-  onApply?: (filters: Record<string, string | number | null>) => void;
+  onApply?: (filters: Record<string, string | number | null | string[]>) => void;
   onReset?: () => void;
 }
 
@@ -95,7 +98,7 @@ const CheckboxRow = memo(
 export default function DemoFilterSheet() {
   const payload = (useSheetPayload?.() || {}) as DemoFilterPayload;
   const isDarkTheme = useThemeStore(state => state.AppTheme === 'dark');
-  const [filters, setFilters] = useState<Record<string, string | number | null>>(
+  const [filters, setFilters] = useState<Record<string, string | number | null | string[]>>(
     payload.filters || {},
   );
   const [searchTexts, setSearchTexts] = useState<Record<string, string>>({});
@@ -103,18 +106,33 @@ export default function DemoFilterSheet() {
   const datList = payload.data || {};
   const isLoading = payload.loading;
 
-  const activeCount = useMemo(() =>Object.values(filters).filter(value => value != null && value !== '').length,[filters])
-  console.log('DemoFilterSheet - filters', filters);
+  const activeCount = useMemo(() =>
+    Object.values(filters).filter(value => {
+      if (Array.isArray(value)) return value.length > 0;
+      return value != null && value !== '';
+    }).length,
+  [filters]);
+  
   const groups = useMemo(
-    () => Object.keys(filters).map(key => ({
+    () => Object.keys(filters).map(key => {
+      const value = filters[key];
+      const hasValue = Array.isArray(value) 
+        ? value.length > 0 
+        : value !== '' && value != null;
+      
+      return {
         key,
-        label: key === 'compulsory' ? 'Demo Status' : key
-          .replace(/([A-Z])/g, ' $1')
-          .replace(/^./, str => str.toUpperCase()),
+        label: key === 'compulsory' ? 'Demo Status' : 
+               key === 'lfrType' ? 'LFR Type' :
+               key === 'partnerType' ? 'Partner Type' :
+               key
+                 .replace(/([A-Z])/g, ' $1')
+                 .replace(/^./, str => str.toUpperCase()),
         data: datList[key] || [],
-        hasValue: filters[key] !== '' && filters[key] != null,
-      })),
-    [filters],
+        hasValue,
+      };
+    }),
+    [filters, datList],
   );
   const [group, setGroup] = useState<Group>(groups[0].key);
 
@@ -136,33 +154,60 @@ export default function DemoFilterSheet() {
     ),[groups,group]);
 
   const toggleSelection = useCallback(
-    (item: string) => {
+    (item: string | number) => {
+      const isMultiSelect = payload.multiSelect?.includes(group as keyof DemoFilterPayload['filters']);
+      
       setFilters(prev => {
         const newFilters = {...prev};
-        if (newFilters[group] === item) {
-          newFilters[group] = null;
+        
+        if (isMultiSelect) {
+          // Multi-select mode: handle array
+          const currentValue = newFilters[group];
+          const currentArray = Array.isArray(currentValue) ? currentValue : [];
+          
+          if (currentArray.includes(item as string)) {
+            // Remove item if already selected
+            newFilters[group] = currentArray.filter(v => v !== item);
+          } else {
+            // Add item to selection
+            newFilters[group] = [...currentArray, item as string];
+          }
         } else {
-          newFilters[group] = item;
+          // Single-select mode: replace value
+          if (newFilters[group] === item) {
+            newFilters[group] = '';
+          } else {
+            newFilters[group] = item;
+          }
         }
+        
         return newFilters;
       });
     },
-    [group],
+    [group, payload.multiSelect],
   );
 
   const renderCheckbox = useCallback(
     ({item}: {item: any}) => {
       const itemValue = item.value;
       const itemLabel = item.label;
+      const isMultiSelect = payload.multiSelect?.includes(group as keyof DemoFilterPayload['filters']);
+      
+      // Check if selected: for multi-select check if in array, for single-select check equality
+      const currentValue = filters[group];
+      const isSelected = isMultiSelect
+        ? Array.isArray(currentValue) && currentValue.includes(itemValue)
+        : currentValue === itemValue;
+      
       return (
         <CheckboxRow
           label={String(itemLabel) || '—-'}
-          selected={filters[group] === itemValue}
+          selected={isSelected}
           onPress={() => toggleSelection(itemValue)}
         />
       );
     },
-    [filters, group, toggleSelection],
+    [filters, group, toggleSelection, payload.multiSelect],
   );
 
   const rightContent = useMemo(() => {
@@ -217,25 +262,38 @@ export default function DemoFilterSheet() {
             showsVerticalScrollIndicator={true}
           />
         )}
+        {payload.compulsory?.includes(group as keyof DemoFilterPayload['filters']) && (
+          <View className="p-3 border-t border-slate-200 dark:border-slate-600">
+            <AppText size="sm" className="text-red-500">
+              * This field is compulsory
+            </AppText>
+          </View>
+        ) }
       </View>
     );
   }, [filters, group, searchTexts, debouncedSearchTexts, isLoading, datList, groups, renderCheckbox]);
 
   const handleApply = useCallback(() => {
-    const result: Record<string, string | number | null> = {...filters};
+    const result: Record<string, string | number | null | string[]> = {...filters};
     payload.onApply?.(result);
     SheetManager.hide('DemoFilterSheet');
   }, [payload, filters]);
 
   const handleClearAll = useCallback(() => {
+    // Compulsory fields don't need to be cleared
     setFilters(prev => {
-      const newFilters: Record<string, string | number> = {};
+      const newFilters: Record<string, string | number | null | string[]> = {};
       Object.keys(prev).forEach(key => {
-        newFilters[key] = '';
+        if(payload.compulsory?.includes(key as keyof DemoFilterPayload['filters'])){
+          newFilters[key] = prev[key];
+        } else {
+          // Reset to appropriate empty value based on type
+          const isMultiSelect = payload.multiSelect?.includes(key as keyof DemoFilterPayload['filters']);
+          newFilters[key] = isMultiSelect ? [] : '';
+        }
       });
       return newFilters;
     });
-    payload.onReset?.();
   }, [payload]);
 
   const handleClose = useCallback(() => {

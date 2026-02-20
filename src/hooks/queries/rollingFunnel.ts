@@ -183,8 +183,8 @@ export const useAddNewRoolingFunnel = (formData: FormData) => {
 export const useEditRoolingFunnel = (formData: FormData,OpportunityID:string) => {
   const {EMP_Code} = useLoginStore(state => state.userInfo);
   const payload = {
-      OpportunityID: OpportunityID,
-      FunnelType: 'Rolling_Funnel',
+      OpportunityNumber: OpportunityID,
+      FunnelType: formData.Funnel_type || 'Rolling_Funnel',
       OpportunityOwnerDivision: formData.ownerDivision ||  0,
       OpportunityOwner: EMP_Code || '',
       DirectAccount: formData.accountName || 0,

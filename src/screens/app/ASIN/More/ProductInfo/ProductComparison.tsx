@@ -28,6 +28,253 @@ type RouteParams = {
   };
 };
 
+ const sections = [
+      {
+        id: 'general',
+        title: 'General',
+        fields: [
+          {
+            label: 'Series',
+            key: 'PD_product_line_id',
+          },
+          {
+            label: 'Color',
+            key: 'PD_color',
+          },
+          {
+            label: 'Form Factor',
+            key: 'PD_form_factor',
+          },
+          {
+            label: 'Chipset',
+            key: 'PD_chipset',
+          },
+          {
+            label: 'Made in India',
+            key: 'PD_Made_In_India',
+            formatter: (value: any) => value === 'Y' ? 'Yes' : 'No',
+          },
+          {
+            label: 'Included in Box',
+            key: 'PD_included_in_the_box',
+          },
+        ],
+      },
+      {
+        id: 'processor_graphics_memory',
+        title: 'Processor, Graphics & Memory',
+        fields: [
+          {
+            label: 'Processor Brand',
+            key: 'PD_processor',
+            formatter: (value: any) => value?.split(' ')[0] || value,
+          },
+          {
+            label: 'Processor Name',
+            key: 'PD_processor',
+            formatter: (value: any) => value?.split('(')[0] || value,
+          },
+          {
+            label: 'Processor Variant',
+            key: 'PD_processor',
+            formatter: (value: any) =>
+              value?.split('(')[1] ? `(${value.split('(')[1]}` : value,
+          },
+          {
+            label: 'Neural Processor',
+            key: 'PD_Neural_Processor',
+          },
+          {
+            label: 'Storage',
+            key: 'PD_storage_installed',
+          },
+          {
+            label: 'RAM',
+            key: 'PD_memory_installed',
+          },
+          {
+            label: 'Graphics',
+            key: 'PD_graphic',
+          },
+          {
+            label: 'Graphic Wattage',
+            key: 'PD_graphic_wattage',
+          },
+          {
+            label: 'Expansion Slot',
+            key: 'PD_expansion_slot',
+            formatter: (value: any) => value?.replace(/\n/g, ', ') || value,
+          },
+          {
+            label: 'Expandable RAM',
+            key: 'Empty_ExtraRAM',
+            formatter: (value: any) => value === 'Y' ? 'Yes' : 'No',
+          },
+          {
+            label: 'Expandable Storage',
+            key: 'ExtraEmpty_Storage_Slot',
+            formatter: (value: any) => value === '1x ' ? 'Yes' : 'No',
+          },
+        ],
+      },
+      {
+        id: 'operating_system',
+        title: 'Operating System',
+        fields: [
+          {
+            label: 'OS',
+            key: 'PD_operating_system',
+          },
+        ],
+      },
+      {
+        id: 'ports_slots',
+        title: 'Ports & Slots',
+        fields: [
+          {
+            label: 'Ports & Slots',
+            key: 'PD_interface',
+          },
+        ],
+      },
+      {
+        id: 'display_audio',
+        title: 'Display & Audio',
+        fields: [
+          {
+            label: 'Screen Size',
+            key: 'PD_display',
+          },
+          {
+            label: 'Screen Type',
+            key: 'PD_Screen_Type',
+          },
+          {
+            label: 'Refresh Rate',
+            key: 'PD_Refresh_Rate',
+          },
+          {
+            label: 'Touchscreen Display',
+            key: 'PD_Display_Touch',
+          },
+          {
+            label: 'Audio',
+            key: 'PD_audio',
+          },
+        ],
+      },
+      {
+        id: 'connectivity',
+        title: 'Connectivity Features',
+        fields: [
+          {
+            label: 'Wireless LAN',
+            key: 'PD_wireless_connectivity',
+            formatter: (value: any) => value?.split('+')[0] || value,
+          },
+          {
+            label: 'Bluetooth',
+            key: 'PD_wireless_connectivity',
+            formatter: (value: any) => value?.split('+')[1] || value,
+          },
+        ],
+      },
+      {
+        id: 'dimensions',
+        title: 'Dimensions',
+        fields: [
+          {
+            label: 'Dimensions',
+            key: 'PD_weight_and_dimension',
+            formatter: (value: any) => value?.split('lbs)')[1] || value,
+          },
+          {
+            label: 'Weight',
+            key: 'PD_weight_and_dimension',
+            formatter: (value: any) => value?.split('(')[0] || value,
+          },
+        ],
+      },
+      {
+        id: 'battery_power',
+        title: 'Battery & Power',
+        fields: [
+          {
+            label: 'Battery',
+            key: 'PD_battery',
+          },
+          {
+            label: 'Power',
+            key: 'PD_power',
+          },
+        ],
+      },
+      {
+        id: 'additional_features',
+        title: 'Additional Features',
+        fields: [
+          {
+            label: 'Camera',
+            key: 'PD_camera',
+          },
+          {
+            label: 'Finger Print',
+            key: 'PD_cfg_fingerprint',
+            formatter: (value: any) => {
+              if (!value) return value;
+              if (value.includes('W/')) {
+                return value.replace('W/', 'With ');
+              }
+              return value.replace('WO/', 'Without ');
+            },
+          },
+          {
+            label: 'Keyboard',
+            key: 'PD_input_device',
+          },
+          {
+            label: 'Numpad',
+            key: 'PD_numpad',
+          },
+          {
+            label: 'Security',
+            key: 'PD_security',
+          },
+          {
+            label: 'Anti-Virus',
+            key: 'PD_antivirus',
+          },
+          {
+            label: 'Office',
+            key: 'PD_office',
+          },
+          {
+            label: 'X-Box Game Pass',
+            key: 'PD_xbox_game_pass',
+          },
+        ],
+      },
+      {
+        id: 'warranty_certificates',
+        title: 'Warranty & Certificates',
+        fields: [
+          {
+            label: 'Warranty Summary',
+            key: 'PD_warranty',
+            formatter: (value: any) => (value ? `${value} months` : value),
+          },
+          {
+            label: 'Military Grade',
+            key: 'PD_military_grade',
+          },
+          {
+            label: 'Certification',
+            key: 'PD_certificate',
+          },
+        ],
+      },
+    ];
+
 const ComparisonRow = ({
   label,
   value1,
@@ -90,8 +337,18 @@ export default function ProductComparison() {
   const {product1, product2} = route.params;
   const AppTheme = useThemeStore(state => state.AppTheme);
 
-  const getOS = (product: ProductInfoItem) =>
-    product?.PD_operating_system?.split(/\s*-\s*/)?.[0] || '—';
+  // Helper function to get formatted field value
+  const getFieldValue = (
+    product: ProductInfoItem,
+    key: string,
+    formatter?: (value: any) => any
+  ) => {
+    const value = product?.[key];
+    if (formatter && value) {
+      return formatter(value);
+    }
+    return value || '—';
+  };
 
   return (
     <AppLayout needBack title="Product Comparison">
@@ -183,66 +440,35 @@ export default function ProductComparison() {
               </AppText>
             </View>
 
-            <ComparisonRow
-              label="Processor"
-              icon="cpu"
-              value1={product1?.PD_processor || '—'}
-              value2={product2?.PD_processor || '—'}
-            />
+            {sections.map((section, sectionIndex) => (
+              <View key={section.id}>
+                {/* Section Header */}
+                <View className="mt-4 mb-3">
+                  <AppText 
+                    size="md" 
+                    weight="bold" 
+                    className="text-primary dark:text-primary-light">
+                    {section.title}
+                  </AppText>
+                  <View className="h-[2px] bg-primary/30 mt-1 mb-2" />
+                </View>
 
-            <ComparisonRow
-              label="RAM"
-              icon="memory"
-              iconType="material-community"
-              value1={product1?.PD_memory_installed || '—'}
-              value2={product2?.PD_memory_installed || '—'}
-            />
-
-            <ComparisonRow
-              label="Storage"
-              icon="hard-drive"
-              value1={product1?.PD_storage_installed || '—'}
-              value2={product2?.PD_storage_installed || '—'}
-            />
-
-            <ComparisonRow
-              label="Operating System"
-              icon="microsoft-windows"
-              iconType="material-community"
-              value1={getOS(product1)}
-              value2={getOS(product2)}
-            />
-
-            <ComparisonRow
-              label="Form Factor"
-              icon="cube-outline"
-              iconType="material-community"
-              value1={product1?.PD_form_factor || '—'}
-              value2={product2?.PD_form_factor || '—'}
-            />
-
-            <ComparisonRow
-              label="Made in India"
-              icon="flag"
-              value1={product1?.PD_Made_In_India === 'Y' ? 'Yes' : 'No'}
-              value2={product2?.PD_Made_In_India === 'Y' ? 'Yes' : 'No'}
-            />
-
-            <ComparisonRow
-              label="Expandable RAM"
-              icon="memory"
-              iconType="material-community"
-              value1={product1?.Empty_ExtraRAM === 'Y' ? 'Yes' : 'No'}
-              value2={product2?.Empty_ExtraRAM === 'Y' ? 'Yes' : 'No'}
-            />
-
-            <ComparisonRow
-              label="Expandable Storage"
-              icon="harddisk"
-              iconType="material-community"
-              value1={product1?.ExtraEmpty_Storage_Slot === '1x ' ? 'Yes' : 'No'}
-              value2={product2?.ExtraEmpty_Storage_Slot === '1x ' ? 'Yes' : 'No'}
-            />
+                {/* Section Fields */}
+                {section.fields.map((field, fieldIndex) => {
+                  const value1 = getFieldValue(product1, field.key, field.formatter);
+                  const value2 = getFieldValue(product2, field.key, field.formatter);
+                  
+                  return (
+                    <ComparisonRow
+                      key={`${section.id}-${field.key}-${fieldIndex}`}
+                      label={field.label}
+                      value1={value1}
+                      value2={value2}
+                    />
+                  );
+                })}
+              </View>
+            ))}
           </Card>
         </View>
       </ScrollView>

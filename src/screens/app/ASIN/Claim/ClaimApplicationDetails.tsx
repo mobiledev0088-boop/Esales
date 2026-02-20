@@ -154,7 +154,7 @@ const ClaimCard: React.FC<{item: ClaimDashboardItem}> = memo(({item}) => {
             />
             <View className="flex-row items-center flex-wrap">
               <AppText size="xs" color="gray" weight="medium" className="mr-1">
-                CN Date:
+                CN Disti Date:
               </AppText>
               <AppText size="sm" weight="regular">
                 {item.DistiCN_Date}

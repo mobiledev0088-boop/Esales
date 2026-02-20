@@ -153,7 +153,7 @@ const ClaimCodeWise = () => {
       month: {MonthYear: string};
       productLine: string;
       Product_Line_Name: string;
-      type: 'processed' | 'underProcess';
+      type: 'processed' | 'underProcess' | 'all';
     }) => {
       navigation.push('ClaimInfo', {
         ProductLine: params.productLine,
@@ -307,7 +307,7 @@ const PartnerWise = () => {
   const {data: partnerList, isLoading: partnerListLoading} = useT2PartnerList();
   const Date = {
     startMonth: moment().subtract(12, 'months').format('YYYYMM'),
-    endMonth: moment().format('YYYYMM'),
+    endMonth: moment().subtract(1, 'months').format('YYYYMM'),
   };
   const [selectedPartner, setSelectedPartner] = useState<string | null>(
     isPartnerUser ? userInfo?.EMP_Code : null,
@@ -371,7 +371,7 @@ const PartnerWise = () => {
       scheme: string;
       month: {MonthYear: string};
       productLine: string;
-      type: 'processed' | 'underProcess';
+      type: 'processed' | 'underProcess' | 'all';
     }) => {
       const YearMonth = params.month.MonthYear;
       navigation.push('ClaimInfoPartner', {
@@ -562,7 +562,7 @@ const GSTWise = () => {
   const {data: partnerList, isLoading: partnerListLoading} = useT3PartnerList();
   const Date = {
     startMonth: moment().subtract(12, 'months').format('YYYYMM'),
-    endMonth: moment().format('YYYYMM'),
+    endMonth: moment().subtract(1, 'months').format('YYYYMM'),
   };
   const [selectedPartner, setSelectedPartner] = useState<string | null>(null);
   const [filterData, setFilterData] = useState<Omit<FilterData, 'partnerType'>>(
@@ -617,13 +617,22 @@ const GSTWise = () => {
   const handleNavigate = useCallback(
     (params: {
       scheme: string;
-      month: string;
+      month: {MonthYear: string};
       productLine: string;
-      type: 'processed' | 'underProcess';
+      type: 'processed' | 'underProcess' | 'all';
     }) => {
-      // ajnsd
+    const YearMonth = params.month.MonthYear;
+      navigation.push('ClaimInfoPartner', {
+        Product_Line: params.productLine,
+        SchemeCategory: params.scheme,
+        PartnerType: 'Channel',
+        MonthAPI: moment(YearMonth, 'MMM-YYYY').format('YYYYMM'),
+        partnerCode: selectedPartner || '',
+        roleId: userInfo?.EMP_RoleId,
+        type: params.type,
+      });
     },
-    [navigation, userInfo?.EMP_Code],
+    [navigation, userInfo?.EMP_RoleId],
   );
   const pills = useMemo(
     () =>

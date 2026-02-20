@@ -529,7 +529,7 @@ const MonthlyDataTiles = ({
       (data || []).map(m => {
         const tgt = m.Qty_Target || 0;
         const st = m.Achieved_Qty || 0;
-        const so = m.SO_Achieved_Qty || m.Achieved_Qty || 0; // Fallback to ST if SO not provided
+        const so = m.SO_Achieved_Qty || 0;
         const stPct = tgt ? Math.round((st / tgt) * 100) : 0;
         const soPct = tgt ? Math.round((so / tgt) * 100) : 0;
         return {

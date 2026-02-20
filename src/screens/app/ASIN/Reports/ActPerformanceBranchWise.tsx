@@ -450,7 +450,7 @@ const FilterButton = ({
   onPress: () => void;
   hasActiveFilters?: boolean;
 }) => (
-  <Card className="mb-3 rounded p-0">
+  <Card className="mb-3 rounded p-0" watermark={false}>
     <TouchableOpacity className="p-5" onPress={onPress}>
       <View className="items-center justify-center relative">
         <AppIcon
@@ -580,13 +580,14 @@ const buildTabItems = (
     const visibleCount = visibleCounts[id] || ITEMS_PER_BATCH;
     const searchQuery = searchQueries[id] || '';
     const sortConfig = sortConfigs[id] || null;
+    let multiple = false;
 
     let tabData = getActivationTabData(data, id);
     // Determine the display label based on branch filter
     let displayLabel = label;
     if (id === 'branch' && selectedBranches.length === 1) {
       // If exactly one branch is selected, show the branch name as the tab label
-      displayLabel = selectedBranches[0];
+      displayLabel = 'Territory';
     }
     if (id === 'agp') {
       if (cseName?.value) {
@@ -599,6 +600,7 @@ const buildTabItems = (
         );
       }
     }
+    console.log('Tab Data for', label, tabData, multiple);
     return {
       label: displayLabel,
       name: id,
@@ -907,6 +909,11 @@ const ActivationPerformanceView = ({
         noshadow>
         <View className="pt-3 overflow-hidden">
           {territory && <TerritoryDisplay territory={territory} />}
+          {/* {
+            activeTabId === '' && (
+              <DisclaimerNotice />
+            )
+          } */}
           <AppTabBar
             tabs={tabItems}
             initialTabName={initialActiveId}

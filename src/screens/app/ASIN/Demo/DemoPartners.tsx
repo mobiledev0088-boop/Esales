@@ -26,9 +26,11 @@ import AppDropdown, {
 import Skeleton from '../../../../components/skeleton/skeleton';
 import {ASUS, screenHeight, screenWidth} from '../../../../utils/constant';
 import {useThemeStore} from '../../../../stores/useThemeStore';
+import {useDemoFilterStore} from '../../../../stores/useDemoFilterStore';
 import clsx from 'clsx';
 import SheetIndicator from '../../../../components/SheetIndicator';
 import { ROITable } from './components';
+import { twMerge } from 'tailwind-merge';
 
 type PartnerTypes = {
   AGP_Code: string;
@@ -63,6 +65,10 @@ type DemoSummaryItem = {
   LastUnRegisteredDate: string | null;
   DurationDays: number;
   ALPType?: string;
+  ALP_Remark?: string;
+  ALP_Status?: string;
+  IsBonusCompulsory: string | null;
+  IsPenaltyCompulsory: string | null;
 };
 
 type ModelItem = {
@@ -167,6 +173,9 @@ export const PartnerDetailsSheet = () => {
   const AppTheme = useThemeStore(state => state.AppTheme);
   const isDark = AppTheme === 'dark';
 
+  const retailerFilters = useDemoFilterStore(state => state.retailerFilters);
+  const compulsoryFilter = retailerFilters.compulsory;
+
   // Fetch demo summary data
   const {data, isLoading, error} = useGetPartnerDemoSummary(
     yearQtr || '',
@@ -179,6 +188,8 @@ export const PartnerDetailsSheet = () => {
     yearQtr || '',
     partner?.AGP_Code || partner?.PartnerCode || '',
     !!partner && !!yearQtr,
+    'Compulsory Filter:',
+    compulsoryFilter,
   );
 
   // Filter states
@@ -188,16 +199,9 @@ export const PartnerDetailsSheet = () => {
     null,
   );
 
-  // Reset filters when sheet opens
   useEffect(() => {
-    // Reset filters on mount
     setSelectedCategory(null);
     setSelectedStatus(null);
-    // setIsSheetOpen(true);
-
-    // return () => {
-    //   setIsSheetOpen(false);
-    // };
   }, []);
 
   // Extract unique categories and statuses
@@ -253,6 +257,8 @@ export const PartnerDetailsSheet = () => {
   const renderDemoItem = useCallback(
     ({item}: {item: DemoSummaryItem}) => {
       const isPending = item.DemoExecutionDone === 'Pending';
+      const isBonusCompulsory = compulsoryFilter === 'bonus' && item.IsBonusCompulsory === 'Yes';
+      const isPenaltyCompulsory = compulsoryFilter === 'nopenalty' && item.IsPenaltyCompulsory === 'Yes';
       return (
         <View className="mb-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
           {/* Header */}
@@ -264,10 +270,55 @@ export const PartnerDetailsSheet = () => {
                 className="text-slate-800 dark:text-slate-100 mb-1"
                 numberOfLines={1}>
                 {item.Series || item?.Category}
+                  {isBonusCompulsory && (
+                    <AppText
+                      size="xs"
+                      weight="semibold"
+                      className="text-blue-600 dark:text-blue-400">
+                      {" "}[Bonus Compulsory] 
+                    </AppText>
+                  )}
+                  {isPenaltyCompulsory && (
+                    <AppText
+                      size="xs"
+                      weight="semibold"
+                      className="text-blue-600 dark:text-blue-400">
+                      {" "}[No Penalty Compulsory]
+                    </AppText>
+                  )}
               </AppText>
               <View className="flex-row items-center flex-wrap mt-1 gap-2">
                 {/* Status Badge */}
-                <View
+                {/* <View
+                  className={`px-2.5 py-1 rounded-md ${
+                    isPending
+                      ? 'bg-amber-500/10 dark:bg-amber-500/20'
+                      : 'bg-teal-500/10 dark:bg-teal-500/20'
+                  }`}>
+                  <AppText
+                    size="xs"
+                    weight="semibold"
+                    className={
+                      isPending
+                        ? 'text-amber-600 dark:text-amber-400'
+                        : 'text-teal-600 dark:text-teal-400'
+                    }>
+                    {item.DemoExecutionDone}
+                  </AppText>
+                </View> */}
+                {/* Category Badge */}
+                <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-md">
+                  <AppText
+                    size="xs"
+                    weight="medium"
+                    className="text-slate-600 dark:text-slate-300"
+                    numberOfLines={1}>
+                    {item.Category}
+                  </AppText>
+                </View>
+              </View>
+            </View>
+             <View
                   className={`px-2.5 py-1 rounded-md ${
                     isPending
                       ? 'bg-amber-500/10 dark:bg-amber-500/20'
@@ -284,24 +335,12 @@ export const PartnerDetailsSheet = () => {
                     {item.DemoExecutionDone}
                   </AppText>
                 </View>
-                {/* Category Badge */}
-                <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-md">
-                  <AppText
-                    size="xs"
-                    weight="medium"
-                    className="text-slate-600 dark:text-slate-300"
-                    numberOfLines={1}>
-                    {item.Category}
-                  </AppText>
-                </View>
-              </View>
-            </View>
-            <AppIcon
+            {/* <AppIcon
               name={isPending ? 'clock' : 'check-circle'}
               type="feather"
               size={20}
               color={isPending ? AppColors.warning : AppColors.success}
-            />
+            /> */}
           </View>
 
           {/* Minimal view for Pending */}
@@ -335,13 +374,13 @@ export const PartnerDetailsSheet = () => {
               <View className="flex-row flex-wrap -mx-2">
                 <View className="w-1/2 px-2 mb-3">
                   <AppText
-                    size="xs"
+                    size="sm"
                     weight="medium"
                     className="text-slate-500 dark:text-slate-400">
                     Model
                   </AppText>
                   <AppText
-                    size="xs"
+                    size="sm"
                     weight="semibold"
                     className="text-slate-700 dark:text-slate-300"
                     numberOfLines={1}>
@@ -350,13 +389,13 @@ export const PartnerDetailsSheet = () => {
                 </View>
                 <View className="w-1/2 px-2 mb-3">
                   <AppText
-                    size="xs"
+                    size="sm"
                     weight="medium"
                     className="text-slate-500 dark:text-slate-400">
                     Serial No
                   </AppText>
                   <AppText
-                    size="xs"
+                    size="sm"
                     weight="semibold"
                     className="text-slate-700 dark:text-slate-300"
                     numberOfLines={1}>
@@ -365,13 +404,13 @@ export const PartnerDetailsSheet = () => {
                 </View>
                 <View className="w-1/2 px-2 mb-3">
                   <AppText
-                    size="xs"
+                    size="sm"
                     weight="medium"
                     className="text-slate-500 dark:text-slate-400">
                     Invoice Date
                   </AppText>
                   <AppText
-                    size="xs"
+                    size="sm"
                     weight="semibold"
                     className="text-slate-700 dark:text-slate-300"
                     numberOfLines={1}>
@@ -380,13 +419,13 @@ export const PartnerDetailsSheet = () => {
                 </View>
                 <View className="w-1/2 px-2 mb-3">
                   <AppText
-                    size="xs"
+                    size="sm"
                     weight="medium"
                     className="text-slate-500 dark:text-slate-400">
                     Duration (Days)
                   </AppText>
                   <AppText
-                    size="xs"
+                    size="sm"
                     weight="semibold"
                     className="text-slate-700 dark:text-slate-300"
                     numberOfLines={1}>
@@ -395,13 +434,13 @@ export const PartnerDetailsSheet = () => {
                 </View>
                 <View className="w-1/2 px-2 mb-3">
                   <AppText
-                    size="xs"
+                    size="sm"
                     weight="medium"
                     className="text-slate-500 dark:text-slate-400">
                     Last Registered
                   </AppText>
                   <AppText
-                    size="xs"
+                    size="sm"
                     weight="semibold"
                     className="text-slate-700 dark:text-slate-300"
                     numberOfLines={1}>
@@ -410,28 +449,79 @@ export const PartnerDetailsSheet = () => {
                 </View>
                 <View className="w-1/2 px-2 mb-3">
                   <AppText
-                    size="xs"
+                    size="sm"
                     weight="medium"
                     className="text-slate-500 dark:text-slate-400">
                     Last Unregistered
                   </AppText>
                   <AppText
-                    size="xs"
+                    size="sm"
                     weight="semibold"
                     className="text-slate-700 dark:text-slate-300"
                     numberOfLines={1}>
                     {formatDate(item.LastUnRegisteredDate)}
                   </AppText>
                 </View>
+                                <View className="w-full px-2 mb-3">
+                  <AppText
+                    size="sm"
+                    weight="medium"
+                    className="text-slate-500 dark:text-slate-400">
+                    Hub ID
+                  </AppText>
+                  <AppText
+                    size="sm"
+                    weight="semibold"
+                    className="text-slate-700 dark:text-slate-300"
+                    numberOfLines={1}>
+                    {item.HubID || '—'}
+                  </AppText>
+                </View>
+
+                  {item.ALP_Remark ?
+                   <View className="w-1/2 px-2 mb-3">
+                  <AppText
+                    size="sm"
+                    weight="medium"
+                    className="text-slate-500 dark:text-slate-400">
+                    ALP Remark
+                  </AppText>
+                  <AppText
+                    size="sm"
+                    weight="semibold"
+                    className="text-slate-700 dark:text-slate-300"
+                    numberOfLines={1}>
+                      {item.ALP_Remark}
+                  </AppText>
+                </View>
+                  : false}             
+                  {item.ALP_Status ?
+                   <View className="w-1/2 px-2 mb-3">
+                  <AppText
+                    size="sm"
+                    weight="medium"
+                    className="text-slate-500 dark:text-slate-400">
+                    ALP Status
+                  </AppText>
+                  {/* Show as Status */}
+                  <AppText
+                    size="sm"
+                    weight="semibold"
+                    className={twMerge(item.ALP_Status?.includes('Accept') ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-800')}
+                    numberOfLines={1}>
+                      {item.ALP_Status}
+                  </AppText>
+                </View>
+                  : false}             
               </View>
               <TouchableOpacity
                 onPress={() => showDemoDetailsSheet(item)}
                 activeOpacity={0.7}
                 className="mt-1 self-start flex-row items-center">
                 <AppText
-                  size="xs"
+                  size="sm"
                   weight="semibold"
-                  className="text-primary dark:text-primary-dark underline">
+                  className="text-primary dark:text-primary underline">
                   See Demo Details
                 </AppText>
                 <AppIcon
@@ -453,7 +543,8 @@ export const PartnerDetailsSheet = () => {
   if (!partner) {
     return null;
   }
-  // Removed debug log for cleaner production code
+
+  console.log('Rendering PartnerDetailsSheet with partner:', filteredData);
   return (
     <View>
       <ActionSheet
@@ -492,6 +583,17 @@ export const PartnerDetailsSheet = () => {
                     Code: {partner.AGP_Code || partner.PartnerCode}
                   </AppText>
                 </View>
+                {/* Display Compulsory filter badge for Retailer tab */}
+                {tab === 'retailer' && compulsoryFilter && (
+                  <View className={`px-2.5 py-1 rounded-md bg-blue-500/10 dark:bg-blue-500/20`}>
+                    <AppText
+                      size="xs"
+                      weight="semibold"
+                      className={'text-blue-600 dark:text-blue-400'}>
+                      {compulsoryFilter === 'bonus' ? 'Bonus' : 'No Penalty'}
+                    </AppText>
+                  </View>
+                )}
               </View>
             </View>
           </View>
@@ -685,7 +787,7 @@ export const DemoDetailsSheet = () => {
   if (!demo) return null;
 
   const isPending = demo.DemoExecutionDone === 'Pending';
-  console.log('DemoDetailsSheet demo data:', demo);
+
   return (
     <View>
       <ActionSheet
@@ -1021,7 +1123,7 @@ export const DemoROISheet = () => {
             <AppText
               size="sm"
               weight="semibold"
-              className="text-warning dark:text-warning-dark">
+              className="text-rose-700 dark:text-rose-400">
               {model.total_stock || 0}
             </AppText>
           </View>
@@ -1154,15 +1256,15 @@ export const DemoROISheet = () => {
               </View>
 
               {/* Total Stock Card */}
-              <View className="flex-1 bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3 border border-amber-100 dark:border-amber-800">
+              <View className="flex-1 bg-rose-50 dark:bg-rose-900/20 rounded-xl p-3 border border-rose-100 dark:border-rose-800">
                 <View className="flex-row items-center justify-between mb-1">
                   <AppIcon
-                    name="package"
-                    type="feather"
+                    name="inventory"
+                    type="materialIcons"
                     size={20}
-                    color={AppColors.warning}
+                    color={AppColors.error}
                   />
-                  <View className="bg-amber-600 dark:bg-amber-500 px-2 py-0.5 rounded-md">
+                  <View className="bg-rose-600 dark:bg-rose-500 px-2 py-0.5 rounded-md">
                     <AppText size="xs" weight="bold" className="text-white">
                       {totals.stock}
                     </AppText>
@@ -1171,7 +1273,7 @@ export const DemoROISheet = () => {
                 <AppText
                   size="xs"
                   weight="medium"
-                  className="text-amber-600 dark:text-amber-400">
+                  className="text-rose-600 dark:text-rose-400">
                   Total Stock
                 </AppText>
               </View>
@@ -1588,7 +1690,16 @@ export default function DemoPartners() {
       partner_count : number;
     };
   };
-  console.log('stats:', stats);
+
+  /**
+   * Access global filter states from Zustand store
+   * Based on the current tab (reseller, retailer, lfr, roi)
+   */
+  const retailerFilters = useDemoFilterStore(state => state.retailerFilters);
+  const resellerFilters = useDemoFilterStore(state => state.resellerFilters);
+  const lfrFilters = useDemoFilterStore(state => state.lfrFilters);
+  const roiFilters = useDemoFilterStore(state => state.roiFilters);
+
   // Partner selection state for filtering
   const [selectedPartner, setSelectedPartner] =
     useState<AppDropdownItem | null>(null);
@@ -1614,6 +1725,118 @@ export default function DemoPartners() {
         : partners,
     [partners, selectedPartner],
   );
+
+  /**
+   * Build active filters array based on current tab
+   * Only includes filters that have non-default values
+   */
+  const activeFilters = useMemo(() => {
+    const filters: { key: string; label: string; value: string }[] = [];
+
+    if (tab === 'reseller') {
+      // Add category if not 'All'
+      if (resellerFilters.category && resellerFilters.category !== 'All') {
+        filters.push({
+          key: 'category',
+          label: 'Category',
+          value: resellerFilters.category,
+        });
+      }
+      // Add Premium Kiosk if set
+      if (resellerFilters.pKiosk !== null && resellerFilters.pKiosk !== undefined) {
+        filters.push({
+          key: 'pKiosk',
+          label: 'Premium Kiosk',
+          value: String(resellerFilters.pKiosk),
+        });
+      }
+      // Add ROG Kiosk if set
+      if (resellerFilters.rogKiosk !== null && resellerFilters.rogKiosk !== undefined) {
+        filters.push({
+          key: 'rogKiosk',
+          label: 'ROG Kiosk',
+          value: String(resellerFilters.rogKiosk),
+        });
+      }
+      // Add Partner Type if set (multi-select support)
+      if (resellerFilters.partnerType && resellerFilters.partnerType.length > 0) {
+        filters.push({
+          key: 'partnerType',
+          label: 'Partner Type',
+          value: resellerFilters.partnerType.join(', '),
+        });
+      }
+    } else if (tab === 'retailer') {
+      // Add category if not 'All'
+      if (retailerFilters.category && retailerFilters.category !== 'All') {
+        filters.push({
+          key: 'category',
+          label: 'Category',
+          value: retailerFilters.category,
+        });
+      }
+      // Add Compulsory filter (always show as it's important)
+      if (retailerFilters.compulsory) {
+        filters.push({
+          key: 'compulsory',
+          label: 'Type',
+          value: retailerFilters.compulsory === 'bonus' ? 'Bonus' : 'No Penalty',
+        });
+      }
+      // Add Partner Type if set (multi-select support)
+      if (retailerFilters.partnerType && retailerFilters.partnerType.length > 0) {
+        filters.push({
+          key: 'partnerType',
+          label: 'Partner Type',
+          value: retailerFilters.partnerType.join(', '),
+        });
+      }
+    } else if (tab === 'lfr') {
+      // Add LFR Type if set (multi-select support)
+      if (lfrFilters.lfrType && lfrFilters.lfrType.length > 0) {
+        filters.push({
+          key: 'lfrType',
+          label: 'LFR Type',
+          value: lfrFilters.lfrType.join(', '),
+        });
+      }
+      // Add category if not 'All'
+      if (lfrFilters.category && lfrFilters.category !== 'All') {
+        filters.push({
+          key: 'category',
+          label: 'Category',
+          value: lfrFilters.category,
+        });
+      }
+    } else if (tab === 'roi') {
+      // Add category if not 'All'
+      if (roiFilters.category && roiFilters.category !== 'All') {
+        filters.push({
+          key: 'category',
+          label: 'Category',
+          value: roiFilters.category,
+        });
+      }
+      // Add Series if set
+      if (roiFilters.series) {
+        filters.push({
+          key: 'series',
+          label: 'Series',
+          value: roiFilters.series,
+        });
+      }
+      // Add Partner Type if set (multi-select support)
+      if (roiFilters.partnerType && roiFilters.partnerType.length > 0) {
+        filters.push({
+          key: 'partnerType',
+          label: 'Partner Type',
+          value: roiFilters.partnerType.join(', '),
+        });
+      }
+    }
+
+    return filters;
+  }, [tab, resellerFilters, retailerFilters, lfrFilters, roiFilters]);
 
   // Handle navigation to partner details
   const handlePartnerDetails = useCallback(
@@ -1800,6 +2023,51 @@ export default function DemoPartners() {
           onClear={() => setSelectedPartner(null)}
         />
       </View>
+
+      {/* Active Filters Display - Only show when filters are active */}
+      {activeFilters.length > 0 && (
+        <View className="px-3 mb-3">
+          <View className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 border border-slate-200 dark:border-slate-700">
+            <View className="flex-row items-center mb-2">
+              <AppIcon
+                name="filter"
+                type="feather"
+                size={14}
+                color={AppColors.primary}
+              />
+              <AppText
+                size="xs"
+                weight="semibold"
+                className="text-slate-600 dark:text-slate-400 ml-1.5">
+                Active Filters
+              </AppText>
+            </View>
+            <View className="flex-row flex-wrap gap-2">
+              {activeFilters.map((filter) => (
+                <View
+                  key={filter.key}
+                  className="bg-primary/10 dark:bg-primary-dark/20 border border-primary/20 dark:border-primary-dark/30 rounded-lg px-3 py-1.5">
+                  <View className="flex-row items-center gap-1.5">
+                    <AppText
+                      size="xs"
+                      weight="medium"
+                      className="text-slate-500 dark:text-slate-400">
+                      {filter.label}:
+                    </AppText>
+                    <AppText
+                      size="xs"
+                      weight="semibold"
+                      className="text-primary dark:text-primary-dark">
+                      {filter.value}
+                    </AppText>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+      )}
+
       <FlatList
         data={filteredPartners}
         renderItem={renderPartnerItem}

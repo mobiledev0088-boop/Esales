@@ -1,4 +1,4 @@
-import {View, ScrollView, TouchableOpacity} from 'react-native';
+import {View, ScrollView, TouchableOpacity, Share} from 'react-native';
 import React, {useEffect, useMemo, useState} from 'react';
 import AppLayout from '../../../../../components/layout/AppLayout';
 import {useRoute} from '@react-navigation/native';
@@ -168,35 +168,54 @@ export default function ProductDescription() {
   const productData = product;
 
   const handleDownloadPDF = async () => {
-    const html = generateHtml(productData);
-    const baseName = productData.PD_sales_model_name || 'Product_Description';
-    const fileName = `${baseName}.pdf`;
+    try {
+      const html = generateHtml(productData);
+      const baseName =
+        productData.PD_sales_model_name || 'Product_Description';
+      const fileName = `${baseName}.pdf`;
 
-    const options = {
-      html,
-      fileName: baseName,
-      directory: 'Documents',
-    } as const;
+      const options = {
+        html,
+        fileName: baseName,
+        directory: 'Documents',
+      } as const;
 
-    const res = await generatePDF(options);
+      const res = await generatePDF(options);
+      console.log('PDF generated at:', res);
 
-    await RNBlobUtil.MediaCollection.copyToMediaStore(
-      {
-        name: fileName,
-        parentFolder: 'esales', // creates Download/esales
-        mimeType: 'application/pdf',
-      },
-      'Download',
-      res.filePath,
-    );
-    const targetPath = isIOS
-      ? res.filePath
-      : `/storage/emulated/0/Download/esales/${fileName}`;
-    setDownloadedFilePath(targetPath);
-    setIsDownloadModalOpen(true);
-    if (!isIOS) {
-      // Clean up only the temporary source file on Android
-      await RNBlobUtil.fs.unlink(res.filePath);
+      if (isIOS) {
+        // iOS: Use Share sheet to let user save/share the PDF
+        const fileUrl = `file://${res.filePath}`;
+        
+        await Share.share({
+          url: fileUrl,
+          title: fileName,
+        });
+        
+        // Set the path for the "Open File" button
+        setDownloadedFilePath(res.filePath);
+        setIsDownloadModalOpen(true);
+      } else {
+        // Android: move to public Downloads
+        await RNBlobUtil.MediaCollection.copyToMediaStore(
+          {
+            name: fileName,
+            parentFolder: 'esales',
+            mimeType: 'application/pdf',
+          },
+          'Download',
+          res.filePath,
+        );
+
+        const targetPath = `/storage/emulated/0/Download/esales/${fileName}`;
+        setDownloadedFilePath(targetPath);
+        setIsDownloadModalOpen(true);
+
+        // cleanup temp file on Android
+        await RNBlobUtil.fs.unlink(res.filePath);
+      }
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
     }
   };
 
@@ -853,19 +872,20 @@ export default function ProductDescription() {
             />
           </View>
           <AppText size="xl" weight="bold" className="mb-1 text-center">
-            PDF Downloaded
+            PDF {isIOS ? 'Ready' : 'Downloaded'}
           </AppText>
           <AppText
             size="sm"
             weight="medium"
             color="gray"
             className="text-center mb-4">
-            Your product description PDF has been saved to{' '}
-            {isIOS ? 'Files' : 'Downloads/esales'} folder.
+            {isIOS
+              ? 'Your PDF has been generated and is ready to view or share.'
+              : 'Your product description PDF has been saved to Downloads/esales folder.'}
           </AppText>
 
           <AppButton
-            title="Open File "
+            title={isIOS ? 'Open PDF' : 'Open File'}
             iconName="folder"
             onPress={handleOpenDownloadedFile}
             className="w-full rounded-xl mb-2"

@@ -219,7 +219,7 @@ export const ProfileCard = ({
           resizeMode="contain"
           style={{width: 100, height: 100, borderRadius: 50}}
         />
-        <View>
+        <View className='flex-1'>
           <AppText size="xl" weight="bold">
             {convertSnakeCaseToSentence(userInfo?.EMP_Name || 'N/A')}
           </AppText>

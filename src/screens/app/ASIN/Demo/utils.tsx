@@ -274,7 +274,7 @@ export const transformDemoData = (apiData: {
     let pending = 0;
     if (item.TotalCompulsoryDemo !== 0) {
       percentage = (item.DemoExecuted / item.TotalCompulsoryDemo) * 100;
-      pending = item.TotalCompulsoryDemo - item.DemoExecuted;
+      pending = item.TotalCompulsoryDemo - item.DemoExecuted < 0 ? 0 : item.TotalCompulsoryDemo - item.DemoExecuted;
     }
 
     // Get or create branch
@@ -334,12 +334,14 @@ export const transformTerritoryData = (apiData: {
   apiData.DemoDetailsList.forEach(item => {
     const territoryName = item.BranchName || 'Unknown Territory';
 
+    
     // Calculate demo percentage for this partner
     let percentage = 0;
     if (item.TotalCompulsoryDemo !== 0) {
       percentage = (item.DemoExecuted / item.TotalCompulsoryDemo) * 100;
     }
-
+    // const pending = item.TotalCompulsoryDemo - item.DemoExecuted < 0 ? 0 : item.TotalCompulsoryDemo - item.DemoExecuted;
+    
     // Get or create territory
     if (!territoryMap.has(territoryName)) {
       territoryMap.set(territoryName, {
@@ -351,9 +353,7 @@ export const transformTerritoryData = (apiData: {
         rog_kiosk: 0,
         pkiosk: 0,
         pending: 0,
-        awp_Count:
-          apiData.PartnerCount?.find(pc => pc.BranchName === territoryName)
-            ?.PartnerCnt || 0,
+        awp_Count: apiData.PartnerCount?.find(pc => pc.BranchName === territoryName)?.PartnerCnt || 0,
         pkiosk_rogkiosk: 0,
         partners: [],
       });
@@ -368,7 +368,11 @@ export const transformTerritoryData = (apiData: {
     territory.rog_kiosk += item.ROG_Kiosk_cnt || 0;
     territory.pkiosk += item.Pkiosk_Cnt || 0;
     territory.pkiosk_rogkiosk += item.PKIOSK_ROG_KIOSK || 0;
-    territory.pending += item.TotalCompulsoryDemo - item.DemoExecuted || 0;
+    territory.pending +=
+      // item.TotalCompulsoryDemo - item.DemoExecuted < 0
+      //   ? 0
+        // : 
+        item.TotalCompulsoryDemo - item.DemoExecuted;
 
     // Increment demo counters based on percentage
     if (percentage > 0 && percentage <= 50) {
@@ -453,7 +457,8 @@ export const transformDemoDataRetailer = (
     for (const partner of group.partners.values()) {
       const total = partner.TotalCompulsoryDemo || 0;
       const percentage = total ? (partner.DemoExecuted / total) * 100 : 0;
-      const pending = total - partner.DemoExecuted;
+      const pending =
+        total - partner.DemoExecuted < 0 ? 0 : total - partner.DemoExecuted;
       group.pending = group.pending + pending;
 
       if (percentage > 0 && percentage < 80) {
@@ -540,7 +545,7 @@ export const transformDemoDataLFR = (apiData: DemoItemRetailer[]) => {
     for (const partner of group.partners.values()) {
       const total = partner.TotalCompulsoryDemo || 0;
       const percentage = total ? (partner.DemoExecuted / total) * 100 : 0;
-      const pending = total - partner.DemoExecuted;
+      const pending = total - partner.DemoExecuted < 0 ? 0 : total - partner.DemoExecuted;
       group.pending = group.pending + pending;
 
       if (percentage > 0 && percentage < 80) {
@@ -641,21 +646,20 @@ export const transformDemoDataROI = (
   /* ---------- Normalize output ---------- */
   const data = Array.from(groupMap.values()).map(group => {
     const stats = Table1.find(stat => stat.BranchName === group.state);
-    return({
-    ...group,
+    return {
+      ...group,
       out_of_act: stats ? stats.Total_Active_Store_Count : 0,
       total_act: stats ? stats.Total_Active_Units : 0,
       total_stock: stats ? stats.Total_Stock_Units : 0,
       out_of_stock: stats ? stats.Total_Stock_Store_Count : 0,
-      out_of_demo:  stats ? stats.Total_Demo_Store_Count : 0,
+      out_of_demo: stats ? stats.Total_Demo_Store_Count : 0,
       total_demo: stats ? stats.Total_Demo_Units : 0,
-    partners: Array.from(group.partners.values()).map(p => ({
-      ...p,
-      model: Array.from(p.model.values()),
-    })),
-  })
-
-});
+      partners: Array.from(group.partners.values()).map(p => ({
+        ...p,
+        model: Array.from(p.model.values()),
+      })),
+    };
+  });
 
   return data;
 };

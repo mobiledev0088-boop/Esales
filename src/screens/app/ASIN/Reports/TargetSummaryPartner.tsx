@@ -189,7 +189,7 @@ const QuantityChart = memo(
         <BarChart
           data={chartData}
           barWidth={28}
-          spacing={45}
+          spacing={screenWidth * 0.35 / chartData.length}
           initialSpacing={16}
           width={screenWidth * 0.67}
           barBorderRadius={4}
@@ -210,6 +210,13 @@ const QuantityChart = memo(
             marginRight: 15,
             fontWeight: '800',
           }}
+          renderTooltip={(item:any) => (
+            <View className="p-2 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+              <AppText size="xs" color="gray">
+                {convertToASINUnits(item?.value)}
+              </AppText>
+            </View>
+          )}
           height={150}
         />
         <TouchableOpacity className="mt-2 items-end" onPress={handlePress}>
@@ -312,21 +319,13 @@ const PartnerCard = memo(
         </View>
 
         {/* Compact metrics grid */}
-        <View className="pb-2 flex-row justify-between bg-white dark:bg-darkCard">
+        <View className="pb-2 flex-row justify-between">
           <View className="flex-1">
             <AppText size="xs" color="gray">
               Target
             </AppText>
-            <AppText size="xs" weight="semibold" className="mt-0.5">
+            <AppText size="xs" weight="semibold" className="mt-0.5 text-primary">
               {convertToASINUnits(partner.Target_Qty)}
-            </AppText>
-          </View>
-          <View className="flex-1">
-            <AppText size="xs" color="gray">
-              Sell Out
-            </AppText>
-            <AppText size="xs" weight="semibold" className="mt-0.5 text-green-500">
-              {convertToASINUnits(partner.SellOut_Qty)}
             </AppText>
           </View>
           <View className="flex-1">
@@ -339,9 +338,17 @@ const PartnerCard = memo(
           </View>
           <View className="flex-1">
             <AppText size="xs" color="gray">
+              Sell Out
+            </AppText>
+            <AppText size="xs" weight="semibold" className="mt-0.5 text-green-500">
+              {convertToASINUnits(partner.SellOut_Qty)}
+            </AppText>
+          </View>
+          <View className="flex-1">
+            <AppText size="xs" color="gray">
               Act
             </AppText>
-            <AppText size="xs" weight="semibold" className="mt-0.5 text-blue-500">
+            <AppText size="xs" weight="semibold" className="mt-0.5 text-yellow-500">
               {convertToASINUnits(partner.Activation_Qty)}
             </AppText>
           </View>
@@ -349,7 +356,7 @@ const PartnerCard = memo(
             <AppText size="xs" color="gray">
               Non-Act
             </AppText>
-            <AppText size="xs" weight="semibold" className="mt-0.5 text-red-500">
+            <AppText size="xs" weight="semibold" className="mt-0.5 text-purple-500">
               {convertToASINUnits(partner.NonActivation_Qty)}
             </AppText>
           </View>

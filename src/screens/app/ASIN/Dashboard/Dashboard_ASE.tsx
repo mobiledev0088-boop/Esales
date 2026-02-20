@@ -187,12 +187,14 @@ const TargetAchievementCard = ({
 export default function Dashboard_ASE({
   DifferentEmployeeCode='',
   DifferentEmployeeCodeName='',
+  Partner_Code='',
   noPadding,
   noBanner,
 }: {
   noPadding: boolean;
   noBanner: boolean;
   DifferentEmployeeCode?: string;
+  Partner_Code  ?: string;
   DifferentEmployeeCodeName?: string;
 }) {
   const navigation = useNavigation<AppNavigationProp>();
@@ -234,6 +236,7 @@ export default function Dashboard_ASE({
   }, [refetchDashboard]);
 
   const isDataEmpty = !isLoading && !dashboardData;
+  console.log('Dashboard Data:', dashboardData);
   return (
     <ScrollView
       className={clsx(
@@ -302,7 +305,7 @@ export default function Dashboard_ASE({
           <View className='gap-y-5'>
             <AppButton
             title="See Demo"
-            onPress={() => navigation.push('TargetDemoPartner', {differentEmployeeCode: DifferentEmployeeCode})}
+            onPress={() => navigation.push('TargetDemoPartner', {differentEmployeeCode: Partner_Code})}
             className='bg-lightBg-surface dark:bg-darkBg-surface border border-slate-200 dark:border-slate-700'
             color='secondary'
             weight='extraBold'

@@ -141,7 +141,7 @@ const MetaItem: React.FC<{
 );
 
 export default function ClaimInfo() {
-   const navigation = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation<AppNavigationProp>();
   const {params} = useRoute();
   const {
     SchemeCategory,
@@ -163,8 +163,10 @@ export default function ClaimInfo() {
   type StatusFilter = 'all' | 'processed' | 'underProcess';
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(type);
 
-  const apiCaseData: ClaimCaseItem[] = data?.ClaimDashboardDetailsCaseIdWise || [];
-  const apiApplicationData: ClaimApplicationItem[] = data?.ClaimDashboardDetailsApplicationNoWise || [];
+  const apiCaseData: ClaimCaseItem[] =
+    data?.ClaimDashboardDetailsCaseIdWise || [];
+  const apiApplicationData: ClaimApplicationItem[] =
+    data?.ClaimDashboardDetailsApplicationNoWise || [];
 
   const classification = useMemo(() => {
     const childrenGrouped: Record<string, ClaimApplicationItem[]> = {};
@@ -211,7 +213,8 @@ export default function ClaimInfo() {
     } as const;
   }, [apiApplicationData, apiCaseData]);
 
-  const [selectedClaimCode, setSelectedClaimCode] = useState<AppDropdownItem | null>(null);
+  const [selectedClaimCode, setSelectedClaimCode] =
+    useState<AppDropdownItem | null>(null);
   const claimCodeOptions: AppDropdownItem[] = useMemo(() => {
     const unique = new Set<string>();
     for (const c of apiCaseData) if (c.claimcode) unique.add(c.claimcode);
@@ -244,9 +247,21 @@ export default function ClaimInfo() {
         {/* Status Filter Segmented Control */}
         <View className="flex-row items-center justify-between mt-2 mb-3 px-1">
           {[
-            {key: 'all' as StatusFilter, label: 'All'},
-            {key: 'processed' as StatusFilter, label: 'Processed'},
-            {key: 'underProcess' as StatusFilter, label: 'Under Process'},
+            {
+              key: 'all' as StatusFilter,
+              label: 'All',
+              bg: 'bg-primary dark:bg-primary',
+            },
+            {
+              key: 'processed' as StatusFilter,
+              label: 'Processed',
+              bg: 'bg-emerald-500 dark:bg-emerald-900',
+            },
+            {
+              key: 'underProcess' as StatusFilter,
+              label: 'Under Process',
+              bg: 'bg-orange-500 dark:bg-orange-900',
+            },
           ].map(opt => {
             const active = statusFilter === opt.key;
             return (
@@ -257,7 +272,7 @@ export default function ClaimInfo() {
                 className={twMerge(
                   'flex-1 mx-1 py-2 rounded-xl border items-center justify-center',
                   'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700',
-                  active && 'bg-primary border-primary',
+                  active && opt.bg,
                 )}>
                 <AppText
                   size="xs"
@@ -317,9 +332,12 @@ export default function ClaimInfo() {
             ))}
           </View>
           <View className="flex-row -mx-1 mt-1">
-            <View className="flex-1 mx-1 p-3 rounded-lg bg-success/10 border border-success/30">
+            <View className="flex-1 mx-1 p-3 rounded-lg bg-emerald-50 border border-emerald-50">
               <View className="flex-row items-center justify-between mb-1">
-                <AppText size="xs" weight="medium" className="text-success">
+                <AppText
+                  size="xs"
+                  weight="medium"
+                  className="text-emerald-600 dark:text-emerald-300">
                   Processed
                 </AppText>
                 <AppIcon
@@ -341,9 +359,12 @@ export default function ClaimInfo() {
                 </AppText>
               </View>
             </View>
-            <View className="flex-1 mx-1 p-3 rounded-lg bg-warning/10 border border-warning/30">
+            <View className="flex-1 mx-1 p-3 rounded-lg bg-orange-50 dark:bg-orange-900 border border-orange-50 dark:border-orange-900">
               <View className="flex-row items-center justify-between mb-1">
-                <AppText size="xs" weight="medium" className="text-warning">
+                <AppText
+                  size="xs"
+                  weight="medium"
+                  className="text-orange-600 dark:text-orange-300">
                   Under Process
                 </AppText>
                 <AppIcon
@@ -476,7 +497,7 @@ export default function ClaimInfo() {
               size="xs"
               className="text-gray-500 dark:text-gray-400"
               weight="medium">
-              CN Date
+              CN Disti Date
             </AppText>
             <AppText size="xs" weight="semibold">
               {item.DistiCN_Date ?? '-'}
@@ -538,12 +559,19 @@ export default function ClaimInfo() {
       };
     }, []);
 
+    const isAllProcessed =
+      children.length > 0 &&
+      children.every(c => c.ClaimStatus === PROCESSED_CLAIM_STATUS);
+
     const Header = (
       <View className="w-[96%]">
         <AppText
           size="md"
           weight="bold"
-          className="mb-2 text-heading dark:text-heading-dark"
+          className={twMerge(
+            'mb-2 text-orange-700 dark:text-orange-300',
+            isAllProcessed && 'text-emerald-600 dark:text-emerald-300',
+          )}
           numberOfLines={3}>
           {item.claimcode}
         </AppText>
@@ -580,13 +608,13 @@ export default function ClaimInfo() {
             icon="check-circle"
             label="Processed"
             value={processed}
-            valueClassName="text-success"
+            valueClassName="text-emerald-600 dark:text-emerald-300"
           />
           <MetaItem
             icon="clock"
             label="Under Process"
             value={underProcess}
-            valueClassName="text-warning"
+            valueClassName="text-orange-600 dark:text-orange-300"
           />
         </View>
       </View>

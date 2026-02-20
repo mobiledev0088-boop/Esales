@@ -28,6 +28,7 @@ export interface RollingFunnelFilter {
 
 export interface FormData {
   // Page 1
+  Funnel_type: string;
   ownerDivision: string;
   accountName: string;
   indirectAccount: string;

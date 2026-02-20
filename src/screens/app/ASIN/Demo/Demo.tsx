@@ -1,10 +1,20 @@
-import {FlatList, RefreshControl, ScrollView, View} from 'react-native';
+import {
+  FlatList,
+  RefreshControl,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {use, useCallback, useMemo, useState} from 'react';
 import MaterialTabBar from '../../../../components/MaterialTabBar';
 import AppDropdown, {
   AppDropdownItem,
 } from '../../../../components/customs/AppDropdown';
-import {getPastQuarters} from '../../../../utils/commonFunctions';
+import {
+  formatUnique,
+  getPastQuarters,
+  isEmptyData,
+} from '../../../../utils/commonFunctions';
 import {
   DemoItemLFR,
   DemoItemRetailer,
@@ -30,6 +40,7 @@ import {
 } from './components';
 import {
   useGetDemoCategories,
+  useGetDemoCategoriesLFR,
   useGetDemoCategoriesRet,
   useGetDemoDataLFR,
   useGetDemoDataROI,
@@ -42,6 +53,8 @@ import {DataStateView} from '../../../../components/DataStateView';
 import {useLoginStore} from '../../../../stores/useLoginStore';
 import {ASUS} from '../../../../utils/constant';
 import {useThemeStore} from '../../../../stores/useThemeStore';
+import AppText from '../../../../components/customs/AppText';
+import {useDemoFilterStore} from '../../../../stores/useDemoFilterStore';
 
 const Reseller = () => {
   const quarters = useMemo(() => getPastQuarters(), []);
@@ -50,12 +63,11 @@ const Reseller = () => {
     useState<AppDropdownItem | null>(quarters?.[0] ?? null);
   const [selectedPartnerName, setSelectedPartnerName] =
     useState<AppDropdownItem | null>(null);
-  const [filters, setFilters] = useState<ResellerFilterType>({
-    category: 'All',
-    pKiosk: null,
-    rogKiosk: null,
-    partnerType: '',
-  });
+  
+  // Use Zustand store for Reseller filters
+  const filters = useDemoFilterStore(state => state.resellerFilters);
+  const setFilters = useDemoFilterStore(state => state.setResellerFilters);
+  const resetFilters = useDemoFilterStore(state => state.resetResellerFilters);
   const {EMP_RoleId: role_id} = useLoginStore(state => state.userInfo);
   const {LFR_HO, ONLINE_HO, AM, TM, SALES_REPS} = ASUS.ROLE_ID;
   const noTerritoryButton = [LFR_HO, ONLINE_HO, AM, TM, SALES_REPS].includes(
@@ -85,11 +97,14 @@ const Reseller = () => {
         (item: any) => item.AGP_Name.trim() === selectedPartnerName.value,
       );
     }
-    if (filters.partnerType && filters.partnerType !== 'All') {
+    console.log('filters.partnerType', filters.partnerType);
+    // Handle multi-select partner type filtering
+    if (filters.partnerType && filters.partnerType.length > 0) {
       temp = temp.filter(
-        (item: any) => item.AGP_Or_T3.trim() === filters.partnerType,
+        (item: any) => filters.partnerType.includes(item.AGP_Or_T3.trim()),
       );
     }
+    console.log('filteredData', temp);
     return {
       DemoDetailsList: temp,
       PartnerCount: data.PartnerCount,
@@ -120,22 +135,12 @@ const Reseller = () => {
   }, [transformedData]);
 
   const PartnerTypeList = useMemo(() => {
-    if (!transformedData.length) return [];
-    const namesSet = new Set<string>();
-    transformedData.forEach(branch => {
-      branch.partners.forEach(partner => {
-        if (partner.AGP_Or_T3 && partner.AGP_Or_T3.trim()) {
-          namesSet.add(partner.AGP_Or_T3.trim());
-        }
-      });
-    });
-    return Array.from(namesSet)
-      .sort()
-      .map(name => ({
-        label: name,
-        value: name,
-      }));
-  }, [transformedData]);
+    if (!data?.DemoDetailsList?.length) return [];
+    const filter = formatUnique(data.DemoDetailsList, 'AGP_Or_T3').sort(
+      (a, b) => a.label.localeCompare(b.label),
+    );
+    return filter;
+  }, [data]);
 
   const summaryData = useMemo(() => {
     if (!transformedData || transformedData.length === 0) {
@@ -177,7 +182,7 @@ const Reseller = () => {
           category={filters.category || 'All'}
           premiumKiosk={filters.pKiosk ?? null}
           rogKiosk={filters.rogKiosk ?? null}
-          partnerType={filters.partnerType ?? null}
+          partnerType={filters.partnerType.length > 0 ? filters.partnerType.join(', ') : null}
           noTerritoryButton={noTerritoryButton}
           isDarkMode={isDarkMode}
         />
@@ -205,7 +210,10 @@ const Reseller = () => {
         },
         {
           label: 'Pending',
-          value: summaryData.pending,
+          value:
+            summaryData.total_partners -
+            summaryData.demo_100 -
+            summaryData.at_least_single_demo,
           icon: 'pause-circle',
           iconType: 'feather',
           name: 'pause_icon',
@@ -213,6 +221,58 @@ const Reseller = () => {
       ] as any,
     [summaryData],
   );
+
+  // Build pills from active filters
+  const pills = useMemo(() => {
+    const pillsArray: { key: string; label: string }[] = [];
+    
+    try {
+      // Add category pill if set and not 'All'
+      if (filters.category && filters.category !== 'All') {
+        pillsArray.push({ 
+          key: 'category', 
+          label: filters.category 
+        });
+      }
+      
+      // Add pKiosk pill if set
+      if (filters.pKiosk !== null && filters.pKiosk !== undefined) {
+        pillsArray.push({ 
+          key: 'pKiosk', 
+          label: `P-Kiosk: ${filters.pKiosk}` 
+        });
+      }
+      
+      // Add rogKiosk pill if set
+      if (filters.rogKiosk !== null && filters.rogKiosk !== undefined) {
+        pillsArray.push({ 
+          key: 'rogKiosk', 
+          label: `ROG-Kiosk: ${filters.rogKiosk}` 
+        });
+      }
+      
+      // Add partnerType pill if set (multi-select support)
+      if (filters.partnerType && filters.partnerType.length > 0) {
+        pillsArray.push({ 
+          key: 'partnerType', 
+          label: filters.partnerType.join(', ')
+        });
+      }
+      
+      // Add selected partner pill if set
+      if (selectedPartnerName?.value && selectedPartnerName?.label) {
+        pillsArray.push({ 
+          key: 'partnerName', 
+          label: selectedPartnerName.label 
+        });
+      }
+    } catch (error) {
+      console.error('Error building pills:', error);
+    }
+    
+    return pillsArray;
+  }, [filters.category, filters.pKiosk, filters.rogKiosk, filters.partnerType, selectedPartnerName]);
+
   const handleFilter = useCallback(() => {
     const arr = Array.from({length: 6}, (_, i) => ({
       label: String(i),
@@ -228,22 +288,26 @@ const Reseller = () => {
         rogKiosk: arr,
         partnerType: PartnerTypeList,
       },
+      compulsory: ['category'],
+      multiSelect: ['partnerType'], // Enable multi-select for partner type
       loading: false,
       onApply: appliedFilters => {
         setFilters({
           category: String(appliedFilters.category) || 'All',
-          pKiosk: Number(appliedFilters.pKiosk) ?? null,
-          rogKiosk: Number(appliedFilters.rogKiosk) ?? null,
-          partnerType: String(appliedFilters.partnerType) || '',
+          pKiosk: !isEmptyData(appliedFilters.pKiosk)
+            ? Number(appliedFilters.pKiosk)
+            : null,
+          rogKiosk: !isEmptyData(appliedFilters.rogKiosk)
+            ? Number(appliedFilters.rogKiosk)
+            : null,
+          partnerType: Array.isArray(appliedFilters.partnerType)
+            ? appliedFilters.partnerType as string[]
+            : [],
         });
       },
       onReset: () => {
-        setFilters({
-          category: 'All',
-          pKiosk: null,
-          rogKiosk: null,
-          partnerType: '',
-        });
+        console.log('reset filters');
+        resetFilters();
       },
     });
   }, [filters, categoriesData, PartnerNameList, PartnerTypeList]);
@@ -270,7 +334,7 @@ const Reseller = () => {
       refreshControl={
         <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
       }>
-      <View className="flex-row justify-end gap-x-2 px-3 pt-2 mb-3 ">
+      <View className="flex-row justify-end gap-x-2 px-3 pt-2 mb-1 ">
         <AppDropdown
           mode="dropdown"
           data={quarters}
@@ -289,6 +353,27 @@ const Reseller = () => {
           )}
         />
       </View>
+      {pills.length > 0 && (
+        <View className="flex-row flex-wrap mb-3 px-3 -mx-1 items-center">
+          <AppText>Selected Filters: </AppText>
+          <ScrollView horizontal>
+          {pills.map(p => (
+            <View key={p.key} className="px-1 py-1">
+              <TouchableOpacity
+                activeOpacity={0.7}
+                className="flex-row items-center bg-blue-50 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-700 rounded-full pl-3 pr-2 py-1">
+                <AppText
+                  size="xs"
+                  weight="medium"
+                  className="text-blue-700 dark:text-blue-300 mr-1">
+                  {p.label}
+                </AppText>
+              </TouchableOpacity>
+            </View>
+          ))}
+          </ScrollView>
+        </View>
+      )}
       <View className="px-3 pt-2 mb-3">
         <AppDropdown
           mode="autocomplete"
@@ -336,15 +421,10 @@ const Retailer = () => {
   const [selectedPartnerName, setSelectedPartnerName] =
     useState<AppDropdownItem | null>(null);
 
-  const [filters, setFilters] = useState<{
-    category: string;
-    compulsory: string;
-    partnerType: string;
-  }>({
-    category: 'All',
-    compulsory: 'bonus', // nopenalty
-    partnerType: '',
-  });
+  // Use Zustand store for Retailer filters
+  const filters = useDemoFilterStore(state => state.retailerFilters);
+  const setFilters = useDemoFilterStore(state => state.setRetailerFilters);
+  const resetFilters = useDemoFilterStore(state => state.resetRetailerFilters);
 
   const {EMP_RoleId: role_id} = useLoginStore(state => state.userInfo);
   const {LFR_HO, ONLINE_HO, AM, TM, SALES_REPS} = ASUS.ROLE_ID;
@@ -374,10 +454,13 @@ const Retailer = () => {
           item.PartnerName === selectedPartnerName.value,
       );
     }
-    if (!filters.partnerType || filters.partnerType === 'All') return temp;
-    return temp.filter(
-      (item: DemoItemRetailer) => item.PartnerType === filters.partnerType,
-    );
+    // Handle multi-select partner type filtering
+    if (filters.partnerType && filters.partnerType.length > 0) {
+      return temp.filter(
+        (item: DemoItemRetailer) => filters.partnerType.includes(item.PartnerType),
+      );
+    }
+    return temp;
   }, [data, filters.partnerType, selectedPartnerName?.value]);
 
   const transformedData = useMemo(() => {
@@ -426,7 +509,7 @@ const Retailer = () => {
         item={item}
         summaryData={summaryData}
         yearQtr={selectedQuarter?.value || ''}
-        partnerType={filters.partnerType}
+        partnerType={filters.partnerType.length > 0 ? filters.partnerType.join(', ') : null}
         category={filters.category || 'All'}
         IsCompulsory={filters.compulsory || ''}
         noTerritoryButton={noTerritoryButton}
@@ -454,22 +537,12 @@ const Retailer = () => {
   }, [transformedData]);
 
   const partnerTypeList = useMemo(() => {
-    if (!transformedData.length) return [];
-    const namesSet = new Set<string>();
-    transformedData.forEach(branch => {
-      branch.partners.forEach(partner => {
-        if (partner.PartnerType && partner.PartnerType.trim()) {
-          namesSet.add(partner.PartnerType.trim());
-        }
-      });
-    });
-    return Array.from(namesSet)
-      .sort()
-      .map(name => ({
-        label: name,
-        value: name,
-      }));
-  }, [transformedData]);
+    if (!data?.length) return [];
+    const filter = formatUnique(data, 'PartnerType').sort((a, b) =>
+      a.label.localeCompare(b.label),
+    );
+    return filter;
+  }, [data]);
 
   const keyExtractor = useCallback((it: TransformedBranchRet) => it.id, []);
 
@@ -498,13 +571,61 @@ const Retailer = () => {
       },
       {
         label: 'Pending',
-        value: summaryData.pending,
+        value:
+          summaryData.total_partners -
+          summaryData.demo_100 -
+          summaryData.at_80_demo -
+          summaryData.at_least_single_demo,
         icon: 'pause-circle',
         iconType: 'feather',
         name: 'pause_icon',
       },
     ] as any;
   }, [summaryData]);
+
+  // Build pills from active filters
+  const pills = useMemo(() => {
+    const pillsArray: { key: string; label: string }[] = [];
+    
+    try {
+      // Add category pill if set and not 'All'
+      if (filters.category && filters.category !== 'All') {
+        pillsArray.push({ 
+          key: 'category', 
+          label: filters.category 
+        });
+      }
+      
+      // Add compulsory pill if set
+      if (filters.compulsory) {
+        const compulsoryLabel = filters.compulsory === 'bonus' ? 'Bonus' : 'No Penalty';
+        pillsArray.push({ 
+          key: 'compulsory', 
+          label: compulsoryLabel 
+        });
+      }
+      
+      // Add partnerType pill if set (multi-select support)
+      if (filters.partnerType && filters.partnerType.length > 0) {
+        pillsArray.push({ 
+          key: 'partnerType', 
+          label: filters.partnerType.join(', ')
+        });
+      }
+      
+      // Add selected partner pill if set
+      if (selectedPartnerName?.value && selectedPartnerName?.label) {
+        pillsArray.push({ 
+          key: 'partnerName', 
+          label: selectedPartnerName.label 
+        });
+      }
+    } catch (error) {
+      console.error('Error building pills:', error);
+    }
+    
+    return pillsArray;
+  }, [filters.category, filters.compulsory, filters.partnerType, selectedPartnerName]);
 
   const handleFilter = useCallback(() => {
     showDemoFilterSheet({
@@ -517,22 +638,20 @@ const Retailer = () => {
         ],
         partnerType: partnerTypeList,
       },
+      compulsory: ['category', 'compulsory'],
+      multiSelect: ['partnerType'], // Enable multi-select for partner type
       loading: isCategoriesLoading,
       onApply: appliedFilters => {
-        setFilters(prev => ({
-          ...prev,
+        setFilters({
           category: String(appliedFilters?.category) || 'All',
           compulsory: String(appliedFilters?.compulsory) || 'bonus', // nopenalty
-          partnerType: String(appliedFilters?.partnerType),
-        }));
+          partnerType: Array.isArray(appliedFilters?.partnerType)
+            ? appliedFilters.partnerType as string[]
+            : [],
+        });
       },
       onReset: () => {
-        setFilters(prev => ({
-          ...prev,
-          category: 'All',
-          compulsory: 'bonus',
-          partnerType: '',
-        }));
+        resetFilters();
       },
     });
   }, [filters, partnerTypeList]);
@@ -557,7 +676,7 @@ const Retailer = () => {
       refreshControl={
         <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
       }>
-      <View className="flex-row justify-end gap-x-2 px-3 pt-2 mb-3 ">
+      <View className="flex-row justify-end gap-x-2 px-3 pt-2 mb-1">
         <AppDropdown
           mode="dropdown"
           data={quarters}
@@ -576,6 +695,27 @@ const Retailer = () => {
           )}
         />
       </View>
+      {pills.length > 0 && (
+        <View className="flex-row flex-wrap mb-3 px-3 -mx-1 items-center">
+           <AppText>Selected Filters: </AppText>
+          <ScrollView horizontal>
+          {pills.map(p => (
+            <View key={p.key} className="px-1 py-1">
+              <TouchableOpacity
+                activeOpacity={0.7}
+                className="flex-row items-center bg-blue-50 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-700 rounded-full pl-3 pr-2 py-1">
+                <AppText
+                  size="xs"
+                  weight="medium"
+                  className="text-blue-700 dark:text-blue-300 mr-1">
+                  {p.label}
+                </AppText>
+              </TouchableOpacity>
+            </View>
+          ))}
+          </ScrollView>
+        </View>
+      )}
       <View className="px-3 ">
         <AppDropdown
           mode="autocomplete"
@@ -630,17 +770,21 @@ const LFR = () => {
   const [selectedPartnerName, setSelectedPartnerName] =
     useState<AppDropdownItem | null>(null);
 
-  const [filters, setFilters] = useState<{
-    lfrType: string;
-    partnerName: string;
-  }>({
-    lfrType: '',
-    partnerName: '',
-  });
+  // Use Zustand store for LFR filters
+  const filters = useDemoFilterStore(state => state.lfrFilters);
+  const setFilters = useDemoFilterStore(state => state.setLFRFilters);
+  const resetFilters = useDemoFilterStore(state => state.resetLFRFilters);
   const {data, isLoading, error, refetch} = useGetDemoDataLFR(
     selectedQuarter?.value || '',
-    'All',
+    filters?.category,
   );
+
+  const {
+    data: categoriesData,
+    isLoading: isCategoriesLoading,
+    refetch: refetchCategories,
+  } = useGetDemoCategoriesLFR(selectedQuarter?.value || '');
+
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const filteredData = useMemo(() => {
@@ -651,10 +795,13 @@ const LFR = () => {
         (item: DemoItemLFR) => item.PartnerName === selectedPartnerName.value,
       );
     }
-    if (!filters.lfrType || filters.lfrType === 'All') return temp;
-    return temp.filter(
-      (item: DemoItemLFR) => item.PartnerType === filters.lfrType,
-    );
+    // Handle multi-select LFR type filtering
+    if (filters.lfrType && filters.lfrType.length > 0) {
+      return temp.filter(
+        (item: DemoItemLFR) => filters.lfrType.includes(item.PartnerType),
+      );
+    }
+    return temp;
   }, [data, filters.lfrType, selectedPartnerName?.value]);
 
   const transformedData = useMemo(() => {
@@ -713,22 +860,12 @@ const LFR = () => {
   }, [transformedData]);
 
   const partnerTypeList = useMemo(() => {
-    if (!transformedData.length) return [];
-    const namesSet = new Set<string>();
-    transformedData.forEach(branch => {
-      branch.partners.forEach(partner => {
-        if (partner.PartnerType && partner.PartnerType.trim()) {
-          namesSet.add(partner.PartnerType.trim());
-        }
-      });
-    });
-    return Array.from(namesSet)
-      .sort()
-      .map(name => ({
-        label: name,
-        value: name,
-      }));
-  }, [transformedData]);
+    if (!data?.length) return [];
+    const filter = formatUnique(data, 'PartnerType').sort((a, b) =>
+      a.label.localeCompare(b.label),
+    );
+    return filter;
+  }, [data]);
 
   const renderBranch = useCallback(
     ({item}: {item: TransformedBranchRet}) => (
@@ -768,7 +905,11 @@ const LFR = () => {
       },
       {
         label: 'Pending',
-        value: summaryData.pending,
+        value:
+          summaryData.total_partners -
+          summaryData.demo_100 -
+          summaryData.at_80_demo -
+          summaryData.at_least_single_demo,
         icon: 'pause-circle',
         iconType: 'feather',
         name: 'pause_icon',
@@ -776,26 +917,65 @@ const LFR = () => {
     ] as any;
   }, [summaryData]);
 
+  // Build pills from active filters
+  const pills = useMemo(() => {
+    const pillsArray: { key: string; label: string }[] = [];
+    
+    try {
+      // Add lfrType pill if set and not 'All' (multi-select support)
+      if (filters.lfrType && filters.lfrType.length > 0) {
+        pillsArray.push({ 
+          key: 'lfrType', 
+          label: filters.lfrType.join(', ')
+        });
+      }
+      
+      // Add category pill if set and not 'All'
+      if (filters.category && filters.category !== 'All') {
+        pillsArray.push({ 
+          key: 'category', 
+          label: filters.category 
+        });
+      }
+      
+      // Add selected partner pill if set
+      if (selectedPartnerName?.value && selectedPartnerName?.label) {
+        pillsArray.push({ 
+          key: 'partnerName', 
+          label: selectedPartnerName.label 
+        });
+      }
+    } catch (error) {
+      console.error('Error building pills:', error);
+    }
+    
+    return pillsArray;
+  }, [filters.lfrType, filters.category, selectedPartnerName]);
+
   const handleFilter = useCallback(() => {
     showDemoFilterSheet({
       filters: {
+        category: filters.category,
         lfrType: filters.lfrType,
       },
       data: {
+        category: categoriesData,
         lfrType: partnerTypeList,
       },
       loading: false,
+      compulsory: ['category'],
+      multiSelect: ['lfrType'], // Enable multi-select for LFR type
       onApply: appliedFilters => {
-        setFilters(prev => ({
-          ...prev,
-          lfrType: String(appliedFilters?.lfrType) || '',
-        }));
+        setFilters({
+          lfrType: Array.isArray(appliedFilters?.lfrType)
+            ? appliedFilters.lfrType as string[]
+            : [],
+          category: String(appliedFilters?.category) || 'All',
+          partnerName: filters.partnerName,
+        });
       },
       onReset: () => {
-        setFilters(prev => ({
-          ...prev,
-          lfrType: '',
-        }));
+        resetFilters();
       },
     });
   }, [filters, partnerTypeList]);
@@ -820,7 +1000,7 @@ const LFR = () => {
       refreshControl={
         <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
       }>
-      <View className="flex-row justify-end gap-x-2 px-3 pt-2 mb-3 ">
+      <View className="flex-row justify-end gap-x-2 px-3 pt-2 mb-1">
         <AppDropdown
           mode="dropdown"
           data={quarters}
@@ -839,6 +1019,27 @@ const LFR = () => {
           )}
         />
       </View>
+      {pills.length > 0 && (
+        <View className="flex-row flex-wrap mb-3 px-3 items-center">
+           <AppText>Selected Filters: </AppText>
+          <ScrollView horizontal> 
+          {pills.map(p => (
+            <View key={p.key} className="px-1 py-1">
+              <TouchableOpacity
+                activeOpacity={0.7}
+                className="flex-row items-center bg-blue-50 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-700 rounded-full pl-3 pr-2 py-1">
+                <AppText
+                  size="xs"
+                  weight="medium"
+                  className="text-blue-700 dark:text-blue-300 mr-1">
+                  {p.label}
+                </AppText>
+              </TouchableOpacity>
+            </View>
+          ))}
+          </ScrollView>
+        </View>
+      )}
       <View className="flex-1 px-3">
         <AppDropdown
           mode="autocomplete"
@@ -886,15 +1087,11 @@ const ROI = () => {
     useState<AppDropdownItem | null>(quarters[0]);
   const [selectedPartnerName, setSelectedPartnerName] =
     useState<AppDropdownItem | null>(null);
-  const [filters, setFilters] = useState<{
-    category: string;
-    series: string;
-    partnerType: string;
-  }>({
-    category: 'All',
-    series: '',
-    partnerType: '',
-  });
+  
+  // Use Zustand store for ROI filters
+  const filters = useDemoFilterStore(state => state.roiFilters);
+  const setFilters = useDemoFilterStore(state => state.setROIFilters);
+  const resetFilters = useDemoFilterStore(state => state.resetROIFilters);
 
   const {data, isLoading, error, refetch} = useGetDemoDataROI(
     selectedQuarter?.value || '',
@@ -915,10 +1112,13 @@ const ROI = () => {
         (item: DemoItemROI) => item.PartnerName === selectedPartnerName.value,
       );
     }
-    if (!filters.partnerType || filters.partnerType === '') return ROI_Details;
-    return ROI_Details.filter(
-      (item: DemoItemROI) => item.PartnerType === filters.partnerType,
-    );
+    // Handle multi-select partner type filtering
+    if (filters.partnerType && filters.partnerType.length > 0) {
+      return ROI_Details.filter(
+        (item: DemoItemROI) => filters.partnerType.includes(item.PartnerType),
+      );
+    }
+    return ROI_Details;
   }, [ROI_Details, filters.partnerType, selectedPartnerName?.value]);
 
   const transformedData = useMemo(() => {
@@ -982,40 +1182,20 @@ const ROI = () => {
   }, [transformedData]);
 
   const partnerTypeList = useMemo(() => {
-    if (!transformedData.length) return [];
-    const namesSet = new Set<string>();
-    transformedData.forEach(branch => {
-      branch.partners.forEach(partner => {
-        if (partner.PartnerType && partner.PartnerType.trim()) {
-          namesSet.add(partner.PartnerType.trim());
-        }
-      });
-    });
-    return Array.from(namesSet)
-      .sort()
-      .map(name => ({
-        label: name,
-        value: name,
-      }));
-  }, [transformedData]);
+    if (!data?.ROI_Details?.length) return [];
+    const filter = formatUnique(data?.ROI_Details, 'PartnerType').sort((a, b) =>
+      a.label.localeCompare(b.label),
+    );
+    return filter;
+  }, [data]);
 
   const seriesList = useMemo(() => {
-    if (!transformedData.length) return [];
-    const namesSet = new Set<string>();
-    transformedData.forEach(branch => {
-      branch.partners.forEach(partner => {
-        if (partner.Model_Series && partner.Model_Series.trim()) {
-          namesSet.add(partner.Model_Series.trim());
-        }
-      });
-    });
-    return Array.from(namesSet)
-      .sort()
-      .map(name => ({
-        label: name,
-        value: name,
-      }));
-  }, [transformedData]);
+    if (!data?.ROI_Details?.length) return [];
+    const filter = formatUnique(data?.ROI_Details, 'Model_Series').sort(
+      (a, b) => a.label.localeCompare(b.label),
+    );
+    return filter;
+  }, [data]);
 
   const renderBranch = useCallback(
     ({item}: {item: TransformedBranchROI}) => (
@@ -1028,6 +1208,49 @@ const ROI = () => {
     [summaryData, selectedQuarter, filters],
   );
   const keyExtractor = useCallback((item: TransformedBranchROI) => item.id, []);
+
+  // Build pills from active filters
+  const pills = useMemo(() => {
+    const pillsArray: { key: string; label: string }[] = [];
+    
+    try {
+      // Add category pill if set and not 'All'
+      if (filters.category && filters.category !== 'All') {
+        pillsArray.push({ 
+          key: 'category', 
+          label: filters.category 
+        });
+      }
+      
+      // Add series pill if set
+      if (filters.series) {
+        pillsArray.push({ 
+          key: 'series', 
+          label: filters.series 
+        });
+      }
+      
+      // Add partnerType pill if set (multi-select support)
+      if (filters.partnerType && filters.partnerType.length > 0) {
+        pillsArray.push({ 
+          key: 'partnerType', 
+          label: filters.partnerType.join(', ')
+        });
+      }
+      
+      // Add selected partner pill if set
+      if (selectedPartnerName?.value && selectedPartnerName?.label) {
+        pillsArray.push({ 
+          key: 'partnerName', 
+          label: selectedPartnerName.label 
+        });
+      }
+    } catch (error) {
+      console.error('Error building pills:', error);
+    }
+    
+    return pillsArray;
+  }, [filters.category, filters.series, filters.partnerType, selectedPartnerName]);
 
   const handleRetry = useCallback(() => {
     refetch();
@@ -1050,22 +1273,20 @@ const ROI = () => {
         series: seriesList,
         partnerType: partnerTypeList,
       },
+      compulsory: ['category'],
+      multiSelect: ['partnerType'], // Enable multi-select for partner type
       loading: isCategoriesLoading,
       onApply: appliedFilters => {
-        setFilters(prev => ({
-          ...prev,
-          category: String(appliedFilters?.category),
-          series: String(appliedFilters?.series),
-          partnerType: String(appliedFilters?.partnerType),
-        }));
+        setFilters({
+          category: String(appliedFilters?.category) || 'All',
+          series: String(appliedFilters?.series) || '',
+          partnerType: Array.isArray(appliedFilters?.partnerType)
+            ? appliedFilters.partnerType as string[]
+            : [],
+        });
       },
       onReset: () => {
-        setFilters(prev => ({
-          ...prev,
-          category: 'All',
-          series: '',
-          partnerType: 'All',
-        }));
+        resetFilters();
       },
     });
   }, [
@@ -1084,7 +1305,7 @@ const ROI = () => {
       refreshControl={
         <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
       }>
-      <View className="flex-row justify-end gap-x-2 px-3 pt-2 mb-3 ">
+      <View className="flex-row justify-end gap-x-2 px-3 pt-2 mb-1 ">
         <AppDropdown
           mode="dropdown"
           data={quarters}
@@ -1098,9 +1319,32 @@ const ROI = () => {
           onPress={handleFilter}
           containerClassName="p-3 border border-[#ccc] dark:border-[#e2e8f0] rounded-lg "
           noShadow
-          hasActiveFilters={Object.values(filters).some(val => val !== null && val !== '')}
+          hasActiveFilters={Object.values(filters).some(
+            val => val !== null && val !== '',
+          )}
         />
       </View>
+      {pills.length > 0 && (
+        <View className="flex-row flex-wrap mb-3 px-3 -mx-1 items-center">
+           <AppText>Selected Filters: </AppText>
+          <ScrollView horizontal>
+          {pills.map(p => (
+            <View key={p.key} className="px-1 py-1">
+              <TouchableOpacity
+                activeOpacity={0.7}
+                className="flex-row items-center bg-blue-50 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-700 rounded-full pl-3 pr-2 py-1">
+                <AppText
+                  size="xs"
+                  weight="medium"
+                  className="text-blue-700 dark:text-blue-300 mr-1">
+                  {p.label}
+                </AppText>
+              </TouchableOpacity>
+            </View>
+          ))}
+          </ScrollView>
+        </View>
+      )}
       <View className="flex-1 px-3">
         <AppDropdown
           mode="autocomplete"

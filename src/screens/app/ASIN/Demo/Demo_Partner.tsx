@@ -37,6 +37,8 @@ interface PartnerDemoData {
   LastRegisteredDate: string | null;
   LastUnRegisteredDate: string | null;
   DurationDays: number | null;
+  ALP_Remark?: string | null;
+  ALP_Status?: string | null;
 }
 interface InfoPairProps {
   label: string;
@@ -58,13 +60,13 @@ interface StatMetricProps {
 const useGetPartnerDemoData = (
   YearQtr: string,
   childrenCode?: string,
-  DifferentEmployeeCode?: string
+  DifferentEmployeeCode?: string,
 ) => {
   const {EMP_Code} = useLoginStore(state => state.userInfo);
-  const employeeCode =  childrenCode || DifferentEmployeeCode ||  EMP_Code || '';
+  const employeeCode = childrenCode || DifferentEmployeeCode || EMP_Code || '';
   const enabled = Boolean(employeeCode && YearQtr);
   return useQuery({
-    queryKey: ['partnerDemoData', employeeCode, YearQtr,DifferentEmployeeCode],
+    queryKey: ['partnerDemoData', employeeCode, YearQtr, DifferentEmployeeCode],
     enabled,
     queryFn: async () => {
       const response = await handleASINApiCall(
@@ -85,7 +87,9 @@ const useGetSubCode = (hasSubCode: boolean) => {
   return useQuery({
     queryKey: ['subCodes', employeeCode],
     queryFn: async () => {
-      const response = await handleASINApiCall('/DemoForm/GetSubcode_List', {employeeCode});
+      const response = await handleASINApiCall('/DemoForm/GetSubcode_List', {
+        employeeCode,
+      });
       console.log('Sub Codes Response:', response);
       const result = response?.demoFormData;
       if (!result?.Status) {
@@ -95,7 +99,12 @@ const useGetSubCode = (hasSubCode: boolean) => {
     },
     enabled: hasSubCode,
     select: data => {
-      return data?.map((item: any) => ({label: item?.PartnerName, value: item?.PartnerCode  })) || [];
+      return (
+        data?.map((item: any) => ({
+          label: item?.PartnerName,
+          value: item?.PartnerCode,
+        })) || []
+      );
     },
   });
 };
@@ -164,7 +173,10 @@ const formatDate = (value: string | null) => {
   return moment(value).isValid() ? moment(value).format('YYYY-MM-DD') : value;
 };
 
-const usePartnerDemoLogic = (childrenCode?: string,DifferentEmployeeCode?: string) => {
+const usePartnerDemoLogic = (
+  childrenCode?: string,
+  DifferentEmployeeCode?: string,
+) => {
   const empInfo = useUserStore(state => state.empInfo);
   const {quarters, selectedQuarter, setSelectedQuarter} = useQuarterHook();
 
@@ -176,7 +188,11 @@ const usePartnerDemoLogic = (childrenCode?: string,DifferentEmployeeCode?: strin
     error,
     refetch,
     isRefetching,
-  } = useGetPartnerDemoData(selectedQuarter?.value || '',childrenCode,DifferentEmployeeCode);
+  } = useGetPartnerDemoData(
+    selectedQuarter?.value || '',
+    childrenCode,
+    DifferentEmployeeCode,
+  );
 
   // Local filter state
   const [selectedCategory, setSelectedCategory] =
@@ -293,10 +309,13 @@ const InfoPair: React.FC<InfoPairProps> = memo(
 );
 
 const StatMetric: React.FC<StatMetricProps> = memo(
-  ({iconName, iconColor, bgClass, label, value, valueColorClass,onPress}) => {
+  ({iconName, iconColor, bgClass, label, value, valueColorClass, onPress}) => {
     const baseLabelColor = valueColorClass.replace('700', '600');
     return (
-      <TouchableOpacity disabled={!onPress} onPress={onPress} className="flex-1 items-center">
+      <TouchableOpacity
+        disabled={!onPress}
+        onPress={onPress}
+        className="flex-1 items-center">
         <View
           className={`w-14 h-14 rounded-full ${bgClass} items-center justify-center mb-2`}>
           <AppIcon type="feather" name={iconName} size={26} color={iconColor} />
@@ -322,11 +341,11 @@ const StatMetric: React.FC<StatMetricProps> = memo(
 const DemoItem: React.FC<{row: PartnerDemoData}> = memo(({row}) => {
   const statusColors = getStatusColors(row.DemoExecutionDone);
   const normalizedStatus = row.DemoExecutionDone?.trim().toLowerCase() || '';
-  const isDoneStatus = normalizedStatus === 'done'
+  const isDoneStatus = normalizedStatus === 'done';
   const handleSeeMore = useCallback(() => {
     SheetManager.show('PartnerDemoDetailsSheet', {payload: {demo: row}});
   }, [row]);
-
+  console.log('Rendering DemoItem for:', row);
   return (
     <View className="px-4 py-3 border border-slate-200 dark:border-slate-700 bg-lightBg-surface dark:bg-darkBg-surface rounded-lg">
       <Watermark />
@@ -337,8 +356,19 @@ const DemoItem: React.FC<{row: PartnerDemoData}> = memo(({row}) => {
             weight="semibold"
             className="text-slate-900"
             numberOfLines={1}>
-            {row.DemoUnitModel || '-'}
+            {row.Series || '-'}
           </AppText>
+          <View className="flex-row mt-2">
+            <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-md ">
+              <AppText
+                size="xs"
+                weight="medium"
+                className="text-slate-600 dark:text-slate-300"
+                numberOfLines={1}>
+                {row.Category}
+              </AppText>
+            </View>
+          </View>
         </View>
         <View
           className={`px-2 py-[2px] rounded-full ${statusColors.container}`}>
@@ -351,40 +381,61 @@ const DemoItem: React.FC<{row: PartnerDemoData}> = memo(({row}) => {
           </AppText>
         </View>
       </View>
-      <View className="flex-row flex-wrap mb-1">
+      <View className="flex-row flex-wrap ">
         <InfoPair
-          label="Category"
-          value={row.Category}
-          containerClassName="w-1/2 pr-2 mb-2"
+          label="Model"
+          value={row.DemoUnitModel}
+          containerClassName="w-1/2 pr-2 "
         />
-        <InfoPair
-          label="Series"
-          value={row.Series}
-          containerClassName="w-1/2 pl-2 mb-2"
-        />
+        {row.Serial_No && (
+          <InfoPair
+            label="Serial No"
+            value={row.Serial_No}
+            containerClassName="w-1/2 pl-2"
+          />
+        )}
       </View>
       {isDoneStatus && (
         <View className="flex-row flex-wrap mt-1">
-          <InfoPair
-            label="Hub ID"
-            value={row.HubID}
-            containerClassName="w-1/2 pr-2 mt-1"
+                   <InfoPair
+            label="Invoice Date"
+            value={moment(row.Invoice_Date).format('YYYY/MM/DD')}
+            containerClassName="w-1/2  mt-2"
           />
           <InfoPair
             label="Duration Days"
             value={row.DurationDays !== null ? String(row.DurationDays) : null}
-            containerClassName="w-1/2 pl-2 mt-1"
+            containerClassName="w-1/2  mt-2"
           />
-          <InfoPair
+                    <InfoPair
             label="Last Registered"
             value={formatDate(row.LastRegisteredDate)}
-            containerClassName="w-1/2 pr-2 mt-2"
+            containerClassName="w-1/2  mt-2"
           />
           <InfoPair
-            label="Serial No"
-            value={row.Serial_No}
-            containerClassName="w-1/2 pl-2 mt-2"
+            label="Last Unregistered"
+            value={formatDate(row.LastUnRegisteredDate)}
+            containerClassName="w-1/2 mt-2"
           />
+          <InfoPair
+            label="Hub ID"
+            value={row.HubID}
+            containerClassName="w-1/2 pr-2 mt-2"
+          />
+          {row?.ALP_Remark && (
+            <InfoPair
+              label="ALP Remark"
+              value={row.ALP_Remark}
+              containerClassName="w-1/2 pl-2 mt-2"
+            />
+          )}
+          {row?.ALP_Status && (
+            <InfoPair
+              label="ALP Status"
+              value={row.ALP_Status}
+              containerClassName="w-1/2 pl-2 mt-2"
+            />
+          )}
           <TouchableOpacity
             onPress={handleSeeMore}
             activeOpacity={0.7}
@@ -483,11 +534,16 @@ const FiltersSummaryHeader: React.FC<{
         <AppText size="md" weight="semibold" className="text-slate-800 mb-4">
           Summary
         </AppText>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName='gap-x-10'>
-        {/* <View className="flex-row items-center gap-x-8"> */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerClassName="gap-x-10">
+          {/* <View className="flex-row items-center gap-x-8"> */}
           {statusOptions.map((status, idx) => {
             return (
-              <View className="flex-row items-center flex-1 " key={status.value}>
+              <View
+                className="flex-row items-center flex-1 "
+                key={status.value}>
                 <StatMetric
                   // onPress={() => setSelectedStatus(status)}
                   iconName={getColors(status.value).iconName}
@@ -506,7 +562,7 @@ const FiltersSummaryHeader: React.FC<{
               </View>
             );
           })}
-          </ScrollView>
+        </ScrollView>
         {/* </View> */}
       </View>
       <View className="flex-row items-center justify-between">
@@ -541,7 +597,11 @@ const SelectSubCodesEmptyComponent = () => (
   </View>
 );
 
-export default function Demo_Partner({DifferentEmployeeCode}:{DifferentEmployeeCode?:string}) {
+export default function Demo_Partner({
+  DifferentEmployeeCode,
+}: {
+  DifferentEmployeeCode?: string;
+}) {
   const navigation = useNavigation<AppNavigationProp>();
   const {IsParentCode} = useUserStore(state => state.empInfo);
   const [childrenCode, setChildrenCode] = useState('');
@@ -551,8 +611,9 @@ export default function Demo_Partner({DifferentEmployeeCode}:{DifferentEmployeeC
     isLoading: isSubCodeLoading,
     isError: isSubCodeError,
   } = useGetSubCode(!!checkIsParent);
-  const logic = usePartnerDemoLogic(childrenCode,DifferentEmployeeCode);
+  const logic = usePartnerDemoLogic(childrenCode, DifferentEmployeeCode);
   const {sections, isLoading, isError, refetch, isRefetching, demoData} = logic;
+  console.log('Partner Demo Data:', demoData);
 
   const groupKeyExtractor = useCallback(
     (_: any, index: number) => index.toString(),
@@ -566,17 +627,19 @@ export default function Demo_Partner({DifferentEmployeeCode}:{DifferentEmployeeC
 
   return (
     <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
-     {checkIsParent && <AppDropdown
-        mode="dropdown"
-        data={data || []}
-        selectedValue={childrenCode}
-        onSelect={item => setChildrenCode(item?.value || '')}
-        placeholder={isSubCodeLoading ? 'Loading...' : 'Select Child Code'}
-        zIndex={4000}
-        allowClear
-        onClear={() => setChildrenCode('')}
-        style={{padding: 12}}
-      />}
+      {checkIsParent && (
+        <AppDropdown
+          mode="dropdown"
+          data={data || []}
+          selectedValue={childrenCode}
+          onSelect={item => setChildrenCode(item?.value || '')}
+          placeholder={isSubCodeLoading ? 'Loading...' : 'Select Child Code'}
+          zIndex={4000}
+          allowClear
+          onClear={() => setChildrenCode('')}
+          style={{padding: 12}}
+        />
+      )}
       <DataStateView
         isLoading={isLoading}
         isError={isError}

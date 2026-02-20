@@ -475,7 +475,7 @@ const PartnerClaimCard: React.FC<PartnerClaimCardProps> = memo(
                 color="gray"
                 weight="medium"
                 className="uppercase tracking-wide mb-0.5">
-                CN Date
+                CN Disti Date
               </AppText>
               <AppText
                 size="sm"

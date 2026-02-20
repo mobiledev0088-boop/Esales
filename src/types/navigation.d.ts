@@ -29,7 +29,7 @@ type AppNavigationParamList = {
     Product_Line_Name: string;
     YearMonth: string;
     PartnerType: string;
-    type: 'processed' | 'underProcess';
+    type: 'processed' | 'underProcess' | 'all';
   };
   ClaimApplicationDetails: {
     Product_Line: string;
@@ -52,7 +52,7 @@ type AppNavigationParamList = {
     MonthAPI: string;
     partnerCode: string;
     roleId: number;
-    type: 'processed' | 'underProcess';
+    type: 'processed' | 'underProcess' | 'all';
   };
   // WOD Screens
   WOD_Partners: {

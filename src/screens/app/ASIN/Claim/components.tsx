@@ -24,6 +24,7 @@ interface MonthProductRowProps {
   underProcess: number;
   onPressProcessed: () => void;
   onPressUnderProcess: () => void;
+  onPressAll: () => void;
 }
 
 type DataItem = {
@@ -250,14 +251,17 @@ export const MonthProductRow: React.FC<MonthProductRowProps> = memo(
     underProcess,
     onPressProcessed,
     onPressUnderProcess,
+    onPressAll,
   }) => {
     if (processed + underProcess === 0) return null;
     return (
       <View className="flex-row items-center py-2 px-3 rounded-md bg-lightBg-surface dark:bg-darkBg-surface mb-1 border border-gray-100 dark:border-[#374151] shadow-sm">
         <View className="w-1/4 pr-2">
+           <TouchableOpacity onPress={onPressAll}>
           <AppText size="sm" weight="semibold" className="text-gray-800">
             {displayMonth}
           </AppText>
+           </TouchableOpacity>
         </View>
         <View className="w-[30%] pr-3">
           <AppText
@@ -391,6 +395,15 @@ export const GroupAccordion: React.FC<GroupedAccordionProps> = memo(
                     productLine: month.Product_Line,
                     Product_Line_Name: month.Product_Line_Name,
                     type: 'underProcess',
+                  })
+                }
+                onPressAll={() =>
+                  onNavigate({
+                    scheme: g.Scheme_Category,
+                    month,
+                    productLine: month.Product_Line,
+                    Product_Line_Name: month.Product_Line_Name,
+                    type: 'all',
                   })
                 }
               />

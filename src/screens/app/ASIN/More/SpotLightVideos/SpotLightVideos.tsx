@@ -106,6 +106,8 @@ export default function SpotLightVideos() {
     },
   });
 
+  console.log('Fetched spotlight videos:', videos);
+
   const handleOpenVideo = useCallback((url: string) => {
     if (!url) return;
     const finalUrl = url.startsWith('http') ? url : `https://${url}`;

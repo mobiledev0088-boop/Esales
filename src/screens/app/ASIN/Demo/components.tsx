@@ -121,7 +121,7 @@ const Metric: React.FC<MetricProps> = memo(({label, value, icon, tint,isDarkMode
           {label}
         </AppText>
         <AppText size="base" weight="medium" className={METRIC_COLOR[tint]}>
-          {value}
+          {value < 0 ? 0 : value}
         </AppText>
       </View>
     </View>
@@ -351,7 +351,7 @@ export const StatsHeader = memo(
                       size="md"
                       weight="semibold"
                       className="text-slate-900 dark:text-slate-50 leading-snug text-center">
-                      {s.value}
+                      {s.value < 0 ? 0 : s.value}
                     </AppText>
                     <AppText
                       size="xs"
@@ -636,7 +636,7 @@ export const BranchCard = memo(
                   {item.pending !== null && (
                     <Metric
                       label="Pending"
-                      value={item.pending}
+                      value={item.partner_count - item.demo_100 - item.at_least_single_demo}
                       icon="pause-circle"
                       tint="yellow"
                       isDarkMode={isDarkMode}
@@ -853,6 +853,12 @@ export const TerritoryCard: React.FC<{
           icon="layers"
           tint="violet"
         />
+        <Metric
+          label="Pending"
+          value={territory.pending}
+          icon="pause-circle"
+          tint="yellow"
+        />
       </View>
 
       {/* Territory Progress Stats */}
@@ -931,30 +937,34 @@ export const BranchCardRet = memo(
     // Transform and filter territory data
     const territories = useMemo(() => {
       if (!territoryData || showFront) return [];
-      const transformed = transformDemoDataRetailer(territoryData, {
+      let temp  = territoryData;
+      if(partnerType){
+        temp = temp.filter((ter:any) => ter.PartnerType === partnerType);
+      }
+      const transformed = transformDemoDataRetailer(temp, {
         groupType: 'territory',
         labelKey: 'territory',
       });
 
       // Apply frontend partner type filtering
-      if (partnerType) {
-        const filterDemoItemsByPartnerType = (
-          items: DemoItemRetailer[],
-          partnerType: string | null,
-        ): DemoItemRetailer[] => {
-          if (!partnerType || partnerType === 'All') return items;
-          return items.filter(item => item.PartnerType === partnerType);
-        };
-        return transformed
-          .map(({...territory}) => ({
-            ...territory,
-            partners: filterDemoItemsByPartnerType(
-              territory.partners,
-              partnerType,
-            ),
-          }))
-          .filter(item => item.partners.length > 0);
-      }
+      // if (partnerType) {
+      //   const filterDemoItemsByPartnerType = (
+      //     items: DemoItemRetailer[],
+      //     partnerType: string | null,
+      //   ): DemoItemRetailer[] => {
+      //     if (!partnerType || partnerType === 'All') return items;
+      //     return items.filter(item => item.PartnerType === partnerType);
+      //   };
+      //   return transformed
+      //     .map(({...territory}) => ({
+      //       ...territory,
+      //       partners: filterDemoItemsByPartnerType(
+      //         territory.partners,
+      //         partnerType,
+      //       ),
+      //     }))
+      //     .filter(item => item.partners.length > 0);
+      // }
       return transformed;
     }, [territoryData, showFront, partnerType]);
 
@@ -1077,9 +1087,9 @@ export const BranchCardRet = memo(
                   />
                   <Metric
                     label={'Pending'}
-                    value={item.pending}
-                    icon="layers"
-                    tint="violet"
+                    value={item.partner_count - item.at_least_single_demo - item.at_80_demo -item.demo_100 }
+                    icon="pause-circle"
+                    tint="yellow"
                   />
                 </View>
                 {/* Progress section */}
@@ -1156,7 +1166,6 @@ export const BranchCardRet = memo(
                 watermark
                 watermarkTextVerticalCount={3}
                 watermarkRowGap={200}
-                
                 >
                 {/* Header with flip back button */}
                 <Pressable
@@ -1285,6 +1294,12 @@ export const TerritoryCardRet: React.FC<{
           icon="users"
           tint="slate"
         />
+        <Metric
+          label={'Pending'}
+          value={territory.pending}
+          icon="pause-circle"
+          tint="yellow"
+        />
       </View>
 
       {/* Territory Progress Stats */}
@@ -1315,8 +1330,8 @@ export const TerritoryCardRet: React.FC<{
           }
           current={territory.at_80_demo}
           total={territory.partner_count}
-          barTint="bg-violet-500"
-          percentTint="text-violet-600"
+          barTint="bg-sky-500"
+          percentTint="text-sky-600"
         />
         <ProgressStat
           label="100% Demo"
@@ -1413,9 +1428,9 @@ export const BranchCardLFR = memo(
             />
             <Metric
               label={'Pending'}
-              value={item.pending}
+              value={item.partner_count - item.at_least_single_demo - item.at_80_demo -item.demo_100}
               icon="layers"
-              tint="violet"
+              tint="yellow"
             />
           </View>
           {/* Progress section */}
@@ -1646,7 +1661,7 @@ export const ROITable = ({
         <View className="flex-row  border-t border-slate-200 dark:border-slate-700">
           <View className="flex-1 py-3 px-3 border-r border-slate-200 dark:border-slate-700 justify-center">
             <AppText size="xs" weight="semibold" className="text-slate-700 dark:text-slate-300">
-              DEMO STORE
+              STORE
             </AppText>
           </View>
           <View className="w-24 py-3 px-2 border-r border-slate-200 dark:border-slate-700 items-center justify-center">
@@ -1670,7 +1685,7 @@ export const ROITable = ({
         <View className="flex-row  border-t border-slate-200 dark:border-slate-700">
           <View className="flex-1 py-3 px-3 border-r border-slate-200 dark:border-slate-700 justify-center">
             <AppText size="xs" weight="semibold" className="text-slate-700 dark:text-slate-300">
-              DEMO QTY/UNITS
+              QTY/UNITS
             </AppText>
           </View>
           <View className="w-24 py-3 px-2 border-r border-slate-200 dark:border-slate-700 items-center justify-center">
