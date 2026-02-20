@@ -170,8 +170,7 @@ export default function ProductDescription() {
   const handleDownloadPDF = async () => {
     try {
       const html = generateHtml(productData);
-      const baseName =
-        productData.PD_sales_model_name || 'Product_Description';
+      const baseName = productData.PD_sales_model_name || 'Product_Description';
       const fileName = `${baseName}.pdf`;
 
       const options = {
@@ -186,12 +185,12 @@ export default function ProductDescription() {
       if (isIOS) {
         // iOS: Use Share sheet to let user save/share the PDF
         const fileUrl = `file://${res.filePath}`;
-        
+
         await Share.share({
           url: fileUrl,
           title: fileName,
         });
-        
+
         // Set the path for the "Open File" button
         setDownloadedFilePath(res.filePath);
         setIsDownloadModalOpen(true);
@@ -436,7 +435,7 @@ export default function ProductDescription() {
               <InfoRow
                 icon="videogame-asset"
                 iconType="materialIcons"
-                label="Graphics Card"
+                label="Graphics Card / TGP"
                 value={productData.PD_graphic}
                 multiline
               />
@@ -830,6 +829,34 @@ export default function ProductDescription() {
             )}
           </Card>
         )}
+
+        <Card className="mb-10">
+          <View className="bg-red-50 rounded-xl p-3 mb-6 border border-red-600 mt-4">
+            <View className="flex-row items-center mb-1 gap-1">
+              <AppIcon
+                type="ionicons"
+                name="information-circle-outline"
+                size={18}
+                color="#DC2626"
+                style={{marginTop: 3}}
+              />
+              <AppText size="md" weight="semibold" className="text-error">
+                Disclaimer
+              </AppText>
+            </View>
+            <AppText className="text-error leading-5 text-sm">
+              All specifications are subject to change without notice. Please check with your sales rep for exact details. 
+Specifications and features vary by model. ASUS reserves the right to alter product offerings & specifications at any time without notice. Refer to official ASUS/ROG India specs web pages for details.
+Rated speed of RAM module as mentioned, actual memory speeds may vary by CPU configuration.
+The actual transfer speed of all ports will vary depending on many factors including the processing speed of the host device, file attributes and other factors related to system configuration and your operating environment.
+The drivers on ASUS PCs are only compatible with Windows 11 version 24H2 or later. Please do not manually install an older version or a different type of operating system.
+Factors that affect battery life include laptop configuration, power settings, and the way it is used. Battery capacity fades with its cycle count and age.
+Quick-charging times apply when using the proper ASUS/ROG adapter included alongside the select model and the system is powered off (via the "shut down" command). In compatible scenarios, batteries can be recharged to 50% within 30 minutes under the optimal temperature range of 20-45 degrees Celsius. Charging times may vary +/- 10% due to system tolerance.
+The testing regime includes the requirements of both military-grade standards and ASUS quality tests, and varies depending on device. MIL-STD-810 testing is conducted on selected ASUS products only. Note that the MIL-STD-810 testing helps to ensure the quality of ASUS products but does not indicate a particular fitness for military use. The test is performed under laboratory conditions. Any damage caused by attempts to replicate these test conditions would be considered accidental, and would not be covered by the standard ASUS warranty. Additional coverage is available with ASUS Premium Care.
+Please note that this Xbox Game Pass offer must be redeemed within 180 days of activating Windows. Systems that have not activated Windows within two years of their manufacture date will be unable to redeem this offer.
+            </AppText>
+          </View>
+        </Card>
       </ScrollView>
       {displaySchemeInfo && (
         <TouchableOpacity

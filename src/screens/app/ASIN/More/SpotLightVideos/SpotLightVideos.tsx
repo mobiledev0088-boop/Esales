@@ -12,6 +12,8 @@ import AppImage from '../../../../../components/customs/AppImage';
 import AppIcon from '../../../../../components/customs/AppIcon';
 import Skeleton from '../../../../../components/skeleton/skeleton';
 import {screenWidth} from '../../../../../utils/constant';
+import FilterButton from '../../../../../components/FilterButton';
+import {showSpotlightVideosFilterSheet} from './SpotLightVideosFilter';
 
 interface SpotlightVideoItem {
   VideoLink: string;
@@ -50,6 +52,9 @@ const SpotlightVideoScreenSkeleton = () => (
 export default function SpotLightVideos() {
   const userInfo = useLoginStore(state => state.userInfo);
   const [modelName, setModelName] = useState<string>(''); // empty => API returns top
+  const [filters, setFilters] = useState({
+    category: '',
+  });
 
   // Model list (dropdown)
   const {
@@ -102,11 +107,10 @@ export default function SpotLightVideos() {
       if (!result?.Status) {
         throw new Error(result?.Message || 'Failed to fetch spotlight videos');
       }
-      return (res?.DashboardData?.Datainfo?.Spotlight_Model_Info || []) as SpotlightVideoItem[];
+      return (res?.DashboardData?.Datainfo?.Spotlight_Model_Info ||
+        []) as SpotlightVideoItem[];
     },
   });
-
-  console.log('Fetched spotlight videos:', videos);
 
   const handleOpenVideo = useCallback((url: string) => {
     if (!url) return;
@@ -175,7 +179,7 @@ export default function SpotLightVideos() {
   const isEmpty = !videosLoading && !videosError && videos.length === 0;
 
   const listEmpty = useCallback(() => {
-    if(videosLoading){
+    if (videosLoading) {
       return <SpotlightVideoScreenSkeleton />;
     }
     if (videosError) {
@@ -213,18 +217,36 @@ export default function SpotLightVideos() {
     return null;
   }, [videosLoading, videosError, refetchVideos, isEmpty, modelName]);
 
+  const handleFilterPress = () => {
+    showSpotlightVideosFilterSheet({
+      filters: {
+        categories: filters.category,
+      },
+      onApply: newFilters => {
+        setFilters({
+          category: newFilters.categories,
+        });
+      },
+      onReset: () => {
+        setFilters({
+          category: '',
+        });
+      },
+    });
+  };
 
   return (
     <AppLayout title="SpotLight Videos" needBack needPadding>
-        <View className="flex-1 bg-slate-50">
-          <View className="pt-5 pb-5">
+      <View className="flex-1 bg-slate-50">
+        <View className="pt-5 pb-5 flex-row items-center gap-x-3">
+          <View className="w-[86%]">
             <AppDropdown
               data={modelOptions}
               onSelect={item => setModelName(item?.value || '')}
               selectedValue={modelName || null}
               mode="autocomplete"
               placeholder={modelListLoading ? 'Loading...' : 'Filter by model'}
-              label="Model"
+              // label="Model"
               allowClear
               needIndicator
               zIndex={1000}
@@ -246,17 +268,19 @@ export default function SpotLightVideos() {
               </View>
             )}
           </View>
-          <FlatList
-            data={videos}
-            keyExtractor={(_, index) => index.toString()}
-            renderItem={renderItem}
-            ListEmptyComponent={listEmpty}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{paddingBottom: 40}}
-            refreshing={videosRefetching && !videosLoading}
-            onRefresh={refetchVideos}
-          />
+          <FilterButton onPress={handleFilterPress} />
         </View>
+        <FlatList
+          data={videos}
+          keyExtractor={(_, index) => index.toString()}
+          renderItem={renderItem}
+          ListEmptyComponent={listEmpty}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{paddingBottom: 40}}
+          refreshing={videosRefetching && !videosLoading}
+          onRefresh={refetchVideos}
+        />
+      </View>
     </AppLayout>
   );
 }

@@ -15,6 +15,9 @@ import {handleASINApiCall} from '../../../../../utils/handleApiCall';
 import {useQuery} from '@tanstack/react-query';
 import {useState} from 'react';
 import AppImage from '../../../../../components/customs/AppImage';
+import {twMerge} from 'tailwind-merge';
+import AppButton from '../../../../../components/customs/AppButton';
+import {showTrackStatusSheet} from './TrackStatusSheet';
 
 interface AllocationStatusType {
   Allocation_Id: number;
@@ -67,7 +70,7 @@ interface AllocationStatusType {
   Territoty_Manager: string;
   CSE_Codes: string | null;
 }
-
+// hooks
 const useRequestNumbersList = () => {
   const {EMP_Code: employeeCode = '', EMP_RoleId: RoleId = ''} = useLoginStore(
     state => state.userInfo || {},
@@ -115,9 +118,14 @@ const useAllocationStatus = (RequestId: string) => {
     queryFn: async () => {
       const res = await handleASINApiCall<
         APIResponse<{AllocationStatus: AllocationStatusType[]}>
-      >('/StandPOSM/StandPOSMAllocation_GetStatusDetails', {
-        RequestId,
-      },{},true);
+      >(
+        '/StandPOSM/StandPOSMAllocation_GetStatusDetails',
+        {
+          RequestId,
+        },
+        {},
+        true,
+      );
 
       const result = res?.DashboardData;
       if (!result?.Status) {
@@ -132,33 +140,43 @@ const useAllocationStatus = (RequestId: string) => {
   });
 };
 
+// Helper functions and sub-components
 const getStatusStyling = (status: string) => {
   const normalizedStatus = status?.toLowerCase().trim() || '';
-  
-  if (normalizedStatus.includes('approved') || normalizedStatus.includes('delivered')) {
+
+  if (
+    normalizedStatus.includes('approved') ||
+    normalizedStatus.includes('delivered')
+  ) {
     return {
       bg: 'bg-green-100',
       border: 'border-green-300',
       text: 'text-green-700',
     };
   }
-  
-  if (normalizedStatus.includes('pending') || normalizedStatus.includes('process')) {
+
+  if (
+    normalizedStatus.includes('pending') ||
+    normalizedStatus.includes('process')
+  ) {
     return {
       bg: 'bg-yellow-100',
       border: 'border-yellow-300',
       text: 'text-yellow-700',
     };
   }
-  
-  if (normalizedStatus.includes('reject') || normalizedStatus.includes('cancel')) {
+
+  if (
+    normalizedStatus.includes('reject') ||
+    normalizedStatus.includes('cancel')
+  ) {
     return {
       bg: 'bg-red-100',
       border: 'border-red-300',
       text: 'text-red-700',
     };
   }
-  
+
   return {
     bg: 'bg-blue-100',
     border: 'border-blue-300',
@@ -166,19 +184,23 @@ const getStatusStyling = (status: string) => {
   };
 };
 
-const formatDate = (dateString: string | null | undefined, includeTime = false): string => {
+const formatDate = (
+  dateString: string | null | undefined,
+  includeTime = false,
+): string => {
   if (!dateString) return 'N/A';
-  
+
   try {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return 'Invalid Date';
-    
+
     return includeTime ? date.toLocaleString() : date.toLocaleDateString();
   } catch (error) {
     return 'Invalid Date';
   }
 };
 
+// Reusable component for displaying a label-value pair with optional icon
 const InfoRow = ({
   label,
   value,
@@ -188,8 +210,6 @@ const InfoRow = ({
   value: string | number | null | undefined;
   icon?: string;
 }) => {
-  if (!value && value !== 0) return null;
-
   return (
     <View className="flex-row items-start mb-3">
       {icon && (
@@ -202,7 +222,7 @@ const InfoRow = ({
           {label}
         </AppText>
         <AppText size="sm" weight="semibold" className="text-gray-800">
-          {value}
+          {value || 'N/A'}
         </AppText>
       </View>
     </View>
@@ -211,11 +231,12 @@ const InfoRow = ({
 
 const StatusBadge = ({status}: {status: string}) => {
   if (!status) return null;
-  
+
   const styling = getStatusStyling(status);
-  
+
   return (
-    <View className={`px-3 py-1.5 rounded-full border ${styling.bg} ${styling.border} self-start`}>
+    <View
+      className={`px-3 py-1.5 rounded-full border ${styling.bg} ${styling.border} self-start`}>
       <AppText size="xs" weight="semibold" className={styling.text}>
         {status}
       </AppText>
@@ -225,9 +246,9 @@ const StatusBadge = ({status}: {status: string}) => {
 
 const CompactStatusBadge = ({status}: {status: string}) => {
   if (!status) return null;
-  
+
   const styling = getStatusStyling(status);
-  
+
   return (
     <View className={`px-2 py-0.5 rounded ${styling.bg}`}>
       <AppText size="xs" weight="medium" className={styling.text}>
@@ -258,47 +279,47 @@ const RemarkCard = ({
 }: {
   icon: string;
   title: string;
-  content: string;
+  content: string | null | undefined;
   bgColor: string;
   borderColor: string;
   textColor: string;
 }) => (
   <View className={`mb-2 p-2 ${bgColor} rounded-lg border ${borderColor}`}>
     <View className="flex-row items-center mb-1">
-      <AppIcon type="ionicons" name={icon} size={12} color={textColor.includes('gray') ? '#6B7280' : textColor.replace('text-', '#')} />
+      <AppIcon
+        type="ionicons"
+        name={icon}
+        size={12}
+        color={
+          textColor.includes('gray')
+            ? '#6B7280'
+            : textColor.replace('text-', '#')
+        }
+      />
       <AppText size="xs" weight="semibold" className={`${textColor} ml-1`}>
         {title}
       </AppText>
     </View>
     <AppText size="xs" className="text-gray-700">
-      {content}
+      {content || 'N/A'}
     </AppText>
   </View>
 );
 
 const AllocationItemCard = ({item}: {item: AllocationStatusType}) => {
+  const navigation = useNavigation<AppNavigationProp>();
   // Validate item exists
   if (!item) return null;
-
-  const hasDeliveryInfo = Boolean(
-    item.Delivery_Status || item.AWB_Number || item.Delivery_Remark || item.Courier_Company || item.Delivery_Uploaded_Time
-  );
-  
-  const hasImages = Boolean(item.Image_Url_Path || item.Delivery_Image_Url_Path);
-  
-  const hasRemarks = Boolean(
-    item.Allocation_Remark ||
-    item.Delivery_Remark ||
-    item.Logistics_Remark ||
-    item.CMKT_Remark ||
-    item.Shop_Expansion_Remark
-  );
 
   const AccordionHeader = (
     <View className="flex-1 flex-row items-center justify-between py-2 pr-2">
       <View className="flex-row items-center flex-1">
         <View className="flex-1">
-          <AppText size="sm" weight="bold" className="text-gray-800" numberOfLines={1}>
+          <AppText
+            size="sm"
+            weight="bold"
+            className="text-gray-800"
+            numberOfLines={1}>
             {item.Stand_Type || 'N/A'}
           </AppText>
           <AppText size="xs" color="gray" numberOfLines={1}>
@@ -324,152 +345,245 @@ const AllocationItemCard = ({item}: {item: AllocationStatusType}) => {
         headerClassName="px-3">
         <View className="px-4 pb-4 pt-2">
           {/* Allocation Details */}
-          <View className="mb-3">
+          {/* <View className="mb-3">
             <View className="flex-row items-center mb-2">
               <AppIcon type="ionicons" name="cube-outline" size={16} color="#00539B" />
               <AppText size="sm" weight="semibold" color="primary" className="ml-1">
                 Allocation Details
               </AppText>
             </View>
-            <InfoRow label="Sub Request ID" value={item.Sub_Request_Id} icon="layers" />
-            <InfoRow label="Quantity" value={item.Allocation_Qty} icon="calculator" />
-          </View>
+           
+          </View> */}
 
           {/* Delivery Information */}
-          {hasDeliveryInfo && (
-            <View className="mb-3 pb-3 border-t border-gray-100 pt-3">
-              <View className="flex-row items-center mb-2">
-                <AppIcon type="ionicons" name="car-outline" size={16} color="#00539B" />
-                <AppText size="sm" weight="semibold" color="primary" className="ml-1">
-                  Delivery Information
+          <View className="mb-3 pb-3 border-t border-gray-100 pt-3">
+            <View className="flex-row items-center mb-2">
+              <AppIcon
+                type="ionicons"
+                name="car-outline"
+                size={16}
+                color="#00539B"
+              />
+              <AppText
+                size="sm"
+                weight="semibold"
+                color="primary"
+                className="ml-1">
+                Tracking Details
+              </AppText>
+              {/* Create BUtton to Track Status */}
+              <AppButton
+                title="Track Status"
+                size="xs"
+                className="ml-auto rounded-lg px-6 py-2 "
+                onPress={() => {
+                  showTrackStatusSheet({
+                    awbNumber: item.AWB_Number,
+                    courierCompany: item.Courier_Company,
+                  });
+                }}
+              />
+            </View>
+            {item.Delivery_Status && (
+              <View className="mb-2">
+                <AppText size="xs" color="gray" className="mb-1">
+                  Delivery Status
                 </AppText>
+                <StatusBadge status={item.Delivery_Status} />
               </View>
-              {item.Delivery_Status && (
-                <View className="mb-2">
-                  <AppText size="xs" color="gray" className="mb-1">
-                    Delivery Status
-                  </AppText>
-                  <StatusBadge status={item.Delivery_Status} />
-                </View>
-              )}
-              <InfoRow label="AWB Number" value={item.AWB_Number} icon="barcode" />
-              <InfoRow label="Courier Company" value={item.Courier_Company} icon="airplane" />
-              {item.Delivery_Uploaded_Time && (
-                <InfoRow
+            )}
+            <InfoRow
+              label="AWB Number"
+              value={item.AWB_Number}
+              icon="barcode"
+            />
+            <InfoRow
+              label="Courier Company"
+              value={item.Courier_Company}
+              icon="airplane"
+            />
+            {/* <InfoRow
                   label="Delivery Time"
                   value={formatDate(item.Delivery_Uploaded_Time, true)}
                   icon="time"
-                />
-              )}
+                /> */}
+          </View>
+          <View className="border-t border-gray-100 pt-3 mb-3">
+            <View className="flex-row items-center mb-2">
+              <AppIcon
+                type="ionicons"
+                name="chatbubbles-outline"
+                size={16}
+                color="#00539B"
+              />
+              <AppText
+                size="sm"
+                weight="semibold"
+                color="primary"
+                className="ml-1">
+                Remarks
+              </AppText>
             </View>
-          )}
+            <RemarkCard
+              icon="cube-outline"
+              title="Allocation"
+              content={item.Allocation_Remark}
+              bgColor="bg-gray-50"
+              borderColor="border-gray-200"
+              textColor="text-gray-700"
+            />
+            <RemarkCard
+              icon="cube-outline"
+              title="Logistics"
+              content={item.Logistics_Remark}
+              bgColor="bg-gray-50"
+              borderColor="border-gray-200"
+              textColor="text-gray-700"
+            />
+            <RemarkCard
+              icon="pricetag-outline"
+              title="CMKT"
+              content={item.CMKT_Remark}
+              bgColor="bg-gray-50"
+              borderColor="border-gray-200"
+              textColor="text-gray-700"
+            />
+            <RemarkCard
+              icon="storefront-outline"
+              title="Shop Expansion"
+              content={item?.Shop_Expansion_Remark}
+              bgColor="bg-gray-50"
+              borderColor="border-gray-200"
+              textColor="text-gray-700"
+            />
+          </View>
 
           {/* Images Section - Side by Side */}
-          {hasImages && (
-            <View className="mb-3 pb-3 border-t border-gray-100 pt-3">
-              <View className="flex-row items-center mb-2">
-                <AppIcon type="ionicons" name="images-outline" size={16} color="#00539B" />
-                <AppText size="sm" weight="semibold" color="primary" className="ml-1">
-                  Documentation Images
-                </AppText>
-              </View>
-              <View className="flex-row gap-2">
-                {item.Image_Url_Path && (
-                  <View className="flex-1">
-                    <View className="flex-row items-center mb-1">
-                      <AppIcon type="ionicons" name="document-outline" size={12} color="#6B7280" />
-                      <AppText size="xs" color="gray" className="ml-1">
-                        Allocation
-                      </AppText>
-                    </View>
-                    <AppImage
-                      source={{uri: item.Image_Url_Path}}
-                      style={{width: '100%', height: 140, borderRadius: 8}}
-                      resizeMode="contain"
-                      enableModalZoom
-                    />
-                  </View>
-                )}
-                {item.Delivery_Image_Url_Path && (
-                  <View className="flex-1">
-                    <View className="flex-row items-center mb-1">
-                      <AppIcon type="ionicons" name="checkmark-circle-outline" size={12} color="#6B7280" />
-                      <AppText size="xs" color="gray" className="ml-1">
-                        Delivery
-                      </AppText>
-                    </View>
-                    <AppImage
-                      source={{uri: item.Delivery_Image_Url_Path}}
-                      style={{width: '100%', height: 140, borderRadius: 8}}
-                      resizeMode="contain"
-                      enableModalZoom
-                    />
-                  </View>
-                )}
-              </View>
+          <View className="mb-3 pb-3 border-t border-gray-100 pt-3">
+            <View className="flex-row items-center mb-2">
+              <AppIcon
+                type="ionicons"
+                name="images-outline"
+                size={16}
+                color="#00539B"
+              />
+              <AppText
+                size="sm"
+                weight="semibold"
+                color="primary"
+                className="ml-1">
+                Material Details
+              </AppText>
             </View>
-          )}
-
-          {/* Remarks Section */}
-          {hasRemarks && (
-            <View className="border-t border-gray-100 pt-3">
-              <View className="flex-row items-center mb-2">
-                <AppIcon type="ionicons" name="chatbubbles-outline" size={16} color="#00539B" />
-                <AppText size="sm" weight="semibold" color="primary" className="ml-1">
-                  Remarks
-                </AppText>
-              </View>
-              {item.Allocation_Remark && (
-                <RemarkCard
-                  icon="cube-outline"
-                  title="Allocation Remark"
-                  content={item.Allocation_Remark}
-                  bgColor="bg-gray-50"
-                  borderColor="border-gray-200"
-                  textColor="text-gray-700"
-                />
+            <View className="flex-row gap-2">
+              {item.Image_Url_Path && (
+                <View className="flex-1">
+                  <View className="flex-row items-center mb-1">
+                    <AppIcon
+                      type="ionicons"
+                      name="document-outline"
+                      size={12}
+                      color="#6B7280"
+                    />
+                    <AppText size="xs" color="gray" className="ml-1">
+                      Allocation
+                    </AppText>
+                  </View>
+                  <AppImage
+                    source={{uri: item.Image_Url_Path}}
+                    style={{width: '100%', height: 140, borderRadius: 8}}
+                    resizeMode="contain"
+                    enableModalZoom
+                  />
+                </View>
               )}
-              {item.Delivery_Remark && (
-                <RemarkCard
-                  icon="car-outline"
-                  title="Delivery Remark"
-                  content={item.Delivery_Remark}
-                  bgColor="bg-gray-50"
-                  borderColor="border-gray-200"
-                  textColor="text-gray-700"
-                />
-              )}
-              {item.Logistics_Remark && (
-                <RemarkCard
-                  icon="cube-outline"
-                  title="Logistics"
-                  content={item.Logistics_Remark}
-                  bgColor="bg-blue-50"
-                  borderColor="border-blue-100"
-                  textColor="text-blue-700"
-                />
-              )}
-              {item.CMKT_Remark && (
-                <RemarkCard
-                  icon="pricetag-outline"
-                  title="CMKT"
-                  content={item.CMKT_Remark}
-                  bgColor="bg-green-50"
-                  borderColor="border-green-100"
-                  textColor="text-green-700"
-                />
-              )}
-              {item.Shop_Expansion_Remark && (
-                <RemarkCard
-                  icon="storefront-outline"
-                  title="Shop Expansion"
-                  content={item.Shop_Expansion_Remark}
-                  bgColor="bg-purple-50"
-                  borderColor="border-purple-100"
-                  textColor="text-purple-700"
-                />
+              {item.Delivery_Image_Url_Path ? (
+                <View className="flex-1">
+                  <View className="flex-row items-center mb-1">
+                    <AppIcon
+                      type="ionicons"
+                      name="checkmark-circle-outline"
+                      size={12}
+                      color="#6B7280"
+                    />
+                    <AppText size="xs" color="gray" className="ml-1">
+                      Delivery
+                    </AppText>
+                  </View>
+                  <AppImage
+                    source={{uri: item.Delivery_Image_Url_Path}}
+                    style={{width: '100%', height: 140, borderRadius: 8}}
+                    resizeMode="contain"
+                    enableModalZoom
+                  />
+                </View>
+              ) : (
+                <View className="flex-1">
+                  <View className="flex-row items-center mb-1">
+                    <AppIcon
+                      type="ionicons"
+                      name="checkmark-circle-outline"
+                      size={12}
+                      color="#6B7280"
+                    />
+                    <AppText size="xs" color="gray" className="ml-1">
+                      Delivery
+                    </AppText>
+                  </View>
+                  <View className="w-full h-40 bg-gray-100 rounded-lg items-center justify-center">
+                    <AppIcon
+                      type="feather"
+                      name="image"
+                      size={24}
+                      color="#9CA3AF"
+                    />
+                    <AppText size="xs" color="gray" className="mt-2">
+                      No delivery image
+                    </AppText>
+                  </View>
+                </View>
               )}
             </View>
+            <View className="mt-5">
+              <InfoRow
+                label="Sub Request ID"
+                value={item.Sub_Request_Id}
+                icon="layers"
+              />
+              <InfoRow
+                label="Quantity"
+                value={item.Allocation_Qty}
+                icon="calculator"
+              />
+              <InfoRow
+                label="Delivery Status"
+                value={item.Delivery_Status}
+                icon="car-outline"
+              />
+              <RemarkCard
+                icon="car-outline"
+                title="Delivery Remark"
+                content={item.Delivery_Remark}
+                bgColor="bg-gray-50"
+                borderColor="border-gray-200"
+                textColor="text-gray-700"
+              />
+            </View>
+          </View>
+          {/* Edit Button For update Data of Material Design  */}
+          {!item.Allocation_Status?.toLowerCase()?.includes('delivered') && (
+          <View className="flex-row justify-end">
+            <AppButton
+              title="Edit"
+              size="base"
+              iconName='edit'
+              className="rounded-lg px-6 py-2 "
+              onPress={() => {
+                // Handle Edit Action
+                navigation.push('EditMaterialDetails', { item });
+              }}
+            />
+          </View>
           )}
         </View>
       </Accordion>
@@ -480,6 +594,9 @@ const AllocationItemCard = ({item}: {item: AllocationStatusType}) => {
 const AllocationDetailsUI = ({data}: {data: AllocationStatusType[]}) => {
   const firstItem = data[0];
 
+  const overalStatus = data.every(obj => obj.Allocation_Status === 'Closed')
+    ? 'CLOSED'
+    : 'OPEN';
   return (
     <View className="flex-1 px-3 mt-4">
       {/* Request Overview Card - Common for all items */}
@@ -511,7 +628,7 @@ const AllocationDetailsUI = ({data}: {data: AllocationStatusType[]}) => {
             />
           </View>
         </View>
-        <View className="mt-2 p-3 bg-blue-50 rounded-lg">
+        <View className="mt-2 p-3 bg-blue-50 rounded-lg flex-row items-center justify-between">
           <View className="flex-row items-center">
             <AppIcon type="ionicons" name="layers" size={16} color="#00539B" />
             <AppText
@@ -520,6 +637,24 @@ const AllocationDetailsUI = ({data}: {data: AllocationStatusType[]}) => {
               color="primary"
               className="ml-2">
               Total Allocations: {data.length}
+            </AppText>
+          </View>
+          <View className="flex-row items-center pr-2">
+            <AppIcon
+              type="entypo"
+              name="info-with-circle"
+              size={16}
+              color="#00539B"
+            />
+            <AppText
+              size="sm"
+              weight="semibold"
+              color="primary"
+              className={twMerge(
+                'pl-2',
+                overalStatus === 'CLOSED' && 'text-green-700',
+              )}>
+              OverAll Status: {overalStatus}
             </AppText>
           </View>
         </View>
@@ -550,7 +685,11 @@ const AllocationDetailsUI = ({data}: {data: AllocationStatusType[]}) => {
             </AppText>
           )}
           <AppText size="sm" className="text-gray-600 mt-1">
-            {[firstItem.Store_City, firstItem.Store_State, firstItem.Store_Pincode]
+            {[
+              firstItem.Store_City,
+              firstItem.Store_State,
+              firstItem.Store_Pincode,
+            ]
               .filter(Boolean)
               .join(', ')}
           </AppText>
@@ -634,16 +773,12 @@ export default function StandPOSM() {
 
   return (
     <AppLayout title="Stand POSM" needBack>
-      <ScrollView 
-      className="flex-1 mt-5 "
-      contentContainerClassName='pb-24'
-      refreshControl={
-        <RefreshControl
-        refreshing={refreshing}
-        onRefresh={handleRefresh}
-      />
-      }
-      >
+      <ScrollView
+        className="flex-1 mt-5 "
+        contentContainerClassName="pb-24"
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }>
         <View className="px-3">
           <AppDropdown
             data={data || []}
