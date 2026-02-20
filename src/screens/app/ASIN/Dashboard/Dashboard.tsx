@@ -986,6 +986,7 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
     DIR_HOD_MAN,
     TM,
     RSM,
+    SALES_REPS
   } = ASUS.ROLE_ID;
   const isBranchManager = useMemo(() => {
     return [BSM, BPM].includes(userInfo?.EMP_RoleId as any);

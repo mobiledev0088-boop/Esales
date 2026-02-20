@@ -165,6 +165,28 @@ export const TAB_CONFIGS: TabConfig[] =  [
     ],
   },
   {
+    id: 'awp',
+    label: 'AWP',
+    columns: [
+      ...NAME_COLUMN,
+      {
+        key: 'st',
+        label: 'ST',
+        width: 'w-16',
+        dataKey: 'ST_Cnt',
+        colorType: 'primary',
+      },
+      {
+        key: 'so',
+        label: 'SO',
+        width: 'w-16',
+        dataKey: 'SO_Cnt',
+        colorType: 'secondary',
+      },
+      ...COMMON_COLUMNS,
+    ],
+  },
+  {
     id: 'alp',
     label: 'ALP',
     columns: [
