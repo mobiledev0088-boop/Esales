@@ -49,7 +49,8 @@ const useGetDealerHitRateData = (branchName: string, YearQtr: string) => {
       );
       if (!res?.DashboardData?.Status) throw new Error('Failed to fetch data');
       const {Datainfo} = res.DashboardData;
-      return Datainfo.Branchwise_AGP_Sellin_Revenue;
+      const combinedData = [...(Datainfo?.Branchwise_AGP_Sellin_Revenue || []), ...(Datainfo?.Table1|| [])];
+      return combinedData as DealerHitRateData[];
     },
     select: data => {
       return {

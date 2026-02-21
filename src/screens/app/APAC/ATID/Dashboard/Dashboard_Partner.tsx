@@ -15,12 +15,16 @@ import {
 import {ASUS, screenWidth} from '../../../../../utils/constant';
 import {useLoginStore} from '../../../../../stores/useLoginStore';
 import {useUserStore} from '../../../../../stores/useUserStore';
-import {LinearProgressBar} from '../../../../../components/customs/AppChart';
+import {
+  LinearProgressBar,
+  CircularProgressBar,
+} from '../../../../../components/customs/AppChart';
 import {
   applyOpacityHex,
   convertToAPACUnits,
   getProductConfig,
 } from '../../../../../utils/commonFunctions';
+import moment from 'moment';
 
 interface DataItem {
   label: string;
@@ -78,8 +82,14 @@ interface MonthlyPerformanceItem {
   Month_No: number; // Month number (1-12)
   Qty_Target: number; // Target
   Achieved_Qty: number; // ST (Sell Through)
-  Percent_Contri: number; // % Contribution
+  Percent_Contri: number; // SO (Sell Out)
   target_type?: string; // Product Line
+}
+
+interface TargetAchievementData {
+  Product_Category: string;
+  Achieved_Qty: number;
+  Target_Qty: number;
 }
 
 const mapTopFive = (
@@ -390,54 +400,159 @@ const PartnerAnalytics = ({
     </Card>
   );
 };
-const getProgressColor = (p: number) =>
+// Helper to color percentages consistently
+const getPctColor = (p: number) =>
   p >= 100
-    ? '#10B981' // Emerald
+    ? 'bg-emerald-500'
     : p >= 80
-      ? '#3B82F6' // Blue
+      ? 'bg-blue-500'
       : p >= 50
-        ? '#F59E0B' // Amber
-        : '#EF4444'; // Rose
+        ? 'bg-amber-500'
+        : 'bg-rose-500';
 
-const getProgressBgColor = (p: number) =>
+// Text color variant (paired with bar color)
+const getPctTextColor = (p: number) =>
   p >= 100
-    ? '#D1FAE5' // Emerald light
+    ? 'text-emerald-600'
     : p >= 80
-      ? '#DBEAFE' // Blue light
+      ? 'text-blue-600'
       : p >= 50
-        ? '#FEF3C7' // Amber light
-        : '#FEE2E2'; // Rose light
+        ? 'text-amber-600'
+        : 'text-rose-600';
 
-const formatMonthYear = (monthStr: string) => {
-  try {
-    // Parse various date formats
-    const date = new Date(monthStr);
-    if (!isNaN(date.getTime())) {
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        year: 'numeric',
-      });
-    }
-    // Fallback: return original if parsing fails
-    return monthStr;
-  } catch {
-    return monthStr;
-  }
-};
-
+// Modern Monthly Data tiles (matches ASIN UI)
 const MonthlyDataTiles = ({data}: {data: MonthlyPerformanceItem[]}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedProductLine, setSelectedProductLine] = useState<string>('NB');
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<ScrollView | null>(null);
 
-  // Extract unique product lines from data
+  const processed = useMemo(
+    () =>
+      (data || []).map(m => {
+        const tgt = m.Qty_Target || 0;
+        const buyIn = m.Achieved_Qty || 0;
+        const so = m.Percent_Contri || 0;
+        const stPct = tgt ? Math.round((buyIn / tgt) * 100) : 0;
+        const soPct = tgt ? Math.round((so / tgt) * 100) : 0;
+        return {
+          month: m.Month_Name,
+          tgt,
+          buyIn,
+          so,
+          stPct,
+          soPct,
+        };
+      }),
+    [data],
+  );
+
+  if (!processed.length) {
+    return (
+      <View className="px-1 py-3">
+        <AppText size="sm" color="gray" className="text-center">
+          No monthly data available
+        </AppText>
+      </View>
+    );
+  }
+
+  // Scroll to current month (within active quarter) on mount/update
+  useEffect(() => {
+    if (!processed.length || !scrollViewRef.current) {
+      return;
+    }
+    const today = moment();
+    const renderedOrder = [...processed];
+    const index = renderedOrder.findIndex(item =>
+      moment(item.month, ['MMMM YYYY', 'MMM YYYY']).isSame(today, 'month'),
+    );
+    if (index > 0) {
+      // Each tile is treated as ~110px height in paging calculations
+      scrollViewRef.current.scrollTo({y: index * 110, animated: false});
+      setCurrentIndex(index);
+    }
+  }, [processed]);
+
+  return (
+    <View className="flex-row items-center h-36">
+      <ScrollView
+        ref={scrollViewRef}
+        pagingEnabled
+        showsVerticalScrollIndicator={false}
+        style={{maxHeight: 110}}
+        contentContainerClassName="gap-2"
+        nestedScrollEnabled={true}
+        onScroll={event => {
+          const offsetY = event.nativeEvent.contentOffset.y;
+          const index = Math.round(offsetY / 110);
+          setCurrentIndex(index);
+        }}
+        scrollEventThrottle={16}>
+        {processed.map(item => (
+          <View
+            key={item.month}
+            style={{width: screenWidth * 0.55}}
+            className="p-4 py-6 rounded bg-lightBg-surface border border-slate-200 dark:bg-darkBg-surface dark:border-slate-700 shadow-sm">
+            <View className="flex-row items-center justify-between mb-2">
+              <AppText weight="semibold" className="text-slate-800" size="sm">
+                {item.month}
+              </AppText>
+              <View className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700">
+                <AppText size="xs" weight="semibold" className="text-slate-500">
+                  TGT {convertToAPACUnits(item.tgt)}
+                </AppText>
+              </View>
+            </View>
+
+            {/* Single progress representation */}
+            <View className="mb-3 gap-2">
+              <View>
+                <View className="flex-row justify-between mb-1">
+                  <AppText size="xs" className="text-slate-500">
+                    Buy In - {convertToAPACUnits(item.buyIn)}
+                  </AppText>
+                  <AppText
+                    size="xs"
+                    weight="bold"
+                    className={getPctTextColor(item.stPct)}>
+                    {item.stPct}%
+                  </AppText>
+                </View>
+                <View className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                  <View
+                    className={`h-full ${getPctColor(item.stPct)} rounded-full`}
+                    style={{width: `${Math.min(item.stPct, 100)}%`}}
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+        ))}
+      </ScrollView>
+      <View className="justify-center gap-1">
+        {processed.map((item, index) => (
+          <View
+            key={item.month}
+            className={`bg-gray-300 rounded-full mx-1 ${index === currentIndex ? 'w-2 h-4' : 'w-2 h-2'}`}
+          />
+        ))}
+      </View>
+    </View>
+  );
+};
+
+export const TargetAchievementCard = ({
+  data,
+  monthlyData,
+  isLoading = false,
+}: TargetAchievementProps) => {
+  const [selectedProductLine, setSelectedProductLine] = useState<string>('NB');
+
+  // Extract unique product lines from target achievement data
   const productLines = useMemo(() => {
-    // Extract unique non-empty product lines
     const uniqueLines = Array.from(
-      new Set((data || []).map(item => item.target_type).filter(Boolean))
+      new Set((data || []).map((item: TargetAchievementData) => item.Product_Category).filter(Boolean))
     ) as string[];
-    
-    return uniqueLines.map(line => ({label: line as string, value: line as string}));
+    return uniqueLines.map(line => ({label: line, value: line}));
   }, [data]);
 
   // Set default to 'NB' if available, otherwise first product line
@@ -449,115 +564,64 @@ const MonthlyDataTiles = ({data}: {data: MonthlyPerformanceItem[]}) => {
     }
   }, [productLines, selectedProductLine]);
 
-  // Filter data based on selected product line
-  const filteredData = useMemo(() => {
-    if (!selectedProductLine) return data || [];
-    const filtered = (data || []).filter(item => item.target_type === selectedProductLine);
-    return filtered;
+  // Filter target/achievement data by selected product line
+  const filteredTargetData = useMemo(() => {
+    if (!selectedProductLine || !data) return null;
+    return data.find((item: TargetAchievementData) => item.Product_Category === selectedProductLine);
   }, [data, selectedProductLine]);
 
-  const processed = useMemo(
-    () => {
-      const result = (filteredData || []).map(m => {
-        const tgt = m.Qty_Target || 0;
-        const st = m.Achieved_Qty || 0;
-        const so = m.Percent_Contri || 0;
-        const stPct = tgt ? Math.round((st / tgt) * 100) : 0;
-        const soPct = tgt ? Math.round((so / tgt) * 100) : 0;
-        
-        // Convert Month_No to number if it's a string
-        const monthNo = typeof m.Month_No === 'string' ? parseInt(m.Month_No, 10) : m.Month_No;
-        
-        return {
-          month: formatMonthYear(m.Month_Name),
-          monthNo: monthNo,
-          tgt,
-          st,
-          so,
-          stPct,
-          soPct,
-        };
-      })
-      // Sort in ascending order by month number
-      .sort((a, b) => (a.monthNo || 0) - (b.monthNo || 0));
-      return result;
-    },
-    [filteredData],
-  );
-
-  if (!processed.length) {
-    return (
-      <View className="px-5 py-6 border-t border-slate-200 dark:border-slate-700">
-        <View className="items-center">
-          <View className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700 items-center justify-center mb-2">
-            <AppIcon name="calendar" type="feather" size={20} color="#94A3B8" />
-          </View>
-          <AppText size="sm" className="text-slate-500 dark:text-slate-400">
-            No monthly data available
-          </AppText>
-        </View>
-      </View>
+  // Filter monthly data by selected product line
+  const filteredMonthlyData = useMemo(() => {
+    if (!selectedProductLine) return monthlyData || [];
+    return (monthlyData || []).filter(
+      (item: MonthlyPerformanceItem) => item.target_type === selectedProductLine
     );
-  }
+  }, [monthlyData, selectedProductLine]);
 
-  const cardWidth = screenWidth * 0.85;
-  const cardGap = 12;
+  const target = filteredTargetData?.Target_Qty || 0;
+  const achievement = filteredTargetData?.Achieved_Qty || 0;
+  const percentage = target ? Math.round((achievement / target) * 100) : 0;
 
-  // Find and scroll to current month on mount or when product line changes
-  useEffect(() => {
-    if (processed.length === 0) return;
-    
-    const currentDate = new Date();
-    const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-11, convert to 1-12
-    
-    // Find index of current month
-    let currentMonthIndex = processed.findIndex(item => item.monthNo === currentMonth);
+  const getTheme = () => {
+    if (percentage >= 90)
+      return {
+        bg: 'bg-emerald-50',
+        border: 'border-emerald-200',
+        text: 'text-emerald-700',
+        icon: 'check-circle',
+        iconColor: '#10b981',
+        progressBg: 'bg-emerald-500',
+      };
+    if (percentage >= 60)
+      return {
+        bg: 'bg-blue-50',
+        border: 'border-blue-200',
+        text: 'text-blue-700',
+        icon: 'trending-up',
+        iconColor: '#3b82f6',
+        progressBg: 'bg-blue-500',
+      };
+    return {
+      bg: 'bg-orange-50',
+      border: 'border-orange-200',
+      text: 'text-orange-700',
+      icon: 'target',
+      iconColor: '#f97316',
+      progressBg: 'bg-orange-500',
+    };
+  };
 
-    // Fallback: if current month not found, default to first month
-    if (currentMonthIndex === -1) {
-      currentMonthIndex = 0;
-    }
-
-    setCurrentIndex(currentMonthIndex);
-    
-    // Scroll to target month with a slight delay for rendering
-    const timeoutId = setTimeout(() => {
-      scrollViewRef.current?.scrollTo({
-        x: currentMonthIndex * (cardWidth + cardGap),
-        animated: true,
-      });
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
-  }, [selectedProductLine, processed.length, cardWidth, cardGap]);
-
+  const theme = getTheme();
+  
+  if (isLoading) return <TargetAchievementSkeleton />;
+  
   return (
-    <View className="border-t border-slate-200 dark:border-slate-700">
-      {/* Section Header */}
-      <View className="px-5 pt-5 pb-3 flex-row items-center justify-between">
-        <View className="flex-row items-center">
-          <View className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 items-center justify-center mr-2">
-            <AppIcon name="calendar" type="feather" size={16} color="#6366F1" />
-          </View>
-          <AppText
-            size="md"
-            weight="bold"
-            className="text-slate-800 dark:text-slate-100">
-            Monthly Performance
-          </AppText>
-        </View>
-        <View className="bg-slate-100 dark:bg-slate-700 rounded-full px-2.5 py-1">
-          <AppText
-            size="xs"
-            weight="semibold"
-            className="text-slate-600 dark:text-slate-300">
-            {currentIndex + 1}/{processed.length}
-          </AppText>
-        </View>
-      </View>
-
-      {/* Product Line Dropdown */}
-        <View className="px-5 pb-3">
+    <Card
+      className=" border border-slate-200 dark:border-slate-700"
+      noshadow>
+      {/* Product Line Filter at Top */}
+      {productLines.length > 1 && (
+        <View className="border-b border-gray-200 pb-3 mb-3">
           <AppText size="xs" weight="semibold" className="text-slate-600 dark:text-slate-400 mb-2 uppercase tracking-wide">
             Filter by Product Line
           </AppText>
@@ -567,7 +631,6 @@ const MonthlyDataTiles = ({data}: {data: MonthlyPerformanceItem[]}) => {
             onSelect={(item) => {
               if (item?.value) {
                 setSelectedProductLine(item.value);
-                setCurrentIndex(0);
               }
             }}
             mode="dropdown"
@@ -575,344 +638,52 @@ const MonthlyDataTiles = ({data}: {data: MonthlyPerformanceItem[]}) => {
             style={{zIndex: 1000}}
           />
         </View>
-
-      {/* Scrollable Cards */}
-      <ScrollView
-        ref={scrollViewRef}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{paddingHorizontal: 20, paddingBottom: 20}}
-        snapToInterval={cardWidth + cardGap}
-        decelerationRate="fast"
-        pagingEnabled={false}
-        onScroll={event => {
-          const offsetX = event.nativeEvent.contentOffset.x;
-          const index = Math.round(offsetX / (cardWidth + cardGap));
-          setCurrentIndex(Math.max(0, Math.min(index, processed.length - 1)));
-        }}
-        scrollEventThrottle={16}>
-        {processed.map((item, idx) => {
-            return (
-              <View
-                key={`${item.month}-${idx}`}
-                className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-lg mr-3"
-                style={{width: cardWidth}}>
-                {/* Card Header */}
-                <View className="px-5 pt-4 pb-3 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-slate-700 dark:to-slate-600">
-                  <View className="flex-row items-center justify-between mb-2">
-                    <View className="flex-row items-center">
-                      <View className="w-10 h-10 rounded-xl bg-white dark:bg-slate-600 items-center justify-center mr-3 shadow-sm">
-                        <AppText
-                          size="lg"
-                          weight="bold"
-                          className="text-indigo-600 dark:text-indigo-400">
-                          {item.month.split(' ')[0].substring(0, 3)}
-                        </AppText>
-                      </View>
-                      <View>
-                        <AppText
-                          weight="bold"
-                          className="text-slate-800 dark:text-slate-100"
-                          size="md">
-                          {item.month}
-                        </AppText>
-                        <AppText
-                          size="xs"
-                          className="text-slate-500 dark:text-slate-400">
-                          Performance Report
-                        </AppText>
-                      </View>
-                    </View>
-                  </View>
-                </View>
-
-                {/* Target Badge */}
-                <View className="px-5 py-3 bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-600">
-                  <View className="flex-row items-center justify-between">
-                    <View className="flex-row items-center">
-                      <AppIcon
-                        name="target"
-                        type="feather"
-                        size={14}
-                        color="#64748B"
-                      />
-                      <AppText
-                        size="xs"
-                        className="text-slate-600 dark:text-slate-300 ml-2 uppercase tracking-wide">
-                        Target
-                      </AppText>
-                    </View>
-                    <AppText
-                      size="md"
-                      weight="bold"
-                      className="text-slate-800 dark:text-slate-100">
-                      {convertToAPACUnits(item.tgt)}
-                    </AppText>
-                  </View>
-                </View>
-
-                {/* Progress Sections */}
-                <View className="px-5 py-4 gap-4">
-                  <View>
-                    <View className="flex-row items-center justify-between mb-2">
-                      <View className="flex-row items-center flex-1">
-                        <View
-                          className="w-2 h-2 rounded-full mr-2"
-                          style={{
-                            backgroundColor: getProgressColor(item.stPct),
-                          }}
-                        />
-                        <AppText
-                          size="sm"
-                          weight="semibold"
-                          className="text-slate-700 dark:text-slate-200">
-                          Sell Through (ST)
-                        </AppText>
-                      </View>
-                      <View
-                        className="rounded-full px-2.5 py-1"
-                        style={{
-                          backgroundColor: getProgressBgColor(item.stPct),
-                        }}>
-                        <AppText
-                          size="xs"
-                          weight="bold"
-                          style={{color: getProgressColor(item.stPct)}}>
-                          {item.stPct}%
-                        </AppText>
-                      </View>
-                    </View>
-
-                    <View className="mb-2">
-                      <View className="h-3 rounded-full bg-slate-200 dark:bg-slate-600 overflow-hidden">
-                        <View
-                          className="h-full rounded-full"
-                          style={{
-                            width: `${Math.min(item.stPct, 100)}%`,
-                            backgroundColor: getProgressColor(item.stPct),
-                          }}
-                        />
-                      </View>
-                    </View>
-
-                    <AppText
-                      size="xs"
-                      className="text-slate-500 dark:text-slate-400">
-                      {convertToAPACUnits(item.st)} of{' '}
-                      {convertToAPACUnits(item.tgt)} units
-                    </AppText>
-                  </View>
-                </View>
-              </View>
-            );
-          })}
-      </ScrollView>
-
-      {/* Pagination Dots */}
-      {processed.length > 1 && (
-        <View className="flex-row justify-center pb-5 gap-1.5">
-          {processed.map((_, idx) => (
-            <View
-              key={idx}
-              className="rounded-full transition-all"
-              style={{
-                width: currentIndex === idx ? 20 : 6,
-                height: 6,
-                backgroundColor: currentIndex === idx ? '#6366F1' : '#CBD5E1',
-              }}
-            />
-          ))}
-        </View>
       )}
-    </View>
-  );
-};
-
-export const TargetAchievementCard = ({
-  data,
-  monthlyData,
-  isLoading = false,
-}: TargetAchievementProps) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const cardWidth = screenWidth - 56;
-  const cardGap = 12;
-
-  if (isLoading) return <TargetAchievementSkeleton />;
-  return (
-    <View className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-      {/* Header with Gradient Background */}
-      <View className="px-5 pt-5 pb-4 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-slate-700">
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center flex-1">
-            <View
-              className="w-11 h-11 rounded-2xl bg-emerald-500 items-center justify-center shadow-lg"
-              style={{
-                shadowColor: '#10B981',
-                shadowOffset: {width: 0, height: 4},
-                shadowOpacity: 0.3,
-                shadowRadius: 8,
-              }}>
-              <AppIcon name="target" type="feather" size={20} color="#FFFFFF" />
-            </View>
-            <View className="ml-3 flex-1">
-              <AppText
-                size="lg"
-                weight="bold"
-                className="text-slate-800 dark:text-slate-100"
-                numberOfLines={1}>
-                Target & Achievement
-              </AppText>
-              <AppText
-                size="xs"
-                className="text-slate-500 dark:text-slate-400 mt-0.5">
-                Performance Overview
-              </AppText>
-            </View>
-          </View>
-          {/* <View className="bg-white dark:bg-slate-700 rounded-full px-3 py-1.5 shadow-sm">
-            <AppText
-              size="xs"
-              weight="semibold"
-              className="text-emerald-600 dark:text-emerald-400">
-              {currentIndex?.value + 1}/{data?.length || 0}
-            </AppText>
-          </View> */}
+      
+      <View className="flex-row items-center border-b border-gray-200 pb-2">
+        <View
+          className={`w-10 h-10 rounded-xl ${theme.bg} items-center justify-center`}>
+          <AppIcon
+            name={theme.icon}
+            type="feather"
+            size={20}
+            color={theme.iconColor}
+          />
         </View>
+        <AppText weight="extraBold" className="text-lg text-gray-800 ml-3">
+          Quarterly Performance
+        </AppText>
       </View>
-
-      {/* Scrollable Cards */}
-      <ScrollView
-        horizontal={true}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{paddingHorizontal: 16, paddingVertical: 5}}
-        snapToInterval={cardWidth + cardGap}
-        decelerationRate="fast"
-        pagingEnabled={false}
-        onScroll={e => {
-          const offsetX = e.nativeEvent.contentOffset.x;
-          const index = Math.round(offsetX / (cardWidth + cardGap));
-          setCurrentIndex(
-            Math.max(0, Math.min(index, (data?.length || 1) - 1)),
-          );
-        }}
-        scrollEventThrottle={16}>
-        {!data || data.length === 0 ? (
-          <View style={{width: screenWidth - 24}}>
-            <NoDataAvailable />
+      <View className="flex-row items-center ">
+        <View className="items-center my-3">
+          <CircularProgressBar
+            progress={percentage}
+            progressColor={'#10b981'}
+            size={100}
+            strokeWidth={10}
+            duration={1000}
+          />
+          <AppText
+            size="xs"
+            className="text-gray-500 mt-3 self-start mb-1 ml-4">
+            ACH / TGT
+          </AppText>
+          <View className="items-end flex-row">
+            <AppText size="lg" weight="bold">
+              {convertToAPACUnits(achievement)}
+            </AppText>
+            <AppText size="md" className="text-gray-500">
+              {' '}
+              / {convertToAPACUnits(target)}
+            </AppText>
           </View>
-        ) : (
-          data.map((item: any, index: number) => {
-            const achievement = item?.Achieved_Qty || 0;
-            const target = item?.Target_Qty || 0;
-            const percentage = Math.min(
-              Math.round((achievement / target) * 100),
-              100,
-            );
-            const config = getProductConfig(
-              item?.Product_Category || 'Default',
-            );
-            return (
-              <View
-                className="bg-white dark:bg-slate-800 rounded-2xl mr-3 shadow-md border border-slate-100 dark:border-slate-700 overflow-hidden"
-                key={index}
-                style={{width: cardWidth}}>
-                {/* Category Header with Icon */}
-                <View
-                  className="px-5 pt-3 pb-2"
-                  style={{
-                    backgroundColor: applyOpacityHex(config.color, 0.08),
-                  }}>
-                  <View className="flex-row items-center mb-3 gap-3">
-                    <View
-                      className="w-14 h-14 rounded-2xl items-center justify-center shadow-lg"
-                      style={{
-                        backgroundColor: config.color,
-                        shadowColor: config.color,
-                        shadowOffset: {width: 0, height: 4},
-                        shadowOpacity: 0.3,
-                        shadowRadius: 8,
-                      }}>
-                      <AppIcon
-                        name={config.icon}
-                        type="material-community"
-                        size={26}
-                        color="#FFFFFF"
-                      />
-                    </View>
-                    <AppText
-                      weight="bold"
-                      className="text-xl text-slate-800 dark:text-slate-100 mb-1">
-                      {item?.Product_Category}
-                    </AppText>
-                  </View>
-                </View>
-                {/* Stats Section */}
-                <View className="px-5 py-4">
-                  <View className="flex-row items-end mb-4">
-                    <View className="flex-1">
-                      <AppText className="text-xs text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wide">
-                        Achievement
-                      </AppText>
-                      <AppText
-                        className="text-3xl font-bold"
-                        style={{color: config.color}}>
-                        {convertToAPACUnits(achievement)}
-                      </AppText>
-                    </View>
-                    <View className="items-end flex-1">
-                      <AppText className="text-xs text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wide">
-                        Target
-                      </AppText>
-                      <AppText className="text-2xl font-semibold text-slate-600 dark:text-slate-300">
-                        {convertToAPACUnits(target)}
-                      </AppText>
-                    </View>
-                  </View>
-                  {/* Progress Section */}
-                  <View className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 mb-3">
-                    <View className="flex-row items-center justify-between mb-3">
-                      <AppText
-                        size="xs"
-                        weight="semibold"
-                        className="text-slate-600 dark:text-slate-300 uppercase tracking-wide">
-                        Progress
-                      </AppText>
-                    </View>
-
-                    <LinearProgressBar
-                      progress={percentage}
-                      progressColor={config.color}
-                      width={screenWidth - 120}
-                      height={20}
-                      duration={1000}
-                    />
-                  </View>
-                </View>
-              </View>
-            );
-          })
-        )}
-      </ScrollView>
-
-      {/* Pagination Dots */}
-      {data && data.length > 1 && (
-        <View className="flex-row justify-center py-4 gap-1.5">
-          {data.map((_: any, idx: number) => (
-            <View
-              key={idx}
-              className="rounded-full"
-              style={{
-                width: currentIndex === idx ? 20 : 6,
-                height: 6,
-                backgroundColor: currentIndex === idx ? '#10B981' : '#CBD5E1',
-              }}
-            />
-          ))}
         </View>
-      )}
-
-      <MonthlyDataTiles data={monthlyData} />
-    </View>
+        <View className="w-px bg-gray-200 mx-3 border-1 h-full mt-3" />
+        {filteredMonthlyData && filteredMonthlyData.length > 0 && (
+          <MonthlyDataTiles data={filteredMonthlyData} />
+        )}
+      </View>
+    </Card>
   );
 };
 
@@ -987,7 +758,16 @@ export default function Dashboard_Partner({
           titleColor="#6B7280"
         />
       }>
-      <View className="mb-2 flex-row items-center justify-between px-3 border-b border-slate-300 pb-4">
+      <View className="px-3 border-b border-slate-300 pb-4">
+        {DifferentEmployeeCode && (
+          // <View className="p-3 mb-3 items-center">
+          <View className="bg-primary/10 border border-primary/30 rounded-lg px-4 py-2 mb-3 items-center">
+            <AppText weight="semibold" className="text-md text-primary ">
+               {DifferntEmployeeName || DifferentEmployeeCode}
+            </AppText>
+          </View>
+        )}
+      <View className="mb-2 flex-row items-center justify-between">
         <View>
           <AppText weight="semibold" className="text-md  text-slate-700">
             Partner Dashboard
@@ -1007,14 +787,7 @@ export default function Dashboard_Partner({
           />
         </View>
       </View>
-      {DifferentEmployeeCode && (
-        <Card className="p-4 bg-yellow-50 border-yellow-200">
-          <AppText className="text-yellow-800 text-sm">
-            Viewing dashboard for Partner:{' '}
-            {DifferntEmployeeName || DifferentEmployeeCode}
-          </AppText>
-        </Card>
-      )}
+      </View>
 
       {isDataEmpty ? (
         <NoDataAvailable />

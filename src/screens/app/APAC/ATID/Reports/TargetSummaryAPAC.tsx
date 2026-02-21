@@ -154,13 +154,13 @@ const MetricRow = memo(
     valueColor?: string;
   }) => (
     <View className="flex-1">
-      <AppText size="xs" className="text-gray-400 mb-0.5">
+      <AppText size="xs" className="text-gray-400 dark:text-gray-500 mb-0.5">
         {label}
       </AppText>
       <AppText
         size="sm"
         weight="bold"
-        className={valueColor || 'text-gray-900'}>
+        className={valueColor || 'text-gray-900 dark:text-gray-100'}>
         {value}
       </AppText>
     </View>
@@ -200,7 +200,7 @@ const ProductCard = memo(
 
           <View className="mt-2 w-full gap-1">
             <View className="flex-row justify-between gap-3">
-              <AppText size="xs" className="text-gray-400">
+              <AppText size="xs" className="text-gray-400 dark:text-gray-500">
                 Target
               </AppText>
               <AppText size="sm" weight="semibold">
@@ -208,13 +208,13 @@ const ProductCard = memo(
               </AppText>
             </View>
             <View className="flex-row justify-between gap-3">
-              <AppText size="xs" className="text-gray-400">
+              <AppText size="xs" className="text-gray-400 dark:text-gray-500">
                 Achieved
               </AppText>
               <AppText
                 size="sm"
                 weight="semibold"
-                className={isOver ? 'text-green-600' : 'text-blue-600'}>
+                className={isOver ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}>
                 {convertToAPACUnits(product.Achieved_Qty, false)}
               </AppText>
             </View>
@@ -278,7 +278,7 @@ const BranchItem = memo(
       <View className="flex-1">
         <View className="py-2.5 px-0.5">
           <View className="flex-row items-center gap-2 mb-2">
-            <View className="rounded-lg p-2 bg-primary/10">
+            <View className="rounded-lg p-2 bg-primary/10 dark:bg-primary/20">
               <AppIcon
                 name="office-building"
                 size={18}
@@ -295,12 +295,12 @@ const BranchItem = memo(
               </AppText>
             </View>
             <View
-              className={`px-2.5 py-1 rounded-full ${group.percent >= 100 ? 'bg-green-100' : 'bg-blue-100'}`}>
+              className={`px-2.5 py-1 rounded-full ${group.percent >= 100 ? 'bg-green-100 dark:bg-green-900/30' : 'bg-blue-100 dark:bg-blue-900/30'}`}>
               <AppText
                 size="xs"
                 weight="bold"
                 className={
-                  group.percent >= 100 ? 'text-green-700' : 'text-blue-700'
+                  group.percent >= 100 ? 'text-green-700 dark:text-green-400' : 'text-blue-700 dark:text-blue-400'
                 }>
                 {group.percent}%
               </AppText>
@@ -316,13 +316,13 @@ const BranchItem = memo(
             <MetricRow
               label="Achieved"
               value={convertToAPACUnits(group.achieved)}
-              valueColor="text-green-600"
+              valueColor="text-green-600 dark:text-green-400"
             />
           </View>
 
-          <View className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+          <View className="h-1.5 bg-gray-100 dark:bg-gray-600 rounded-full overflow-hidden">
             <View
-              className={group.percent >= 100 ? 'bg-green-500' : 'bg-blue-500'}
+              className={group.percent >= 100 ? 'bg-green-500 dark:bg-green-400' : 'bg-blue-500 dark:bg-blue-400'}
               style={{
                 width: `${Math.min(group.percent, 100)}%`,
                 height: '100%',
@@ -330,7 +330,7 @@ const BranchItem = memo(
             />
           </View>
         </View>
-        <Watermark horizontalCount={2} columnGap={30} />
+        <Watermark horizontalCount={1} />
       </View>
     );
 
@@ -339,7 +339,7 @@ const BranchItem = memo(
         <Accordion
           header={header}
           needBottomBorder={false}
-          containerClassName="bg-white rounded-xl border border-gray-200">
+          containerClassName="bg-white dark:bg-darkBg-surface rounded-xl border border-gray-200 dark:border-gray-700">
           <FlatList
             data={group.products}
             horizontal
@@ -360,7 +360,7 @@ const BranchItem = memo(
               onPress={() => onDealerHitRate(group.name)}
             >
               <View className="flex-row items-center gap-1">
-                <AppText className="underline" color="primary" weight="bold">
+                <AppText className="underline text text-blue-700 dark:text-blue-400"  weight="bold">
                   Dealer Hit Rate
                 </AppText>
                 <AppIcon
@@ -385,7 +385,7 @@ const ProductLineItem = memo(
         <View className="py-3 px-0.5">
           <View className="flex-row  justify-between">
             <View className="flex-row items-center gap-2">
-              <View className="rounded-lg p-2 bg-slate-100">
+              <View className="rounded-lg p-2 bg-slate-100 dark:bg-slate-700">
                 <AppIcon
                   name={getProductConfig(group.name).icon}
                   size={18}
@@ -397,7 +397,7 @@ const ProductLineItem = memo(
                 <AppText weight="bold" numberOfLines={1}>
                   {group.name}
                 </AppText>
-                <AppText size="xs" className="text-gray-400">
+                <AppText size="xs" className="text-gray-400 dark:text-gray-500">
                   {group.products.length} Products
                 </AppText>
               </View>
@@ -419,7 +419,7 @@ const ProductLineItem = memo(
         <Accordion
           header={header}
           needBottomBorder={false}
-          containerClassName="bg-white rounded-xl border border-gray-200">
+          containerClassName="bg-white dark:bg-darkBg-surface rounded-xl border border-gray-200 dark:border-gray-700">
           <FlatList
             data={group.products}
             horizontal
@@ -476,7 +476,7 @@ export default function TargetSummaryAPAC() {
             ? 'Distributor Performance Summary'
             : 'Performance Summary'}
       </AppText>
-      <AppText size="sm" className="text-gray-500">
+      <AppText size="sm" className="text-gray-500 dark:text-gray-400">
         {branches.length}{' '}
         {isDistiWithSellIn
           ? 'Product Line'
