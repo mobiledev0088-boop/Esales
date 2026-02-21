@@ -1,5 +1,7 @@
 import FAB from '../../../../components/FAB';
 import useQuarterHook from '../../../../hooks/useQuarterHook';
+import FilterButton from '../../../../components/FilterButton';
+import {showDemoAWPFilterSheet} from './DemoAWP_Filter_Sheet';
 import AppDropdown, {
   AppDropdownItem,
 } from '../../../../components/customs/AppDropdown';
@@ -30,6 +32,8 @@ import {useUserStore} from '../../../../stores/useUserStore';
 import {DataStateView} from '../../../../components/DataStateView';
 import { useThemeStore } from '../../../../stores/useThemeStore';
 import SheetIndicator from '../../../../components/SheetIndicator';
+import { Watermark } from '../../../../components/Watermark';
+import { AppColors } from '../../../../config/theme';
 
 // ===== Types & Interfaces ==========
 interface PartnerDemoData {
@@ -50,6 +54,9 @@ interface PartnerDemoData {
   LastRegisteredDate: string | null;
   LastUnRegisteredDate: string | null;
   DurationDays: number | null;
+  ALP_Status: string | null;
+  ALP_Remark: string | null;
+
 }
 
 interface PartnerDemoSummary {
@@ -200,6 +207,8 @@ const usePartnerDemoLogic = (childrenCode?: string) => {
     null,
   );
   const [selectedAgp, setSelectedAgp] = useState<AppDropdownItem | null>(null);
+  const [selectedDemoType, setSelectedDemoType] =
+    useState<AppDropdownItem | null>(null);
 
   // Accordion open group tracking
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
@@ -224,6 +233,13 @@ const usePartnerDemoLogic = (childrenCode?: string) => {
             return false;
           if (selectedStatus && it.DemoExecutionDone !== selectedStatus.value)
             return false;
+          if (selectedDemoType) {
+            if (selectedDemoType.value === 'bonus') {
+              if (it.IsBonusCompulsory !== 'Yes') return false;
+            } else if (selectedDemoType.value === 'no-penalty') {
+              if (it.IsPenaltyCompulsary !== 'Yes') return false;
+            }
+          }
           return true;
         });
         if (filteredItems.length)
@@ -232,7 +248,7 @@ const usePartnerDemoLogic = (childrenCode?: string) => {
       },
       [] as {key: string; items: PartnerDemoData[]; count: number}[],
     );
-  }, [demoData, selectedCategory, selectedStatus, selectedAgp]);
+  }, [demoData, selectedCategory, selectedStatus, selectedAgp, selectedDemoType]);
 
   const totalItems = useMemo(
     () => sections.reduce((sum, s) => sum + s.count, 0),
@@ -246,6 +262,15 @@ const usePartnerDemoLogic = (childrenCode?: string) => {
       return next;
     });
   }, []);
+
+  const demoTypeOptions = useMemo(
+    () => [
+      {label: 'Bonus', value: 'bonus'},
+      {label: 'No Penalty', value: 'no-penalty'},
+    ],
+    [],
+  );
+
   return {
     // Remote
     demoData,
@@ -264,7 +289,10 @@ const usePartnerDemoLogic = (childrenCode?: string) => {
     setSelectedStatus,
     selectedAgp,
     setSelectedAgp,
+    selectedDemoType,
+    setSelectedDemoType,
     agpOptions,
+    demoTypeOptions,
     // Grouped data
     sections,
     totalItems,
@@ -332,84 +360,150 @@ const InfoPair: React.FC<InfoPairProps> = memo(
   },
 );
 
-const DemoItem: React.FC<{row: PartnerDemoData}> = memo(({row}) => {
+const DemoItem: React.FC<{row: PartnerDemoData; filter?: AppDropdownItem | null}> = memo(({row, filter}) => {
   const statusColors = getStatusColors(row.DemoExecutionDone);
   const normalizedStatus = row.DemoExecutionDone?.trim().toLowerCase() || '';
   const isDoneStatus = /(done)/.test(normalizedStatus);
+ const isBonusCompulsory = filter?.value
+      ? row.IsBonusCompulsory === 'Yes' && filter?.value === 'bonus'
+      : row.IsBonusCompulsory === 'Yes';
+      const isPenaltyCompulsory = filter?.value
+      ? row.IsPenaltyCompulsary === 'Yes' && filter?.value === 'no-penalty'
+      : row.IsPenaltyCompulsary === 'Yes';
+
   const handleSeeMore = useCallback(() => {
     SheetManager.show('PartnerDemoDetailsSheet', {payload: {demo: row}});
   }, [row]);
   return (
     <View className="px-4 py-3 border-t border-slate-200 bg-lightBg-surface dark:bg-darkBg-surface dark:border-slate-700">
+      <Watermark />
       <View className="flex-row items-center justify-between mb-2">
-        <View className="flex-1 pr-3">
-          <AppText
-            size="base"
-            weight="semibold"
-            className="text-slate-900"
-            numberOfLines={1}>
-            {row.DemoUnitModel || '-'}
-          </AppText>
-        </View>
-        <View
-          className={`px-2 py-[2px] rounded-full ${statusColors.container}`}>
-          <AppText
-            size="sm"
-            weight="medium"
-            className={statusColors.text}
-            numberOfLines={1}>
-            {row.DemoExecutionDone || 'Status N/A'}
-          </AppText>
-        </View>
-      </View>
-      <View className="flex-row flex-wrap mb-1">
-        <InfoPair
-          label="Category"
-          value={row.Category}
-          containerClassName="w-1/2 pr-2 mb-2"
-        />
-        <InfoPair
-          label="Series"
-          value={row.Series}
-          containerClassName="w-1/2 pl-2 mb-2"
-        />
-      </View>
-      {isDoneStatus && (
-        <View className="flex-row flex-wrap mt-1">
-          <InfoPair
-            label="Hub ID"
-            value={row.HubID}
-            containerClassName="w-1/2 pr-2 mt-1"
-          />
-          <InfoPair
-            label="Duration Days"
-            value={row.DurationDays !== null ? String(row.DurationDays) : null}
-            containerClassName="w-1/2 pl-2 mt-1"
-          />
-          <InfoPair
-            label="Last Registered"
-            value={formatDate(row.LastRegisteredDate)}
-            containerClassName="w-1/2 pr-2 mt-2"
-          />
-          <InfoPair
-            label="Serial No"
-            value={row.Serial_No}
-            containerClassName="w-1/2 pl-2 mt-2"
-          />
-          <TouchableOpacity
-            onPress={handleSeeMore}
-            activeOpacity={0.7}
-            className="mt-3 ml-1 w-full items-end">
+          <View className="flex-1 pr-3">
+            <AppText
+              size="base"
+              weight="semibold"
+              className="text-slate-900"
+              numberOfLines={1}>
+              {row.Series || '-'}
+            </AppText>
+            <View className="flex-row mt-2">
+              <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-md ">
+                <AppText
+                  size="xs"
+                  weight="medium"
+                  className="text-slate-600 dark:text-slate-300"
+                  numberOfLines={1}>
+                  {row.Category}
+                  {'  '}
+                  {isBonusCompulsory && (
+                    <AppText
+                      size="xs"
+                      weight="medium"
+                      className="text-blue-600 dark:text-blue-300">
+                      [Bonus]
+                    </AppText>
+                  )}
+                  {'  '}
+                  {isPenaltyCompulsory && (
+                    <AppText
+                      size="xs"
+                      weight="medium"
+                      className="text-blue-600 dark:text-blue-300">
+                      [No Penalty]
+                    </AppText>
+                  )}
+                </AppText>
+              </View>
+            </View>
+          </View>
+          <View
+            className={`px-2 py-[2px] rounded-full ${statusColors.container}`}>
             <AppText
               size="sm"
-              weight="semibold"
-              color="primary"
-              className="underline mr-2 dark:text-secondary">
-              See More Demo Details
+              weight="medium"
+              className={statusColors.text}
+              numberOfLines={1}>
+              {row.DemoExecutionDone || 'Status N/A'}
             </AppText>
-          </TouchableOpacity>
+          </View>
         </View>
-      )}
+        <View className="flex-row flex-wrap mt-2 ">
+          <InfoPair
+            label="Model"
+            value={row.DemoUnitModel}
+            containerClassName="w-1/2 pr-2 "
+          />
+          {row.Serial_No && (
+            <InfoPair
+              label="Serial No"
+              value={row.Serial_No}
+              containerClassName="w-1/2"
+            />
+          )}
+        </View>
+        {isDoneStatus && (
+          <View className="flex-row flex-wrap mt-1">
+            <InfoPair
+              label="Invoice Date"
+              value={moment(row.Invoice_Date).format('YYYY/MM/DD')}
+              containerClassName="w-1/2  mt-2"
+            />
+            <InfoPair
+              label="Duration Days"
+              value={
+                row.DurationDays !== null ? String(row.DurationDays) : null
+              }
+              containerClassName="w-1/2  mt-2"
+            />
+            <InfoPair
+              label="Last Registered"
+              value={formatDate(row.LastRegisteredDate)}
+              containerClassName="w-1/2  mt-2"
+            />
+            <InfoPair
+              label="Last Unregistered"
+              value={formatDate(row.LastUnRegisteredDate)}
+              containerClassName="w-1/2 mt-2"
+            />
+            {row?.ALP_Remark && (
+              <InfoPair
+                label="ALP Remark"
+                value={row.ALP_Remark}
+                containerClassName="w-1/2 mt-2"
+              />
+            )}
+            {row?.ALP_Status && (
+              <InfoPair
+                label="ALP Status"
+                value={row.ALP_Status}
+                containerClassName="w-1/2 mt-2"
+              />
+            )}
+            <InfoPair
+              label="Hub ID"
+              value={row.HubID}
+              containerClassName="w-1/2 mt-2"
+            />
+            <TouchableOpacity
+              onPress={handleSeeMore}
+              activeOpacity={0.7}
+              className="mt-3 ml-1 w-full items-start flex-row">
+              <AppText
+                size="sm"
+                weight="semibold"
+                className="underline mr-2 text-primary dark:text-secondary-dark">
+                See Demo Details
+              </AppText>
+              <AppIcon
+                name="arrow-right"
+                type="feather"
+                size={14}
+                color= {AppColors?.primary}
+                style={{marginLeft: 4}}
+              />
+            </TouchableOpacity>
+          </View>
+        )}
     </View>
   );
 });
@@ -662,26 +756,93 @@ const FiltersSummaryHeader: React.FC<{
     setSelectedStatus,
     selectedAgp,
     setSelectedAgp,
+    selectedDemoType,
+    setSelectedDemoType,
     agpOptions,
+    demoTypeOptions,
     totalItems
   } = logic;
 
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (selectedCategory) count++;
+    if (selectedAgp) count++;
+    if (selectedStatus) count++;
+    if (selectedDemoType) count++;
+    return count;
+  }, [selectedCategory, selectedAgp, selectedStatus, selectedDemoType]);
+
+  const handleOpenFilterSheet = useCallback(() => {
+    showDemoAWPFilterSheet({
+      filters: {
+        category: selectedCategory?.value || '',
+        agpName: selectedAgp?.value || '',
+        status: selectedStatus?.value || '',
+        demoType: selectedDemoType?.value || '',
+      },
+      options: {
+        categoryOptions: demoData?.categories || [],
+        agpOptions,
+        statusOptions: demoData?.demoStatuses || [],
+        demoTypeOptions,
+      },
+      onApply: filters => {
+        setSelectedCategory(
+          filters.category ? {label: filters.category, value: filters.category} : null,
+        );
+        setSelectedAgp(
+          filters.agpName ? {label: filters.agpName, value: filters.agpName} : null,
+        );
+        setSelectedStatus(
+          filters.status ? {label: filters.status, value: filters.status} : null,
+        );
+        if (filters.demoType) {
+          const demoTypeOption = demoTypeOptions.find(
+            opt => opt.value === filters.demoType,
+          );
+          setSelectedDemoType(demoTypeOption || null);
+        } else {
+          setSelectedDemoType(null);
+        }
+      },
+      onReset: () => {
+        setSelectedCategory(null);
+        setSelectedAgp(null);
+        setSelectedStatus(null);
+        setSelectedDemoType(null);
+      },
+    });
+  }, [
+    selectedCategory,
+    selectedAgp,
+    selectedStatus,
+    selectedDemoType,
+    demoData,
+    agpOptions,
+    demoTypeOptions,
+    setSelectedCategory,
+    setSelectedAgp,
+    setSelectedStatus,
+    setSelectedDemoType,
+  ]);
+
+  const selectedFilters = useMemo(() => {
+    const filters = [];
+    if (selectedCategory)
+      filters.push({label: 'Category', value: selectedCategory.label});
+    if (selectedAgp)
+      filters.push({label: 'AGP Name', value: selectedAgp.label});
+    if (selectedStatus)
+      filters.push({label: 'Status', value: selectedStatus.label});
+    if (selectedDemoType)
+      filters.push({label: 'Demo Type', value: selectedDemoType.label});
+    return filters;
+  }, [selectedCategory, selectedAgp, selectedStatus, selectedDemoType]);
+
   return (
     <View className="mb-5">
-      <View className="flex-row mb-4">
-        <View className="pr-2" style={{flex: 0.65}}>
-          <AppDropdown
-            mode="dropdown"
-            data={demoData?.categories || []}
-            selectedValue={selectedCategory?.value}
-            onSelect={setSelectedCategory}
-            placeholder="Category"
-            zIndex={3000}
-            allowClear
-            onClear={() => setSelectedCategory(null)}
-          />
-        </View>
-        <View className="pl-2" style={{flex: 0.35}}>
+      <View className="flex-row mb-4 gap-3 items-center justify-end">
+        <View className="w-40">
           <AppDropdown
             mode="dropdown"
             data={quarters}
@@ -691,34 +852,48 @@ const FiltersSummaryHeader: React.FC<{
             zIndex={2900}
           />
         </View>
+        <FilterButton
+          onPress={handleOpenFilterSheet}
+          needBorder
+          noShadow
+          hasActiveFilters={activeFilterCount > 0}
+        />
       </View>
-      <View className="flex-row mb-4">
-        <View className="pr-2" style={{flex: 0.65}}>
-          <AppDropdown
-            mode="autocomplete"
-            data={agpOptions}
-            selectedValue={selectedAgp?.value}
-            onSelect={setSelectedAgp}
-            placeholder="AGP Name"
-            searchPlaceholder="Search AGP..."
-            zIndex={2800}
-            allowClear
-            onClear={() => setSelectedAgp(null)}
-          />
+      {selectedFilters.length > 0 && (
+        <View className="mb-4">
+          <AppText
+            size="xs"
+            weight="medium"
+            className="text-slate-600 dark:text-slate-400 mb-2 px-1">
+            Selected Filters
+          </AppText>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{paddingHorizontal: 4}}>
+            <View className="flex-row gap-2">
+              {selectedFilters.map((filter, index) => (
+                <View
+                  key={index}
+                  className="flex-row items-center bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded-full border border-blue-200 dark:border-blue-700">
+                  <AppText
+                    size="xs"
+                    weight="medium"
+                    className="text-blue-700 dark:text-blue-300">
+                    {filter.label}:{' '}
+                  </AppText>
+                  <AppText
+                    size="xs"
+                    weight="semibold"
+                    className="text-blue-800 dark:text-blue-200">
+                    {filter.value}
+                  </AppText>
+                </View>
+              ))}
+            </View>
+          </ScrollView>
         </View>
-        <View className="pl-2" style={{flex: 0.35}}>
-          <AppDropdown
-            mode="dropdown"
-            data={demoData?.demoStatuses || []}
-            selectedValue={selectedStatus?.value}
-            onSelect={setSelectedStatus}
-            placeholder="Status"
-            zIndex={2700}
-            allowClear
-            onClear={() => setSelectedStatus(null)}
-          />
-        </View>
-      </View>
+      )}
       {/* Summary is Hiide Beacuse of there is no Accurate Data  */}
       <View className="p-5 rounded-2xl bg-lightBg-surface dark:bg-darkBg-surface border border-slate-200 dark:border-slate-700">
         <AppText size="md" weight="semibold" className="text-slate-800 mb-4">
@@ -772,7 +947,8 @@ const GroupAccordion: React.FC<{
   item: {key: string; items: PartnerDemoData[]; count: number};
   isOpen: boolean;
   onToggle: () => void;
-}> = memo(({item, isOpen, onToggle}) => {
+  filter?: AppDropdownItem | null;
+}> = memo(({item, isOpen, onToggle, filter}) => {
   return (
     <Accordion
       header={
@@ -812,7 +988,7 @@ const GroupAccordion: React.FC<{
             '_' +
             idx
           }
-          renderItem={({item: row}) => <DemoItem row={row} />}
+          renderItem={({item: row}) => <DemoItem row={row} filter={filter} />}
           initialNumToRender={10}
           maxToRenderPerBatch={20}
           windowSize={7}
@@ -859,7 +1035,8 @@ export default function DemoAWPPartners() {
     error,
     refetch,
     isRefetching,
-    demoData
+    demoData,
+    selectedDemoType
   } = logic;
 
   const renderGroup = useCallback(
@@ -873,10 +1050,11 @@ export default function DemoAWPPartners() {
           item={item}
           isOpen={openGroups.has(item.key)}
           onToggle={() => toggleGroup(item.key)}
+          filter={selectedDemoType}
         />
       );
     },
-    [openGroups, toggleGroup],
+    [openGroups, toggleGroup, selectedDemoType],
   );
   const groupKeyExtractor = useCallback((i: {key: string}) => i.key, []);
   const handlePress = () => navigation.push('UploadDemoData');

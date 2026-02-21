@@ -30,6 +30,10 @@ import ProgramFilterSheet, {
   ProgramFilterPayload,
 } from '../screens/app/APAC/ATID/Program/ProgramFilterSheet';
 import ActivationFilterSheetAPAC from '../screens/app/APAC/ATID/Reports/ActivationFilterSheet';
+import SpotLightVideosFilter from '../screens/app/ASIN/More/SpotLightVideos/SpotLightVideosFilter';
+import TrackStatusSheet from '../screens/app/ASIN/More/StandPOSM/TrackStatusSheet';
+import Demo_Partner_Filter_Sheet from '../screens/app/ASIN/Demo/Demo_Partner_Filter_Sheet';
+import DemoAWP_Filter_Sheet from '../screens/app/ASIN/Demo/DemoAWP_Filter_Sheet';
 
 registerSheet('MoreSheet', MoreSheet);
 registerSheet('ConfirmationSheet', ConfirmationSheet);
@@ -40,6 +44,7 @@ registerSheet('ClaimFilterSheet', ClaimFilterSheet);
 registerSheet('WODFilterSheet', WODFilterSheet);
 registerSheet('SchemeInfoSheet', SchemeInfoSheet);
 registerSheet('SourceOptionSheet', SourceOptionSheet);
+registerSheet('TrackStatusSheet', TrackStatusSheet);
 registerSheet('ActivationFilterSheet', ActivationFilterSheet);
 registerSheet('PartnerDetailsSheet', PartnerDetailsSheet);
 registerSheet('DemoROISheet', DemoROISheet);
@@ -57,6 +62,9 @@ registerSheet('DropdownActionSheet', DropdownActionSheet);
 registerSheet('DiscontinuedProductsSheet', DiscontinuedProductsSheet);
 registerSheet('ProgramFilterSheet', ProgramFilterSheet);
 registerSheet('ActivationFilterSheetAPAC', ActivationFilterSheetAPAC);
+registerSheet('SpotlightVideoFilterSheet', SpotLightVideosFilter);
+registerSheet('DemoPartnerFilterSheet', Demo_Partner_Filter_Sheet);
+registerSheet('DemoAWPFilterSheet', DemoAWP_Filter_Sheet);
 
 
 
@@ -72,6 +80,7 @@ declare module 'react-native-actions-sheet' {
     ClaimFilterSheet: SheetDefinition;
     WODFilterSheet: SheetDefinition;
     SchemeInfoSheet: SheetDefinition;
+    TrackStatusSheet: SheetDefinition;
     ActivationFilterSheet: SheetDefinition;
     PartnerDetailsSheet: SheetDefinition<{
       payload: {partner: any; yearQtr: string, tab: string};

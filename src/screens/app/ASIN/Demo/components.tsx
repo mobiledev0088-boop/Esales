@@ -485,14 +485,14 @@ export const BranchCard = memo(
     const atLeastSinglePercent = useMemo(() => {
       if (summaryData.at_least_single_demo === 0) return 0;
       return Math.round(
-        (item.at_least_single_demo / summaryData.at_least_single_demo) * 100,
+        (item.at_least_single_demo / item.partner_count) * 100,
       );
-    }, [item.at_least_single_demo, summaryData.at_least_single_demo]);
+    }, [item.at_least_single_demo, item.partner_count]);
 
     const demo100Percent = useMemo(() => {
       if (summaryData.demo_100 === 0) return 0;
-      return Math.round((item.demo_100 / summaryData.demo_100) * 100);
-    }, [item.demo_100, summaryData.demo_100]);
+      return Math.round((item.demo_100 / item.partner_count) * 100);
+    }, [item.demo_100, item.partner_count]);
 
     const flipCard = () => {
       // Determine target height before we toggle state
@@ -654,7 +654,7 @@ export const BranchCard = memo(
                       label="At Least Single"
                       percent={atLeastSinglePercent}
                       current={item.at_least_single_demo}
-                      total={summaryData.at_least_single_demo}
+                      total={item.partner_count}
                       barTint="bg-violet-500"
                       percentTint="text-violet-600"
                     />
@@ -664,7 +664,7 @@ export const BranchCard = memo(
                       label="100% Demo"
                       percent={demo100Percent}
                       current={item.demo_100}
-                      total={summaryData.demo_100}
+                      total={item.partner_count}
                       barTint="bg-teal-500"
                       percentTint="text-teal-600"
                     />
@@ -969,21 +969,18 @@ export const BranchCardRet = memo(
     }, [territoryData, showFront, partnerType]);
 
     const atLeastSinglePercent = useMemo(() => {
-      if (summaryData.at_least_single_demo === 0) return 0;
       return Math.round(
-        (item.at_least_single_demo / summaryData.at_least_single_demo) * 100,
+        (item.at_least_single_demo / item.partner_count) * 100,
       );
-    }, [item.at_least_single_demo, summaryData.at_least_single_demo]);
+    }, [item.at_least_single_demo, item.partner_count]);
 
     const demo100Percent = useMemo(() => {
-      if (summaryData.demo_100 === 0) return 0;
-      return Math.round((item.demo_100 / summaryData.demo_100) * 100);
-    }, [item.demo_100, summaryData.demo_100]);
+      return Math.round((item.demo_100 / item.partner_count) * 100);
+    }, [item.demo_100, item.partner_count]);
 
     const demo80Percent = useMemo(() => {
-      if (!summaryData.at_80_demo || summaryData.at_80_demo === 0) return 0;
-      return Math.round((item.at_80_demo / summaryData.at_80_demo) * 100);
-    }, [item.at_80_demo, summaryData.at_80_demo]);
+      return Math.round((item.at_80_demo / item.partner_count) * 100);
+    }, [item.at_80_demo, item.partner_count]);
 
     const flipCard = () => {
       // Determine target height before we toggle state
@@ -1103,7 +1100,7 @@ export const BranchCardRet = memo(
                       label="At Least Single"
                       percent={atLeastSinglePercent}
                       current={item.at_least_single_demo}
-                      total={summaryData.at_least_single_demo}
+                      total={item.partner_count}
                       barTint="bg-violet-500"
                       percentTint="text-violet-600"
                     />
@@ -1115,7 +1112,7 @@ export const BranchCardRet = memo(
                       label="80% Demo"
                       percent={demo80Percent}
                       current={item.at_80_demo}
-                      total={summaryData.at_80_demo || 0}
+                      total={item.partner_count}
                       barTint="bg-sky-500"
                       percentTint="text-sky-600"
                     />
@@ -1127,7 +1124,7 @@ export const BranchCardRet = memo(
                       label="100% Demo"
                       percent={demo100Percent}
                       current={item.demo_100}
-                      total={summaryData.demo_100}
+                      total={item.partner_count}
                       barTint="bg-teal-500"
                       percentTint="text-teal-600"
                     />

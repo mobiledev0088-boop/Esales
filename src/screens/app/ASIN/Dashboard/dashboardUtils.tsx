@@ -519,6 +519,7 @@ export const DEFAULT_ACTIVATION_TABS = [
   'AGP',
   'ASP',
   'Disti',
+  'AWP',
 ] as const;
 
 export const TAB_LABEL_TO_ID: Record<string, string> = {
@@ -529,10 +530,12 @@ export const TAB_LABEL_TO_ID: Record<string, string> = {
   AGP: 'agp',
   ASP: 'asp',
   Disti: 'disti',
+  AWP: 'awp',
 };
 
 export const ACTIVATION_ID_TO_DATA_KEY: Record<string, string> = {
   branch: 'Top5Branch',
+  awp: 'Top5AWP',
   alp: 'Top5ALP',
   model: 'Top5Model',
   agp: 'Top5AGP',

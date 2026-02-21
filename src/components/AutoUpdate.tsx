@@ -13,6 +13,7 @@ const AutoUpdate = () => {
   const {android_version, ios_version} = useUserStore(state => state.empInfo);
   const appVersion = DeviceInfo.getVersion();
   const isUpdateAvailable = ['KN2500069','KN2200052'].includes(userInfo?.EMP_Code) ? false : isIOS ? ios_version !== appVersion : android_version !== appVersion;
+  // const isUpdateAvailable = false;
 
   const handlePress = () => {
     if (isIOS) {

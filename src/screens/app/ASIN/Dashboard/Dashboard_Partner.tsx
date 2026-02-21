@@ -551,7 +551,7 @@ export default function Dashboard_Partner({
             className="text-blue-900 text-center"
             size="md"
             weight="bold">
-            Viewing Dashboard for: {DifferentEmployeeName}
+            {DifferentEmployeeName}
           </AppText>
         </Card>
       )}

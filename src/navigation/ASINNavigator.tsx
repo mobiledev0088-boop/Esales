@@ -58,6 +58,7 @@ import TargetASETerritory from '../screens/app/ASIN/Reports/TargetASETerritory';
 import TargetASEDashboard from '../screens/app/ASIN/Dashboard/TargetASEDashboard';
 import TargetDemoPartner from '../screens/app/ASIN/Demo/TargetDemoPartner';
 import VerticalASE from '../screens/app/ASIN/Reports/VerticalASE';
+import EditMaterialDetails from '../screens/app/ASIN/More/StandPOSM/EditMaterialDetails';
 
 type Screen = {
   name: string;
@@ -119,6 +120,7 @@ const screens: Screen[] = [
   {name: 'ChannelFriendlyClaimView', component: ChannelFriendlyClaimView},
   {name: 'StandPOSM', component: StandPOSM},
   {name: 'AddNewStandPOSM', component: AddNewStandPOSM},
+  {name: 'EditMaterialDetails', component: EditMaterialDetails},
   {name: 'ShopExpansion', component: ShopExpansion},
   {name: 'StoreDetails', component: StoreDetails},
   {name: 'UploadGalleryReview', component: UploadGalleryReview},

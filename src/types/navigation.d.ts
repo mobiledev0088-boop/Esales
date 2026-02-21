@@ -109,6 +109,7 @@ type AppNavigationParamList = {
   };
   ChannelFriendlyClaimView: {data: any};
   StandPOSM: undefined;
+  EditMaterialDetails: {item: any};
   AddNewStandPOSM: undefined;
   ShopExpansion: undefined;
   StoreDetails: {PartnerCode: string; StoreType: string};

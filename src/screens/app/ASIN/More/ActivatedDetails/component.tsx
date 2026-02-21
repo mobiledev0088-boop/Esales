@@ -1,4 +1,4 @@
-import React, {useMemo, useState, useCallback} from 'react';
+import React, {useMemo, useState, useCallback, useEffect} from 'react';
 import AppModal from '../../../../../components/customs/AppModal';
 import {FlatList, TouchableOpacity, View} from 'react-native';
 import AppText from '../../../../../components/customs/AppText';
@@ -33,11 +33,20 @@ interface FilterActionSheetProps {
     serialNumbers: string[];
     agpNames: string[];
   };
-  onApplyFilter: (selectedValues: {serialNumbers: string[]; agpNames: string[]}) => void;
+  onApplyFilter: (selectedValues: {
+    serialNumbers: string[];
+    agpNames: string[];
+  }) => void;
 }
 
 export const CautionModal = () => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsOpen(true);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
   return (
     <AppModal isOpen={isOpen} onClose={() => setIsOpen(false)}>
       <View className="flex-row justify-center mb-4">
@@ -245,13 +254,15 @@ export const ActivationDetailCard = ({
   );
 
   return (
-    <Card className="mb-10 border border-slate-200 dark:border-slate-700" noshadow>
+    <Card
+      className="mb-10 border border-slate-200 dark:border-slate-700"
+      noshadow>
       {/* Header */}
       <View className="flex-row items-center justify-between mb-4">
         <View className="flex-row items-center gap-3">
           <AppIcon
             type="ionicons"
-            name="list-outline" 
+            name="list-outline"
             size={24}
             color="#3B82F6"
           />
@@ -399,9 +410,7 @@ export const FilterActionSheet: React.FC = () => {
   const filteredSerialList = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     if (!query) return serialList;
-    return serialList.filter(item =>
-      item.label.toLowerCase().includes(query),
-    );
+    return serialList.filter(item => item.label.toLowerCase().includes(query));
   }, [searchQuery, serialList]);
 
   const filteredAgpList = useMemo(() => {
@@ -434,15 +443,11 @@ export const FilterActionSheet: React.FC = () => {
     (item: string) => {
       if (group === 'serialNumber') {
         setSerialNumbers(prev =>
-          prev.includes(item)
-            ? prev.filter(s => s !== item)
-            : [...prev, item],
+          prev.includes(item) ? prev.filter(s => s !== item) : [...prev, item],
         );
       } else {
         setAgpNames(prev =>
-          prev.includes(item)
-            ? prev.filter(a => a !== item)
-            : [...prev, item],
+          prev.includes(item) ? prev.filter(a => a !== item) : [...prev, item],
         );
       }
     },
@@ -513,13 +518,7 @@ export const FilterActionSheet: React.FC = () => {
         />
       </View>
     );
-  }, [
-    group,
-    filteredSerialList,
-    filteredAgpList,
-    searchQuery,
-    renderCheckbox,
-  ]);
+  }, [group, filteredSerialList, filteredAgpList, searchQuery, renderCheckbox]);
 
   const handleReset = () => {
     setSerialNumbers([]);
