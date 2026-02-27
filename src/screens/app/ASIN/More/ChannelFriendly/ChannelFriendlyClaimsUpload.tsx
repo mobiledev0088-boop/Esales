@@ -71,8 +71,8 @@ interface ValidateSerialStepProps {
   t3PartnerNameError: string;
   setT3PartnerNameError: (value: string) => void;
   formattedToday: string;
-  searchValue: string;
-  setSearchValue: (value: string) => void;
+  serialNumber: string;
+  setSerialNumber: (value: string) => void;
   openScanner: () => void;
   clearSearch: () => void;
   onValidate: () => void;
@@ -238,7 +238,7 @@ const useSendNotificationMutation = () => {
 };
 
 // UTILITY / HELPER FUNCTIONS
-const validateSerialNumber = (value: string): string | null => {
+const checkEnteredSerialNumber = (value: string): string | null => {
   const trimmed = value.trim();
   if (!trimmed) {
     return 'Serial number is required';
@@ -341,8 +341,8 @@ const buildClaimPayload = async ({
     EndCustomerInvoiceDate: moment(formattedToday, "DD-MMM-YYYY").format("DD-MMM-YYYY"),
     SSN: serialNumber.trim(),
     eTailerDate: moment(formattedToday, "DD-MMM-YYYY").format("DD-MMM-YYYY"),
-    eTailerName: selectedEtailer?.label ?? '',
-    eTailerSellerName: selectedAuthSeller?.label ?? '',
+    eTailerName: selectedEtailer?.value ?? '',
+    eTailerSellerName: selectedAuthSeller?.value ?? '',
     eTailerSRP: onlineSrp.trim(),
     T2InvoiceCopy: await convertImageToBase64(images.invoice?.uri ?? ''),
     ALPT3InvoiceCopy: await convertImageToBase64(images.customerWithUnit?.uri ?? ''),
@@ -371,8 +371,8 @@ const ValidateSerialStep = memo(
     setT3PartnerNameError,
     t3PartnerNameError,
     formattedToday,
-    searchValue,
-    setSearchValue,
+    serialNumber,
+    setSerialNumber,
     openScanner,
     clearSearch,
     onValidate,
@@ -402,7 +402,8 @@ const ValidateSerialStep = memo(
             Date is automatically set to today and cannot be edited.
           </AppText>
         </View>
-       {isAWP && <AppInput
+       {isAWP && 
+       <AppInput
         value={t3PartnerName}
         setValue={(item)=>{
           setT3PartnerName(item)
@@ -413,13 +414,14 @@ const ValidateSerialStep = memo(
         label='T3 Partner Name'
         placeholder='Enter T3 Partner Name'
         error={t3PartnerNameError}
-        />}
+        />
+        } 
 
         <View className="gap-2">
           <AppInput
             label="Serial Number"
-            value={searchValue}
-            setValue={setSearchValue}
+            value={serialNumber}
+            setValue={setSerialNumber}
             placeholder="Enter or scan serial number"
             leftIcon="search"
             autoCapitalize="characters"
@@ -451,8 +453,8 @@ const ValidateSerialStep = memo(
           onPress={onValidate}
           activeOpacity={0.9}
           className="rounded-xl bg-blue-600 py-3.5"
-          style={{opacity: searchValue ? 1 : 0.85}}
-          disabled={!searchValue}>
+          style={{opacity: serialNumber ? 1 : 0.85}}
+          disabled={!serialNumber}>
           <AppText
             weight="semibold"
             className="text-center text-base text-white">
@@ -696,7 +698,7 @@ const PurchaseDetailsStep = ({
 
       <AppDropdown
         data={etailerData}
-        mode="dropdown"
+        mode="autocomplete"
         placeholder={etailerLoading ? 'Loading eTailers...' : 'Select eTailer'}
         label="eTailer Name"
         required
@@ -756,7 +758,7 @@ const PurchaseDetailsStep = ({
         ) : (
           <AppDropdown
             data={authSellerData}
-            mode="dropdown"
+            mode="autocomplete"
             placeholder={
               authSellerLoading
                 ? 'Loading Sellers...'
@@ -836,7 +838,7 @@ export default function ChannelFriendlyClaimsUpload() {
   const {mutate: sendNotification, isPending: sendingNotification} =
     useSendNotificationMutation();
 
-  const [searchValue, setSearchValue] = useState('');
+  const [serialNumber, setSerialNumber] = useState('');
   const [error, setError] = useState('');
   const [currentStep, setCurrentStep] = useState<StepId>(1);
   const [images, setImages] = useState<Record<ImageKey, ClaimImage>>({
@@ -854,7 +856,7 @@ export default function ChannelFriendlyClaimsUpload() {
     useState<DropdownValue>(null);
   const {data: authSellerData, isLoading: authSellerLoading} = useGetAuthSellerList(selectedEtailer?.value || '');
   const TimeStemp = moment().format('ddd, DD-MM-YYYY hh:mm: A');
-  const watermarkText = `${employeeCode} / ${searchValue}\n${TimeStemp}`;
+  const watermarkText = `${employeeCode} / ${serialNumber}\n${TimeStemp}`;
   const {pickImage, imageUri, imageData, reset} = useImagePicker({watermarkText});
   const [onlineSrp, setOnlineSrp] = useState('');
   const [purchaseErrors, setPurchaseErrors] =
@@ -867,7 +869,7 @@ export default function ChannelFriendlyClaimsUpload() {
   const accent = '#3B82F6';
   const formattedToday = useMemo(() => moment().format('DD-MMM-YYYY'), []);
   const handleChange = useCallback((value: string) => {
-    setSearchValue(value);
+    setSerialNumber(value);
     setError('');
   }, []);
   const handleValidateNext = useCallback(() => {
@@ -882,7 +884,7 @@ export default function ChannelFriendlyClaimsUpload() {
   }, [currentStep, images]);
 
   const handleSerialValidate = useCallback(() => {
-    const validationError = validateSerialNumber(searchValue);
+    const validationError = checkEnteredSerialNumber(serialNumber);
     if(isAWP){
       if (!t3PartnerName.trim()) {
         setT3PartnerNameError('T3 Partner Name is required for AWP employees');
@@ -897,7 +899,7 @@ export default function ChannelFriendlyClaimsUpload() {
     }
 
     setError('');
-    validateSSN(searchValue, {
+    validateSSN(serialNumber, {
       onSuccess: isValid => {
         if (isValid) {
           showToast('Serial Number validated successfully');
@@ -910,10 +912,10 @@ export default function ChannelFriendlyClaimsUpload() {
         setError('Unable to validate serial number. Please try again.');
       },
     });
-  }, [searchValue, validateSSN]);
+  }, [serialNumber, validateSSN]);
   const openScanner = useCallback(() => setIsScannerOpen(true), []);
   const clearSearch = useCallback(() => {
-    setSearchValue('');
+    setSerialNumber('');
     setIsScannerOpen(false);
   }, []);
 
@@ -949,7 +951,7 @@ export default function ChannelFriendlyClaimsUpload() {
 
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const handleBarcodeScanned = useCallback((scannedCode: string) => {
-    setSearchValue(scannedCode);
+    setSerialNumber(scannedCode);
     setIsScannerOpen(false);
   }, []);
   const closeScanner = useCallback(() => setIsScannerOpen(false), []);
@@ -1056,7 +1058,7 @@ export default function ChannelFriendlyClaimsUpload() {
     const payload = await buildClaimPayload({
       employeeCode,
       formattedToday,
-      serialNumber: searchValue,
+      serialNumber,
       selectedEtailer,
       selectedAuthSeller,
       onlineSrp,
@@ -1068,7 +1070,7 @@ export default function ChannelFriendlyClaimsUpload() {
 
     submitClaim(payload, {
       onSuccess: () => {
-        sendNotification({EMP_Code: employeeCode, EMP_Name, serialNo: searchValue});
+        sendNotification({EMP_Code: employeeCode, EMP_Name, serialNo: serialNumber});
         queryClient.invalidateQueries({queryKey: ['channelFriendlyClaims']});
         showToast('Claim submitted successfully');
         navigation.goBack();
@@ -1086,11 +1088,12 @@ export default function ChannelFriendlyClaimsUpload() {
     images,
     onlineSrp,
     purchaseMode,
-    searchValue,
+    serialNumber,
     selectedAuthSeller,
     selectedEtailer,
     studentEmail,
     submitClaim,
+    t3PartnerName,
   ]);
 
   const renderStepContent = () => {
@@ -1102,8 +1105,8 @@ export default function ChannelFriendlyClaimsUpload() {
         t3PartnerNameError={t3PartnerNameError}
         setT3PartnerNameError={setT3PartnerNameError}
           formattedToday={formattedToday}
-          searchValue={searchValue}
-          setSearchValue={handleChange}
+          serialNumber={serialNumber}
+          setSerialNumber={handleChange}
           openScanner={openScanner}
           clearSearch={clearSearch}
           onValidate={handleSerialValidate}
@@ -1168,3 +1171,4 @@ export default function ChannelFriendlyClaimsUpload() {
     </AppLayout>
   );
 }
+

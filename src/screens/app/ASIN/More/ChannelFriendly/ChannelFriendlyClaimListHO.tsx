@@ -108,15 +108,15 @@ const SUMMARY_METRICS = [
   {
     key: 'CN_Under_Process_Cnt' as const,
     title: 'CN Under Process',
-    legend: 'UP',
-    color: AppColors.utilColor1,
+    legend: 'C_UP',
+    color: AppColors.success,
     icon: 'checkmark-circle',
     iconType: 'ionicons' as const,
   },
   {
     key: 'Rejected_Cnt' as const,
     title: 'Rejected',
-    legend: 'Rejected',
+    legend: 'REJ',
     color: AppColors.error,
     icon: 'close-circle',
     iconType: 'ionicons' as const,
@@ -125,23 +125,23 @@ const SUMMARY_METRICS = [
 
 const METRIC_CHIP_CONFIG = [
   {
+    key: 'Waiting_for_Reviewer_Cnt' as const,
+    label: 'WR',
+    color: AppColors.warning,
+  },
+  {
     key: 'Under_Process_Cnt' as const,
     label: 'UR',
     color: AppColors.utilColor2,
   },
   {
     key: 'CN_Under_Process_Cnt' as const,
-    label: 'UP',
-    color: AppColors.utilColor1,
-  },
-  {
-    key: 'Waiting_for_Reviewer_Cnt' as const,
-    label: 'WR',
-    color: AppColors.warning,
+    label: 'C_UP',
+    color: AppColors.success,
   },
   {
     key: 'Rejected_Cnt' as const,
-    label: 'Rejected',
+    label: 'REJ',
     color: AppColors.error,
   },
 ] as const;
@@ -597,7 +597,7 @@ export default function ChannelFriendlyClaimListHO() {
       partnerCode: item.Partner_Code,
       yearQTR: selectedQuarter?.value,
     });
-  }, []);
+  }, [navigation, selectedQuarter]);
 
   const handleClearFilter = useCallback(() => {
     setSelectedPartner(null);

@@ -91,10 +91,12 @@ interface StatusBadgeProps {
   status: string;
 }
 
-// Constants
+// Utility function to get status configuration based on claim status
+const getStatusConfig = (status: string) => {
+  // Define a mapping of statuses to their corresponding colors, icons, and legends
 const STATUS_CONFIG: Record<
   string,
-  {color: string; icon: string; iconType: IconType; legend: string}
+  {color: string; icon: string; iconType: IconType; legend: string; }
 > = {
   'Waiting for Reviewer': {
     color: AppColors.warning,
@@ -109,17 +111,30 @@ const STATUS_CONFIG: Record<
     legend: 'UR',
   },
   'CN Under Process': {
-    color: AppColors.utilColor1,
+    color: AppColors.success,
     icon: 'checkmark-circle',
     iconType: 'ionicons',
-    legend: 'UP',
+    legend: 'C_UP',
   },
-  Rejected: {
+  'Reject': {
     color: AppColors.error,
     icon: 'close-circle',
     iconType: 'ionicons',
-    legend: 'Rejected',
+    legend: 'REJ',
   },
+};
+
+  // Check for partial matches first
+  if (status?.includes('Reject')) {
+    return STATUS_CONFIG['Reject'];
+  }
+  // Fallback to exact match for other statuses
+  return STATUS_CONFIG[status] || {
+    color: '#6B7280',
+    icon: 'help-circle',
+    iconType: 'ionicons' as IconType,
+    legend: 'N/A',
+  };
 };
 
 // Custom Hooks
@@ -160,6 +175,7 @@ const useGetChannelFriendlyPartnerClaimInfo = (
 };
 
 const useClaimSummary = (data: ClaimInfoItem[]) => {
+  console.log('Claim data for summary:', data);
   return useMemo(() => {
     if (!data || data.length === 0) {
       return {
@@ -172,8 +188,12 @@ const useClaimSummary = (data: ClaimInfoItem[]) => {
 
     data.forEach(item => {
       const status = item.ChannelFriendlyClaim_Status || 'Unknown';
-      statusCounts[status] = (statusCounts[status] || 0) + 1;
+      // Aggregate all "Reject" statuses under a single "Reject" key
+      const countKey = status.includes('Reject') ? 'Reject' : status;
+      statusCounts[countKey] = (statusCounts[countKey] || 0) + 1;
     });
+
+    console.log('Claim status counts:', statusCounts);
 
     return {
       totalClaims: data.length,
@@ -248,11 +268,7 @@ const useSerialOptions = (data: ClaimInfoItem[]): AppDropdownItem[] => {
 
 // Components
 const StatusBadge: React.FC<StatusBadgeProps> = memo(({status}) => {
-  const config = STATUS_CONFIG[status] || {
-    color: '#6B7280',
-    icon: 'help-circle',
-    iconType: 'ionicons' as IconType,
-  };
+  const config = getStatusConfig(status);
 
   return (
     <View
@@ -416,7 +432,16 @@ const ClaimCard: React.FC<ClaimCardProps> = memo(({item, onPress}) => {
   );
 });
 
-const SummaryCard: React.FC<SummaryCardProps> = memo(
+
+const SummarySection: React.FC<{
+  totalClaims: number;
+  statusCounts: Record<string, number>;
+}> = memo(({totalClaims, statusCounts}) => {
+  const {AppTheme} = useThemeStore();
+  const theme = AppColors[AppTheme || 'light'];
+
+  // SummaryCard component to display individual status counts
+  const SummaryCard: React.FC<SummaryCardProps> = memo(
   ({title, count, color, icon, iconType, legend}) => {
     const {AppTheme} = useThemeStore();
     const theme = AppColors[AppTheme || 'light'];
@@ -462,19 +487,12 @@ const SummaryCard: React.FC<SummaryCardProps> = memo(
   },
 );
 
-const SummarySection: React.FC<{
-  totalClaims: number;
-  statusCounts: Record<string, number>;
-}> = memo(({totalClaims, statusCounts}) => {
-  const {AppTheme} = useThemeStore();
-  const theme = AppColors[AppTheme || 'light'];
-
   // Define the 4 main statuses we want to display
   const mainStatuses = [
     'Waiting for Reviewer',
     'Under Review',
     'CN Under Process',
-    'Rejected',
+    'Reject',
   ];
 
   return (
@@ -495,12 +513,7 @@ const SummarySection: React.FC<{
       <View className="flex-row flex-wrap justify-between">
         {mainStatuses.map(status => {
           const count = statusCounts[status] || 0;
-          const config = STATUS_CONFIG[status] || {
-            color: '#6B7280',
-            icon: 'help-circle',
-            iconType: 'ionicons' as IconType,
-            legend: 'N/A',
-          };
+          const config = getStatusConfig(status);
           return (
             <SummaryCard
               key={status}

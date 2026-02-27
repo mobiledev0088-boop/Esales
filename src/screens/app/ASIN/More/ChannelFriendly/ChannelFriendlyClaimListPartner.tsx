@@ -42,13 +42,83 @@ interface ChannelFriendlyClaim {
   Model_Name?: string;
   Received_Date?: string;
 }
+interface SummaryCardProps {
+  title: string;
+  count: number;
+  color: string;
+  icon: string;
+  iconType: IconType;
+  legend?: string;
+}
 
-const STATUS_STYLES: Record<string, {color: string; icon: string}> = {
+const useGetChannelFriendlyClaims = (YearQtr: string, PartnerCode: string) => {
+  const userInfo = useLoginStore(state => state.userInfo);
+  const UserName = userInfo?.EMP_Code || '';
+  const RoleId = userInfo?.EMP_RoleId || '';
+
+  return useQuery({
+    queryKey: ['channelFriendlyClaims', YearQtr, UserName, RoleId, PartnerCode],
+    queryFn: async () => {
+      const response = await handleASINApiCall(
+        '/ChannelFriendlyClaims/GetChannelFriendlyClaims_Detail_PartnerWise',
+        {
+          UserName,
+          RoleId,
+          YearQtr,
+          PartnerCode,
+        },
+      );
+      const result = response?.DashboardData;
+      if (!result?.Status) {
+        throw new Error('Failed to fetch data');
+      }
+      return result?.Datainfo?.List || [];
+    },
+  });
+};
+
+const useClaimSummary = (data: ChannelFriendlyClaim[]) => {
+  return useMemo(() => {
+    if (!data || data.length === 0) {
+      return {
+        totalClaims: 0,
+        statusCounts: {},
+      };
+    }
+
+    const statusCounts: Record<string, number> = {};
+
+    data.forEach(item => {
+      const status = item.ChannelFriendlyClaim_Status || 'Unknown';
+      // Aggregate all "Reject" statuses under a single "Reject" key
+      const countKey = status.includes('Reject') ? 'Reject' : status;
+      statusCounts[countKey] = (statusCounts[countKey] || 0) + 1;
+    });
+
+    return {
+      totalClaims: data.length,
+      statusCounts,
+    };
+  }, [data]);
+};
+
+const getStatusConfig = (status: string) => {
+  // Define styles for each status
+  const STATUS_STYLES: Record<string, {color: string; icon: string}> = {
   'Waiting for Reviewer': {color: AppColors.warning, icon: 'hourglass-outline'},
   'Under Review': {color: AppColors.utilColor2, icon: 'sync'},
-  'CN Under Process': {color: AppColors.utilColor1, icon: 'checkmark-circle'},
-  Approved: {color: AppColors.success, icon: 'checkmark-circle'},
-  Rejected: {color: AppColors.error, icon: 'close-circle'},
+  'CN Under Process': {color: AppColors.success, icon: 'checkmark-circle'},
+  'Reject': {color: AppColors.error, icon: 'close-circle'},
+};
+
+  if (status?.includes('Reject')) {
+    return STATUS_STYLES['Reject'];
+  }
+  // Fallback to exact match for other statuses
+  return STATUS_STYLES[status] || {
+    color: AppColors.primary,
+    icon: 'information-circle',
+  };
 };
 
 const formatDate = (dateString?: string) => {
@@ -96,10 +166,7 @@ const ClaimCard: React.FC<{
 }> = ({item, onPress}) => {
   const {AppTheme} = useThemeStore();
   const theme = AppColors[AppTheme || 'light'];
-  const statusConfig = STATUS_STYLES[item.ChannelFriendlyClaim_Status] || {
-    color: AppColors.primary,
-    icon: 'information-circle',
-  };
+  const statusConfig = getStatusConfig(item.ChannelFriendlyClaim_Status);
 
   return (
     <TouchableOpacity activeOpacity={0.9} onPress={onPress}>
@@ -196,31 +263,107 @@ const ClaimCard: React.FC<{
   );
 };
 
-const useGetChannelFriendlyClaims = (YearQtr: string, PartnerCode: string) => {
-  const userInfo = useLoginStore(state => state.userInfo);
-  const UserName = userInfo?.EMP_Code || '';
-  const RoleId = userInfo?.EMP_RoleId || '';
+// SummarySection component to display total claims and breakdown by status
+const SummarySection: React.FC<{
+  totalClaims: number;
+  statusCounts: Record<string, number>;
+}> = React.memo(({totalClaims, statusCounts}) => {
+  const {AppTheme} = useThemeStore();
+  const theme = AppColors[AppTheme || 'light'];
 
-  return useQuery({
-    queryKey: ['channelFriendlyClaims', YearQtr, UserName, RoleId, PartnerCode],
-    queryFn: async () => {
-      const response = await handleASINApiCall(
-        '/ChannelFriendlyClaims/GetChannelFriendlyClaims_Detail_PartnerWise',
-        {
-          UserName,
-          RoleId,
-          YearQtr,
-          PartnerCode,
-        },
-      );
-      const result = response?.DashboardData;
-      if (!result?.Status) {
-        throw new Error('Failed to fetch data');
-      }
-      return result?.Datainfo?.List || [];
-    },
-  });
-};
+  // SummaryCard component to display individual status counts
+  const SummaryCard: React.FC<SummaryCardProps> = React.memo(
+  ({title, count, color, icon, iconType, legend}) => {
+    const {AppTheme} = useThemeStore();
+    const theme = AppColors[AppTheme || 'light'];
+    return (
+      <View className="w-1/4 items-center">
+        <View className="flex-row items-start justify-between mb-1">
+          <View
+            className="w-10 h-10 rounded-full items-center justify-center"
+            style={{backgroundColor: color + '20'}}>
+            <AppIcon name={icon} type={iconType} size={22} color={color} />
+          </View>
+        </View>
+        <AppText size="xl" weight="bold" style={{color, marginBottom: 2}}>
+          {count !== undefined && count !== null
+            ? count.toLocaleString()
+            : 'N/A'}
+        </AppText>
+        <View className="items-center">
+          <AppText
+            size="sm"
+            weight="semibold"
+            className="text-center h-10"
+            style={{color: theme.text, opacity: 0.8}}>
+            {title}
+          </AppText>
+          {legend && (
+            <View
+              className="mt-1 px-2 py-0.5 rounded"
+              style={{backgroundColor: color + '10'}}>
+              <AppText
+                size="sm"
+                weight="bold"
+                className="text-center"
+                style={{color: color}}>
+                {legend}
+              </AppText>
+            </View>
+          )}
+        </View>
+      </View>
+    );
+  },
+);
+
+  // Define the 4 main statuses we want to display
+  const mainStatuses = [
+    'Waiting for Reviewer',
+    'Under Review',
+    'CN Under Process',
+    'Reject',
+  ];
+
+  return (
+    <Card className="mb-4">
+      {/* Total Claims */}
+      <View
+        className="pb-2 mb-2 flex-row items-center gap-1"
+        style={{borderBottomWidth: 1, borderBottomColor: theme.border}}>
+        <AppText size="sm" color="text">
+          Total Claims -
+        </AppText>
+        <AppText size="base" weight="bold">
+          {totalClaims.toLocaleString()}
+        </AppText>
+      </View>
+
+      {/* Status Breakdown - Only show the 4 main statuses */}
+      <View className="flex-row flex-wrap justify-between">
+        {mainStatuses.map(status => {
+          const count = statusCounts[status] || 0;
+          const config = getStatusConfig(status);
+
+          return (
+            <SummaryCard
+              key={status}
+              title={status}
+              count={count}
+              color={config.color}
+              icon={config.icon}
+              iconType="ionicons"
+              legend={status === 'Waiting for Reviewer' ? 'WR' : 
+                      status === 'Under Review' ? 'UR' : 
+                      status === 'CN Under Process' ? 'C_UP' : 
+                      status === 'Reject' ? 'REJ' : undefined}
+            />
+          );
+        })}
+      </View>
+    </Card>
+  );
+});
 
 export default function ChannelFriendlyClaimListPartner() {
   const {EMP_Code} = useLoginStore(state => state.userInfo);
@@ -239,6 +382,7 @@ export default function ChannelFriendlyClaimListPartner() {
   );
 
   const claims = useMemo(() => data || [], [data]);
+  const {totalClaims, statusCounts} = useClaimSummary(claims);
 
   const handleClaimPress = useCallback(
     (item: ChannelFriendlyClaim) => {
@@ -295,7 +439,15 @@ export default function ChannelFriendlyClaimListPartner() {
       setRefreshing(false);
     }
   }, [refetch]);
+const ListHeaderComponent = useMemo(
+    () =>
+      claims.length > 0 ? (
+        <SummarySection totalClaims={totalClaims} statusCounts={statusCounts} />
+      ) : null,
+    [totalClaims, statusCounts, claims.length],
+  );
 
+  
   return (
     <AppLayout title="Channel Friendly Claims" needBack>
       <View
@@ -322,8 +474,7 @@ export default function ChannelFriendlyClaimListPartner() {
           <AppDropdown
             data={quarters}
             selectedValue={selectedQuarter?.value}
-            mode="dropdown"
-            placeholder="Quarter"
+            mode="dropdown"     placeholder="Quarter"    
             onSelect={setSelectedQuarter}
           />
         </View>
@@ -332,6 +483,7 @@ export default function ChannelFriendlyClaimListPartner() {
         data={claims}
         keyExtractor={(_, index) => index.toString()}
         renderItem={renderClaim}
+        ListHeaderComponent={ListHeaderComponent}
         ListEmptyComponent={renderEmpty}
         contentContainerStyle={{paddingBottom: 32, paddingHorizontal: 12}}
         showsVerticalScrollIndicator={false}
