@@ -1135,7 +1135,7 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
     }
   }, [refetchDashboard]);
 
-  const handleSeeMore = () => {
+  const handleCSEActSeeMore = () => {
     const source = dashboardData;
     const dataToSend = {
       ...Object.fromEntries(
@@ -1191,7 +1191,7 @@ const DashboardContainer = memo(({route}: MaterialTopTabScreenProps<any>) => {
             onRetry={handleRetry}
             name={route.name}
             quarter={selectedQuarter?.value || ''}
-            handleSeeMore={SALES_REPS ? handleSeeMore : undefined}
+            handleSeeMore={isSALES_REPS ? handleCSEActSeeMore : undefined}
           />
         </View>
         {[DIR_HOD_MAN, HO_EMPLOYEES, COUNTRY_HEAD].includes(

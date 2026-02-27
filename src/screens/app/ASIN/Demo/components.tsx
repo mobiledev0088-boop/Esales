@@ -388,6 +388,117 @@ export const StatsHeader = memo(
   },
 );
 
+// New Component as per new UI (commented for now will use later)
+// export const StatsHeaderRetailer = memo(
+//   ({stats, counts}: StatsHeaderProps) => {
+//     return (
+//       <View className="mb-3">
+//         <Card
+//           className="p-3 border border-slate-200 dark:border-slate-700"
+//           noshadow
+//           watermark
+//           >
+//           <View className="pb-2 border-b border-slate-100 dark:border-slate-700">
+//             <View className="flex-row items-center justify-between">
+//               <View className="flex-row items-center gap-2">
+//                 <View className="w-8 h-8 rounded-full bg-primary/10 dark:bg-primary-dark/20 items-center justify-center">
+//                   <AppIcon
+//                     name="bar-chart-2"
+//                     type="feather"
+//                     size={16}
+//                     color={AppColors.primary}
+//                   />
+//                 </View>
+//                 <AppText
+//                   size="base"
+//                   weight="semibold"
+//                   className="text-slate-800 dark:text-slate-100">
+//                   Overall Summary
+//                 </AppText>
+//               </View>
+//             </View>
+//           </View>
+
+//           <ScrollView horizontal className="flex-row  -mx-1 mt-2">
+//             {stats.map((s, idx) => {
+//               const palette = STAT_PALETTE[s.name];
+//               const isLastInRow = idx === stats.length - 1;
+//               return (
+//                 <View
+//                   key={s.label}
+//                   className={clsx(
+//                     'flex-1 px-2.5 mb-2',
+//                     !isLastInRow && 'border-r border-slate-200',
+//                   )}>
+//                   <View className="items-center p-2.5 dark:border-slate-700 dark:bg-slate-800/70">
+//                   <AppText
+//                       size="xs"
+//                       weight="semibold"
+//                       className={twMerge(
+//                         'mt-0.5 uppercase text-slate-600 dark:text-slate-300 text-center',
+//                         palette.tint,
+//                       )}
+//                       numberOfLines={2}>
+//                       {s.label}
+//                     </AppText>
+
+//                     <AppText
+//                     size="lg"
+//                       weight="semibold"
+//                       className= 'mt-1 uppercase text-slate-600 dark:text-slate-300 text-center'
+//                       numberOfLines={2}>
+//                       {s.percentage !== undefined ? `${s.percentage}%` : s.value < 0 ? 0 : s.value}
+//                     </AppText>
+//                     {/* <View
+//                       className={twMerge(
+//                         'mb-1.5 h-9 w-9 items-center justify-center rounded-md',
+//                         palette.iconBg,
+//                       )}>
+//                       <AppIcon
+//                         name={s.icon}
+//                         type={s.iconType as any}
+//                         size={18}
+//                         color="white"
+//                       />
+//                     </View> */}
+
+//                     <AppText
+//                       size="md"
+//                       weight="semibold"
+//                       className={twMerge(
+//                         'mt-1 uppercase text-slate-600 dark:text-slate-300 text-center',
+//                         palette.tint,
+//                       )}>
+//                       {s.value < 0 ? 0 : s.totalStores ? `${s.value} / ${s.totalStores}`: s.value}
+//                     </AppText>
+                    
+//                   </View>
+//                 </View>
+//               );
+//             })}
+//           </ScrollView>
+//         </Card>
+//         {/* Demo Hub Summary Component */}
+//      <SummaryOverView />
+
+//         <View className="flex-row items-center justify-between px-1 mt-2">
+//           {counts.awp_count !== null && (
+//             <AppText className="text-slate-700 dark:text-slate-300">
+//               AWP Partners: <AppText weight="bold">{counts.awp_count}</AppText>
+//             </AppText>
+//           )}
+//           {counts.total_partners !== null && (
+//             <AppText className="text-slate-700 dark:text-slate-300">
+//               Total Partners:{' '}
+//               <AppText weight="bold">{counts.total_partners}</AppText>
+//             </AppText>
+//           )}
+//         </View>
+//       </View>
+//     );
+//   },
+// );
+
 export const DemoSkeleton: React.FC = () => {
   return (
     <ScrollView

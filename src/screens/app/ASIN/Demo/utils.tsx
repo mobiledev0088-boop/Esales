@@ -166,6 +166,8 @@ export interface StatsHeaderProps {
   stats: {
     label: string;
     value: number;
+    percentage?: number;
+    totalStores?: number;
     pending?: number;
     icon: string;
     iconType?: string;

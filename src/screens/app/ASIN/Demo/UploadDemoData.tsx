@@ -252,7 +252,7 @@ export default function UploadDemoData() {
               <View>
                 {disabledInput && validationResult ? (
                   <AppText
-                    className="underline bg-primary dark:bg-primary"
+                    className="underline text-blue-500"
                     weight="semibold"
                     onPress={() => setValidationResult(null)}>
                     Edit Serial No's
