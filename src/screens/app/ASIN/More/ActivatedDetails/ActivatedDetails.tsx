@@ -85,15 +85,18 @@ const useSSNInfoMutation = () => {
     EMP_RoleId: RoleId,
     EMP_Type: employeeType,
   } = useLoginStore(state => state.userInfo);
+
   return useMutation({
     mutationFn: async ({
       StartDate,
       EndDate,
       PartnerCode,
+      partnerType,
     }: {
       StartDate: string;
       EndDate: string;
       PartnerCode?: string;
+      partnerType?: string;
     }) => {
       const dataToSend = {
         StartDate,
@@ -101,7 +104,7 @@ const useSSNInfoMutation = () => {
         PartnerCode : PartnerCode || employeeCode,
         employeeCode,
         RoleId,
-        isAWP: employeeType === ASUS.PARTNER_TYPE.T2.AWP,
+        isAWP: employeeType === ASUS.PARTNER_TYPE.T2.AWP || partnerType === ASUS.PARTNER_TYPE.T2.AWP,
       };
       console.log('SSN Info Request Data:', dataToSend);
       const response = await handleASINApiCall(
@@ -181,8 +184,9 @@ export default function ActivatedDetails() {
       const StartDate = moment(dateRange?.start).format('DD/MM/YYYY');
       const EndDate = moment(dateRange?.end).format('DD/MM/YYYY');
       const PartnerCode = partner?.value;
+      const partnerType = partner?.partnerType;
 
-      mutate({StartDate, EndDate, PartnerCode});
+      mutate({StartDate, EndDate, PartnerCode, partnerType});
     },
     [mutate],
   );
