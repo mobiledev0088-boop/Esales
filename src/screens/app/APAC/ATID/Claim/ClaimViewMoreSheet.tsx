@@ -10,12 +10,13 @@ import {useClaimMasterDataViewMore} from '../../../../../hooks/queries/claim';
 import AppText from '../../../../../components/customs/AppText';
 import AppIcon from '../../../../../components/customs/AppIcon';
 import {AppColors} from '../../../../../config/theme';
-import {memo, useCallback, useMemo} from 'react';
+import {memo, useCallback, useMemo, useState} from 'react';
 import moment from 'moment';
 import {convertToAPACUnits} from '../../../../../utils/commonFunctions';
 import Skeleton from '../../../../../components/skeleton/skeleton';
 import {screenHeight, screenWidth} from '../../../../../utils/constant';
 import AppButton from '../../../../../components/customs/AppButton';
+import AppDropdown, {AppDropdownItem} from '../../../../../components/customs/AppDropdown';
 
 export interface ClaimFilterPayload {
   ClaimCode: string;
@@ -46,10 +47,12 @@ const SheetHeader = memo(
     onClose,
     isDarkMode,
     claimCode,
+    totalClaims,
   }: {
     onClose: () => void;
     isDarkMode: boolean;
     claimCode: string;
+    totalClaims: number;
   }) => (
     <View className="flex-row justify-between items-center px-5 py-4 border-b border-gray-200 dark:border-gray-700">
       <View className="flex-1">
@@ -59,6 +62,11 @@ const SheetHeader = memo(
         <AppText size="sm" color="gray" className="opacity-70">
           {claimCode}
         </AppText>
+        <View className='flex-row'>
+        <AppText size="sm" className="bg-blue-200 px-2 py-1 rounded-md mt-1" color='primary' weight="semibold">
+          Total Claims: {totalClaims}
+        </AppText>
+        </View>
       </View>
       <TouchableOpacity
         onPress={onClose}
@@ -140,15 +148,14 @@ const ClaimCard = memo(({item, index}: {item: claimDetails; index: number}) => {
   return (
     <View className="px-4 py-1.5">
       <View className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm border border-gray-100 dark:border-gray-700">
-                  <View className='flex-1 mb-2 pb-2 border-b border-gray-100 dark:border-gray-700'>
-            <AppText size="xs" color="gray" className="opacity-60">
-              Partner_Name.
-            </AppText>
-            <AppText size="sm" weight="bold">
-              {item.Partner_Name}
-            </AppText>
-
-          </View>
+        <View className="mb-2 pb-2 border-b border-gray-100 dark:border-gray-700">
+          <AppText size="xs" color="gray" className="opacity-60">
+            Partner Name
+          </AppText>
+          <AppText size="sm" weight="bold">
+            {item.Partner_Name}
+          </AppText>
+        </View>
         <View className="flex-row justify-between items-start mb-2 pb-2 border-b border-gray-100 dark:border-gray-700">
           <View className="flex-1">
             <AppText size="xs" color="gray" className="opacity-60">
@@ -294,6 +301,26 @@ export default function ClaimViewMoreSheet({
   const {data, isLoading, isError, error, refetch} =
     useClaimMasterDataViewMore(payload);
   const isDarkMode = useThemeStore(state => state.AppTheme === 'dark');
+  const [selectedPartner, setSelectedPartner] = useState<AppDropdownItem | null>(null);
+
+  // Extract unique partner names from data
+  const partnerOptions = useMemo((): AppDropdownItem[] => {
+    if (!data || data.length === 0) return [];
+    const uniquePartners: string[] = Array.from(
+      new Set(data.map((item: claimDetails) => item.Partner_Name).filter(Boolean))
+    ).sort() as string[];
+    const partnerItems: AppDropdownItem[] = uniquePartners.map(partner => ({
+      label: partner,
+      value: partner,
+    }));
+    return partnerItems;
+  }, [data]);
+
+  // Filter data based on selected partner
+  const filteredData = useMemo(() => {
+    if ( !selectedPartner ) return data;
+    return data.filter((item: claimDetails) => item.Partner_Name === selectedPartner.value);
+  }, [data, selectedPartner]);
 
   const handleClose = useCallback(() => {
     hideClaimViewMoreSheet();
@@ -318,9 +345,10 @@ export default function ClaimViewMoreSheet({
         onClose={handleClose}
         isDarkMode={isDarkMode}
         claimCode={payload.ClaimCode}
+        totalClaims={data ? data.length : 0}  
       />
     ),
-    [handleClose, isDarkMode, payload.ClaimCode],
+    [handleClose, isDarkMode, payload.ClaimCode, data],
   );
 
   const renderContent = () => {
@@ -340,24 +368,48 @@ export default function ClaimViewMoreSheet({
       return <EmptyState />;
     }
     return (
-      <FlatList
-        data={data}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
-        ItemSeparatorComponent={ItemSeparator}
-        showsVerticalScrollIndicator={false}
-        style={{maxHeight: screenHeight * 0.7}}
-        contentContainerStyle={{paddingTop: 8, paddingBottom: 16}}
-        initialNumToRender={10}
-        maxToRenderPerBatch={10}
-        windowSize={5}
-        removeClippedSubviews={true}
-        getItemLayout={(data, index) => ({
-          length: 450,
-          offset: 450 * index,
-          index,
-        })}
-      />
+      <View>
+        {partnerOptions.length > 1 && (
+          <View className="px-4 pt-3 pb-2">
+            <AppText size="sm" weight="semibold" className="mb-2">
+              Filter by Partner
+            </AppText>
+            <AppDropdown
+              data={partnerOptions}
+              onSelect={setSelectedPartner}
+              selectedValue={selectedPartner?.value}
+              mode="autocomplete"
+              placeholder="Select Partner"
+              allowClear
+              zIndex={2}
+            />
+          </View>
+        )}
+        {filteredData && filteredData.length === 0 ? (
+          <View className="justify-center items-center py-20 px-6">
+            <AppIcon name="filter" type="feather" size={32} color="#9ca3af" />
+            <AppText size="base" weight="semibold" className="mt-4 mb-2 text-center">
+              No Claims Found
+            </AppText>
+            <AppText size="sm" color="gray" className="text-center opacity-70">
+              No claims match the selected partner filter.
+            </AppText>
+          </View>
+        ) : (
+          <FlatList
+            data={filteredData}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            ItemSeparatorComponent={ItemSeparator}
+            showsVerticalScrollIndicator={false}
+            style={{maxHeight: screenHeight * 0.55}}
+            contentContainerStyle={{paddingTop: 8, paddingBottom: 16}}
+            initialNumToRender={10}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+          />
+        )}
+      </View>
     );
   };
 

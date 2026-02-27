@@ -379,7 +379,7 @@ const BranchClaimSection = memo<BranchClaimSectionProps>(
               </AppText>
             </View>
           </View>
-          <View className="items-end border w-[30%]">
+          <View className="items-end w-[30%]">
             <AppText size="xs" weight="medium" color="gray" className="mb-1">
               Total
             </AppText>
