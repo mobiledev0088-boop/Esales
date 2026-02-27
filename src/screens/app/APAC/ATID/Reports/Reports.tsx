@@ -17,6 +17,16 @@ import Skeleton from '../../../../../components/skeleton/skeleton';
 import {showToast} from '../../../../../utils/commonFunctions';
 import {downloadFile} from '../../../../../utils/services';
 
+// Display names for page titles
+const PAGE_TITLES: Record<string, string> = {
+  'SchemePPACT': 'Scheme / PP / Activation Support',
+  'PriceList': 'Price List',
+  'DemoProgramLetter': 'Demo Program Letter',
+  'EndCustomerRelated': 'End Customer Related',
+  'MarketingMaterial': 'Marketing Material',
+  'SelloutSupportEPPNCEMI': 'Sellout Support EPP/NC/EMI',
+};
+
 // Fetch reports data from API or other sources
 const fetchReportsData = async (
   RoleId: number,
@@ -36,8 +46,10 @@ const fetchReportsData = async (
   const groupedByTitle: any = {};
 
   for (const item of announcementData) {
-    groupedByTitle[item.Announcement_Type] ??= [];
-    groupedByTitle[item.Announcement_Type].push(item);
+    // Normalize keys to lowercase to avoid case-sensitivity issues
+    const normalizedKey = item.Announcement_Type?.toLowerCase() || '';
+    groupedByTitle[normalizedKey] ??= [];
+    groupedByTitle[normalizedKey].push(item);
   }
   return groupedByTitle;
 };
@@ -98,8 +110,10 @@ export default function Reports() {
 
   console.log('REPORTS DATA:', data);
 
+  const pageTitle = PAGE_TITLES[name] || name;
+
   return (
-    <AppLayout title={name}>
+    <AppLayout title={pageTitle}>
       {isLoading ? (
         <ReportsSkeleton />
       ) : isError ? (
@@ -130,20 +144,18 @@ export default function Reports() {
 }
 
 const getData = (data: any, name: string) => {
-  switch (name) {
-    case 'SchemePPACT':
-      return data?.['Scheme / PP / Activation Support'] || [];
-    case 'PriceList':
-      return data?.['PriceList'] || [];
-    case 'DemoProgramLetter':
-      return data?.['DEMO PROGRAM LETTER'] || [];
-    case 'EndCustomerRelated':
-      return data?.['END CUSTOMER RELATED'] || [];
-    case 'MarketingMaterial':
-      return data?.['MARKETING MATERIAL'] || [];
-    default:
-      return [];
-  }
+  // Map route names to their corresponding API announcement types (normalized to lowercase)
+  const routeToApiTypeMap: Record<string, string> = {
+    'SchemePPACT': 'scheme / pp / activation support',
+    'PriceList': 'pricelist',
+    'DemoProgramLetter': 'demo program letter',
+    'EndCustomerRelated': 'end customer related',
+    'MarketingMaterial': 'marketing material',
+    'SelloutSupportEPPNCEMI': 'sellout support / epp / ncemi',
+  };
+
+  const apiKey = routeToApiTypeMap[name];
+  return apiKey ? (data?.[apiKey] || []) : [];
 };
 
 function ReportsSkeleton() {

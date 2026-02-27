@@ -8,6 +8,13 @@ import { DrawerContentComponentProps } from '@react-navigation/drawer';
 import { AppColors } from '../../config/theme';
 import { convertCamelCaseToSentence } from '../../utils/commonFunctions';
 
+// Custom display names for specific routes
+const ROUTE_DISPLAY_NAMES: Record<string, string> = {
+    'SchemePPACT': 'Scheme / PP / Activation Support',
+    'SelloutSupportEPPNCEMI': 'Sellout Support EPP/NC/EMI',
+    // Add more custom names here if needed
+};
+
 interface DrawerItemWrapperProps {
     route: Route<string>;
     focused: boolean;
@@ -46,7 +53,7 @@ const DrawerItemWrapper: React.FC<DrawerItemWrapperProps> = ({
                 />
             )}
             <AppText size='md' color={focused ? 'primary' : 'text'} >
-                {convertCamelCaseToSentence(route.name)}
+                {ROUTE_DISPLAY_NAMES[route.name] || convertCamelCaseToSentence(route.name)}
             </AppText>
         </TouchableOpacity>
     );

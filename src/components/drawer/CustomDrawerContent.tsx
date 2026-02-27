@@ -22,13 +22,26 @@ import {ASUS} from '../../utils/constant';
 import {useLoginStore} from '../../stores/useLoginStore';
 import AppIcon from '../customs/AppIcon';
 
-const DOWNLOAD_ROUTES = [
+// Base download routes available for all countries
+const BASE_DOWNLOAD_ROUTES = [
   'SchemePPACT',
   'PriceList',
   'DemoProgramLetter',
   'EndCustomerRelated',
   'MarketingMaterial',
 ];
+
+// Get download routes based on user's country
+const getDownloadRoutes = (countryId: string) => {
+  const routes = [...BASE_DOWNLOAD_ROUTES];
+  
+  // Add SelloutSupportEPPNCEMI only for ATID & ACMY countries
+  if (countryId === ASUS.COUNTRIES.ATID || countryId === ASUS.COUNTRIES.ACMY) {
+    routes.push('SelloutSupportEPPNCEMI');
+  }
+  
+  return routes;
+};
 
 export default function CustomDrawerContent({ state, navigation }: DrawerContentComponentProps) {
   const userInfo = useLoginStore(state => state.userInfo);
@@ -39,6 +52,9 @@ export default function CustomDrawerContent({ state, navigation }: DrawerContent
 
   const [isOpen, setIsOpen] = useState(false);
 
+  // Get download routes based on user's country
+  const DOWNLOAD_ROUTES = getDownloadRoutes(userInfo?.EMP_CountryID || '');
+  
   const focusedRouteName = state.routes[state.index].name;
   const isDownloadFocused = DOWNLOAD_ROUTES.includes(focusedRouteName);
   const mainRoutes = state.routes.filter(

@@ -16,6 +16,7 @@ const Index = () => {
     {name: 'DemoProgramLetter', component: Reports},
     {name: 'EndCustomerRelated', component: Reports},
     {name: 'MarketingMaterial', component: Reports},
+    {name: 'SelloutSupportEPPNCEMI', component: Reports},
   ];
 
   return (
