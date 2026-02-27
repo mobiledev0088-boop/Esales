@@ -93,14 +93,13 @@ export default function SpotLightVideos() {
     refetch: refetchVideos,
     isRefetching: videosRefetching,
   } = useQuery<SpotlightVideoItem[], Error>({
-    queryKey: ['spotlightVideosData', modelName || 'top'],
+    queryKey: ['spotlightVideosData', modelName || '', filters.category || ''],
     queryFn: async () => {
       const res = await handleASINApiCall(
         '/Information/GetSpotlightModelInfo',
         {
-          employeeCode: userInfo?.EMP_Code,
-          RoleId: userInfo?.EMP_RoleId,
           ModelName: modelName,
+          Category: filters.category,
         },
       );
       const result = res.DashboardData;
@@ -268,7 +267,7 @@ export default function SpotLightVideos() {
               </View>
             )}
           </View>
-          <FilterButton onPress={handleFilterPress} />
+          <FilterButton onPress={handleFilterPress} hasActiveFilters={!!filters.category} containerStyle={{padding:10}}/>
         </View>
         <FlatList
           data={videos}

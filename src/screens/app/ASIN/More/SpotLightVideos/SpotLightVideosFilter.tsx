@@ -6,11 +6,9 @@ import ActionSheet, {
 } from 'react-native-actions-sheet';
 import {useThemeStore} from '../../../../../stores/useThemeStore';
 import {useQuery} from '@tanstack/react-query';
-import {AppDropdownItem} from '../../../../../components/customs/AppDropdown';
 import {handleASINApiCall} from '../../../../../utils/handleApiCall';
 import {useLoginStore} from '../../../../../stores/useLoginStore';
 import AppText from '../../../../../components/customs/AppText';
-import AppButton from '../../../../../components/customs/AppButton';
 import {screenHeight} from '../../../../../utils/constant';
 import SheetIndicator from '../../../../../components/SheetIndicator';
 import FilterSheet from '../../../../../components/FilterSheet';
@@ -22,23 +20,6 @@ interface SpotLightVideosFilterPayload {
   onApply: (filter: {categories: string}) => void;
   onReset: () => void;
 }
-
-const categoriesList = [
-  'Notebooks',
-  'Gaming Notebooks',
-  'Desktops',
-  'Handheld',
-  'All-In-One',
-  'Accessories',
-  'AI Features',
-  'ASUS/ROG Technologies',
-  'Hindi',
-  'Marathi',
-  'Malayalam',
-  'Telugu',
-  'Kannada',
-  'Tamil',
-];
 
 // Radio button component for single selection
 const RadioRow = memo(
@@ -118,12 +99,10 @@ export default function SpotLightVideosFilter() {
   const userInfo = useLoginStore(state => state.userInfo);
 
   const {
-    data: modelOptions = [],
-    isLoading: modelListLoading,
-    error: modelListError,
-    refetch: refetchModels,
-  } = useQuery<AppDropdownItem[], Error>({
-    queryKey: ['spotlightVideosModelList'],
+    data: categoriesOptions = [],
+    isLoading: categoriesLoading,
+  } = useQuery<string[], Error>({
+    queryKey: ['spotlightVideosCategories'],
     queryFn: async () => {
       const res = await handleASINApiCall(
         '/Information/GetSpotlightModelList',
@@ -134,19 +113,15 @@ export default function SpotLightVideosFilter() {
       );
       const result = res.DashboardData;
       if (!result?.Status) {
-        throw new Error(result?.Message || 'Failed to fetch model list');
+        throw new Error(result?.Message || 'Failed to fetch categories');
       }
-      const list = result?.Datainfo?.Spotlight_Model_List || [];
-      return list.map((item: {Model_Name: string}) => ({
-        label: item.Model_Name,
-        value: item.Model_Name,
-      }));
+      const list = result?.Datainfo?.Spotlight_Category || [];
+      return list.map((item: {Spotlight_Category: string}) => item.Spotlight_Category);
     },
   });
 
   const [filters, setFilters] = useState(
     payload.filters || {
-      model: '',
       categories: '',
     },
   );
@@ -185,22 +160,18 @@ export default function SpotLightVideosFilter() {
   const rightPanel = () => {
     if (group === 'categories') {
       const hasSelection = !!filters.categories && filters.categories !== '';
-      const categoryOptions = categoriesList.map(cat => ({
-        label: cat,
-        value: cat,
-      }));
 
       return (
         <View className="flex-1">
           <FlatList
-            data={categoryOptions}
-            keyExtractor={item => item.value}
+            data={categoriesOptions}
+            keyExtractor={item => item}
             renderItem={({item}) => (
               <RadioRow
-                label={item.label}
-                selected={filters.categories === item.value}
+                label={item}
+                selected={filters.categories === item}
                 onPress={() =>
-                  setFilters(prev => ({...prev, categories: item.value}))
+                  setFilters(prev => ({...prev, categories: item}))
                 }
               />
             )}
@@ -236,7 +207,7 @@ export default function SpotLightVideosFilter() {
 
   const rightContent = useMemo(
     () => rightPanel(),
-    [group, filters, modelOptions, modelListLoading, modelListError],
+    [group, filters, categoriesOptions, categoriesLoading],
   );
 
   const handleApply = useCallback(() => {
