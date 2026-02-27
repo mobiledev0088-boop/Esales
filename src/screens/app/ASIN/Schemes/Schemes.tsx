@@ -237,7 +237,19 @@ const CountdownBadge: React.FC<{endDate: string; category: SchemeCategory}> = ({
 }) => {
   const endTs = useMemo(() => {
     const t = Date.parse(endDate);
-    return isNaN(t) ? null : t;
+    if (isNaN(t)) return null;
+    
+    // Check if the time is midnight (00:00:00)
+    const date = new Date(t);
+    if (date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0) {
+      // Treat as end of day instead of start of day
+      date.setHours(23, 59, 59, 999);
+      console.log('End Date:', endDate, 'Adjusted to end of day:', date.getTime());
+      return date.getTime();
+    }
+    
+    console.log('End Date:', endDate, 'Parsed end date:', t);
+    return t;
   }, [endDate]);
   const [now, setNow] = useState(Date.now());
   const isLapsed = category === LAPSED || (endTs ? endTs <= now : false);

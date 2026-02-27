@@ -12,7 +12,7 @@ import AppInput from '../../../../../components/customs/AppInput';
 import AppButton from '../../../../../components/customs/AppButton';
 import {use, useMemo, useState} from 'react';
 import {useMutation, useQuery} from '@tanstack/react-query';
-import {getDeviceId} from 'react-native-device-info';
+import {getDeviceId, getVersion} from 'react-native-device-info';
 import {
   handleAPACApiCall,
   handleASINApiCall,
@@ -576,7 +576,7 @@ export const AccountSettings = () => {
           AppTheme,
         )}
         <AppText size="sm" weight="bold" className="text-center underline">
-          App Version - 3.4.5{' '}
+          App Version - {getVersion()}
         </AppText>
       </Card>
     </>
