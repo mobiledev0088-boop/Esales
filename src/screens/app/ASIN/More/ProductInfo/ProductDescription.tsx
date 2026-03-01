@@ -632,6 +632,17 @@ export default function ProductDescription() {
                 multiline
               />
             ) : null}
+            {productData.Battery_PartNo1 ||
+            productData.Battery_PartNo2 ||
+            productData.Battery_PartNo3 ? (
+              <InfoRow
+                icon="battery-half"
+                iconType="ionicons"
+                label="Supported Batteries"
+                value={`${productData.Battery_PartNo1 ? productData.Battery_PartNo1 + (productData.Battery_PartNo2 || productData.Battery_PartNo3 ? ', ' : '') : ''}${productData.Battery_PartNo2 ? productData.Battery_PartNo2 + (productData.Battery_PartNo3 ? ', ' : '') : ''}${productData.Battery_PartNo3 ? productData.Battery_PartNo3 : ''}`}
+                multiline
+              />
+            ) : null}
           </Card>
         )}
 
