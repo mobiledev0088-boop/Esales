@@ -16,6 +16,7 @@ export interface ClaimInfoBranchWise {
   Claim_Status: string;
   Product_ID: string;
   Currency: string | null;
+  Channel_Type?: string;
 }
 
 export interface SchemeCategory {

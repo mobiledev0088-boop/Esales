@@ -139,8 +139,8 @@ const ClaimItemCard = memo<ClaimItemCardProps>(
     );
 
     const formattedAmount = useMemo(
-      () => convertToAPACUnits(item.ClaimAmount, true, true),
-      [item.ClaimAmount],
+      () => convertToAPACUnits(item.ClaimAmount, true, true, item.Channel_Type),
+      [item.ClaimAmount, item.Channel_Type],
     );
 
     const handleViewDetails = useCallback(() => {
@@ -871,7 +871,14 @@ export default function ClaimDashboard() {
   });
 
   const tabs = useMemo(() => {
-    if (!data?.MasterTab || !Array.isArray(data.MasterTab)) return [];
+    // If MasterTab is missing, empty, or not an array, create a default 'Total' tab
+    if (!data?.MasterTab || !Array.isArray(data.MasterTab) || data.MasterTab.length === 0) {
+      return [{
+        label: 'Total',
+        name: 'Total',
+        component: <ClaimContainer tabName="Total" />,
+      }];
+    }
 
     return data.MasterTab.map(tab => ({
       label: tab.Header_Type,
@@ -882,7 +889,11 @@ export default function ClaimDashboard() {
 
   return (
     <View className="flex-1 bg-lightBg-base dark:bg-darkBg-base">
-      {isLoading ? <SkeletonLoader /> : <MaterialTabBar tabs={tabs} />}
+      {isLoading ? (
+        <SkeletonLoader />
+      ) : (
+        <MaterialTabBar tabs={tabs} />
+      )}
     </View>
   );
 }

@@ -39,6 +39,7 @@ export interface claimDetails {
   PreTaxAmt: number;
   Scheme_Category: string;
   Partner_Name: string;
+  Channel_Type?: string;
 }
 
 // Memoized Header Component
@@ -176,7 +177,7 @@ const ClaimCard = memo(({item, index}: {item: claimDetails; index: number}) => {
               Pre-Tax
             </AppText>
             <AppText weight="bold" color="primary">
-              {convertToAPACUnits(item.PreTaxAmt, true, true)}
+              {convertToAPACUnits(item.PreTaxAmt, true, true, item.Channel_Type)}
             </AppText>
           </View>
           <View className="flex-row justify-between items-center">
@@ -184,7 +185,7 @@ const ClaimCard = memo(({item, index}: {item: claimDetails; index: number}) => {
               After-Tax
             </AppText>
             <AppText weight="bold" color="success">
-              {convertToAPACUnits(item.AfterTaxAmt, true, true)}
+              {convertToAPACUnits(item.AfterTaxAmt, true, true, item.Channel_Type)}
             </AppText>
           </View>
         </View>

@@ -14,14 +14,14 @@ export const getPlatformVersion = () => {
   return typeof v === 'number' ? v : parseInt(String(v), 10);
 };
 
-const getAPACcurrencySymbol = () => {
+const getAPACcurrencySymbol = (channelType?: string) => {
   const {EMP_RoleId, EMP_CountryID} = useLoginStore.getState().userInfo;
-  if (EMP_RoleId === ASUS.ROLE_ID.PARTNERS) {
+  if (EMP_RoleId === ASUS.ROLE_ID.PARTNERS || channelType === 'Indirect') {
     switch (EMP_CountryID) {
       case ASUS.COUNTRIES.ATID:
-        return 'Rp'; // Indonesia Rupiah
+        return 'Rp '; // Indonesia Rupiah
       case ASUS.COUNTRIES.ACMY:
-        return 'RM'; // Malaysian Ringgit
+        return 'RM '; // Malaysian Ringgit
       case ASUS.COUNTRIES.ACSG:
         return 'S$'; // Singapore Dollar
       case ASUS.COUNTRIES.ACJP:
@@ -62,8 +62,9 @@ export const convertToAPACUnits = (
   amount: number,
   needFull = false,
   needCurrencySymbol = false,
+  channelType?: string,
 ): string => {
-  const currencySymbol = needCurrencySymbol ? getAPACcurrencySymbol() : '';
+  const currencySymbol = needCurrencySymbol ? getAPACcurrencySymbol(channelType) : '';
   if (needFull) {
     return `${currencySymbol}${amount.toLocaleString('en-US')}`;
   }
