@@ -363,7 +363,7 @@ const NotificationCard: React.FC<NotificationCardProps> = memo(
       <View className="px-3 pb-3">
         {/* Message Body */}
         {item.Msg_Body && (
-          <View className="bg-gray-50 p-3 rounded-lg mb-3">
+          <View className="bg-gray-50 dark:bg-darkBg-base p-3 rounded-lg mb-3">
             <View className="flex-row flex-wrap">
               {renderNotificationBody(item.Msg_Body)}
             </View>
@@ -394,7 +394,7 @@ const NotificationCard: React.FC<NotificationCardProps> = memo(
             header={accordionHeader}
             headerClassName="py-3 px-3"
             contentClassName="px-0"
-            containerClassName="bg-white rounded-lg border border-slate-200 dark:border-slate-700"
+            containerClassName="bg-white dark:bg-darkBg-surface rounded-lg border border-slate-200 dark:border-slate-700"
             needBottomBorder={false}
             >
             {accordionContent}
