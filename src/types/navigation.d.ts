@@ -68,6 +68,7 @@ type AppNavigationParamList = {
   More: undefined;
   ActivatedDetails: undefined;
   EDMInfo: undefined;
+  MobileOnePagers: undefined;
   ProductInfo: undefined;
   ProductDescription: {product: any};
   ProductComparison: {product1: any; product2: any};

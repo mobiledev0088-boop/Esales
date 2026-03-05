@@ -173,14 +173,17 @@ const getASINOptions = (
   if (
     checkRole(roleId, [
       DIR_HOD_MAN,
-      HO_EMPLOYEES,
-      BSM,
-      TM,
       COUNTRY_HEAD,
-      SALES_REPS,
-      BPM,
-      RSM,
+      HO_EMPLOYEES,
       CHANNEL_MARKETING,
+      BSM,
+      BPM,
+      TM,
+      RSM,
+      AM,
+      SALES_REPS,
+      ASE,
+      DISTI_HO,
     ])
   ) {
     options.push({
@@ -202,6 +205,14 @@ const getASINOptions = (
       navigateTo: 'StandPOSM',
     });
   }
+
+  options.push({
+    label: 'OnePagers',
+    iconName: 'laptop',
+    iconType: 'antdesign',
+    navigateTo: 'MobileOnePagers',
+  });
+
   // if ([1, 2, 9, 3, 7, 25, 26, 28].includes(roleId)) {
   if (
     checkRole(roleId, [

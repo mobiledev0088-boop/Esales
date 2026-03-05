@@ -5,6 +5,7 @@ import ChangePassword from '../screens/app/ASIN/User/ChangePassword/ChangePasswo
 import ProductInfo from '../screens/app/ASIN/More/ProductInfo/ProductInfo';
 import ProductComparison from '../screens/app/ASIN/More/ProductInfo/ProductComparison';
 import EDMInfo from '../screens/app/ASIN/More/EDMInfo/EDMInfo';
+import MobileOnePagers from '../screens/app/ASIN/More/MobileOnePagers/MobileOnePagers';
 import Feedback from '../screens/app/ASIN/Feedback/Feedback';
 import AddFeedback from '../screens/app/ASIN/Feedback/AddFeedback';
 import FeedbackDetails from '../screens/app/ASIN/Feedback/FeedbackDetails';
@@ -91,6 +92,7 @@ const screens: Screen[] = [
   // More Screens
   {name: 'ActivatedDetails', component: ActivatedDetails},
   {name: 'EDMInfo', component: EDMInfo},
+  {name: 'MobileOnePagers', component: MobileOnePagers},
   {name: 'ProductInfo', component: ProductInfo},
   {name: 'ProductDescription', component: ProductDescription},
   {name: 'ProductComparison', component: ProductComparison},

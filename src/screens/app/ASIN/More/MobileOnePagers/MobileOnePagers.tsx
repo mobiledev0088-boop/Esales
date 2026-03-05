@@ -1,0 +1,218 @@
+import AppLayout from '../../../../../components/layout/AppLayout';
+import {useQuery} from '@tanstack/react-query';
+import AppDropdown from '../../../../../components/customs/AppDropdown';
+import {handleASINApiCall} from '../../../../../utils/handleApiCall';
+import AppText from '../../../../../components/customs/AppText';
+import {useEffect, useMemo, useState} from 'react';
+import AppImage from '../../../../../components/customs/AppImage';
+import Card from '../../../../../components/Card';
+import AppButton from '../../../../../components/customs/AppButton';
+import {screenHeight, screenWidth} from '../../../../../utils/constant';
+import {useLoaderStore} from '../../../../../stores/useLoaderStore';
+import {
+  Platform,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
+import AppIcon from '../../../../../components/customs/AppIcon';
+import AppModal from '../../../../../components/customs/AppModal';
+
+import {downloadFile} from '../../../../../utils/services';
+import {useLoginStore} from '../../../../../stores/useLoginStore';
+import {useUserStore} from '../../../../../stores/useUserStore';
+
+interface MobileOnePagerModel {
+  label: string;
+  value: string;
+}
+
+const useGetMobileOnePagerModels = () => {
+
+  const {
+    Year_Qtr,
+    EMP_Code: employeeCode,
+    RoleId,
+  } = useUserStore(state => state.empInfo);
+
+  return useQuery({
+    queryKey: ['mobileonepagers'],
+    queryFn: async (): Promise<any> => {
+      const res = await handleASINApiCall('OnePager/Post_OnePager_getList', {
+        // username: employeeCode,
+        // Role_ID: RoleId,
+        // YearQtr: Year_Qtr,
+            username:"KN24000016",
+     Role_ID:2,
+     YearQtr:"20254"
+      });
+      const result = res?.DashboardData;
+      console.log('Mobile One Pager List Response:', result);
+    //   if (!result?.Status)
+    //     throw new Error('Failed to fetch Mobile One Pager list');
+
+    //   const mobileOnePagerList = result?.Datainfo?.Mobile_OnePager_List || [];
+
+    //   // Deduplicate by Model_Name
+    //   return Array.from(
+    //     new Map(
+    //       mobileOnePagerList.map(
+    //         (item: {Model_Name: string; FilePath: string}) => [
+    //           item.Model_Name,
+    //           {
+    //             label: item.Model_Name.trim(),
+    //             value: item.Model_Name.trim(),
+    //             path: item.FilePath.trim(),
+    //           },
+    //         ],
+    //       ),
+    //     ).values(),
+    //   ) as any;
+    },
+  });
+};
+
+const ImageModal = ({
+  isOpen,
+  onClose,
+  selectedModel,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  selectedModel: MobileOnePagerModel | null;
+}) => {
+  return (
+    <AppModal isOpen={isOpen} onClose={onClose} animationType="slide" noCard>
+      <View
+        style={{
+          width: screenWidth,
+          height: screenHeight,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        }}>
+        <TouchableWithoutFeedback onPress={onClose}>
+          <View
+            style={{
+              position: 'absolute',
+              top: 50,
+              right: 20,
+              padding: 5,
+              borderRadius: 50,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              zIndex: 9999,
+            }}>
+            <AppIcon type="feather" name="x" size={24} color="#fff" />
+          </View>
+        </TouchableWithoutFeedback>
+        {/* {selectedModel && (
+          <AppImage
+            source={{uri: selectedModel.path}}
+            style={{width: screenWidth * 0.95, height: screenHeight * 0.6}}
+            resizeMode="contain"
+            zoomable
+          />
+        )} */}
+        <View className="absolute bottom-8 self-center bg-black/60 px-4 py-3 rounded-md">
+          <AppText className="text-white text-base">
+            Double tap to zoom in/out
+          </AppText>
+        </View>
+      </View>
+    </AppModal>
+  );
+};
+
+export default function MobileOnePagers() {
+  const [selectedModel, setSelectedModel] =
+    useState<MobileOnePagerModel | null>(null);
+  const setLoading = useLoaderStore(state => state.setLoading);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const {
+    data: mobileOnePagerModels = [],
+    isLoading,
+    isError,
+  } = useGetMobileOnePagerModels();
+
+  useEffect(() => {
+    console.log('Mobile One Pager Models:', mobileOnePagerModels);
+  }, [mobileOnePagerModels]);
+
+  const dropdownPlaceholder = useMemo(() => {
+    if (isLoading) return 'Loading...';
+    if (isError) return 'Error fetching data';
+    return 'Select Mobile One Pager';
+  }, [isLoading, isError]);
+
+  const handleDownload = async () => {
+    if (!selectedModel) return;
+    try {
+      setLoading(true);
+
+    //   const fileName = selectedModel.path.split('/').pop();
+
+    //   await downloadFile({
+    //     url: selectedModel.path,
+    //     fileName: fileName || 'Mobile_OnePager.jpg',
+    //     autoOpen: true,
+    //   });
+      // if (result.statusCode === 200) {
+      //   // showToast('Mobile One Pager saved to Esales folder in Downloads.');
+      // } else {
+      //   console.warn('Failed to download image');
+      // }
+    } catch (error) {
+      console.error('Error downloading image:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <AppLayout title="Mobile One Pagers" needBack needPadding>
+      <AppDropdown
+        data={mobileOnePagerModels}
+        onSelect={(item: any) => setSelectedModel(item)}
+        mode="dropdown"
+        style={{paddingTop: 16}}
+        placeholder={dropdownPlaceholder}
+        disabled={isLoading}
+        zIndex={100}
+      />
+      {selectedModel ? (
+        <View>
+          <Card className="mt-5">
+            {/* <AppImage
+              source={{uri: selectedModel.path}}
+              style={{width: screenWidth * 0.85, height: 300}}
+              resizeMode="contain"
+            /> */}
+            <View className="flex-row mt-2">
+              <TouchableOpacity
+                className="p-1 bg-black/10 rounded"
+                onPress={() => setIsOpen(true)}>
+                <AppIcon type="feather" name="zoom-in" size={24} color="#000" />
+              </TouchableOpacity>
+            </View>
+          </Card>
+          <AppButton
+            iconName="download"
+            title="Download Mobile One Pager"
+            className={'mt-5 w-2/3 self-center'}
+            onPress={handleDownload}
+          />
+        </View>
+      ) : (
+        <AppText size="base" weight="bold" className="ml-2 mt-2">
+          Note - Please select a model to view its Mobile One Pager.
+        </AppText>
+      )}
+      <ImageModal
+        selectedModel={selectedModel}
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+      />
+    </AppLayout>
+  );
+}
