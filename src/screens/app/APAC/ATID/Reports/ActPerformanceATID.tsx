@@ -123,7 +123,7 @@ const buildActData = (
   data: ActPerformanceAPIResponse,
 ): [string[], Record<string, any[]>] => {
   if (!data) return [[], {}];
-  const ORDER = ['Branch', 'ALP', 'Model', 'Disti'];
+  const ORDER = ['Branch', 'ALP', 'AGP', 'Model', 'Disti'];
   const topKeys = Object.keys(data).filter(key =>
     key.toLowerCase().startsWith('top'),
   );
@@ -134,12 +134,18 @@ const buildActData = (
     (acc, key) => {
       const items = data[key];
       if (items && Array.isArray(items) && items.length > 0) {
+        const keyLower = key.toLowerCase();
         const name =
           key === 'Top5Branch'
             ? 'Top_Branch_Territory'
             : `Top_${key.replace(/top5/i, '')}`;
 
-        acc[key === 'TOP5ALP' ? 'Top5ALP' : key] = items.map((item: any) => ({
+        // Normalize key names to consistent casing
+        const normalizedKey = 
+          keyLower === 'top5alp' ? 'Top5ALP' :
+          keyLower === 'top5agp' ? 'Top5AGP' : key;
+
+        acc[normalizedKey] = items.map((item: any) => ({
           ...item,
           name: key === 'Top5Partner' ? `${item[name]}` : item[name],
           SO_Cnt: item.SO_Cnt || item.SellOut_Qty || '0',
@@ -344,10 +350,9 @@ const DataTable = ({
   );
 
   const handlePress = useCallback(
-    (name: string) => {
-      let AGP_Code = name.match(/\(([^)]+)\)/)?.[1];
-      console.log('Extracted AGP_Code:', AGP_Code);
-      navigation.push('TargetPartnerDashboard', {partner: {AGP_Code}});
+    (partner_code: string, partner_name: string) => {
+      console.log('Extracted Partner_Code:', partner_code);
+      navigation.push('TargetPartnerDashboard', {partner: {Partner_Code: partner_code, Partner_Name:partner_name}});
     },
     [navigation],
   );
@@ -480,16 +485,16 @@ const TableRow = ({
   columns: TableColumn[];
   searchQuery?: string;
   isAGPorALP: boolean;
-  handlePress: (name: string) => void;
+  handlePress: (partner_code: string, partner_name: string) => void;
 }) => (
   <TouchableOpacity
     disabled={!isAGPorALP}
-    onPress={() => handlePress(item.name)}
+    onPress={() => handlePress(item?.ALP_Code||'', item?.name||'')}
     className={`flex-row items-center px-4 py-3 ${!isLast ? 'border-b border-gray-100' : ''}`}>
     {columns.map(column => {
       const text =
         isAGPorALP && column.key === 'name'
-          ? `${item[column.dataKey]}\n(${item?.ALP_Code})`
+          ? `${item[column.dataKey]}\n(${item?.ALP_Code || ''})`
           : String(item[column.dataKey] || '0');
       return (
         <View

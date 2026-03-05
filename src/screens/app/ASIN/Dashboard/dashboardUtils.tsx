@@ -378,7 +378,7 @@ export const TAB_CONFIGS_T3: TabConfig[] =  [
 ];
 
 export const TAB_CONFIGS_APAC: TabConfig[] = [
-  {
+   {
     id: 'branch',
     label: 'Branch',
     columns: [
@@ -386,15 +386,35 @@ export const TAB_CONFIGS_APAC: TabConfig[] = [
       {
         key: 'st',
         label: 'BI',
-        width: 'w-16',
+        width: 'w-12',
         dataKey: 'ST_Cnt',
+        colorType: 'primary',
+      },
+      {
+        key: 'so',
+        label: 'SO',
+        width: 'w-12',
+        dataKey: 'SO_Cnt',
         colorType: 'secondary',
       },
-      ...COMMON_COLUMNS_APAC,
+      {
+        key: 'act',
+        label: 'ACT',
+        width: 'w-12',
+        dataKey: 'Act_Cnt',
+        colorType: 'success',
+      },
+      {
+        key: 'nAct',
+        label: 'N-ACT',
+        width: 'w-12',
+        dataKey: 'NonAct_Cnt',
+        colorType: 'error',
+      },
       {
         key: 'h-rate',
         label: 'H-Rate',
-        width: 'w-16',
+        width: 'w-14',
         dataKey: 'Hit_Rate',
         colorType: 'text',
       },
@@ -408,22 +428,35 @@ export const TAB_CONFIGS_APAC: TabConfig[] = [
       {
         key: 'st',
         label: 'BI',
-        width: 'w-16',
+        width: 'w-12',
         dataKey: 'ST_Cnt',
         colorType: 'primary',
       },
       {
         key: 'so',
         label: 'SO',
-        width: 'w-16',
+        width: 'w-12',
         dataKey: 'SO_Cnt',
         colorType: 'secondary',
       },
-      ...COMMON_COLUMNS,
-            {
+      {
+        key: 'act',
+        label: 'ACT',
+        width: 'w-12',
+        dataKey: 'Act_Cnt',
+        colorType: 'success',
+      },
+      {
+        key: 'nAct',
+        label: 'N-ACT',
+        width: 'w-12',
+        dataKey: 'NonAct_Cnt',
+        colorType: 'error',
+      },
+      {
         key: 'h-rate',
         label: 'H-Rate',
-        width: 'w-16',
+        width: 'w-14',
         dataKey: 'Hit_Rate',
         colorType: 'text',
       },
@@ -451,19 +484,46 @@ export const TAB_CONFIGS_APAC: TabConfig[] = [
       ...COMMON_COLUMNS,
     ],
   },
-  {
+ {
     id: 'agp',
     label: 'AGP',
     columns: [
       ...NAME_COLUMN,
       {
+        key: 'st',
+        label: 'BI',
+        width: 'w-12',
+        dataKey: 'ST_Cnt',
+        colorType: 'primary',
+      },
+      {
         key: 'so',
         label: 'SO',
-        width: 'w-16',
+        width: 'w-12',
         dataKey: 'SO_Cnt',
         colorType: 'secondary',
       },
-      ...COMMON_COLUMNS,
+      {
+        key: 'act',
+        label: 'ACT',
+        width: 'w-12',
+        dataKey: 'Act_Cnt',
+        colorType: 'success',
+      },
+      {
+        key: 'nAct',
+        label: 'N-ACT',
+        width: 'w-12',
+        dataKey: 'NonAct_Cnt',
+        colorType: 'error',
+      },
+      {
+        key: 'h-rate',
+        label: 'H-Rate',
+        width: 'w-14',
+        dataKey: 'Hit_Rate',
+        colorType: 'text',
+      },
     ],
   },
   {

@@ -7,11 +7,13 @@ import { useRoute } from '@react-navigation/native'
 export default function TargetPartnerDashboard() {
     const {params} = useRoute();
     const {partner} = params as {partner: any};
+
+    console.log('Received partner data:', partner);
   return (
    <AppLayout title='Partner Dashboard' needBack>
         <Dashboard_Partner
-        DifferentEmployeeCode={partner?.empCode}
-        DifferntEmployeeName={partner?.partnerName}
+        DifferentEmployeeCode={partner?.Partner_Code}
+        DifferntEmployeeName={partner?.Partner_Name}
         />
    </AppLayout>
   )
