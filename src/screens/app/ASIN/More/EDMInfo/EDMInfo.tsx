@@ -8,11 +8,6 @@ import AppImage from '../../../../../components/customs/AppImage';
 import Card from '../../../../../components/Card';
 import AppButton from '../../../../../components/customs/AppButton';
 import {ASUS, screenHeight, screenWidth} from '../../../../../utils/constant';
-import RNFS from 'react-native-fs';
-import {
-  ensureFolderExists,
-  showToast,
-} from '../../../../../utils/commonFunctions';
 import {useLoaderStore} from '../../../../../stores/useLoaderStore';
 import { Platform, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import AppIcon from '../../../../../components/customs/AppIcon';

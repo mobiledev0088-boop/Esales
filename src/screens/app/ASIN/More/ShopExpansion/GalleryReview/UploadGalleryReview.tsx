@@ -256,7 +256,7 @@ export default function UploadGalleryReview() {
         showsVerticalScrollIndicator={false}>
         {formData.map((item, index) => {
           const foundReference = referenceImages.find(
-            ref => ref.StandType === convertSnakeCaseToSentence(item.ImageType),
+            ref => convertSnakeCaseToSentence(ref.StandType) === convertSnakeCaseToSentence(item.ImageType),
           );
           return (
             <Card key={index} className="w-full mb-3">
@@ -316,7 +316,7 @@ export default function UploadGalleryReview() {
                     className="mt-1 underline"
                     color="primary"
                     weight="medium">
-                    Referenace image
+                    Reference image
                   </AppText>
                 </TouchableOpacity>
               )}
