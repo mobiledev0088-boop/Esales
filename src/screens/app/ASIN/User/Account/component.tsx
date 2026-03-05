@@ -31,6 +31,8 @@ import AppDropdown, {
   AppDropdownItem,
 } from '../../../../../components/customs/AppDropdown';
 import { useUserStore } from '../../../../../stores/useUserStore';
+import { useLoaderStore } from '../../../../../stores/useLoaderStore';
+import { queryClient } from '../../../../../stores/providers/QueryProvider';
 
 // --- types ---
 export interface SpecialFunctionsAccess {
@@ -83,8 +85,7 @@ const useGetCountries = (enabled: boolean) => {
 
 const useChangeCountryMutation = () => {
   return useMutation({
-    mutationFn: async (Country: string) => {
-      const {EMP_Code: employeeCode} = useLoginStore(state => state.userInfo);
+    mutationFn: async ({Country, employeeCode}: {Country: string; employeeCode: string}) => {
       const payload = {employeeCode, Country};
       const res = await handleASINApiCall('/Auth/UpdateUserInfo', payload);
       const result = res?.login;
@@ -102,15 +103,29 @@ const useChangeCountryMutation = () => {
         throw new Error(result3?.Message || 'Failed to fetch user info');
       const userDetails = result3.Datainfo[0];
       const Token = result3.Token;
-      return {userDetails, Token};
+      
+      // Fetch empInfo for the new country
+      let empInfo = null;
+      if (userDetails.EMP_CountryID === ASUS.COUNTRIES.ASIN) {
+        const empRes = await handleASINApiCall('/Auth/EmpInfo', {
+          employeeCode,
+        });
+        empInfo = empRes?.login?.Datainfo?.[0] ?? null;
+      } else {
+        const empRes = await handleAPACApiCall('/Auth/EmpInfo', {
+          employeeCode,
+        });
+        empInfo = empRes?.login?.Datainfo?.[0] ?? null;
+      }
+      
+      return {userDetails, Token, empInfo};
     },
   });
 };
 
 const useChangeBusinessTypeMutation = () => {
   return useMutation({
-    mutationFn: async (BusinessType: string) => {
-      const {EMP_Code: employeeCode} = useLoginStore(state => state.userInfo);
+    mutationFn: async ({BusinessType, employeeCode}: {BusinessType: string; employeeCode: string}) => {
       const payload = {employeeCode, BusinessType};
       const res = await handleASINApiCall('/Auth/UpdateUserInfo', payload);
       const result = res?.login;
@@ -358,10 +373,11 @@ export const SpecialAccessUI = ({
   const navigation = useNavigation<AppNavigationProp>();
   const setAuthData = useLoginStore(state => state.setAuthData);
   const setEmpInfo = useUserStore(state => state.setEmpInfo);
-  const {EMP_CountryID, EMP_Btype} = useLoginStore(state => state.userInfo);
+  const setGlobalLoading = useLoaderStore(state => state.setGlobalLoading);
+  const {EMP_CountryID, EMP_Btype, EMP_Code} = useLoginStore(state => state.userInfo);
   const {data: businessTypes} = useGetBusinessTypes(specialFunctionsAccess.multipleBusinessTypeAllowed);
   const {data: countries, isLoading} = useGetCountries(specialFunctionsAccess.changeCountryAllowed);
-  const {mutate: changeCountryMutate} = useChangeCountryMutation();
+  const {mutate: changeCountryMutate, isPending: isChangingCountry} = useChangeCountryMutation();
 
   const [loginAsID, setLoginAsID] = useState<string>('');
   const [loginAsError, setLoginAsError] = useState<string>('');
@@ -427,13 +443,45 @@ export const SpecialAccessUI = ({
   };
 
   const handleChangeCountry = (item: AppDropdownItem | null) => {
+    console.log('Selected Country:', item);
     if (item && item.value !== selectedCountry) {
-      // Additional logic to handle country change can be added here
-      changeCountryMutate(item.value, {
-        onSuccess: () => {
+      setGlobalLoading(true);
+      changeCountryMutate({Country: item.value, employeeCode: EMP_Code}, {
+        onSuccess: (data) => {
+          // Update the store with new user details and empInfo
+          setAuthData(data.Token, data.userDetails);
+          if (data.empInfo) {
+            setEmpInfo(data.empInfo);
+          }
+          
+          // Clear all cached dashboard queries completely (not just invalidate)
+          // This is necessary because query keys don't include countryID, 
+          // so changing country with same employeeCode would use stale cached data
+          queryClient.removeQueries({ queryKey: ['dashboardData'] });
+          queryClient.removeQueries({ queryKey: ['dashboardDataAM'] });
+          queryClient.removeQueries({ queryKey: ['getBannerInfo'] });
+          queryClient.removeQueries({ queryKey: ['NoCachedashboardData'] });
+          
+          // Update local state to reflect the change
+          setSelectedCountry(item.value);
+          
+          // Show toast and navigate
           showToast(`Country changed to ${item.label}`);
+          
+          // Navigate immediately, then turn off loader after navigation completes
+          // This keeps the loader active during the entire transition
+          navigation.replace('Index');
+          
+          // Turn off loader after navigation has completed (500ms ensures smooth transition)
+          setTimeout(() => {
+            setGlobalLoading(false);
+          }, 500);
         },
         onError: error => {
+          console.log('Error changing country:', error);
+          // Reset dropdown to previous country in case the UI updated optimistically
+          setSelectedCountry(EMP_CountryID);
+          setGlobalLoading(false);
           showToast(
             error instanceof Error ? error.message : 'Failed to change country',
           );
@@ -441,6 +489,7 @@ export const SpecialAccessUI = ({
       });
     }
   };
+
   const AppTheme = useThemeStore(state => state.AppTheme);
   return (
     <>

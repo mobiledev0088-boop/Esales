@@ -9,10 +9,10 @@ import {useUserStore} from '../stores/useUserStore';
 import {isIOS, screenWidth} from '../utils/constant';
 
 const AutoUpdate = () => {
-  const userInfo = useUserStore(state => state.empInfo);
+  const empInfo = useUserStore(state => state.empInfo);
   const {android_version, ios_version} = useUserStore(state => state.empInfo);
   const appVersion = DeviceInfo.getVersion();
-  const isUpdateAvailable = ['KN2500069','KN2200052'].includes(userInfo?.EMP_Code) ? false : isIOS ? ios_version !== appVersion : android_version !== appVersion;
+  const isUpdateAvailable = ['KN2500069','KN2200052'].includes(empInfo?.EMP_Code) ? false : isIOS ? ios_version !== appVersion : android_version !== appVersion;
   // const isUpdateAvailable = false;
 
   const handlePress = () => {
@@ -35,7 +35,7 @@ const AutoUpdate = () => {
         size="2xl"
         color="primary"
         className="text-center ">
-        Hello, {userInfo?.EMP_Name}
+        Hello, {empInfo?.EMP_Name}
       </AppText>
       <View className="justify-center items-center mb-2">
         <AppImage
