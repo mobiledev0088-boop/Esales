@@ -85,13 +85,14 @@ export default function EditMaterialDetails() {
 
   // Image picker hook
   const {
-    imageUri,
+    imageUris,
     pickImage,
     reset: resetImage,
   } = useImagePicker({
     enableCrop: false,
     quality: 0.8,
   });
+  const imageUri = imageUris[0];
 
   // Handle image source selection
   const handleSelectImageSource = useCallback(() => {

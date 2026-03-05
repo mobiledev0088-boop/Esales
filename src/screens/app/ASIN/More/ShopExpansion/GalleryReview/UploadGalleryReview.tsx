@@ -158,15 +158,15 @@ export default function UploadGalleryReview() {
   const {
     pickImage,
     handleCropComplete,
-    imageUri,
+    imageUris,
     showCropModal,
     tempImageUri,
     handleCropCancel,
     reset,
   } = useImagePicker({
     quality: 0.8,
-    enableCrop: true,
     watermarkText,
+    selectionLimit: 5, // Allow up to 5 images from gallery
   });
 
   const openSourceModal = (index: number) => {
@@ -228,7 +228,7 @@ export default function UploadGalleryReview() {
   };
 
   useEffect(() => {
-    if (!imageUri || activeImageTypeIndex === null) return;
+    if (imageUris.length === 0 || activeImageTypeIndex === null) return;
     const index = activeImageTypeIndex;
     setFormData(prev => {
       const updated = [...prev];
@@ -236,17 +236,30 @@ export default function UploadGalleryReview() {
       if (!target) {
         return prev;
       }
-      if (target.Image_Links.length >= 5) {
+      const currentCount = target.Image_Links.length;
+      const availableSlots = 5 - currentCount;
+      
+      if (availableSlots <= 0) {
+        showToast('Maximum 5 images allowed per type');
         return prev;
       }
+      
+      // Take only as many images as available slots
+      const imagesToAdd = imageUris.slice(0, availableSlots);
+      
+      // Show toast if user selected more than available
+      if (imageUris.length > availableSlots) {
+        showToast(`Only ${availableSlots} slot(s) available. Added ${imagesToAdd.length} image(s).`);
+      }
+      
       updated[index] = {
         ...target,
-        Image_Links: [...target.Image_Links, imageUri],
+        Image_Links: [...target.Image_Links, ...imagesToAdd],
       };
       return updated;
     });
     reset();
-  }, [imageUri, activeImageTypeIndex, reset]);
+  }, [imageUris, activeImageTypeIndex, reset]);
 
   return (
     <AppLayout title="Upload Gallery Review" needBack>

@@ -33,11 +33,12 @@ interface UseImagePickerOptions {
   mediaType?: 'photo' | 'video' | 'mixed';
   aspectRatio?: {width: number; height: number};
   keepAspectRatio?: boolean;
+  selectionLimit?: number; // Only applies to gallery, not camera
 }
 
 interface UseImagePickerReturn {
-  imageUri: string | null;
-  imageData: ImagePickerResult | null;
+  imageUris: string[];
+  imageDatas: ImagePickerResult[];
   isLoading: boolean;
   showCropModal: boolean;
   tempImageUri: string | null;
@@ -179,10 +180,11 @@ export function useImagePicker(
     maxWidth = 2000,
     maxHeight = 2000,
     mediaType = 'photo',
+    selectionLimit = 1,
   } = options;
 
-  const [imageUri, setImageUri] = useState<string | null>(null);
-  const [imageData, setImageData] = useState<ImagePickerResult | null>(null);
+  const [imageUris, setImageUris] = useState<string[]>([]);
+  const [imageDatas, setImageDatas] = useState<ImagePickerResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   // Crop modal states
@@ -242,11 +244,13 @@ export function useImagePicker(
         // Launch appropriate picker
         let response: ImagePickerResponse;
         if (source === 'camera') {
+          // Camera always selects single image
           response = await launchCamera(pickerOptions);
         } else {
+          // Gallery can select multiple images based on selectionLimit
           response = await launchImageLibrary({
             ...pickerOptions,
-            selectionLimit: 1,
+            selectionLimit: selectionLimit,
           });
         }
 
@@ -256,14 +260,14 @@ export function useImagePicker(
         } else if (response.errorCode) {
           Alert.alert('Error', response.errorMessage || 'Failed to pick image');
         } else if (response.assets && response.assets.length > 0) {
-          const asset = response.assets[0];
-          const result = convertAssetToResult(asset);
-          setImageData(result);
+          // Convert all assets to results
+          const results = response.assets.map(asset => convertAssetToResult(asset));
+          setImageDatas(results);
 
-          // If crop is enabled, show crop modal, otherwise set image directly
-          if (enableCrop) {
+          // Crop is only supported for single image selection
+          if (enableCrop && results.length === 1) {
             console.log('Setting temp URI and showing crop modal');
-            setTempImageUri(result.uri);
+            setTempImageUri(results[0].uri);
             // Add delay for iOS to allow native picker to fully dismiss
             if (Platform.OS === 'ios') {
               setTimeout(() => {
@@ -273,14 +277,14 @@ export function useImagePicker(
               setShowCropModal(true);
             }
           } else {
+            // Process all images with watermark if needed
             if (watermarkText) {
-              const watermarkedUri = await addWatermarkIfNeeded(
-                result.uri,
-                watermarkText,
+              const watermarkedUris = await Promise.all(
+                results.map(result => addWatermarkIfNeeded(result.uri, watermarkText))
               );
-              setImageUri(watermarkedUri);
+              setImageUris(watermarkedUris);
             } else {
-              setImageUri(result.uri);
+              setImageUris(results.map(result => result.uri));
             }
           }
         }
@@ -294,7 +298,7 @@ export function useImagePicker(
         setIsLoading(false);
       }
     },
-    [quality, maxWidth, maxHeight, mediaType, enableCrop, watermarkText],
+    [quality, maxWidth, maxHeight, mediaType, enableCrop, watermarkText, selectionLimit],
   );
 
   const handleCropComplete = useCallback(
@@ -306,9 +310,9 @@ export function useImagePicker(
           normalizedUri,
           watermarkText,
         );
-        setImageUri(watermarkedUri);
+        setImageUris([watermarkedUri]);
       } else {
-        setImageUri(normalizedUri);
+        setImageUris([normalizedUri]);
       }
       setShowCropModal(false);
       setTempImageUri(null);
@@ -319,20 +323,20 @@ export function useImagePicker(
   const handleCropCancel = useCallback(() => {
     setShowCropModal(false);
     setTempImageUri(null);
-    setImageData(null);
+    setImageDatas([]);
   }, []);
 
   const reset = useCallback(() => {
-    setImageUri(null);
-    setImageData(null);
+    setImageUris([]);
+    setImageDatas([]);
     setIsLoading(false);
     setShowCropModal(false);
     setTempImageUri(null);
   }, []);
 
   return {
-    imageUri,
-    imageData,
+    imageUris,
+    imageDatas,
     isLoading,
     showCropModal,
     tempImageUri,

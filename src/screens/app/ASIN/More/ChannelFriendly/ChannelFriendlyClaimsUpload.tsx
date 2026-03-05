@@ -857,7 +857,9 @@ export default function ChannelFriendlyClaimsUpload() {
   const {data: authSellerData, isLoading: authSellerLoading} = useGetAuthSellerList(selectedEtailer?.value || '');
   const TimeStemp = moment().format('ddd, DD-MM-YYYY hh:mm: A');
   const watermarkText = `${employeeCode} / ${serialNumber}\n${TimeStemp}`;
-  const {pickImage, imageUri, imageData, reset} = useImagePicker({watermarkText});
+  const {pickImage, imageUris, imageDatas, reset} = useImagePicker({watermarkText});
+  const imageUri = imageUris[0];
+  const imageData = imageDatas[0];
   const [onlineSrp, setOnlineSrp] = useState('');
   const [purchaseErrors, setPurchaseErrors] =
     useState<PurchaseValidationErrors>({});

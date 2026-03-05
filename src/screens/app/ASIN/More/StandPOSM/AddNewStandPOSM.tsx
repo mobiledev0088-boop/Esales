@@ -142,7 +142,7 @@ export default function AddNewStandPOSM() {
 
   // Image picker hook
   const {
-    imageUri,
+    imageUris,
     showCropModal,
     tempImageUri,
     pickImage,
@@ -153,6 +153,7 @@ export default function AddNewStandPOSM() {
     enableCrop: true,
     quality: 0.8,
   });
+  const imageUri = imageUris[0];
 
   // Initialize form data when items load
   const initializeFormData = useCallback(() => {
