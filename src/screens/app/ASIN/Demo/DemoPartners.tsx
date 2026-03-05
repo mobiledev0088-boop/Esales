@@ -67,8 +67,8 @@ type DemoSummaryItem = {
   ALPType?: string;
   ALP_Remark?: string;
   ALP_Status?: string;
-  IsBonusCompulsory: string | null;
-  IsPenaltyCompulsory: string | null;
+  IsBonusCompulsary: string | null;
+  IsPenaltyCompulsary: string | null;
 };
 
 type ModelItem = {
@@ -149,6 +149,7 @@ const showPartnerDetailsSheet = (
   yearQtr: string,
   tab: string,
 ) => {
+  console.log('Partner details sheet opened')
   SheetManager.show('PartnerDetailsSheet', {
     payload: {partner, yearQtr, tab},
   });
@@ -258,9 +259,10 @@ export const PartnerDetailsSheet = () => {
     ({item}: {item: DemoSummaryItem}) => {
       const isPending = item.DemoExecutionDone === 'Pending';
       const isBonusCompulsory =
-        compulsoryFilter === 'bonus' && item.IsBonusCompulsory === 'Yes';
+        compulsoryFilter === 'bonus' && item.IsBonusCompulsary === 'Yes';
       const isPenaltyCompulsory =
-        compulsoryFilter === 'nopenalty' && item.IsPenaltyCompulsory === 'Yes';
+        compulsoryFilter === 'nopenalty' && item.IsPenaltyCompulsary === 'Yes';
+        console.log('Rendering demo item:', item, 'isPending:', isPending, 'isBonusCompulsory:', isBonusCompulsory, 'isPenaltyCompulsory:', isPenaltyCompulsory, 'compulsoryFilter:', compulsoryFilter);
       return (
         <View className="mb-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
           {/* Header */}

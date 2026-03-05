@@ -447,7 +447,7 @@ export const StatsHeader = memo(
 //                       weight="semibold"
 //                       className= 'mt-1 uppercase text-slate-600 dark:text-slate-300 text-center'
 //                       numberOfLines={2}>
-//                       {s.percentage !== undefined ? `${s.percentage}%` : s.value < 0 ? 0 : s.value}
+//                       {(s.label!== 'ACT' && s.label!== 'Stock') ? `${s.percentage !== undefined ? `${s.percentage}%` : s.value < 0 ? 0 : s.value}` : `${s.percentage !== undefined ? `${s.percentage}` : s.value < 0 ? 0 : s.value}`}
 //                     </AppText>
 //                     {/* <View
 //                       className={twMerge(

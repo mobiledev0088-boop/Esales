@@ -35,6 +35,7 @@ import {
   BranchCardROI,
   DemoSkeleton,
   StatsHeader,
+  // StatsHeaderRetailer,
   StatsHeaderROI,
   SummaryOverView,
 } from './components';
@@ -55,6 +56,7 @@ import {ASUS} from '../../../../utils/constant';
 import {useThemeStore} from '../../../../stores/useThemeStore';
 import AppText from '../../../../components/customs/AppText';
 import {useDemoFilterStore} from '../../../../stores/useDemoFilterStore';
+import { calculatePercentage } from '../Dashboard/dashboardUtils';
 
 const Reseller = () => {
   const quarters = useMemo(() => getPastQuarters(), []);
@@ -551,6 +553,8 @@ const Retailer = () => {
       {
         label: 'Single Demo',
         value: summaryData.at_least_single_demo,
+        percentage: calculatePercentage(summaryData.at_least_single_demo, summaryData.total_partners),
+        totalStores: summaryData.total_partners,
         icon: 'laptop-outline',
         iconType: 'ionicons',
         name: 'lap_icon',
@@ -558,6 +562,8 @@ const Retailer = () => {
       {
         label: '80% Demo',
         value: summaryData.at_80_demo,
+        percentage: calculatePercentage(summaryData.at_80_demo, summaryData.total_partners),
+        totalStores: summaryData.total_partners,
         icon: 'trending-up',
         iconType: 'feather',
         name: 'grow_icon',
@@ -565,10 +571,30 @@ const Retailer = () => {
       {
         label: '100% Demo',
         value: summaryData.demo_100,
+        percentage: calculatePercentage(summaryData.demo_100, summaryData.total_partners),
+        totalStores: summaryData.total_partners,
         icon: 'percent',
         iconType: 'feather',
         name: 'perc_icon',
       },
+      // {
+      //   label: 'ACT',
+      //   value: '501',
+      //   percentage: '22127',
+      //   totalStores: summaryData.total_partners,
+      //   icon: 'percent',
+      //   iconType: 'feather',
+      //   name: 'perc_icon',
+      // },
+      // {
+      //   label: 'Stock',
+      //   percentage: '25553',
+      //   value: '501',
+      //   totalStores: summaryData.total_partners,
+      //   icon: 'percent',
+      //   iconType: 'feather',
+      //   name: 'perc_icon',
+      // },
       {
         label: 'Pending',
         value:
