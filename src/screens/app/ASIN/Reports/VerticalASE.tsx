@@ -364,13 +364,14 @@ export default function VerticalASE() {
     }, 200);
     return () => clearTimeout(timer);
   }, []);
+  console.log('Received ASE data:', aseData);
 
   const partnerOptions = useMemo<AppDropdownItem[]>(() => {
       if (!aseData) return [];
       return Array.from(
         new Map(
           aseData.map((item: PartnerASEData) => [
-            item.Partner_Code,
+            item?.Partner_Code || item?.Partner_Name,
             {
               label: `${item.Partner_Name}`,
               value: item.Partner_Name,

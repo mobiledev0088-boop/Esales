@@ -364,7 +364,7 @@ export const SearchCard = ({
 
   return (
     <>
-      <Card className="mb-6 mt-4">
+      <Card className="mb-6 mt-4 border border-slate-200 dark:border-slate-800" noshadow>
         <View className="flex-row items-center justify-between mb-4">
           <AppText 
             size="lg" 

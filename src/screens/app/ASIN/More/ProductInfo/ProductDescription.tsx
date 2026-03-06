@@ -192,8 +192,8 @@ export default function ProductDescription() {
         });
 
         // Set the path for the "Open File" button
-        setDownloadedFilePath(res.filePath);
-        setIsDownloadModalOpen(true);
+        // setDownloadedFilePath(res.filePath);
+        // setIsDownloadModalOpen(true);
       } else {
         // Android: move to public Downloads
         await RNBlobUtil.MediaCollection.copyToMediaStore(
@@ -222,7 +222,7 @@ export default function ProductDescription() {
     if (!downloadedFilePath) return;
     try {
       if (isIOS) {
-        await RNBlobUtil.ios.openDocument(downloadedFilePath);
+        return;
       } else {
         await RNBlobUtil.android.actionViewIntent(
           downloadedFilePath,
@@ -918,7 +918,7 @@ Please note that this Xbox Game Pass offer must be redeemed within 180 days of a
             color="gray"
             className="text-center mb-4">
             {isIOS
-              ? 'Your PDF has been generated and is ready to view or share.'
+              ? 'Your PDF has been generated. Tap "Open PDF" to preview it and share from there.'
               : 'Your product description PDF has been saved to Downloads/esales folder.'}
           </AppText>
 

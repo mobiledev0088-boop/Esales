@@ -13,6 +13,8 @@ import Pdf from 'react-native-pdf';
 import {screenHeight, screenWidth} from '../../../../utils/constant';
 import AppButton from '../../../../components/customs/AppButton';
 import Skeleton from '../../../../components/skeleton/skeleton';
+import {downloadFile} from '../../../../utils/services';
+import {useLoaderStore} from '../../../../stores/useLoaderStore';
 
 // Fetch reports data from API or other sources
 const fetchReportsData = async (
@@ -30,17 +32,12 @@ const fetchReportsData = async (
   if (!result?.Status) throw new Error('Failed to fetch Audit Report data');
 
   const announcementData = result?.Datainfo?.Table || [];
-  const groupedByTitle: any = {};
-
-  for (const item of announcementData) {
-    groupedByTitle[item.Announcement_Type] ??= [];
-    groupedByTitle[item.Announcement_Type].push(item);
-  }
-  return groupedByTitle;
+  return announcementData;
 };
 
 export default function Reports() {
   const {name} = useRoute();
+  const [downloadIsLoading, setDownloadIsLoading] = useState(false);
 
   const [isOpen, setIsOpen] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string>('');
@@ -55,7 +52,7 @@ export default function Reports() {
   ];
 
   const {data, isLoading, isError, error, refetch} = useQuery({
-    queryKey: ['reports', {RoleId, employeeCode, YearQtr}],
+    queryKey: ['reports_inner', {RoleId, employeeCode, YearQtr}],
     queryFn: () => fetchReportsData(RoleId, employeeCode, YearQtr),
   });
 
@@ -64,22 +61,53 @@ export default function Reports() {
     setPdfUrl(item?.File_Path);
   };
 
+  const handleDownloadFile = async (item: any) => {
+    const url = item?.File_Path;
+    const fileName = url.split('/').pop() || 'report.pdf';
+    await downloadFile({
+      fileName,
+      url,
+    });
+  };
+
   const renderAnnouncementData = ({item}: any) => (
     <View className="flex-row justify-between items-center w-[100%] rounded mb-2 bg-lightBg-surface dark:bg-darkBg-surface py-2 px-2">
-      <View>
+      <View className="w-[70%]">
         <AppText size="md" weight="semibold">
           {item?.Display_Name || 'Unknown Title'}
         </AppText>
       </View>
-      <Pressable
-        onPress={() => handleOpenModal(item)}
-        className="p-2 bg-gray-200 rounded-full">
-        <AppIcon type="feather" name="eye" size={23} color="black" />
-      </Pressable>
+      {item?.File_Path?.endsWith('pdf') ? (
+        <Pressable
+          onPress={() => handleOpenModal(item)}
+          className="p-2 bg-gray-200 rounded-full">
+          <AppIcon type="feather" name="eye" size={23} color="black" />
+        </Pressable>
+      ) : (
+        <Pressable
+          onPress={() => handleDownloadFile(item)}
+          className="p-2 bg-gray-200 rounded-full">
+          <AppIcon type="feather" name="download" size={23} color="black" />
+        </Pressable>
+      )}
     </View>
   );
 
+  console.log('Reports Data:', pdfUrl);
 
+  const handleDownload = async () => {
+    try {
+      setDownloadIsLoading(true);
+      console.log('Download URL:', pdfUrl);
+      await downloadFile({
+        fileName: pdfUrl.split('/').pop() || 'report.pdf',
+        url: pdfUrl,
+      });
+    } catch {
+    } finally {
+      setDownloadIsLoading(false);
+    }
+  };
   return (
     <AppLayout title={name} needPadding>
       {isLoading ? (
@@ -93,14 +121,14 @@ export default function Reports() {
         </View>
       ) : (
         <FlatList
-          data={getData(data, name) || []}
+          data={data || []}
           renderItem={renderAnnouncementData}
           keyExtractor={(item, index) => index.toString()}
           style={{marginTop: 20}}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={() => (
             <View className="flex-1 justify-center items-center mt-20">
-              <AppText className="text-gray-500 dark:text-gray-400" size='2xl'>
+              <AppText className="text-gray-500 dark:text-gray-400" size="2xl">
                 No reports available
               </AppText>
             </View>
@@ -129,10 +157,11 @@ export default function Reports() {
             onError={error => console.log(error)}
           />
           <AppButton
-            title="Download"
+            title={"Download"}
             iconName="download"
-            onPress={() => {}}
+            onPress={handleDownload}
             className="mt-2"
+            loading={downloadIsLoading}
           />
         </View>
       </AppModal>
@@ -161,7 +190,12 @@ function ReportsSkeleton() {
   return (
     <View className="px-3 pt-5 gap-4">
       {[...Array(15)].map((_, index) => (
-        <Skeleton key={index} width={screenWidth * 0.9} height={40} borderRadius={6} />
+        <Skeleton
+          key={index}
+          width={screenWidth * 0.9}
+          height={40}
+          borderRadius={6}
+        />
       ))}
     </View>
   );

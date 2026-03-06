@@ -18,6 +18,7 @@ interface AppButtonProps {
   weight?: AppTextWeightType;
   disabled?: boolean;
   noLoading?: boolean;
+  loading?: boolean;
 }
 
 export default function AppButton ({
@@ -32,8 +33,9 @@ export default function AppButton ({
   weight = 'medium',
   disabled = false,
   noLoading = false,
+  loading=false,
 }: AppButtonProps) {
-  const isLoading = useLoaderStore(state => state.isLoading);
+  const isLoading = useLoaderStore(state => state.isLoading) || loading;
 const isDisabled = disabled || (!noLoading && isLoading);
   return (
     <TouchableOpacity

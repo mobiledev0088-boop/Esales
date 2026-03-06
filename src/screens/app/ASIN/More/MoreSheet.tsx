@@ -207,7 +207,7 @@ const getASINOptions = (
   }
 
   options.push({
-    label: 'OnePagers',
+    label: 'One Pagers',
     iconName: 'laptop',
     iconType: 'antdesign',
     navigateTo: 'MobileOnePagers',

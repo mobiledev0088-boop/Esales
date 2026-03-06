@@ -1,8 +1,7 @@
 import Geolocation from 'react-native-geolocation-service';
 
 import {isIOS} from './constant';
-import {PermissionsAndroid} from 'react-native';
-import {checkUserInsideRadius} from './checkUserInsideRadius';
+import {PermissionsAndroid, Share} from 'react-native';
 import {request, PERMISSIONS, RESULTS} from 'react-native-permissions';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {ensureFolderExists, getMimeTypeFromUrl} from './commonFunctions';
@@ -44,7 +43,7 @@ export const getCurrentLocation =
       );
     });
   };
-  
+
 export async function downloadFile({
   url,
   fileName,
@@ -62,15 +61,16 @@ export async function downloadFile({
     const iosPath = `${fs.dirs.DocumentDir}/Downloads`;
     console.log('iosPath', iosPath);
     const isExists = await fs.exists(iosPath);
-    if (!isExists){
+    if (!isExists) {
       await fs.mkdir(iosPath);
     }
     const res = await ReactNativeBlobUtil.config({
       path: `${iosPath}/${safeName}`,
     }).fetch('GET', url);
-    if (autoOpen) {
-      ReactNativeBlobUtil.ios.openDocument(res.path());
-    }
+    await Share.share({
+      url: res.path(),
+      title: fileName,
+    });
     return res.path();
   }
   const downloadPath = `/storage/emulated/0/Download/Esales`;

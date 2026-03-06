@@ -53,7 +53,8 @@ export default function CustomDrawerContent({ state, navigation }: DrawerContent
   const [isOpen, setIsOpen] = useState(false);
 
   // Get download routes based on user's country
-  const DOWNLOAD_ROUTES = getDownloadRoutes(userInfo?.EMP_CountryID || '');
+  // const DOWNLOAD_ROUTES = getDownloadRoutes(userInfo?.EMP_CountryID || '');
+  const DOWNLOAD_ROUTES = state.routes.filter(r => r.name !== 'Home' && r.name !== 'Account' && r.name !== 'AuditReport').map(r => r.name);
   
   const focusedRouteName = state.routes[state.index].name;
   const isDownloadFocused = DOWNLOAD_ROUTES.includes(focusedRouteName);
