@@ -164,7 +164,7 @@ const QuarterGallerySection = ({
             <Card
               className="h-48 w-[95%] border border-slate-200 dark:border-slate-700"
               noshadow>
-              {item.Image_Links && item.Image_Links.length > 1 && (
+              {item.Image_Links && (
                 <Swiper
                   autoplay={true}
                   autoplayTimeout={3}
@@ -200,7 +200,7 @@ const QuarterGallerySection = ({
                           size="xs"
                           weight="medium"
                           style={{color: '#FFFFFF'}}>
-                          {idx + 1}/{item.Image_Links.length}
+                          {idx + 1}/5
                         </AppText>
                       </View>
                     </View>
@@ -208,7 +208,7 @@ const QuarterGallerySection = ({
                 </Swiper>
               )}
 
-              {item.Image_Links && item.Image_Links.length === 1 && (
+              {/* {item.Image_Links && item.Image_Links.length === 1 && (
                 <AppImage
                   source={{uri: item.Image_Links[0]}}
                   style={{
@@ -219,7 +219,7 @@ const QuarterGallerySection = ({
                   resizeMode={'contain'}
                   enableModalZoom
                 />
-              )}
+              )} */}
 
               {(!item.Image_Links || item.Image_Links.length === 0) && (
                 <View className="h-32 rounded-xl bg-gray-100 dark:bg-gray-800 items-center justify-center">

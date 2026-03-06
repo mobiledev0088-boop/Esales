@@ -12,8 +12,8 @@ export default function TargetPartnerDashboard() {
   return (
    <AppLayout title='Partner Dashboard' needBack>
         <Dashboard_Partner
-        DifferentEmployeeCode={partner?.Partner_Code}
-        DifferntEmployeeName={partner?.Partner_Name}
+        DifferentEmployeeCode={partner?.Partner_Code || partner?.empCode}
+        DifferntEmployeeName={partner?.Partner_Name || partner?.partnerName}
         />
    </AppLayout>
   )

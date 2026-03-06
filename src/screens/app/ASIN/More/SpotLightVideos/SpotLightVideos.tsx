@@ -64,7 +64,6 @@ export default function SpotLightVideos() {
     refetch: refetchModels,
   } = useQuery<AppDropdownItem[], Error>({
     queryKey: ['spotlightVideosModelList'],
-    staleTime: 1000 * 60 * 10, // 10 minutes
     queryFn: async () => {
       const res = await handleASINApiCall(
         '/Information/GetSpotlightModelList',
@@ -78,6 +77,7 @@ export default function SpotLightVideos() {
         throw new Error(result?.Message || 'Failed to fetch model list');
       }
       const list = result?.Datainfo?.Spotlight_Model_List || [];
+      console.log('Spotlight Videos Model List Response:', list);
       return list.map((item: {Model_Name: string}) => ({
         label: item.Model_Name,
         value: item.Model_Name,
@@ -95,17 +95,19 @@ export default function SpotLightVideos() {
   } = useQuery<SpotlightVideoItem[], Error>({
     queryKey: ['spotlightVideosData', modelName || '', filters.category || ''],
     queryFn: async () => {
+      console.log('Fetching videos with model:', modelName, 'and category:', filters.category);
       const res = await handleASINApiCall(
         '/Information/GetSpotlightModelInfo',
         {
           ModelName: modelName,
-          Category: filters.category,
+          Category: filters.category || null,
         },
       );
       const result = res.DashboardData;
       if (!result?.Status) {
         throw new Error(result?.Message || 'Failed to fetch spotlight videos');
       }
+      console.log('Spotlight Videos Data Response:', result?.Datainfo?.Spotlight_Model_Info);
       return (res?.DashboardData?.Datainfo?.Spotlight_Model_Info ||
         []) as SpotlightVideoItem[];
     },
@@ -247,6 +249,7 @@ export default function SpotLightVideos() {
               placeholder={modelListLoading ? 'Loading...' : 'Filter by model'}
               // label="Model"
               allowClear
+              onClear={()=> setModelName('')}
               needIndicator
               zIndex={1000}
             />

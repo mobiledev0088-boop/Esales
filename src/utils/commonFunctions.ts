@@ -270,13 +270,14 @@ export const formatUnique = (
   arr: any[],
   valueKey: string,
   labelKey: string = valueKey,
-) => {
+  overrideKey?: string,
+): {label: string; value: string}[] => {
   if (!Array.isArray(arr)) return [];
 
   return [
     ...new Map(
       arr.map(item => [
-        item[valueKey],
+        overrideKey ? item[overrideKey] : item[valueKey],
         {label: item[labelKey] ?? item[valueKey], value: item[valueKey]},
       ]),
     ).values(),

@@ -180,7 +180,7 @@ export default function MobileOnePagers() {
         </View>
       ) : (
         <AppText size="base" weight="bold" className="ml-2 mt-2">
-          Note - Please select a model to view its Mobile One Pager.
+          Note - Please select a Series to view its Mobile One Pager.
         </AppText>
       )}
       <ImageModal

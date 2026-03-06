@@ -550,7 +550,11 @@ export const TargetAchievementCard = ({
   // Extract unique product lines from target achievement data
   const productLines = useMemo(() => {
     const uniqueLines = Array.from(
-      new Set((data || []).map((item: TargetAchievementData) => item.Product_Category).filter(Boolean))
+      new Set(
+        (data || [])
+          .map((item: TargetAchievementData) => item.Product_Category)
+          .filter(Boolean),
+      ),
     ) as string[];
     return uniqueLines.map(line => ({label: line, value: line}));
   }, [data]);
@@ -567,14 +571,18 @@ export const TargetAchievementCard = ({
   // Filter target/achievement data by selected product line
   const filteredTargetData = useMemo(() => {
     if (!selectedProductLine || !data) return null;
-    return data.find((item: TargetAchievementData) => item.Product_Category === selectedProductLine);
+    return data.find(
+      (item: TargetAchievementData) =>
+        item.Product_Category === selectedProductLine,
+    );
   }, [data, selectedProductLine]);
 
   // Filter monthly data by selected product line
   const filteredMonthlyData = useMemo(() => {
     if (!selectedProductLine) return monthlyData || [];
     return (monthlyData || []).filter(
-      (item: MonthlyPerformanceItem) => item.target_type === selectedProductLine
+      (item: MonthlyPerformanceItem) =>
+        item.target_type === selectedProductLine,
     );
   }, [monthlyData, selectedProductLine]);
 
@@ -612,23 +620,24 @@ export const TargetAchievementCard = ({
   };
 
   const theme = getTheme();
-  
+
   if (isLoading) return <TargetAchievementSkeleton />;
-  
+
   return (
-    <Card
-      className=" border border-slate-200 dark:border-slate-700"
-      noshadow>
+    <Card className=" border border-slate-200 dark:border-slate-700" noshadow>
       {/* Product Line Filter at Top */}
       {productLines.length > 1 && (
         <View className="border-b border-gray-200 pb-3 mb-3">
-          <AppText size="xs" weight="semibold" className="text-slate-600 dark:text-slate-400 mb-2 uppercase tracking-wide">
+          <AppText
+            size="xs"
+            weight="semibold"
+            className="text-slate-600 dark:text-slate-400 mb-2 uppercase tracking-wide">
             Filter by Product Line
           </AppText>
           <AppDropdown
             data={productLines}
             selectedValue={selectedProductLine}
-            onSelect={(item) => {
+            onSelect={item => {
               if (item?.value) {
                 setSelectedProductLine(item.value);
               }
@@ -639,7 +648,7 @@ export const TargetAchievementCard = ({
           />
         </View>
       )}
-      
+
       <View className="flex-row items-center border-b border-gray-200 pb-2">
         <View
           className={`w-10 h-10 rounded-xl ${theme.bg} items-center justify-center`}>
@@ -742,7 +751,29 @@ export default function Dashboard_Partner({
     }
   }, [refetchDashboard]);
 
+  const targetAchievementData = useMemo(() => {
+    if (!dashboardData) return [];
+    if (!dashboardData?.TRGTSummaryPartner)
+      return [];
+    let data = [
+      ...dashboardData?.TRGTSummaryPartner,
+      ...dashboardData?.TrgtAchvt_AGPSellIn2,
+    ];
+    return data;
+  }, [dashboardData]);
+
+  const targetAchievementDataByMonth = useMemo(() => {
+    if (!dashboardData) return [];
+    if (!dashboardData?.PartnerType)
+      return [];
+    return [
+      ...dashboardData?.PartnerType,
+      ...dashboardData?.TRGTSummaryMonthWiseQty,
+    ];
+  }, [dashboardData]);
+
   const isDataEmpty = !isLoading && !dashboardData;
+  console.log('Processed Target Achievement Data:', targetAchievementDataByMonth);
   return (
     <ScrollView
       className="flex-1 bg-lightBg-base dark:bg-darkBg-base"
@@ -763,30 +794,30 @@ export default function Dashboard_Partner({
           // <View className="p-3 mb-3 items-center">
           <View className="bg-primary/10 border border-primary/30 rounded-lg px-4 py-2 mb-3 items-center">
             <AppText weight="semibold" className="text-md text-primary ">
-               {DifferntEmployeeName || DifferentEmployeeCode}
+              {DifferntEmployeeName || DifferentEmployeeCode}
             </AppText>
           </View>
         )}
-      <View className="mb-2 flex-row items-center justify-between">
-        <View>
-          <AppText weight="semibold" className="text-md  text-slate-700">
-            Partner Dashboard
-          </AppText>
-          <AppText className="text-sm text-slate-400 mt-0.5">
-            {selectedQuarter?.label || 'Select Quarter'}
-          </AppText>
+        <View className="mb-2 flex-row items-center justify-between">
+          <View>
+            <AppText weight="semibold" className="text-md  text-slate-700">
+              Partner Dashboard
+            </AppText>
+            <AppText className="text-sm text-slate-400 mt-0.5">
+              {selectedQuarter?.label || 'Select Quarter'}
+            </AppText>
+          </View>
+          <View style={{width: 150}}>
+            <AppDropdown
+              data={quarters}
+              selectedValue={selectedQuarter?.value || null}
+              onSelect={setSelectedQuarter}
+              mode="dropdown"
+              placeholder="Quarter"
+              style={{zIndex: 2000}}
+            />
+          </View>
         </View>
-        <View style={{width: 150}}>
-          <AppDropdown
-            data={quarters}
-            selectedValue={selectedQuarter?.value || null}
-            onSelect={setSelectedQuarter}
-            mode="dropdown"
-            placeholder="Quarter"
-            style={{zIndex: 2000}}
-          />
-        </View>
-      </View>
       </View>
 
       {isDataEmpty ? (
@@ -794,9 +825,9 @@ export default function Dashboard_Partner({
       ) : (
         <>
           <TargetAchievementCard
-            data={dashboardData?.TRGTSummaryPartner}
+            data={targetAchievementData}
             isLoading={isLoading}
-            monthlyData={dashboardData?.PartnerType}
+            monthlyData={targetAchievementDataByMonth}
           />
           <ActivationPerformanceComponent
             tabs={activeTabsArray}

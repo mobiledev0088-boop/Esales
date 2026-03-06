@@ -51,26 +51,31 @@ const useUploadImagesMutation = () => {
       storeCode: string;
       formatedData: any;
     }) => {
-      const payload = {
-        ImageDetails: formatedData,
-        PartnerCode: storeCode || '',
-        UserName: EMP_Code || '',
-        MachineName: getDeviceId() || '',
-      };
-      console.log('Payload for upload API', payload);
-      const response = await handleASINApiCall(
-        '/Partner/ShopExpansionGalleryImages_Insert',
-        payload,
-        {},
-        true,
-      );
-      const result = response?.DashboardData;
-      if (!result?.Status) {
-        throw new Error('Failed to upload gallery review images.');
+      try{
+        const payload = {
+          ImageDetails: formatedData,
+          PartnerCode: storeCode || '',
+          UserName: EMP_Code || '',
+          MachineName: getDeviceId() || '',
+        };
+        console.log('Payload for upload API', payload);
+        const response = await handleASINApiCall(
+          '/Partner/ShopExpansionGalleryImages_Insert',
+          payload,
+          {},
+          true,
+        );
+        const result = response?.DashboardData;
+        if (!result?.Status) {
+          throw new Error('Failed to upload gallery review images.');
+        }
+        console.log('Upload response', result);
+      } catch (error) {
+        console.error('Error in upload mutation:', error);
+        showToast(error instanceof Error ? error.message : 'An unexpected error occurred while uploading images.');
       }
-      console.log('Upload response', result);
-    },
-  });
+      },
+    });
 };
 
 const buildPayload = async (formData: ImageTypeData[]) => {
