@@ -4,7 +4,7 @@ import {isIOS} from './constant';
 import {PermissionsAndroid, Share} from 'react-native';
 import {request, PERMISSIONS, RESULTS} from 'react-native-permissions';
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import {ensureFolderExists, getMimeTypeFromUrl} from './commonFunctions';
+import {ensureFolderExists, getMimeTypeFromUrl, showToast} from './commonFunctions';
 
 type DownloadParams = {
   url: string;
@@ -94,5 +94,6 @@ export async function downloadFile({
       mimeType,
     );
   }
+  showToast('File downloaded to Esales folder in Downloads.');
   return `${downloadPath}/${safeName}`;
 }
